@@ -431,7 +431,7 @@ t_asm_label * findLabel(t_translation_infos *infos, char *ID, int *asm_errorcode
    pattern.data = NULL;
 
    /* search the label */
-   label_element = CustomfindElement(infos->labels, &pattern, compareLabels);
+   label_element = findElementWithCallback(infos->labels, &pattern, compareLabels);
 
    /* if not found return a NULL pointer */
    if (label_element == NULL)

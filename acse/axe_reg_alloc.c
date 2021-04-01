@@ -157,7 +157,7 @@ int insertLiveInterval(t_reg_allocator *RA, t_live_interval *interval)
       return RA_INVALID_INTERVAL;
 
    /* test if an interval for the requested variable is already inserted */
-   if (CustomfindElement(RA->live_intervals
+   if (findElementWithCallback(RA->live_intervals
                , interval, compareIntervalIDs) != NULL)
    {
       return RA_INTERVAL_ALREADY_INSERTED;
@@ -234,7 +234,7 @@ int assignRegister(t_reg_allocator *RA, t_list *constraints)
    t_list *i = constraints;
    for (; i; i = LNEXT(i)) {
       regID = LINTDATA(i);
-      t_list *freeReg = CustomfindElement(RA->freeRegisters, &regID, _compareFreeRegLI);
+      t_list *freeReg = findElementWithCallback(RA->freeRegisters, &regID, _compareFreeRegLI);
       if (freeReg) {
          free(LDATA(freeReg));
          RA->freeRegisters = removeElementLink(RA->freeRegisters, freeReg);
@@ -586,7 +586,7 @@ t_list *updateVarInterval(t_cflow_var *var, int counter, t_list *intervals )
     
     pattern.varID = var->ID;
     /* search for the current live interval */
-    element_found = CustomfindElement(intervals, &pattern, compareIntervalIDs);
+    element_found = findElementWithCallback(intervals, &pattern, compareIntervalIDs);
     if (element_found != NULL)
     {
         interval_found = (t_live_interval *) LDATA(element_found);

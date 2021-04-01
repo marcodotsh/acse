@@ -275,7 +275,7 @@ extern t_list * removeElementLink(t_list *list, t_list *element)
 }
 
 /* find an element inside the list `list'. The current implementation calls the
- * CustomfindElement' passing a NULL reference as `func' */
+ * findElementWithCallback' passing a NULL reference as `func' */
 t_list * findElement(t_list *list, void *data)
 {
    t_list *current_elem;
@@ -297,7 +297,7 @@ t_list * findElement(t_list *list, void *data)
 }
 
 /* find an element inside the list `list'. */
-t_list * CustomfindElement(t_list *list, void *data
+t_list * findElementWithCallback(t_list *list, void *data
       , int (*compareFunc)(void *a, void *b))
 {
    t_list *current_elem;   
@@ -469,7 +469,7 @@ t_list * addListToSet(t_list *list, t_list *elements
       current_data = LDATA(current_element);
 
       /* Test if the element was already inserted. */
-      if (CustomfindElement(list, current_data, compareFunc) == NULL)
+      if (findElementWithCallback(list, current_data, compareFunc) == NULL)
       {
          list = addElement(list, current_data, -1);
          if (modified != NULL)

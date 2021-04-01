@@ -240,7 +240,7 @@ int putSym(t_symbol_table *table, char *ID, int type)
       pattern.ID = ID;
 
       /* verify if the symbol is valid */
-      if (  CustomfindElement(table->symbols
+      if (  findElementWithCallback(table->symbols
                   , &pattern, symCompare) != NULL)
       {
          /* symbol already defined */
@@ -283,7 +283,7 @@ t_symbol * getSymFromLocation(t_symbol_table *table, int location)
    pattern.reg_location = location;
 
    /* search for a symbol with the given ID */
-   l_element = CustomfindElement(table->symbols, &pattern, regCompare);
+   l_element = findElementWithCallback(table->symbols, &pattern, regCompare);
 
    /* postconditions */
    if (l_element == NULL)
@@ -311,7 +311,7 @@ t_symbol * getSymFromID(t_symbol_table *table, char *ID)
    pattern.ID = ID;
 
    /* search for a symbol with the given ID */
-   l_element = CustomfindElement(table->symbols, &pattern, symCompare);
+   l_element = findElementWithCallback(table->symbols, &pattern, symCompare);
 
    /* postconditions */
    if (l_element == NULL)

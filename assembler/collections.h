@@ -83,11 +83,11 @@ extern t_list *removeElement(t_list *list, void *data);
 extern t_list *removeElementLink(t_list *list, t_list *element);
 
 /* find an element inside the list `list'. The current implementation calls the
- * CustomfindElement' passing a NULL reference as `func' */
+ * findElementWithCallback' passing a NULL reference as `func' */
 extern t_list *findElement(t_list *list, void *data);
 
 /* find an element inside the list `list'. */
-extern t_list *CustomfindElement(
+extern t_list *findElementWithCallback(
       t_list *list, void *data, int (*compareFunc)(void *a, void *b));
 
 /* find the position of an `element' inside the `list'. -1 if not found */

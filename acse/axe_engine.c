@@ -146,7 +146,7 @@ t_axe_variable * getVariable
    search_pattern.ID = ID;
    
    /* search inside the list of variables */
-   elementFound = CustomfindElement
+   elementFound = findElementWithCallback
          (program->variables, &search_pattern, compareVariables);
 
    /* if the element is found return it to the caller. Otherwise return NULL. */

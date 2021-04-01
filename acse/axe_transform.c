@@ -951,7 +951,7 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
    t_tempLabel *tlabel;
 
    pattern.regID = temp_register;
-   elementFound = CustomfindElement (labelBindings
+   elementFound = findElementWithCallback (labelBindings
                , &pattern, compareTempLabels);
 
    if (elementFound == NULL) {
@@ -1003,7 +1003,7 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
    t_tempLabel *tlabel;
 
    pattern.regID = temp_register;
-   elementFound = CustomfindElement (labelBindings
+   elementFound = findElementWithCallback (labelBindings
                , &pattern, compareTempLabels);
 
    if (elementFound == NULL) {

@@ -133,7 +133,7 @@ t_list * addVariableToSet(t_list *set
    if (element == NULL)
       return set;
 
-   if (CustomfindElement(set, element
+   if (findElementWithCallback(set, element
             , compare_CFLOW_Variables) == NULL)
    {
       set = addElement(set, element, -1);
@@ -402,7 +402,7 @@ t_cflow_var * allocVariable (t_cflow_Graph *graph, int identifier, t_list *mcReg
    result->mcRegWhitelist = NULL;
    
    /* test if a variable with the same identifier was already present */
-   elementFound = CustomfindElement
+   elementFound = findElementWithCallback
          (graph->cflow_variables, result, compare_CFLOW_Variables);
    
    if (elementFound == NULL)
