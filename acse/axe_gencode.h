@@ -5,8 +5,8 @@
  * axe_gencode.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
- * Code generation functions. See also axe_utils.h for gen_load_immediate()
- * and gen_move_immediate().
+ * Code generation functions. See also axe_utils.h for genLoadImmediate()
+ * and genMoveImmediate().
  */
 
 #ifndef _AXE_GENCODE_H
@@ -22,12 +22,12 @@
 /* By calling this function, a new NOP instruction will be added
  * to `program'. A NOP instruction doesn't make use of
  * any kind of parameter */
-extern t_axe_instruction *gen_nop_instruction(t_program_infos *program);
+extern t_axe_instruction *genNOPInstruction(t_program_infos *program);
 
 /* By calling this function, a new HALT instruction will be added
  * to `program'. An HALT instruction doesn't require
  * any kind of parameter */
-extern t_axe_instruction *gen_halt_instruction(t_program_infos *program);
+extern t_axe_instruction *genHALTInstruction(t_program_infos *program);
 
 /*----------------------------------------------------
  *                   UNARY OPERATIONS
@@ -38,19 +38,19 @@ extern t_axe_instruction *gen_halt_instruction(t_program_infos *program);
  * 2.  A label information (can be a NULL pointer. If so, the addess
  *     value will be taken into consideration)
  * 3.  A direct address (if label is different from NULL) */
-extern t_axe_instruction *gen_load_instruction(
+extern t_axe_instruction *genLOADInstruction(
       t_program_infos *program, int r_dest, t_axe_label *label, int address);
 
 /* A READ instruction requires only one parameter:
  * A destination register (where the value
  * read from standard input will be loaded). */
-extern t_axe_instruction *gen_read_instruction(
+extern t_axe_instruction *genREADInstruction(
       t_program_infos *program, int r_dest);
 
 /* A WRITE instruction requires only one parameter:
  * A destination register (where the value
  * that will be written to the standard output is located). */
-extern t_axe_instruction *gen_write_instruction(
+extern t_axe_instruction *genWRITEInstruction(
       t_program_infos *program, int r_dest);
 
 /* A STORE instruction copies a value from a register to a
@@ -59,13 +59,13 @@ extern t_axe_instruction *gen_write_instruction(
  * In order to create a STORE instruction the caller must
  * provide a valid register location (`r_dest') and an
  * instance of `t_axe_label' or a numeric address */
-extern t_axe_instruction *gen_store_instruction(
+extern t_axe_instruction *genSTOREInstruction(
       t_program_infos *program, int r_dest, t_axe_label *label, int address);
 
 /* A MOVA instruction copies an address value into a register.
  * An address can be either an instance of `t_axe_label'
  * or a number (numeric address) */
-extern t_axe_instruction *gen_mova_instruction(
+extern t_axe_instruction *genMOVAInstruction(
       t_program_infos *program, int r_dest, t_axe_label *label, int address);
 
 /* 
@@ -79,7 +79,7 @@ extern t_axe_instruction *gen_mova_instruction(
  * (I.e.: r_dest will be set to #1 only if the value computed by
  * the last numeric operation returned a value
  * greater or equal to zero). */
-extern t_axe_instruction *gen_sge_instruction(
+extern t_axe_instruction *genSGEInstruction(
       t_program_infos *program, int r_dest);
 
 /* A SEQ instruction tests the content of the STATUS REGISTER. In particular,
@@ -87,7 +87,7 @@ extern t_axe_instruction *gen_sge_instruction(
  * `r_dest' if the condition Z is TRUE; otherwise the content of `r_dest' is set
  * to 0. (I.e.: r_dest will be set to #1 only if the value computed by
  * the last numeric operation returned a value equal to zero). */
-extern t_axe_instruction *gen_seq_instruction(
+extern t_axe_instruction *genSEQInstruction(
       t_program_infos *program, int r_dest);
 
 /* A SGT instruction tests the content of the STATUS REGISTER. In particular,
@@ -96,7 +96,7 @@ extern t_axe_instruction *gen_seq_instruction(
  * otherwise the content of `r_dest' is set to 0. (I.e.: r_dest will be
  * set to #1 only if the value computed by the last numeric operation
  * returned a value greater than zero). */
-extern t_axe_instruction *gen_sgt_instruction(
+extern t_axe_instruction *genSGTInstruction(
       t_program_infos *program, int r_dest);
 
 /* A SLE instruction tests the content of the STATUS REGISTER. In particular,
@@ -105,7 +105,7 @@ extern t_axe_instruction *gen_sgt_instruction(
  * otherwise the content of `r_dest' is set to 0. (I.e.: r_dest will be
  * set to #1 only if the value computed by the last numeric operation
  * returned a value less than zero). */
-extern t_axe_instruction *gen_sle_instruction(
+extern t_axe_instruction *genSLEInstruction(
       t_program_infos *program, int r_dest);
 
 /* A SLT instruction tests the content of the STATUS REGISTER. In particular,
@@ -114,7 +114,7 @@ extern t_axe_instruction *gen_sle_instruction(
  * otherwise the content of `r_dest' is set to 0. (I.e.: r_dest will be
  * set to #1 only if the value computed by the last numeric operation
  * returned a value less than or equal to zero). */
-extern t_axe_instruction *gen_slt_instruction(
+extern t_axe_instruction *genSLTInstruction(
       t_program_infos *program, int r_dest);
 
 /* A SNE instruction tests the content of the STATUS REGISTER. In particular,
@@ -123,7 +123,7 @@ extern t_axe_instruction *gen_slt_instruction(
  * otherwise the content of `r_dest' is set to 0. (I.e.: r_dest will be
  * set to #1 only if the value computed by the last numeric operation
  * returned a value different from zero). */
-extern t_axe_instruction *gen_sne_instruction(
+extern t_axe_instruction *genSNEInstruction(
       t_program_infos *program, int r_dest);
 
 /*----------------------------------------------------
@@ -141,7 +141,7 @@ extern t_axe_instruction *gen_sne_instruction(
  * operation. `r_dest' is a register location, `immediate' is an immediate
  * value. The content of `r_source1' is added to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
-extern t_axe_instruction *gen_addi_instruction(
+extern t_axe_instruction *genADDIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -155,7 +155,7 @@ extern t_axe_instruction *gen_addi_instruction(
  * operation. `r_dest' is a register location, `immediate' is an immediate
  * value. The content of `r_source1' is subtracted to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
-extern t_axe_instruction *gen_subi_instruction(
+extern t_axe_instruction *genSUBIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -164,7 +164,7 @@ extern t_axe_instruction *gen_subi_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_andli_instruction(
+extern t_axe_instruction *genANDLIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -173,7 +173,7 @@ extern t_axe_instruction *gen_andli_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_orli_instruction(
+extern t_axe_instruction *genORLIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -182,7 +182,7 @@ extern t_axe_instruction *gen_orli_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_eorli_instruction(
+extern t_axe_instruction *genEORLIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -191,7 +191,7 @@ extern t_axe_instruction *gen_eorli_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_andbi_instruction(
+extern t_axe_instruction *genANDBIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -200,7 +200,7 @@ extern t_axe_instruction *gen_andbi_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_muli_instruction(
+extern t_axe_instruction *genMULIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -209,7 +209,7 @@ extern t_axe_instruction *gen_muli_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_orbi_instruction(
+extern t_axe_instruction *genORBIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -218,7 +218,7 @@ extern t_axe_instruction *gen_orbi_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_eorbi_instruction(
+extern t_axe_instruction *genEORBIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -227,7 +227,7 @@ extern t_axe_instruction *gen_eorbi_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_divi_instruction(
+extern t_axe_instruction *genDIVIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -236,7 +236,7 @@ extern t_axe_instruction *gen_divi_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_shli_instruction(
+extern t_axe_instruction *genSHLIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -245,19 +245,19 @@ extern t_axe_instruction *gen_shli_instruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_axe_instruction *gen_shri_instruction(
+extern t_axe_instruction *genSHRIInstruction(
       t_program_infos *program, int r_dest, int r_source1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a NOTL instruction. An example RTL representation of NOTL R1 R2 is:
  * R1 <-- !R2. */
-extern t_axe_instruction *gen_notl_instruction(
+extern t_axe_instruction *genNOTLInstruction(
       t_program_infos *program, int r_dest, int r_source1);
 
 /* Used in order to create and assign to the current `program'
  * a NOTB instruction. An example RTL representation of NOTB R1 R2 is:
  * R1 <-- ~R2. */
-extern t_axe_instruction *gen_notb_instruction(
+extern t_axe_instruction *genNOTBInstruction(
       t_program_infos *program, int r_dest, int r_source1);
 
 /*----------------------------------------------------
@@ -270,7 +270,7 @@ extern t_axe_instruction *gen_notb_instruction(
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_add_instruction(t_program_infos *program,
+extern t_axe_instruction *genADDInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -279,7 +279,7 @@ extern t_axe_instruction *gen_add_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_sub_instruction(t_program_infos *program,
+extern t_axe_instruction *genSUBInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -288,7 +288,7 @@ extern t_axe_instruction *gen_sub_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_andl_instruction(t_program_infos *program,
+extern t_axe_instruction *genANDLInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -297,7 +297,7 @@ extern t_axe_instruction *gen_andl_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_orl_instruction(t_program_infos *program,
+extern t_axe_instruction *genORLInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -306,7 +306,7 @@ extern t_axe_instruction *gen_orl_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_eorl_instruction(t_program_infos *program,
+extern t_axe_instruction *genEORLInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -315,7 +315,7 @@ extern t_axe_instruction *gen_eorl_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_andb_instruction(t_program_infos *program,
+extern t_axe_instruction *genANDBInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -324,7 +324,7 @@ extern t_axe_instruction *gen_andb_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_orb_instruction(t_program_infos *program,
+extern t_axe_instruction *genORBInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -333,7 +333,7 @@ extern t_axe_instruction *gen_orb_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_eorb_instruction(t_program_infos *program,
+extern t_axe_instruction *genEORBInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -342,7 +342,7 @@ extern t_axe_instruction *gen_eorb_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_mul_instruction(t_program_infos *program,
+extern t_axe_instruction *genMULInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -351,7 +351,7 @@ extern t_axe_instruction *gen_mul_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_div_instruction(t_program_infos *program,
+extern t_axe_instruction *genDIVInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -360,7 +360,7 @@ extern t_axe_instruction *gen_div_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_shl_instruction(t_program_infos *program,
+extern t_axe_instruction *genSHLInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -369,7 +369,7 @@ extern t_axe_instruction *gen_shl_instruction(t_program_infos *program,
  * `r_source1' and `r_source2' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location. `r_dest' and `r_source2'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_shr_instruction(t_program_infos *program,
+extern t_axe_instruction *genSHRInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /* Used in order to create and assign to the current `program'
@@ -378,11 +378,11 @@ extern t_axe_instruction *gen_shr_instruction(t_program_infos *program,
  * `r_source' is the only operand for this instruction.
  * `r_dest' is a register location. `r_dest' and `r_source'
  * are register locations that can be directly or indirectly addressed. */
-extern t_axe_instruction *gen_neg_instruction(
+extern t_axe_instruction *genNEGInstruction(
       t_program_infos *program, int r_dest, int r_source, int flags);
 
 /* This instruction is reserved for future implementation. */
-extern t_axe_instruction *gen_spcl_instruction(t_program_infos *program,
+extern t_axe_instruction *genSPCLInstruction(t_program_infos *program,
       int r_dest, int r_source1, int r_source2, int flags);
 
 /*----------------------------------------------------
@@ -392,89 +392,89 @@ extern t_axe_instruction *gen_spcl_instruction(t_program_infos *program,
 /* create a branch true instruction. By executing this instruction the control
  * is always passed to either the instruction with the label `label' associated
  * with, or (if `label' is a NULL pointer) to the explicit `address' */
-extern t_axe_instruction *gen_bt_instruction(
+extern t_axe_instruction *genBTInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a branch false instruction. By executing this instruction the control
  * is always passed to the next instruction in the program
  * (i.e.: the instruction pointed by PC + 1). */
-extern t_axe_instruction *gen_bf_instruction(
+extern t_axe_instruction *genBFInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create an unsigned "branch on higher than" instruction. According to the
  * value of the status register, the branch will be taken if the expression
  * ~(C + Z) is TRUE. */
-extern t_axe_instruction *gen_bhi_instruction(
+extern t_axe_instruction *genBHIInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create an unsigned "branch on less than (or equal)" instruction. According
  * to the value of the status register, the branch will be taken if the
  * expression (C + Z) is TRUE. */
-extern t_axe_instruction *gen_bls_instruction(
+extern t_axe_instruction *genBLSInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on carry clear" instruction. If the bit `C' of the
  * status register is not set, then the branch is taken. */
-extern t_axe_instruction *gen_bcc_instruction(
+extern t_axe_instruction *genBCCInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on carry set" instruction. If the bit `C' of the
  * status register is set, then the branch is taken. */
-extern t_axe_instruction *gen_bcs_instruction(
+extern t_axe_instruction *genBCSInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on not equal" instruction. If the bit `Z' of the
  * status register is not set, then the branch is taken. */
-extern t_axe_instruction *gen_bne_instruction(
+extern t_axe_instruction *genBNEInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on equal" instruction. If the bit `Z' of the
  * status register is set, then the branch is taken. */
-extern t_axe_instruction *gen_beq_instruction(
+extern t_axe_instruction *genBEQInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on overflow clear" instruction. If the bit `V' of the
  * status register is not set, then the branch is taken. */
-extern t_axe_instruction *gen_bvc_instruction(
+extern t_axe_instruction *genBVCInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on overflow set" instruction. If the bit `V' of the
  * status register is set, then the branch is taken. */
-extern t_axe_instruction *gen_bvs_instruction(
+extern t_axe_instruction *genBvsInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on plus (i.e. positive)" instruction. If the bit `N' of the
  * status register is not set, then the branch is taken. */
-extern t_axe_instruction *gen_bpl_instruction(
+extern t_axe_instruction *genBPLInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on minus (i.e. negative)" instruction. If the bit `N' of the
  * status register is set, then the branch is taken. */
-extern t_axe_instruction *gen_bmi_instruction(
+extern t_axe_instruction *genBMIInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on greater or equal" instruction. According to the value
  * of the status register, the branch will be taken if the expression
  * (N.V + ~N.~V) is TRUE. */
-extern t_axe_instruction *gen_bge_instruction(
+extern t_axe_instruction *genBGEInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on less than" instruction. According to the value
  * of the status register, the branch will be taken if the expression
  * (N.~V + ~N.V) is TRUE. */
-extern t_axe_instruction *gen_blt_instruction(
+extern t_axe_instruction *genBLTInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on greater than" instruction. According to the value
  * of the status register, the branch will be taken if the expression
  * (N.V.~Z + ~N.~V.~Z) is TRUE. */
-extern t_axe_instruction *gen_bgt_instruction(
+extern t_axe_instruction *genBGTInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 /* create a "branch on less than or equal" instruction. According to the value
  * of the status register, the branch will be taken if the expression
  * (Z + N.~V + ~N.V) is TRUE. */
-extern t_axe_instruction *gen_ble_instruction(
+extern t_axe_instruction *genBLEInstruction(
       t_program_infos *program, t_axe_label *label, int addr);
 
 

@@ -720,7 +720,7 @@ t_list * expireOldIntervals(t_reg_allocator *RA, t_list *active_intervals
 /*
  * Main register allocation function
  */
-int execute_linear_scan(t_reg_allocator *RA)
+int executeLinearScan(t_reg_allocator *RA)
 {
    t_list *current_element;
    t_live_interval *current_interval;

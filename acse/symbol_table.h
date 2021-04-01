@@ -47,15 +47,15 @@ extern int getLocation(t_symbol_table *table, char *ID, int *errorcode);
 extern int getTypeFromID(t_symbol_table *table, char *ID);
 
 /* initialize the symbol table */
-extern t_symbol_table * initialize_sy_table();
+extern t_symbol_table * initializeSymbolTable();
 
 /* finalize the symbol table */
-extern int finalize_sy_table(t_symbol_table *table);
+extern int finalizeSymbolTable(t_symbol_table *table);
 
 /* given a register identifier (location), it returns the ID of the variable
  * stored inside the register `location'. This function returns NULL
  * if the location is an invalid location. */
-extern char *getIDfromLocation(
+extern char *getSymbolNameFromReg(
       t_symbol_table *table, int location, int *errorcode);
 
 #ifndef NDEBUG

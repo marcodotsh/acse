@@ -10,7 +10,7 @@
 #include "axe_struct.h"
 
 /* create an expression */
-t_axe_expression create_expression (int value, int type)
+t_axe_expression createExpression (int value, int type)
 {
    t_axe_expression expression;
 
@@ -21,7 +21,7 @@ t_axe_expression create_expression (int value, int type)
 }
 
 /* create and initialize an instance of `t_axe_register' */
-t_axe_register * alloc_register(int ID, int indirect)
+t_axe_register * initializeRegister(int ID, int indirect)
 {
    t_axe_register *result;
 
@@ -43,7 +43,7 @@ t_axe_register * alloc_register(int ID, int indirect)
 }
 
 /* create and initialize an instance of `t_axe_instruction' */
-t_axe_instruction * alloc_instruction(int opcode)
+t_axe_instruction * initializeInstruction(int opcode)
 {
    t_axe_instruction *result;
 
@@ -70,7 +70,7 @@ t_axe_instruction * alloc_instruction(int opcode)
 }
 
 /* create and initialize an instance of `t_axe_data' */
-t_axe_data * alloc_data(int directiveType, int value, t_axe_label *label)
+t_axe_data * initializeData(int directiveType, int value, t_axe_label *label)
 {
    t_axe_data *result;
 
@@ -90,7 +90,7 @@ t_axe_data * alloc_data(int directiveType, int value, t_axe_label *label)
    return result;
 }
 
-t_while_statement create_while_statement()
+t_while_statement createWhileStatement()
 {
    t_while_statement statement;
 
@@ -102,7 +102,7 @@ t_while_statement create_while_statement()
    return statement;
 }
 
-t_axe_label * alloc_label(int value)
+t_axe_label * initializeLabel(int value)
 {
    t_axe_label *result;
 
@@ -118,14 +118,14 @@ t_axe_label * alloc_label(int value)
    return result;
 }
 
-void free_label(t_axe_label *lab)
+void finalizeLabel(t_axe_label *lab)
 {
    if (lab->name)
       free(lab->name);
    free(lab);
 }
 
-t_axe_declaration * alloc_declaration
+t_axe_declaration * initializeDeclaration
       (char *ID, int isArray, int arraySize, int init_val)
 {
    t_axe_declaration *result;
@@ -149,13 +149,13 @@ t_axe_declaration * alloc_declaration
 }
 
 /* finalize an instance of `t_axe_variable' */
-void free_variable (t_axe_variable *variable)
+void finalizeVariable (t_axe_variable *variable)
 {
    free(variable);
 }
 
 /* create and initialize an instance of `t_axe_variable' */
-t_axe_variable * alloc_variable
+t_axe_variable * initializeVariable
       (char *ID, int type, int isArray, int arraySize, int init_val)
 {
    t_axe_variable *result;
@@ -181,7 +181,7 @@ t_axe_variable * alloc_variable
 }
 
 /* finalize an instruction info. */
-void free_Instruction(t_axe_instruction *inst)
+void finalizeInstruction(t_axe_instruction *inst)
 {
    /* preconditions */
    if (inst == NULL)
@@ -211,13 +211,13 @@ void free_Instruction(t_axe_instruction *inst)
 }
 
 /* finalize a data info. */
-void free_Data(t_axe_data *data)
+void finalizeData(t_axe_data *data)
 {
    if (data != NULL)
       free(data);
 }
 
-t_axe_address * alloc_address(int type, int address, t_axe_label *label)
+t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
 {
    t_axe_address *result;
 

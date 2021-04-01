@@ -18,7 +18,7 @@
 
 /* a debug routine used to print on a specific output file the string
  * representation of an instruction */
-extern void debug_printInstruction(t_axe_instruction *instr, FILE *fout);
+extern void debugPrintInstruction(t_axe_instruction *instr, FILE *fout);
 
 /* print debug information about the program */
 extern void printProgramInfos(t_program_infos *program, FILE *fout);

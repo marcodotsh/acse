@@ -89,7 +89,7 @@ static t_list * _insertStore(t_program_infos *program, t_cflow_Graph *graph
 
    /* test if an error occurred */
    if (errorcode != AXE_OK) {
-      free_Instruction(storeInstr);
+      finalizeInstruction(storeInstr);
       notifyError(errorcode);
    }
                
@@ -99,7 +99,7 @@ static t_list * _insertStore(t_program_infos *program, t_cflow_Graph *graph
       storeNode = allocNode (graph, storeInstr);
       if (cflow_errorcode != CFLOW_OK) {
          finalizeNode(storeNode);
-         free_Instruction(storeInstr);
+         finalizeInstruction(storeInstr);
          return usedVars;
       }
 
@@ -131,7 +131,7 @@ t_list * _insertLoad(t_program_infos *program, t_cflow_Graph *graph
 
    /* test if an error occurred */
    if (errorcode != AXE_OK) {
-      free_Instruction(loadInstr);
+      finalizeInstruction(loadInstr);
       notifyError(errorcode);
    }
 
@@ -143,7 +143,7 @@ t_list * _insertLoad(t_program_infos *program, t_cflow_Graph *graph
       /* test if an error occurred */
       if (cflow_errorcode != CFLOW_OK) {
          finalizeNode(loadNode);
-         free_Instruction(loadInstr);
+         finalizeInstruction(loadInstr);
          return usedVars;
       }
 
@@ -215,7 +215,7 @@ void updateTheDataSegment(t_program_infos *program, t_list *labelBindings)
    {
       current_TL = (t_tempLabel *) LDATA(current_element);
 
-      new_data_info = alloc_data (DIR_WORD, 0, current_TL->labelID);
+      new_data_info = initializeData (DIR_WORD, 0, current_TL->labelID);
          
       if (new_data_info == NULL){
          finalizeListOfTempLabels(labelBindings);
@@ -246,24 +246,24 @@ t_axe_instruction * _createUnary (t_program_infos *program
    }
 
    /* create an instance of `t_axe_instruction' */
-   result = alloc_instruction(opcode);
+   result = initializeInstruction(opcode);
    if (result == NULL) {
       errorcode = AXE_OUT_OF_MEMORY;
       return NULL;
    }
 
-   result->reg_1 = alloc_register(reg, 0);
+   result->reg_1 = initializeRegister(reg, 0);
    if (result->reg_1 == NULL) {
       errorcode = AXE_OUT_OF_MEMORY;
-      free_Instruction(result);
+      finalizeInstruction(result);
       return NULL;
    }
 
    /* initialize an address info */
-   result->address = alloc_address(LABEL_TYPE, 0, label);
+   result->address = initializeAddress(LABEL_TYPE, 0, label);
    if (result->address == NULL) {
       errorcode = AXE_OUT_OF_MEMORY;
-      free_Instruction(result);
+      finalizeInstruction(result);
       return NULL;
    }
 
@@ -429,7 +429,7 @@ t_axe_instruction * createUnaryInstruction
 
    /* initialize the value of errorcode */
    sy_errorcode = SY_TABLE_OK;
-   varID = getIDfromLocation(program->sy_table, reg, &sy_errorcode);
+   varID = getSymbolNameFromReg(program->sy_table, reg, &sy_errorcode);
    if (varID == NULL)
       return NULL;
 
@@ -969,7 +969,7 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
 
    /* test if an error occurred */
    if (errorcode != AXE_OK) {
-      free_Instruction(storeInstr);
+      finalizeInstruction(storeInstr);
       return -1;
    }
 
@@ -977,7 +977,7 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
    storeNode = allocNode (graph, storeInstr);
    if (cflow_errorcode != CFLOW_OK) {
       finalizeNode(storeNode);
-      free_Instruction(storeInstr);
+      finalizeInstruction(storeInstr);
       errorcode = AXE_TRANSFORM_ERROR;
       return -1;
    }
@@ -1021,7 +1021,7 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
 
    /* test if an error occurred */
    if (errorcode != AXE_OK) {
-      free_Instruction(loadInstr);
+      finalizeInstruction(loadInstr);
       finalizeNode(loadNode);
       return -1;
    }
@@ -1035,7 +1035,7 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
    /* test if an error occurred */
    if (cflow_errorcode != CFLOW_OK) {
       finalizeNode(loadNode);
-      free_Instruction(loadInstr);
+      finalizeInstruction(loadInstr);
       errorcode = AXE_TRANSFORM_ERROR;
       return -1;
    }

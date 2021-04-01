@@ -57,7 +57,7 @@ void writeAssembly(t_program_infos *program, char *output_file)
    fprintf(stdout, "DATA SEGMENT has a size of %d elements \n"
          , getLength(program->data));
    fprintf(stdout, "NUMBER OF LABELS : %d. \n"
-         , get_number_of_labels(program->lmanager));
+         , getLabelCount(program->lmanager));
    fprintf(stdout, "*******************************************\n\n");
 #endif
    

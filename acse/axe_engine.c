@@ -51,7 +51,7 @@ void createVariable(t_program_infos *program, char *ID
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
 
    /* initialize a new variable */
-   var = alloc_variable(ID, type, isArray, arraySize, init_val);
+   var = initializeVariable(ID, type, isArray, arraySize, init_val);
    if (var == NULL)
       notifyError(AXE_OUT_OF_MEMORY);
    
@@ -78,7 +78,7 @@ void finalizeDataSegment(t_list *dataDirectives)
       /* retrieve the current instruction */
       current_data = (t_axe_data *) LDATA(current_element);
       if (current_data != NULL)
-         free_Data(current_data);
+         finalizeData(current_data);
 
       current_element = LNEXT(current_element);
    }
@@ -102,7 +102,7 @@ void finalizeInstructions(t_list *instructions)
       /* retrieve the current instruction */
       current_instr = (t_axe_instruction *) LDATA(current_element);
       if (current_instr != NULL)
-         free_Instruction(current_instr);
+         finalizeInstruction(current_instr);
 
       current_element = LNEXT(current_element);
    }
@@ -176,8 +176,8 @@ t_program_infos * allocProgramInfos()
    result->instrInsPtrStack = addElement(NULL, NULL, -1);
    result->data = NULL;
    result->current_register = 1; /* we are excluding the register R0 */
-   result->lmanager = initialize_label_manager();
-   result->sy_table = initialize_sy_table();
+   result->lmanager = initializeLabelManager();
+   result->sy_table = initializeSymbolTable();
 
    if (result->lmanager == NULL || result->sy_table == NULL)
    {
@@ -202,7 +202,7 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    if (program->lmanager == NULL)
       notifyError(AXE_INVALID_LABEL_MANAGER);
 
-   instr->labelID = assign_label(program->lmanager);
+   instr->labelID = getLastPendingLabel(program->lmanager);
 
    if (line_num >= 0 && line_num != prev_line_num) {
       instr->user_comment = calloc(20, sizeof(char));
@@ -241,7 +241,7 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
           * is already labeled */
          if (!nextInst || (nextInst->labelID)) {
             pushInstrInsertionPoint(program, instrLi);
-            nextInst = gen_nop_instruction(program);
+            nextInst = genNOPInstruction(program);
             popInstrInsertionPoint(program);
          }
          nextInst->labelID = instrToRemove->labelID;
@@ -265,7 +265,7 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
 
    /* remove the instruction */
    program->instructions = removeElementLink(program->instructions, instrLi);
-   free_Instruction(instrToRemove);
+   finalizeInstruction(instrToRemove);
 }
 
 void pushInstrInsertionPoint(t_program_infos *p, t_list *ip)
@@ -280,12 +280,12 @@ t_list *popInstrInsertionPoint(t_program_infos *p)
    t_list *ip = LDATA(p->instrInsPtrStack);
 
    /* affix the currently pending label, if needed */
-   t_axe_label *label = assign_label(p->lmanager);
+   t_axe_label *label = getLastPendingLabel(p->lmanager);
    if (label) {
       t_list *labelPos = ip ? LNEXT(ip) : NULL;
       t_axe_instruction *instrToLabel;
       if (!labelPos)
-         instrToLabel = gen_nop_instruction(p);
+         instrToLabel = genNOPInstruction(p);
       else
          instrToLabel = LDATA(labelPos);
       instrToLabel->labelID = label;
@@ -370,21 +370,21 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
 
    if (program == NULL)
    {
-      free_variable(variable);
+      finalizeVariable(variable);
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
       return;
    }
 
    if (variable->ID == NULL)
    {
-      free_variable(variable);
+      finalizeVariable(variable);
       notifyError(AXE_VARIABLE_ID_UNSPECIFIED);
       return;
    }
 
    if (variable->type == UNKNOWN_TYPE)
    {
-      free_variable(variable);
+      finalizeVariable(variable);
       notifyError(AXE_INVALID_TYPE);
       return;
    }
@@ -393,7 +393,7 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
    {
       if (variable->arraySize <= 0)
       {
-         free_variable(variable);
+         finalizeVariable(variable);
          notifyError(AXE_INVALID_ARRAY_SIZE);
          return;
       }
@@ -401,7 +401,7 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
    
    if (variable->labelID == NULL)
    {
-      free_variable(variable);
+      finalizeVariable(variable);
       notifyError(AXE_INVALID_LABEL);
       return;
    }
@@ -411,7 +411,7 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
 
    if (variableFound != NULL)
    {
-      free_variable(variable);
+      finalizeVariable(variable);
       notifyError(AXE_VARIABLE_ALREADY_DECLARED);
       return;
    }
@@ -425,15 +425,15 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
       if (variable->isArray)
       {
          int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
-         new_data_info = alloc_data(DIR_SPACE, variable->arraySize * sizeofElem,
-               variable->labelID);
+         new_data_info = initializeData(DIR_SPACE,
+               variable->arraySize * sizeofElem, variable->labelID);
          
          if (new_data_info == NULL)
             notifyError(AXE_OUT_OF_MEMORY);
       }
       else
       {
-         new_data_info = alloc_data
+         new_data_info = initializeData
             (DIR_WORD, variable->init_val, variable->labelID);
          
          if (new_data_info == NULL)
@@ -482,9 +482,9 @@ void finalizeProgramInfos(t_program_infos *program)
    if (program->data != NULL)
       finalizeDataSegment(program->data);
    if (program->lmanager != NULL)
-      finalize_label_manager(program->lmanager);
+      finalizeLabelManager(program->lmanager);
    if (program->sy_table != NULL)
-      finalize_sy_table(program->sy_table);
+      finalizeSymbolTable(program->sy_table);
 
    free(program);
 }

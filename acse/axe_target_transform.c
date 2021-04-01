@@ -44,12 +44,12 @@ t_axe_instruction *genLoweredImmediateMove(
 
    int basereg = REG_0;
    if (imm1) {
-      firstInstr = gen_addi_instruction(program, dest, basereg, imm1);
-      gen_shli_instruction(program, dest, dest, 16);
+      firstInstr = genADDIInstruction(program, dest, basereg, imm1);
+      genSHLIInstruction(program, dest, dest, 16);
       basereg = dest;
    }
    if (imm0 || basereg == REG_0) {
-      t_axe_instruction *i = gen_addi_instruction(program, dest, basereg, imm0);
+      t_axe_instruction *i = genADDIInstruction(program, dest, basereg, imm0);
       if (!firstInstr)
          firstInstr = i;
    }
@@ -82,7 +82,7 @@ void fixLargeImmediates(t_program_infos *program)
          int reg = getNewRegister(program);
          moveLabel(genLoweredImmediateMove(program, reg, instr->immediate), instr);
          instr->immediate = 0;
-         instr->reg_3 = alloc_register(reg, 0);
+         instr->reg_3 = initializeRegister(reg, 0);
          instr->opcode = switchOpcodeImmediateForm(instr->opcode);
          popInstrInsertionPoint(program);
       }

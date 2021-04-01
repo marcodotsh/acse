@@ -24,17 +24,17 @@ void genStoreArrayElement(t_program_infos *program, char *ID
    if (data.expression_type == REGISTER)
    {
       /* load the value indirectly into `mova_register' */
-      gen_add_instruction(program, address, REG_0
+      genADDInstruction(program, address, REG_0
                , data.value, CG_INDIRECT_DEST);
    }
    else
    {
       int imm_register;
 
-      imm_register = gen_load_immediate(program, data.value);
+      imm_register = genLoadImmediate(program, data.value);
 
       /* load the value indirectly into `load_register' */
-      gen_add_instruction(program, address, REG_0
+      genADDInstruction(program, address, REG_0
                ,imm_register, CG_INDIRECT_DEST);
    }
 }
@@ -52,7 +52,7 @@ int genLoadArrayElement(t_program_infos *program
    load_register = getNewRegister(program);
 
    /* load the value into `load_register' */
-   gen_add_instruction(program, load_register, REG_0
+   genADDInstruction(program, load_register, REG_0
             , address, CG_INDIRECT_SOURCE);
 
    /* return the register ID that holds the required data */
@@ -84,7 +84,7 @@ int genLoadArrayAddress(t_program_infos *program
    mova_register = getNewRegister(program);
 
    /* generate the MOVA instruction */
-   gen_mova_instruction(program, mova_register, label, 0);
+   genMOVAInstruction(program, mova_register, label, 0);
 
    /* We are making the following assumption:
     * the type can only be an INTEGER_TYPE */
@@ -94,7 +94,7 @@ int genLoadArrayAddress(t_program_infos *program
    {
       if (index.value != 0)
       {
-         gen_addi_instruction(program, mova_register
+         genADDIInstruction(program, mova_register
                      , mova_register, index.value * sizeofElem);
       }
    }
@@ -105,10 +105,10 @@ int genLoadArrayAddress(t_program_infos *program
       int idxReg = index.value;
       if (sizeofElem != 1) {
          idxReg = getNewRegister(program);
-         gen_muli_instruction(program, idxReg, index.value, sizeofElem);
+         genMULIInstruction(program, idxReg, index.value, sizeofElem);
       }
       
-      gen_add_instruction(program, mova_register, mova_register
+      genADDInstruction(program, mova_register, mova_register
                , idxReg, CG_DIRECT_ALL);
    }
 

@@ -54,7 +54,7 @@ static void free_new_variables(t_list *variables)
    freeList(variables);
 }
 
-void set_new_variables(t_program_infos *program, int varType, t_list *variables)
+void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variables)
 {
    t_list *current_element;
    t_axe_declaration *current_decl;
@@ -101,7 +101,7 @@ void set_new_variables(t_program_infos *program, int varType, t_list *variables)
       /* add a load instruction for each declared variable
        * that is not an array type */
       if (!(current_decl->isArray))
-         get_symbol_location(program, current_decl->ID, 0);
+         getRegisterForSymbol(program, current_decl->ID, 0);
 
       /* free the memory associated with the current declaration */
       free(current_decl);
@@ -113,7 +113,7 @@ void set_new_variables(t_program_infos *program, int varType, t_list *variables)
    freeList(variables);
 }
 
-int get_symbol_location(t_program_infos *program, char *ID, int genLoad)
+int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad)
 {
    int sy_error;
    int location;
@@ -154,7 +154,7 @@ int get_symbol_location(t_program_infos *program, char *ID, int genLoad)
       /* load the value of IDENTIFIER from the
        * given label to a register */
       if (genLoad)
-         gen_load_instruction(program, location, label, 0);
+         genLOADInstruction(program, location, label, 0);
 
       /* update the symbol table */
       sy_errorcode = setLocation(program->sy_table, ID, location);
@@ -174,18 +174,18 @@ int get_symbol_location(t_program_infos *program, char *ID, int genLoad)
    return location;
 }
 
-void gen_move_immediate(t_program_infos *program, int dest, int immediate)
+void genMoveImmediate(t_program_infos *program, int dest, int immediate)
 {
-   gen_addi_instruction(program, dest, REG_0, immediate);
+   genADDIInstruction(program, dest, REG_0, immediate);
 }
 
-int gen_load_immediate(t_program_infos *program, int immediate)
+int genLoadImmediate(t_program_infos *program, int immediate)
 {
    int imm_register;
 
    imm_register = getNewRegister(program);
 
-   gen_move_immediate(program, imm_register, immediate);
+   genMoveImmediate(program, imm_register, immediate);
 
    return imm_register;
 }
@@ -322,14 +322,14 @@ int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
    return 0;
 }
 
-void set_end_Program(t_program_infos *program)
+void setProgramEnd(t_program_infos *program)
 {
    if (program == NULL)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (isAssigningLabel(program->lmanager))
    {
-      gen_halt_instruction(program);
+      genHALTInstruction(program);
       return;
    }
 
@@ -350,7 +350,7 @@ void set_end_Program(t_program_infos *program)
          return;
    }
 
-   gen_halt_instruction(program);
+   genHALTInstruction(program);
    return;
 }
 
@@ -376,7 +376,7 @@ void shutdownCompiler(int exitStatus)
    exit(exitStatus);
 }
 
-void init_compiler(int argc, char **argv)
+void initializeCompiler(int argc, char **argv)
 {
 #ifndef NDEBUG
    fprintf(stdout, "ACSE compiler, version %s, targeting %s\n\n", 

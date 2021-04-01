@@ -170,10 +170,10 @@ extern void yyerror(const char*);
 program  : var_declarations statements EOF_TOK
          {
             /* Notify the end of the program. Once called
-             * the function `set_end_Program' - if necessary -
+             * the function `setProgramEnd' - if necessary -
              * introduces a `HALT' instruction into the
              * list of instructions. */
-            set_end_Program(program);
+            setProgramEnd(program);
 
             /* return from yyparse() */
             YYACCEPT;
@@ -187,7 +187,7 @@ var_declarations : var_declarations var_declaration   { /* does nothing */ }
 var_declaration   : TYPE declaration_list SEMI
                   {
                      /* update the program infos by adding new variables */
-                     set_new_variables(program, $1, $2);
+                     addVariablesFromDecls(program, $1, $2);
                   }
 ;
 
@@ -205,7 +205,7 @@ declaration_list  : declaration_list COMMA declaration
 declaration : IDENTIFIER ASSIGN NUMBER
             {
                /* create a new instance of t_axe_declaration */
-               $$ = alloc_declaration($1, 0, 0, $3);
+               $$ = initializeDeclaration($1, 0, 0, $3);
 
                /* test if an `out of memory' occurred */
                if ($$ == NULL)
@@ -214,7 +214,7 @@ declaration : IDENTIFIER ASSIGN NUMBER
             | IDENTIFIER LSQUARE NUMBER RSQUARE
             {
                /* create a new instance of t_axe_declaration */
-               $$ = alloc_declaration($1, 1, $3, 0);
+               $$ = initializeDeclaration($1, 1, $3, 0);
 
                   /* test if an `out of memory' occurred */
                if ($$ == NULL)
@@ -223,7 +223,7 @@ declaration : IDENTIFIER ASSIGN NUMBER
             | IDENTIFIER
             {
                /* create a new instance of t_axe_declaration */
-               $$ = alloc_declaration($1, 0, 0, 0);
+               $$ = initializeDeclaration($1, 0, 0, 0);
                
                /* test if an `out of memory' occurred */
                if ($$ == NULL)
@@ -247,7 +247,7 @@ statements  : statements statement       { /* does nothing */ }
 statement   : assign_statement SEMI      { /* does nothing */ }
             | control_statement          { /* does nothing */ }
             | read_write_statement SEMI  { /* does nothing */ }
-            | SEMI            { gen_nop_instruction(program); }
+            | SEMI            { genNOPInstruction(program); }
 ;
 
 control_statement : if_statement         { /* does nothing */ }
@@ -283,23 +283,23 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
 
                /* in order to assign a value to a variable, we have to
                 * know where the variable is located (i.e. in which register).
-                * the function `get_symbol_location' is used in order
+                * the function `getRegisterForSymbol' is used in order
                 * to retrieve the register location assigned to
                 * a given identifier.
                 * A symbol table keeps track of the location of every
                 * declared variable.
-                * `get_symbol_location' perform a query on the symbol table
+                * `getRegisterForSymbol' perform a query on the symbol table
                 * in order to discover the correct location of
                 * the variable with $1 as identifier */
                
                /* get the location of the symbol with the given ID. */
-               location = get_symbol_location(program, $1, 0);
+               location = getRegisterForSymbol(program, $1, 0);
 
                /* update the value of location */
                if ($3.expression_type == IMMEDIATE)
-                  gen_move_immediate(program, location, $3.value);
+                  genMoveImmediate(program, location, $3.value);
                else
-                  gen_add_instruction(program,
+                  genADDInstruction(program,
                                       location,
                                       REG_0,
                                       $3.value,
@@ -322,7 +322,7 @@ if_statement   : if_stmt
                   $2 = newLabel(program);
    
                   /* exit from the if-else */
-                  gen_bt_instruction (program, $2, 0);
+                  genBTInstruction (program, $2, 0);
    
                   /* fix the `label_else' */
                   assignLabel(program, $1);
@@ -343,13 +343,13 @@ if_stmt  :  IF
                LPAR exp RPAR
                {
                      if ($4.expression_type == IMMEDIATE)
-                         gen_load_immediate(program, $4.value);
+                         genLoadImmediate(program, $4.value);
                      else
-                         gen_andb_instruction(program, $4.value,
+                         genANDBInstruction(program, $4.value,
                              $4.value, $4.value, CG_DIRECT_ALL);
 
                      /* if `exp' returns FALSE, jump to the label $1 */
-                     gen_beq_instruction (program, $1, 0);
+                     genBEQInstruction (program, $1, 0);
                }
                code_block { $$ = $1; }
 ;
@@ -357,7 +357,7 @@ if_stmt  :  IF
 while_statement  : WHILE
                   {
                      /* initialize the value of the non-terminal */
-                     $1 = create_while_statement();
+                     $1 = createWhileStatement();
 
                      /* reserve and fix a new label */
                      $1.label_condition
@@ -366,9 +366,9 @@ while_statement  : WHILE
                   LPAR exp RPAR
                   {
                      if ($4.expression_type == IMMEDIATE)
-                        gen_load_immediate(program, $4.value);
+                        genLoadImmediate(program, $4.value);
                      else
-                         gen_andb_instruction(program, $4.value,
+                         genANDBInstruction(program, $4.value,
                              $4.value, $4.value, CG_DIRECT_ALL);
 
                      /* reserve a new label. This new label will point
@@ -378,12 +378,12 @@ while_statement  : WHILE
 
                      /* if `exp' returns FALSE, jump to the label 
                       * $1.label_end */
-                     gen_beq_instruction (program, $1.label_end, 0);
+                     genBEQInstruction (program, $1.label_end, 0);
                   }
                   code_block
                   {
                      /* jump to the beginning of the loop */
-                     gen_bt_instruction
+                     genBTInstruction
                            (program, $1.label_condition, 0);
 
                      /* fix the label `label_end' */
@@ -403,20 +403,20 @@ do_while_statement  : DO
                      code_block WHILE LPAR exp RPAR
                      {
                            if ($6.expression_type == IMMEDIATE)
-                               gen_load_immediate(program, $6.value);
+                               genLoadImmediate(program, $6.value);
                            else
-                               gen_andb_instruction(program, $6.value,
+                               genANDBInstruction(program, $6.value,
                                    $6.value, $6.value, CG_DIRECT_ALL);
 
                            /* if `exp' returns TRUE, jump to the label $1 */
-                           gen_bne_instruction (program, $1, 0);
+                           genBNEInstruction (program, $1, 0);
                      }
 ;
 
 return_statement : RETURN
             {
                /* insert an HALT instruction */
-               gen_halt_instruction(program);
+               genHALTInstruction(program);
             }
 ;
 
@@ -430,10 +430,10 @@ read_statement : READ LPAR IDENTIFIER RPAR
                
                /* lookup the symbol table and fetch the register location
                 * associated with the IDENTIFIER $3. */
-               location = get_symbol_location(program, $3, 0);
+               location = getRegisterForSymbol(program, $3, 0);
 
                /* insert a read instruction */
-               gen_read_instruction (program, location);
+               genREADInstruction (program, location);
 
                /* free the memory associated with the IDENTIFIER */
                free($3);
@@ -448,27 +448,27 @@ write_statement : WRITE LPAR exp RPAR
                {
                   /* load `immediate' into a new register. Returns the new
                    * register identifier or REG_INVALID if an error occurs */
-                  location = gen_load_immediate(program, $3.value);
+                  location = genLoadImmediate(program, $3.value);
                }
                else
                   location = $3.value;
 
                /* write to standard output an integer value */
-               gen_write_instruction (program, location);
+               genWRITEInstruction (program, location);
             }
 ;
 
-exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
+exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
    | IDENTIFIER  {
                      int variableReg, expValReg;
                      /* get the location of the symbol with the given ID */
-                     variableReg = get_symbol_location(program, $1, 0);
+                     variableReg = getRegisterForSymbol(program, $1, 0);
                      /* generate code that copies the value of the variable in
                       * a new register to freeze the expression's value */
                      expValReg = getNewRegister(program);
-                     gen_addi_instruction(program, expValReg, variableReg, 0);
+                     genADDIInstruction(program, expValReg, variableReg, 0);
                      /* return that register as the expression value */
-                     $$ = create_expression(expValReg, REGISTER);
+                     $$ = createExpression(expValReg, REGISTER);
                      /* free the memory associated with the IDENTIFIER */
                      free($1);
    }
@@ -480,7 +480,7 @@ exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
                      reg = genLoadArrayElement(program, $1, $3);
 
                      /* create a new expression */
-                     $$ = create_expression (reg, REGISTER);
+                     $$ = createExpression (reg, REGISTER);
 
                      /* free the memory associated with the IDENTIFIER */
                      free($1);
@@ -491,7 +491,7 @@ exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
                   /* IMMEDIATE (constant) expression: compute the value at
                    * compile-time and place the result in a new IMMEDIATE
                    * expression */
-                  $$ = create_expression(!($2.value), IMMEDIATE);
+                  $$ = createExpression(!($2.value), IMMEDIATE);
                }
                else
                {
@@ -503,28 +503,28 @@ exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
 
                   /* Generate a NOTL instruction which will store the negated
                    * logic value into the register we reserved */
-                  gen_notl_instruction(program, output_register, $2.value);
+                  genNOTLInstruction(program, output_register, $2.value);
                   
                   /* Return a REGISTER expression with the result register */
-                  $$ = create_expression(output_register, REGISTER);
+                  $$ = createExpression(output_register, REGISTER);
                }
    }
-   | exp AND_OP exp { $$ = handle_bin_numeric_op(program, $1, $3, ANDB); }
-   | exp OR_OP exp  { $$ = handle_bin_numeric_op(program, $1, $3, ORB); }
-   | exp PLUS exp   { $$ = handle_bin_numeric_op(program, $1, $3, ADD); }
-   | exp MINUS exp  { $$ = handle_bin_numeric_op(program, $1, $3, SUB); }
-   | exp MUL_OP exp { $$ = handle_bin_numeric_op(program, $1, $3, MUL); }
-   | exp DIV_OP exp { $$ = handle_bin_numeric_op(program, $1, $3, DIV); }
-   | exp LT exp     { $$ = handle_binary_comparison(program, $1, $3, _LT_); }
-   | exp GT exp     { $$ = handle_binary_comparison(program, $1, $3, _GT_); }
-   | exp EQ exp     { $$ = handle_binary_comparison(program, $1, $3, _EQ_); }
-   | exp NOTEQ exp  { $$ = handle_binary_comparison(program, $1, $3, _NOTEQ_); }
-   | exp LTEQ exp   { $$ = handle_binary_comparison(program, $1, $3, _LTEQ_); }
-   | exp GTEQ exp   { $$ = handle_binary_comparison(program, $1, $3, _GTEQ_); }
-   | exp SHL_OP exp { $$ = handle_bin_numeric_op(program, $1, $3, SHL); }
-   | exp SHR_OP exp { $$ = handle_bin_numeric_op(program, $1, $3, SHR); }
-   | exp ANDAND exp { $$ = handle_bin_numeric_op(program, $1, $3, ANDL); }
-   | exp OROR exp   { $$ = handle_bin_numeric_op(program, $1, $3, ORL); }
+   | exp AND_OP exp { $$ = handleBinaryOperator(program, $1, $3, ANDB); }
+   | exp OR_OP exp  { $$ = handleBinaryOperator(program, $1, $3, ORB); }
+   | exp PLUS exp   { $$ = handleBinaryOperator(program, $1, $3, ADD); }
+   | exp MINUS exp  { $$ = handleBinaryOperator(program, $1, $3, SUB); }
+   | exp MUL_OP exp { $$ = handleBinaryOperator(program, $1, $3, MUL); }
+   | exp DIV_OP exp { $$ = handleBinaryOperator(program, $1, $3, DIV); }
+   | exp LT exp     { $$ = handleBinaryComparison(program, $1, $3, _LT_); }
+   | exp GT exp     { $$ = handleBinaryComparison(program, $1, $3, _GT_); }
+   | exp EQ exp     { $$ = handleBinaryComparison(program, $1, $3, _EQ_); }
+   | exp NOTEQ exp  { $$ = handleBinaryComparison(program, $1, $3, _NOTEQ_); }
+   | exp LTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, _LTEQ_); }
+   | exp GTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, _GTEQ_); }
+   | exp SHL_OP exp { $$ = handleBinaryOperator(program, $1, $3, SHL); }
+   | exp SHR_OP exp { $$ = handleBinaryOperator(program, $1, $3, SHR); }
+   | exp ANDAND exp { $$ = handleBinaryOperator(program, $1, $3, ANDL); }
+   | exp OROR exp   { $$ = handleBinaryOperator(program, $1, $3, ORL); }
    | LPAR exp RPAR  { $$ = $2; }
    | MINUS exp {
                   if ($2.expression_type == IMMEDIATE)
@@ -540,7 +540,7 @@ exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
                      exp_r0.value = REG_0;
                      exp_r0.expression_type = REGISTER;
                      
-                     $$ = handle_bin_numeric_op
+                     $$ = handleBinaryOperator
                            (program, exp_r0, $2, SUB);
                   }
                }
@@ -553,7 +553,7 @@ exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
 int main (int argc, char **argv)
 {
    /* initialize all the compiler data structures and global variables */
-   init_compiler(argc, argv);
+   initializeCompiler(argc, argv);
    
    /* start the parsing procedure */
    yyparse();
@@ -613,7 +613,7 @@ int main (int argc, char **argv)
    RA = initializeRegAlloc(graph);
       
    /* execute the linear scan algorithm */
-   execute_linear_scan(RA);
+   executeLinearScan(RA);
       
 #ifndef NDEBUG
    printRegAllocInfos(RA, file_infos->reg_alloc_output);

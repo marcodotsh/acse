@@ -131,7 +131,7 @@ void printBBlockInfos(t_basic_block *block, FILE *fout, int verbose)
    {
       current_node = (t_cflow_Node *) LDATA(current_element);
       fprintf(fout,"\t%d.  ", count);
-      debug_printInstruction(current_node->instr, fout);
+      debugPrintInstruction(current_node->instr, fout);
       if (verbose != 0)
       {
          fprintf(fout, "\n\t\t\tDEFS = [");
@@ -314,7 +314,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
    t_list *cur_inst = program->instructions;
    while (cur_inst) {
       t_axe_instruction *instr = LDATA(cur_inst);
-      debug_printInstruction(instr, fout);
+      debugPrintInstruction(instr, fout);
       fprintf(fout, "\n");
       cur_inst = LNEXT(cur_inst);
    }
@@ -322,7 +322,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
    fflush(fout);
 }
 
-void debug_printInstruction(t_axe_instruction *instr, FILE *fout)
+void debugPrintInstruction(t_axe_instruction *instr, FILE *fout)
 {
    off_t formBegin = ftello(fout);
 

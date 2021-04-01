@@ -57,7 +57,7 @@ t_axe_label * newLabelID(t_axe_label_manager *lmanager)
    assert(lmanager != NULL);
    
    /* initialize a new label */
-   result = alloc_label(lmanager->current_label_ID);
+   result = initializeLabel(lmanager->current_label_ID);
 
    /* update the value of `current_label_ID' */
    lmanager->current_label_ID++;
@@ -120,7 +120,7 @@ t_axe_label * assignLabelID(t_axe_label_manager *lmanager, t_axe_label *label)
 }
 
 /* initialize the memory structures for the label manager */
-t_axe_label_manager * initialize_label_manager()
+t_axe_label_manager * initializeLabelManager()
 {
    t_axe_label_manager *result;
 
@@ -140,7 +140,7 @@ t_axe_label_manager * initialize_label_manager()
 }
 
 /* finalize an instance of `t_axe_label_manager' */
-void finalize_label_manager(t_axe_label_manager *lmanager)
+void finalizeLabelManager(t_axe_label_manager *lmanager)
 {
    t_list *current_element;
    t_axe_label *current_label;
@@ -160,7 +160,7 @@ void finalize_label_manager(t_axe_label_manager *lmanager)
       assert(current_label != NULL);
 
       /* free the memory associated with the current label */
-      free_label(current_label);
+      finalizeLabel(current_label);
 
       /* fetch the next label */
       current_element = LNEXT(current_element);
@@ -172,7 +172,7 @@ void finalize_label_manager(t_axe_label_manager *lmanager)
    free(lmanager);
 }
 
-t_axe_label * assign_label(t_axe_label_manager *lmanager)
+t_axe_label * getLastPendingLabel(t_axe_label_manager *lmanager)
 {
    t_axe_label *result;
    
@@ -190,7 +190,7 @@ t_axe_label * assign_label(t_axe_label_manager *lmanager)
    return result;
 }
 
-int get_number_of_labels(t_axe_label_manager *lmanager)
+int getLabelCount(t_axe_label_manager *lmanager)
 {
    if (lmanager == NULL)
       return 0;

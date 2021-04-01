@@ -27,7 +27,7 @@ static t_symbol * getSymFromID(t_symbol_table *table, char *ID);
 static t_symbol * getSymFromLocation(t_symbol_table *table, int location);
 
 
-char * getIDfromLocation(t_symbol_table *table, int location, int *errorcode)
+char * getSymbolNameFromReg(t_symbol_table *table, int location, int *errorcode)
 {
    t_symbol *sym;
 
@@ -130,7 +130,7 @@ int setLocation(t_symbol_table *table, char *ID, int reg)
 }
 
 /* initialize the symbol table */
-t_symbol_table * initialize_sy_table()
+t_symbol_table * initializeSymbolTable()
 {
    t_symbol_table *result;
 
@@ -146,7 +146,7 @@ t_symbol_table * initialize_sy_table()
    return result;
 }
 
-int finalize_sy_table(t_symbol_table *table)
+int finalizeSymbolTable(t_symbol_table *table)
 {
    t_list   *current_symbol;
    

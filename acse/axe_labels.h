@@ -27,16 +27,16 @@ extern t_axe_label * newLabelID(t_axe_label_manager *lmanager);
 extern t_axe_label * assignLabelID(t_axe_label_manager *lmanager, t_axe_label *label);
 
 /* initialize the memory structures for the label manager */
-extern t_axe_label_manager * initialize_label_manager();
+extern t_axe_label_manager * initializeLabelManager();
 
 /* retrieve the label that will be assigned to the next instruction */
-extern t_axe_label * assign_label(t_axe_label_manager *lmanager);
+extern t_axe_label * getLastPendingLabel(t_axe_label_manager *lmanager);
 
 /* finalize an instance of `t_axe_label_manager' */
-extern void finalize_label_manager(t_axe_label_manager *lmanager);
+extern void finalizeLabelManager(t_axe_label_manager *lmanager);
 
 /* get the number of labels inside the list of labels */
-extern int get_number_of_labels(t_axe_label_manager *lmanager);
+extern int getLabelCount(t_axe_label_manager *lmanager);
 
 /* return TRUE if the two labels hold the same identifier */
 extern int compareLabels(t_axe_label *labelA, t_axe_label *labelB);

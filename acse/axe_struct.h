@@ -116,44 +116,44 @@ typedef struct t_while_statement
 } t_while_statement;
 
 /* create a label */
-extern t_axe_label *alloc_label(int value);
+extern t_axe_label *initializeLabel(int value);
 
 /* free a label */
-extern void free_label(t_axe_label *lab);
+extern void finalizeLabel(t_axe_label *lab);
 
 /* create an expression */
-extern t_axe_expression create_expression(int value, int type);
+extern t_axe_expression createExpression(int value, int type);
 
 /* create an instance that will mantain infos about a while statement */
-extern t_while_statement create_while_statement();
+extern t_while_statement createWhileStatement();
 
 /* create an instance of `t_axe_register' */
-extern t_axe_register *alloc_register(int ID, int indirect);
+extern t_axe_register *initializeRegister(int ID, int indirect);
 
 /* create an instance of `t_axe_instruction' */
-extern t_axe_instruction *alloc_instruction(int opcode);
+extern t_axe_instruction *initializeInstruction(int opcode);
 
 /* create an instance of `t_axe_address' */
-extern t_axe_address *alloc_address(int type, int address, t_axe_label *label);
+extern t_axe_address *initializeAddress(int type, int address, t_axe_label *label);
 
 /* create an instance of `t_axe_data' */
-extern t_axe_data *alloc_data(int directiveType, int value, t_axe_label *label);
+extern t_axe_data *initializeData(int directiveType, int value, t_axe_label *label);
 
 /* create an instance of `t_axe_variable' */
-extern t_axe_variable *alloc_variable(
+extern t_axe_variable *initializeVariable(
       char *ID, int type, int isArray, int arraySize, int init_val);
 
 /* finalize an instance of `t_axe_variable' */
-extern void free_variable(t_axe_variable *variable);
+extern void finalizeVariable(t_axe_variable *variable);
 
 /* create an instance of `t_axe_variable' */
-extern t_axe_declaration *alloc_declaration(
+extern t_axe_declaration *initializeDeclaration(
       char *ID, int isArray, int arraySize, int init_val);
 
 /* finalize an instruction info. */
-extern void free_Instruction(t_axe_instruction *inst);
+extern void finalizeInstruction(t_axe_instruction *inst);
 
 /* finalize a data info. */
-extern void free_Data(t_axe_data *data);
+extern void finalizeData(t_axe_data *data);
 
 #endif
