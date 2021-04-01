@@ -14,12 +14,12 @@
 #include "axe_errors.h"
 #include "axe_target_info.h"
 
-void storeArrayElement(t_program_infos *program, char *ID
+void genStoreArrayElement(t_program_infos *program, char *ID
             , t_axe_expression index, t_axe_expression data)
 {
    int address;
    
-   address =  loadArrayAddress(program, ID, index);
+   address = genLoadArrayAddress(program, ID, index);
 
    if (data.expression_type == REGISTER)
    {
@@ -39,14 +39,14 @@ void storeArrayElement(t_program_infos *program, char *ID
    }
 }
 
-int loadArrayElement(t_program_infos *program
+int genLoadArrayElement(t_program_infos *program
                , char *ID, t_axe_expression index)
 {
    int load_register;
    int address;
 
    /* retrieve the address of the array slot */
-   address = loadArrayAddress(program, ID, index);
+   address = genLoadArrayAddress(program, ID, index);
 
    /* get a new register */
    load_register = getNewRegister(program);
@@ -59,7 +59,7 @@ int loadArrayElement(t_program_infos *program
    return load_register;
 }
 
-int loadArrayAddress(t_program_infos *program
+int genLoadArrayAddress(t_program_infos *program
             , char *ID, t_axe_expression index)
 {
    int mova_register;
@@ -94,7 +94,7 @@ int loadArrayAddress(t_program_infos *program
    {
       if (index.value != 0)
       {
-         gen_addi_instruction (program, mova_register
+         gen_addi_instruction(program, mova_register
                      , mova_register, index.value * sizeofElem);
       }
    }

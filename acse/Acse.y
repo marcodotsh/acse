@@ -268,7 +268,7 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                 * the array/pointer identifier, $3 is an expression
                 * that holds an integer value. That value will be
                 * used as an index for the array $1 */
-               storeArrayElement(program, $1, $3, $6);
+               genStoreArrayElement(program, $1, $3, $6);
 
                /* free the memory associated with the IDENTIFIER.
                 * The use of the free instruction is required
@@ -477,7 +477,7 @@ exp: NUMBER      { $$ = create_expression ($1, IMMEDIATE); }
                      
                      /* load the value IDENTIFIER[exp]
                       * into `arrayElement' */
-                     reg = loadArrayElement(program, $1, $3);
+                     reg = genLoadArrayElement(program, $1, $3);
 
                      /* create a new expression */
                      $$ = create_expression (reg, REGISTER);
