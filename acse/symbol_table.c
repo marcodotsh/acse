@@ -74,7 +74,7 @@ int getTypeFromID(t_symbol_table *table, char *ID)
    return found->type;
 }
 
-int getLocation(t_symbol_table *table, char *ID, int *errorcode)
+int getLocation(t_symbol_table *table, char *ID, t_s_table_error *errorcode)
 {
    t_symbol *found;
    
@@ -108,7 +108,7 @@ int getLocation(t_symbol_table *table, char *ID, int *errorcode)
    return found->reg_location;
 }
 
-int setLocation(t_symbol_table *table, char *ID, int reg)
+t_s_table_error setLocation(t_symbol_table *table, char *ID, int reg)
 {
    t_symbol *found;
    
@@ -226,7 +226,7 @@ int symCompare (void *symA, void *symB)
 }
 
 /* put a symbol into the symbol table */
-int putSym(t_symbol_table *table, char *ID, int type)
+t_s_table_error putSym(t_symbol_table *table, char *ID, int type)
 {
    t_symbol pattern;
    t_symbol *new_symbol;

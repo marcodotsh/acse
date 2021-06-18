@@ -12,11 +12,21 @@
 #define _SYMBOL_TABLE_H
 
 #include <stdio.h>
-#include "sy_table_constants.h"
 
+/* errorcodes */
+typedef int t_s_table_error;
+#define SY_TABLE_OK 0
+#define SY_ALREADY_DEFINED -1
+#define SY_UNDEFINED -2
+#define SY_TABLE_NOT_INITIALIZED -3
+#define SY_MEMALLOC_ERROR -4
+#define SY_INVALID_REQUEST -5
+
+/* invalid location info */
+#define SY_LOCATION_UNSPECIFIED -1
+
+/* Typedef for the opaque struct t_symbol_table */
 struct t_symbol_table;
-
-/* Typedef for the struct t_symbol_table */
 typedef struct t_symbol_table t_symbol_table;
 
 /* a symbol inside the sy_table. An element of the symbol table is composed by
@@ -35,13 +45,14 @@ typedef struct
 }t_symbol;
 
 /* put a symbol into the symbol table */
-extern int putSym(t_symbol_table *table, char *ID, int type);
+extern t_s_table_error putSym(t_symbol_table *table, char *ID, int type);
 
 /* set the location of the symbol with ID as identifier */
-extern int setLocation(t_symbol_table *table, char *ID, int reg);
+extern t_s_table_error setLocation(t_symbol_table *table, char *ID, int reg);
 
 /* get the location of the symbol with the given ID */
-extern int getLocation(t_symbol_table *table, char *ID, int *errorcode);
+extern int getLocation(t_symbol_table *table, char *ID,
+      t_s_table_error *errorcode);
 
 /* get the type associated with the symbol with ID as identifier */
 extern int getTypeFromID(t_symbol_table *table, char *ID);
@@ -50,7 +61,7 @@ extern int getTypeFromID(t_symbol_table *table, char *ID);
 extern t_symbol_table * initializeSymbolTable();
 
 /* finalize the symbol table */
-extern int finalizeSymbolTable(t_symbol_table *table);
+extern t_s_table_error finalizeSymbolTable(t_symbol_table *table);
 
 /* given a register identifier (location), it returns the ID of the variable
  * stored inside the register `location'. This function returns NULL
