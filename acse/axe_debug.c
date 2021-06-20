@@ -10,7 +10,6 @@
 #include "axe_debug.h"
 #include "collections.h"
 #include "reg_alloc_constants.h"
-#include "cflow_constants.h"
 
 #define LABEL_WIDTH (3*2)
 #define INSTR_WIDTH (3*7)

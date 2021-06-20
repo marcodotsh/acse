@@ -10,7 +10,6 @@
 #include <assert.h>
 #include "axe_labels.h"
 #include "axe_cflow_graph.h"
-#include "cflow_constants.h"
 #include "collections.h"
 #include "axe_utils.h"
 #include "axe_debug.h"

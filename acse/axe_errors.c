@@ -9,7 +9,7 @@
 
 #include "axe_errors.h"
 #include "axe_utils.h"
-#include "cflow_constants.h"
+#include "axe_cflow_graph.h"
 
 /* @see Acse.y for these declarations */
 extern int num_warning;
