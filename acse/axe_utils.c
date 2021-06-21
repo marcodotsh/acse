@@ -149,67 +149,6 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
    freeList(variables);
 }
 
-int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad)
-{
-   int sy_error;
-   int location;
-
-   /* preconditions: ID and program shouldn't be NULL pointer */
-   if (ID == NULL)
-      notifyError(AXE_VARIABLE_ID_UNSPECIFIED);
-
-   if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
-   
-   /* get the location of the symbol with the given ID */
-   location = getLocation(program->sy_table, ID, &sy_error);
-   if (sy_error != SY_TABLE_OK)
-      notifyError(AXE_INVALID_VARIABLE);
-
-   /* verify if the variable was previously loaded into
-   * a register. This check is made by looking to the
-   * value of `location'.*/
-   if (location == REG_INVALID)
-   {
-      /* we have to load the variable with the given
-      * identifier (ID) */
-      t_axe_label *label;
-      int sy_errorcode;
-
-      /* retrieve the label associated with ID */
-      label = getLabelFromVariableID(program, ID);
-
-      /* fetch an unused register where to store the
-       * result of the load instruction */
-      location = getNewRegister(program);
-
-      /* assertions */
-      assert(location != REG_INVALID);
-      assert(label != NULL);
-      
-      /* load the value of IDENTIFIER from the
-       * given label to a register */
-      if (genLoad)
-         genLOADInstruction(program, location, label, 0);
-
-      /* update the symbol table */
-      sy_errorcode = setLocation(program->sy_table, ID, location);
-
-      if (sy_errorcode != SY_TABLE_OK)
-         notifyError(AXE_SY_TABLE_ERROR);
-
-#ifndef NDEBUG
-      /* get the location of the symbol with the given ID */
-      location = getLocation(program->sy_table, ID, &sy_error);
-#endif
-   }
-
-   /* test the postconditions */
-   assert(location != REG_INVALID);
-
-   return location;
-}
-
 int isLoadInstruction(t_axe_instruction *instr)
 {
    if (instr == NULL) {

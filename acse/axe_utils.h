@@ -51,21 +51,6 @@ extern t_axe_declaration *initializeDeclaration(
 extern void addVariablesFromDecls(
       t_program_infos *program, int varType, t_list *variables);
 
-/* Given a variable/symbol identifier (ID) this function
- * returns a register location where the value is stored
- * (the value of the variable identified by `ID').
- * If the variable/symbol has never been loaded from memory
- * to a register, first this function searches
- * for a free register, then it assign the variable with the given
- * ID to the register just found.
- * Once computed, the location (a register identifier) is returned
- * as output to the caller.
- * This function generates a LOAD instruction
- * only if the flag `genLoad' is set to 1; otherwise it simply reserve
- * a register location for a new variable in the symbol table.
- * If an error occurs, getRegisterForSymbol returns a REG_INVALID errorcode */
-extern int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad);
-
 /* Returns 1 if `instr` is a jump (branch) instruction. */
 extern int isJumpInstruction(t_axe_instruction *instr);
 
