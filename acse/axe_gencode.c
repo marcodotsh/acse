@@ -21,6 +21,22 @@ static t_axe_instruction * genJumpInstruction (t_program_infos *program
       , int opcode, t_axe_label *label, int addr);
 
 
+void genMoveImmediate(t_program_infos *program, int dest, int immediate)
+{
+   genADDIInstruction(program, dest, REG_0, immediate);
+}
+
+int genLoadImmediate(t_program_infos *program, int immediate)
+{
+   int imm_register;
+
+   imm_register = getNewRegister(program);
+
+   genMoveImmediate(program, imm_register, immediate);
+
+   return imm_register;
+}
+
 t_axe_instruction * genBTInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {

@@ -210,22 +210,6 @@ int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad)
    return location;
 }
 
-void genMoveImmediate(t_program_infos *program, int dest, int immediate)
-{
-   genADDIInstruction(program, dest, REG_0, immediate);
-}
-
-int genLoadImmediate(t_program_infos *program, int immediate)
-{
-   int imm_register;
-
-   imm_register = getNewRegister(program);
-
-   genMoveImmediate(program, imm_register, immediate);
-
-   return imm_register;
-}
-
 int isLoadInstruction(t_axe_instruction *instr)
 {
    if (instr == NULL) {

@@ -20,6 +20,14 @@
 #define CG_INDIRECT_DEST 1    /* [DEST] = SRC1 <OP>  SRC2  */
 #define CG_INDIRECT_SOURCE 2  /*  DEST =  SRC1 <OP> [SRC2] */
 
+
+/* Generate the instruction to load an `immediate' value into a new register.
+ * It returns the new register identifier or REG_INVALID if an error occurs */
+extern int genLoadImmediate(t_program_infos *program, int immediate);
+
+/* Generate the instruction to move an `immediate' value into a register. */
+extern void genMoveImmediate(t_program_infos *program, int dest, int imm);
+
 /*----------------------------------------------------
  *                   NOP & HALT
  *---------------------------------------------------*/

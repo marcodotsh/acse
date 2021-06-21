@@ -66,13 +66,6 @@ extern void addVariablesFromDecls(
  * If an error occurs, getRegisterForSymbol returns a REG_INVALID errorcode */
 extern int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad);
 
-/* Generate the instruction to load an `immediate' value into a new register.
- * It returns the new register identifier or REG_INVALID if an error occurs */
-extern int genLoadImmediate(t_program_infos *program, int immediate);
-
-/* Generate the instruction to move an `immediate' value into a register. */
-extern void genMoveImmediate(t_program_infos *program, int dest, int imm);
-
 /* Returns 1 if `instr` is a jump (branch) instruction. */
 extern int isJumpInstruction(t_axe_instruction *instr);
 
