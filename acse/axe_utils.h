@@ -51,47 +51,6 @@ extern t_axe_declaration *initializeDeclaration(
 extern void addVariablesFromDecls(
       t_program_infos *program, int varType, t_list *variables);
 
-/* Returns 1 if `instr` is a jump (branch) instruction. */
-extern int isJumpInstruction(t_axe_instruction *instr);
-
-/* Returns 1 if `instr` is a unconditional jump instruction (BT, BF) */
-extern int isUnconditionalJump(t_axe_instruction *instr);
-
-/* Returns 1 if `instr` is either the HALT instruction or the RET
- * instruction. */
-extern int isHaltOrRetInstruction(t_axe_instruction *instr);
-
-/* Returns 1 if `instr` is the LOAD instruction. */
-extern int isLoadInstruction(t_axe_instruction *instr);
-
-/* Returns 1 if the opcode corresponds to an instruction with an immediate
- * argument (i.e. if the instruction mnemonic ends with `I`). */
-extern int isImmediateArgumentInstrOpcode(int opcode);
-
-/* Switches the immediate form of an opcode. For example, ADDI is transformed
- * to ADD, and ADD is transformed to ADDI. Returns the original opcode in case
- * there is no immediate or non-immediate available. */
-extern int switchOpcodeImmediateForm(int orig);
-
-/* Set the list of allowed machine registers for a specific register object
- * to the specified list of register identifiers. The list must be terminated
- * by REG_INVALID or -1. */
-extern void setMCRegisterWhitelist(t_axe_register *regObj, ...);
-
-/* Returns 1 if `instr` performs a move of either a register value, an
- * immediate, or a memory address pointer, to a register.
- * For example, instructions in the form "ADD R2, R0, R1" are considered move
- * instructions.
- * Stores in the given object pointers the destination register of the move and
- * the moved value. The object pointers can be NULL. Only one out of
- * `*outSrcReg`, `*outSrcAddr`, and `*outSrcImm` is set to the source of the
- * moved value. The other objects are set to NULL in the case of `*outSrcReg`
- * and `*outSrcAddr`, and not modified in the case of `*outSrcReg`. (it
- * follows that `*outSrcImm` is valid if and only if both `*outSrcReg` and
- * `*outSrcAddr` are NULL). */
-extern int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
-      t_axe_register **outSrcReg, t_axe_address **outSrcAddr, int *outSrcImm);
-
 /* Notify the end of the program. This function is directly called
  * from the parser when the parsing process is ended */
 extern void setProgramEnd(t_program_infos *program);
