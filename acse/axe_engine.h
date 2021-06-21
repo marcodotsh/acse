@@ -178,12 +178,23 @@ typedef struct t_program_infos
 } t_program_infos;
 
 
+/*  PROGRAM INFO  */
+
 /* initialize the informations associated with the program. This function is
  * called at the beginning of the translation process. This function
  * is called once: its only purpouse is to initialize an instance of the struct
  * `t_program_infos' that will contain all the informations about the program
  * that will be compiled */
 extern t_program_infos *allocProgramInfos();
+
+/* finalize all the data structures associated with `program' */
+extern void finalizeProgramInfos(t_program_infos *program);
+
+/*  INSTRUCTIONS  */
+
+/* get a register still not used. This function returns
+ * the ID of the register found*/
+extern int getNewRegister(t_program_infos *program);
 
 /* create an instance of `t_axe_register' */
 extern t_axe_register *initializeRegister(int ID, int indirect);
@@ -192,16 +203,11 @@ extern t_axe_register *initializeRegister(int ID, int indirect);
 extern t_axe_instruction *initializeInstruction(int opcode);
 
 /* create an instance of `t_axe_address' */
-extern t_axe_address *initializeAddress(int type, int address, t_axe_label *label);
-
-/* create an instance of `t_axe_data' */
-extern t_axe_data *initializeData(int directiveType, int value, t_axe_label *label);
+extern t_axe_address *initializeAddress(int type, int address,
+      t_axe_label *label);
 
 /* finalize an instruction info. */
 extern void finalizeInstruction(t_axe_instruction *inst);
-
-/* finalize a data info. */
-extern void finalizeData(t_axe_data *data);
 
 /* Returns 1 if `instr` is a jump (branch) instruction. */
 extern int isJumpInstruction(t_axe_instruction *instr);
@@ -261,6 +267,8 @@ extern void pushInstrInsertionPoint(t_program_infos *p, t_list *ip);
  * previous position of the instruction insertion point. */
 extern t_list *popInstrInsertionPoint(t_program_infos *p);
 
+/*  LABELS  */
+
 /* reserve a new label identifier and return the identifier to the caller */
 extern t_axe_label *newLabel(t_program_infos *program);
 
@@ -279,6 +287,12 @@ extern t_axe_label *newNamedLabel(t_program_infos *program, const char *name);
 extern t_axe_label *assignNewNamedLabel(
       t_program_infos *program, const char *name);
 
+/* get the label that marks the starting address of the variable
+ * with name "ID" */
+extern t_axe_label *getLabelFromVariableID(t_program_infos *program, char *ID);
+
+/*  VARIABLES  */
+
 /* add a variable to the program */
 extern void createVariable(t_program_infos *program, char *ID, int type,
       int isArray, int arraySize, int init_val);
@@ -292,15 +306,13 @@ extern t_axe_variable *getVariable(t_program_infos *program, char *ID);
  * If an error occurs, getRegisterForSymbol returns a REG_INVALID errorcode */
 extern int getRegisterForSymbol(t_program_infos *program, char *ID);
 
-/* get the label that marks the starting address of the variable
- * with name "ID" */
-extern t_axe_label *getLabelFromVariableID(t_program_infos *program, char *ID);
+/*  DATA DIRECTIVES  */
 
-/* get a register still not used. This function returns
- * the ID of the register found*/
-extern int getNewRegister(t_program_infos *program);
+/* create an instance of `t_axe_data' */
+extern t_axe_data *initializeData(int directiveType, int value,
+      t_axe_label *label);
 
-/* finalize all the data structures associated with `program' */
-extern void finalizeProgramInfos(t_program_infos *program);
+/* finalize a data info. */
+extern void finalizeData(t_axe_data *data);
 
 #endif
