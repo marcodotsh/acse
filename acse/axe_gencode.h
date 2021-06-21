@@ -15,6 +15,12 @@
 #include "axe_engine.h"
 #include "axe_struct.h"
 
+/* CODEGEN FLAGS */
+#define CG_DIRECT_ALL 0       /*  DEST =  SRC1 <OP>  SRC2  */
+#define CG_INDIRECT_ALL 3     /* [DEST] = SRC1 <OP> [SRC2] */
+#define CG_INDIRECT_DEST 1    /* [DEST] = SRC1 <OP>  SRC2  */
+#define CG_INDIRECT_SOURCE 2  /*  DEST =  SRC1 <OP> [SRC2] */
+
 /*----------------------------------------------------
  *                   NOP & HALT
  *---------------------------------------------------*/

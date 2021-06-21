@@ -33,6 +33,10 @@ typedef struct t_axe_register
                              * is allowed. */
 }t_axe_register;
 
+/* ADDRESS TYPES */
+#define ADDRESS_TYPE 0
+#define LABEL_TYPE 1
+
 typedef struct t_axe_address
 {
    int addr;               /* a Program Counter */
@@ -40,10 +44,14 @@ typedef struct t_axe_address
    int type;               /* one of ADDRESS_TYPE or LABEL_TYPE */
 }t_axe_address;
 
+/* data types */
+#define INTEGER_TYPE 0
+#define UNKNOWN_TYPE -1
+
 /* A structure that defines the internal data of a `Acse variable' */
 typedef struct t_axe_variable
 {
-   int type;      /* a valid data type @see `axe_constants.h' */
+   int type;      /* a valid data type */
    int isArray;   /* must be TRUE if the current variable is an array */
    int arraySize; /* the size of the array. This information is useful only
                    * if the field `isArray' is TRUE */
@@ -76,6 +84,11 @@ typedef struct t_axe_instruction
    t_axe_label *labelID;        /* a label associated with the current
                                   * instruction */
 }t_axe_instruction;
+
+/* DIRECTIVE TYPES */
+#define DIR_WORD 0
+#define DIR_SPACE 1
+#define DIR_INVALID -1
 
 /* this structure is used in order to define assembler directives.
  * Directives are used in many cases such the definition of variables
