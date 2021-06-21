@@ -15,6 +15,7 @@
 
 #include <string.h>
 #include "axe_expressions.h"
+#include "axe_utils.h"
 #include "collections.h"
 #include "Acse.tab.h"
 #include "axe_constants.h"

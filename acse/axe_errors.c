@@ -7,6 +7,7 @@
  * 
  */
 
+#include <assert.h>
 #include "axe_errors.h"
 #include "axe_utils.h"
 #include "axe_cflow_graph.h"

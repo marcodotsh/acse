@@ -11,7 +11,6 @@
 #ifndef _AXE_REG_ALLOC_H
 #define _AXE_REG_ALLOC_H
 
-#include "axe_struct.h"
 #include "axe_engine.h"
 #include "collections.h"
 #include "axe_cflow_graph.h"

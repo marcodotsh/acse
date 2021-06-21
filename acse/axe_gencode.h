@@ -13,7 +13,6 @@
 #define _AXE_GENCODE_H
 
 #include "axe_engine.h"
-#include "axe_struct.h"
 
 /* CODEGEN FLAGS */
 #define CG_DIRECT_ALL 0       /*  DEST =  SRC1 <OP>  SRC2  */

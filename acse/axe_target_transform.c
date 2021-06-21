@@ -6,9 +6,9 @@
  * Formal Languages & Compilers Machine, 2007-2020
  */
 
+#include <assert.h>
 #include "axe_target_transform.h"
 #include "axe_gencode.h"
-#include "axe_struct.h"
 #include "axe_utils.h"
 #include "collections.h"
 

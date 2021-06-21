@@ -7,6 +7,7 @@
  * 
  */
 
+#include <assert.h>
 #include "axe_reg_alloc.h"
 #include "axe_target_info.h"
 #include "axe_debug.h"

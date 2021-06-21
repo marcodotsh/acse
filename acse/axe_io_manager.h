@@ -12,7 +12,6 @@
 #define _AXE_IO_MANAGER_H
 
 #include <stdio.h>
-#include "axe_struct.h"
 
 extern FILE *yyin;
 

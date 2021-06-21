@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include "axe_constants.h"
 #include "symbol_table.h"
 #include "axe_debug.h"
 #include "collections.h"

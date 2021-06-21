@@ -7,6 +7,7 @@
  * 
  */
 
+#include <assert.h>
 #include "axe_transform.h"
 #include "symbol_table.h"
 #include "axe_reg_alloc.h"

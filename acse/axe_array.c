@@ -7,6 +7,7 @@
  * 
  */
 
+#include <assert.h>
 #include "axe_array.h"
 #include "axe_gencode.h"
 #include "symbol_table.h"

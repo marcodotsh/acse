@@ -16,7 +16,6 @@
 #include <stdio.h>       
 #include <stdlib.h>
 #include <assert.h>
-#include "axe_struct.h"
 #include "axe_engine.h"
 #include "symbol_table.h"
 #include "axe_target_asm_print.h"

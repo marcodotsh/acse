@@ -8,6 +8,7 @@
  * Formal Languages & Compilers Machine, 2007-2020
  */
 
+#include <assert.h>
 #include "axe_target_asm_print.h"
 
 #define LABEL_WIDTH (3*2)

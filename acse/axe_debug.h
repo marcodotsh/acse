@@ -12,7 +12,6 @@
 #define _AXE_DEBUG_H
 
 #include <stdio.h>
-#include "axe_struct.h"
 #include "axe_cflow_graph.h"
 #include "axe_reg_alloc.h"
 

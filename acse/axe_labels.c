@@ -7,6 +7,7 @@
  * 
  */
 
+#include <assert.h>
 #include <ctype.h>
 #include "axe_errors.h"
 #include "axe_labels.h"

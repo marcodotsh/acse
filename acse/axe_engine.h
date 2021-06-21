@@ -12,7 +12,6 @@
 #ifndef _AXE_ENGINE_H
 #define _AXE_ENGINE_H
 
-#include "axe_struct.h"
 #include "axe_labels.h"
 #include "collections.h"
 #include "symbol_table.h"
