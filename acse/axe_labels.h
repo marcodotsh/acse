@@ -11,13 +11,23 @@
 #ifndef _AXE_LABELS_H
 #define _AXE_LABELS_H
 
-#include "axe_struct.h"
-
+typedef struct t_axe_label
+{
+   unsigned int labelID; /* label identifier */
+   char *name;           /* Name of the label. If NULL, the name will be 
+                          * automatically generated in the form L<ID>. */
+} t_axe_label;
 
 struct t_axe_label_manager;
 
 /* Typedef for the struct t_axe_label_manager */
 typedef struct t_axe_label_manager t_axe_label_manager;
+
+/* create a label */
+extern t_axe_label *initializeLabel(int value);
+
+/* free a label */
+extern void finalizeLabel(t_axe_label *lab);
 
 /* reserve a new label identifier and return the identifier to the caller */
 extern t_axe_label * newLabelID(t_axe_label_manager *lmanager);

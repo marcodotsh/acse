@@ -91,29 +91,6 @@ t_while_statement createWhileStatement()
    return statement;
 }
 
-t_axe_label * initializeLabel(int value)
-{
-   t_axe_label *result;
-
-   /* create an instance of t_axe_label */
-   result = (t_axe_label *)
-         malloc(sizeof(t_axe_label));
-
-   /* initialize the internal value of `result' */
-   result->labelID = value;
-   result->name = NULL;
-
-   /* return the just initialized new instance of `t_axe_label' */
-   return result;
-}
-
-void finalizeLabel(t_axe_label *lab)
-{
-   if (lab->name)
-      free(lab->name);
-   free(lab);
-}
-
 t_axe_declaration * initializeDeclaration
       (char *ID, int isArray, int arraySize, int init_val)
 {

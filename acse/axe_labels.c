@@ -24,6 +24,29 @@ struct t_axe_label_manager
 void setRawLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
       const char *finalName);
 
+t_axe_label * initializeLabel(int value)
+{
+   t_axe_label *result;
+
+   /* create an instance of t_axe_label */
+   result = (t_axe_label *)
+         malloc(sizeof(t_axe_label));
+
+   /* initialize the internal value of `result' */
+   result->labelID = value;
+   result->name = NULL;
+
+   /* return the just initialized new instance of `t_axe_label' */
+   return result;
+}
+
+void finalizeLabel(t_axe_label *lab)
+{
+   if (lab->name)
+      free(lab->name);
+   free(lab);
+}
+
 int isAssigningLabel(t_axe_label_manager *lmanager)
 {
    /* preconditions: lmanager must be different from NULL */

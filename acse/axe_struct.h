@@ -15,14 +15,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include "axe_constants.h"
+#include "axe_labels.h"
 #include "collections.h"
-
-typedef struct t_axe_label
-{
-   unsigned int labelID; /* label identifier */
-   char *name;           /* Name of the label. If NULL, the name will be 
-                          * automatically generated in the form L<ID>. */
-} t_axe_label;
 
 typedef struct t_axe_register
 {
@@ -121,12 +115,6 @@ typedef struct t_while_statement
    t_axe_label *label_end;         /* this label points to the instruction
                                     * that follows the while construct */
 } t_while_statement;
-
-/* create a label */
-extern t_axe_label *initializeLabel(int value);
-
-/* free a label */
-extern void finalizeLabel(t_axe_label *lab);
 
 /* create an instance that will mantain infos about a while statement */
 extern t_while_statement createWhileStatement();
