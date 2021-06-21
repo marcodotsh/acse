@@ -9,7 +9,7 @@
 
 #include "axe_debug.h"
 #include "collections.h"
-#include "reg_alloc_constants.h"
+#include "axe_reg_alloc.h"
 
 #define LABEL_WIDTH (3*2)
 #define INSTR_WIDTH (3*7)

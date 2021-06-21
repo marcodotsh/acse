@@ -16,6 +16,18 @@
 #include "collections.h"
 #include "axe_cflow_graph.h"
 
+/* constants */
+#define RA_SPILL_REQUIRED -1
+#define RA_REGISTER_INVALID 0
+#define RA_EXCLUDED_VARIABLE 0
+
+/* errorcodes */
+#define RA_OK 0
+#define RA_INVALID_ALLOCATOR 1
+#define RA_INVALID_INTERVAL 2
+#define RA_INTERVAL_ALREADY_INSERTED 3
+#define RA_INVALID_NUMBER_OF_REGISTERS 4
+
 typedef struct t_live_interval
 {
    int varID;     /* a variable identifier */
