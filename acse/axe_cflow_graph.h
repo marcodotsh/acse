@@ -12,7 +12,7 @@
 #define _AXE_CFLOW_GRAPH_H
 
 #include <stdio.h>
-#include "axe_struct.h"
+#include "axe_engine.h"
 #include "collections.h"
 
 /* if this macro is set to 1, the control flow analysis will consider

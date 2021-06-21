@@ -39,6 +39,163 @@ static void finalizeVariables(t_list *variables);
 /* add a variable to the program */
 static void addVariable(t_program_infos *program, t_axe_variable *variable);
 
+/* create and initialize an instance of `t_axe_register' */
+t_axe_register * initializeRegister(int ID, int indirect)
+{
+   t_axe_register *result;
+
+   /* create an instance of `t_axe_register' */
+   result = (t_axe_register *)
+            malloc(sizeof(t_axe_register));
+   
+   /* check the postconditions */
+   if (result == NULL)
+      return NULL;
+
+   /* initialize the new label */
+   result->ID = ID;
+   result->mcRegWhitelist = NULL;
+   result->indirect = indirect;
+
+   /* return the label */
+   return result;
+}
+
+/* create and initialize an instance of `t_axe_instruction' */
+t_axe_instruction * initializeInstruction(int opcode)
+{
+   t_axe_instruction *result;
+
+   /* create an instance of `t_axe_data' */
+   result = (t_axe_instruction *) malloc(sizeof(t_axe_instruction));
+   
+   /* check the postconditions */
+   if (result == NULL)
+      return NULL;
+
+   /* ininitialize the fields of `result' */
+   result->opcode = opcode;
+   result->reg_1 = NULL;
+   result->reg_2 = NULL;
+   result->reg_3 = NULL;
+   result->immediate = 0;
+   result->labelID = NULL;
+   result->address = NULL;
+   result->user_comment = NULL;
+   result->mcFlags = 0;
+
+   /* return `result' */
+   return result;
+}
+
+/* create and initialize an instance of `t_axe_data' */
+t_axe_data * initializeData(int directiveType, int value, t_axe_label *label)
+{
+   t_axe_data *result;
+
+   /* create an instance of `t_axe_data' */
+   result = (t_axe_data *) malloc(sizeof(t_axe_data));
+   
+   /* check the postconditions */
+   if (result == NULL)
+      return NULL;
+
+   /* initialize the new directive */
+   result->directiveType = directiveType;
+   result->value = value;
+   result->labelID = label;
+
+   /* return the new data */
+   return result;
+}
+
+/* finalize an instance of `t_axe_variable' */
+void finalizeVariable (t_axe_variable *variable)
+{
+   free(variable);
+}
+
+/* create and initialize an instance of `t_axe_variable' */
+t_axe_variable * initializeVariable
+      (char *ID, int type, int isArray, int arraySize, int init_val)
+{
+   t_axe_variable *result;
+
+   /* allocate memory for the new variable */
+   result = (t_axe_variable *)
+         malloc(sizeof(t_axe_variable));
+
+   /* check the postconditions */
+   if (result == NULL)
+      return NULL;
+
+   /* initialize the content of `result' */
+   result->type = type;
+   result->isArray = isArray;
+   result->arraySize = arraySize;
+   result->ID = ID;
+   result->init_val = init_val;
+   result->labelID = NULL;
+
+   /* return the just created and initialized instance of t_axe_variable */
+   return result;
+}
+
+/* finalize an instruction info. */
+void finalizeInstruction(t_axe_instruction *inst)
+{
+   /* preconditions */
+   if (inst == NULL)
+      return;
+   
+   /* free memory */
+   if (inst->reg_1 != NULL) {
+      freeList(inst->reg_1->mcRegWhitelist);
+      free(inst->reg_1);
+   }
+   if (inst->reg_2 != NULL) {
+      freeList(inst->reg_2->mcRegWhitelist);
+      free(inst->reg_2);
+   }
+   if (inst->reg_3 != NULL) {
+      freeList(inst->reg_3->mcRegWhitelist);
+      free(inst->reg_3);
+   }
+   if (inst->address != NULL) {
+      free(inst->address);
+   }
+   if (inst->user_comment != NULL) {
+      free(inst->user_comment);
+   }
+
+   free(inst);
+}
+
+/* finalize a data info. */
+void finalizeData(t_axe_data *data)
+{
+   if (data != NULL)
+      free(data);
+}
+
+t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
+{
+   t_axe_address *result;
+
+   result = (t_axe_address *)
+         malloc(sizeof(t_axe_address));
+
+   if (result == NULL)
+      return NULL;
+
+   /* initialize the new instance of `t_axe_address' */
+   result->type = type;
+   result->addr = address;
+   result->labelID = label;
+
+   /* return the new address */
+   return result;
+}
       
 /* create a new variable */
 void createVariable(t_program_infos *program, char *ID
