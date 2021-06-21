@@ -11,9 +11,6 @@
 #ifndef _AXE_ERRORS_H
 #define _AXE_ERRORS_H
 
-#include "axe_engine.h"
-#include "axe_constants.h"
-
 /* WARNINGS */
 #define WARN_DIVISION_BY_ZERO 1
 #define WARN_INVALID_SHIFT_AMOUNT 2

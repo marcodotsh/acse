@@ -13,7 +13,6 @@
 #define _AXE_UTILS_H
 
 #include "axe_engine.h"
-#include "axe_constants.h"
 #include "collections.h"
 
 /* maximum and minimum between two values */

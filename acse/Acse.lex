@@ -18,7 +18,6 @@
 #include "axe_utils.h"
 #include "collections.h"
 #include "Acse.tab.h"
-#include "axe_constants.h"
 
 /* Variables declared in the lexer for error tracking */
 extern int line_num;
