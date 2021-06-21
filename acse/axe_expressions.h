@@ -26,6 +26,15 @@
 #define _LTEQ_ 4
 #define _GTEQ_ 5
 
+typedef struct t_axe_expression
+{
+   int value;           /* an immediate value or a register identifier */
+   int expression_type; /* actually only integer values are supported */
+} t_axe_expression;
+
+/* create an expression */
+extern t_axe_expression createExpression(int value, int type);
+
 /* This function generats instructions for binary numeric
  * operations.  It takes as input two expressions and a binary
  * operation identifier, and it returns a new expression that

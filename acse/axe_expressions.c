@@ -21,6 +21,17 @@ static t_axe_expression handle_bin_comparison_Imm
          (int val1, int val2, int condition);
 
 
+/* create an expression */
+t_axe_expression createExpression (int value, int type)
+{
+   t_axe_expression expression;
+
+   expression.value = value;
+   expression.expression_type = type;
+
+   return expression;
+}
+
 t_axe_expression handleBinaryOperator (t_program_infos *program
          , t_axe_expression exp1, t_axe_expression exp2, int binop)
 {

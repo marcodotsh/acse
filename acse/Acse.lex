@@ -14,7 +14,7 @@
  */
 
 #include <string.h>
-#include "axe_struct.h"
+#include "axe_expressions.h"
 #include "collections.h"
 #include "Acse.tab.h"
 #include "axe_constants.h"

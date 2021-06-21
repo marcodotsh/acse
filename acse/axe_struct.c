@@ -9,17 +9,6 @@
 
 #include "axe_struct.h"
 
-/* create an expression */
-t_axe_expression createExpression (int value, int type)
-{
-   t_axe_expression expression;
-
-   expression.value = value;
-   expression.expression_type = type;
-
-   return expression;
-}
-
 /* create and initialize an instance of `t_axe_register' */
 t_axe_register * initializeRegister(int ID, int indirect)
 {

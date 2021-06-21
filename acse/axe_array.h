@@ -12,7 +12,7 @@
 #define _AXE_ARRAY_H
 
 #include "axe_engine.h"
-#include "axe_struct.h"
+#include "axe_expressions.h"
 
 /* This function generates instructions that load the content of
  * an element of an array in a register.  This function takes as

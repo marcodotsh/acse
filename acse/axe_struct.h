@@ -104,12 +104,6 @@ typedef struct t_axe_data
    t_axe_label *labelID;   /* label associated with the current data */
 }t_axe_data;
 
-typedef struct t_axe_expression
-{
-   int value;           /* an immediate value or a register identifier */
-   int expression_type; /* actually only integer values are supported */
-} t_axe_expression;
-
 typedef struct t_axe_declaration
 {
    int isArray;           /* must be TRUE if the current variable is an array */
@@ -133,9 +127,6 @@ extern t_axe_label *initializeLabel(int value);
 
 /* free a label */
 extern void finalizeLabel(t_axe_label *lab);
-
-/* create an expression */
-extern t_axe_expression createExpression(int value, int type);
 
 /* create an instance that will mantain infos about a while statement */
 extern t_while_statement createWhileStatement();
