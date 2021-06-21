@@ -135,17 +135,4 @@
 #define CG_INDIRECT_DEST 1    /* [DEST] = SRC1 <OP>  SRC2  */
 #define CG_INDIRECT_SOURCE 2  /*  DEST =  SRC1 <OP> [SRC2] */
 
-/* EXPRESSION TYPES */
-#define IMMEDIATE 0
-#define REGISTER 1
-#define INVALID_EXPRESSION -1
-
-/* binary comparison constants */
-#define _LT_ 0
-#define _GT_ 1
-#define _EQ_ 2
-#define _NOTEQ_ 3
-#define _LTEQ_ 4
-#define _GTEQ_ 5
-
 #endif

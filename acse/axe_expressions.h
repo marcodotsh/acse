@@ -13,6 +13,19 @@
 
 #include "axe_engine.h"
 
+/* EXPRESSION TYPES */
+#define IMMEDIATE 0
+#define REGISTER 1
+#define INVALID_EXPRESSION -1
+
+/* binary comparison constants */
+#define _LT_ 0
+#define _GT_ 1
+#define _EQ_ 2
+#define _NOTEQ_ 3
+#define _LTEQ_ 4
+#define _GTEQ_ 5
+
 /* This function generats instructions for binary numeric
  * operations.  It takes as input two expressions and a binary
  * operation identifier, and it returns a new expression that
