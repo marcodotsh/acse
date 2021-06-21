@@ -134,10 +134,10 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
       /* assertion -- must always be verified */
       assert(current_decl != NULL);
 
-      /* add a load instruction for each declared variable
+      /* associate a register to each declared variable
        * that is not an array type */
       if (!(current_decl->isArray))
-         getRegisterForSymbol(program, current_decl->ID, 0);
+         getRegisterForSymbol(program, current_decl->ID);
 
       /* free the memory associated with the current declaration */
       free(current_decl);

@@ -313,7 +313,7 @@ t_axe_variable * getVariable
    return NULL;
 }
 
-int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad)
+int getRegisterForSymbol(t_program_infos *program, char *ID)
 {
    int sy_error;
    int location;
@@ -350,11 +350,6 @@ int getRegisterForSymbol(t_program_infos *program, char *ID, int genLoad)
       /* assertions */
       assert(location != REG_INVALID);
       assert(label != NULL);
-      
-      /* load the value of IDENTIFIER from the
-       * given label to a register */
-      if (genLoad)
-         genLOADInstruction(program, location, label, 0);
 
       /* update the symbol table */
       sy_errorcode = setLocation(program->sy_table, ID, location);

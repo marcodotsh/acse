@@ -290,7 +290,7 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                 * the variable with $1 as identifier */
                
                /* get the location of the symbol with the given ID. */
-               location = getRegisterForSymbol(program, $1, 0);
+               location = getRegisterForSymbol(program, $1);
 
                /* update the value of location */
                if ($3.expression_type == IMMEDIATE)
@@ -427,7 +427,7 @@ read_statement : READ LPAR IDENTIFIER RPAR
                
                /* lookup the symbol table and fetch the register location
                 * associated with the IDENTIFIER $3. */
-               location = getRegisterForSymbol(program, $3, 0);
+               location = getRegisterForSymbol(program, $3);
 
                /* insert a read instruction */
                genREADInstruction (program, location);
@@ -459,7 +459,7 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
    | IDENTIFIER  {
                      int variableReg, expValReg;
                      /* get the location of the symbol with the given ID */
-                     variableReg = getRegisterForSymbol(program, $1, 0);
+                     variableReg = getRegisterForSymbol(program, $1);
                      /* generate code that copies the value of the variable in
                       * a new register to freeze the expression's value */
                      expValReg = getNewRegister(program);
