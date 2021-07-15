@@ -14,7 +14,6 @@
 
 #include "axe_labels.h"
 #include "collections.h"
-#include "symbol_table.h"
 
 /* registers */
 #define REG_INVALID -1
@@ -61,6 +60,7 @@ typedef struct t_axe_variable
                             * pointer or an empty string "") */
    t_axe_label *labelID;   /* a label that refers to the location
                             * of the variable inside the data segment */
+   int reg_location;       /* the register ID associated to the variable */
 } t_axe_variable;
 
 /* MACE opcodes */
@@ -173,7 +173,6 @@ typedef struct t_program_infos
   t_list *instrInsPtrStack;
   t_list *data;
   t_axe_label_manager *lmanager;
-  t_symbol_table *sy_table;
   int current_register;
 } t_program_infos;
 
@@ -300,11 +299,11 @@ extern void createVariable(t_program_infos *program, char *ID, int type,
 /* get a previously allocated variable */
 extern t_axe_variable *getVariable(t_program_infos *program, char *ID);
 
-/* Given a variable/symbol identifier (ID) this function
+/* Given a variable identifier (ID) this function
  * returns a register location where the value is stored
- * (the value of the variable identified by `ID').
- * If an error occurs, getRegisterForSymbol returns a REG_INVALID errorcode */
-extern int getRegisterForSymbol(t_program_infos *program, char *ID);
+ * (the value of the variable identified by `ID'). If an error occurs,
+ * getRegLocationOfVariable returns a REG_INVALID errorcode */
+extern int getRegLocationOfVariable(t_program_infos *program, char *ID);
 
 /*  DATA DIRECTIVES  */
 

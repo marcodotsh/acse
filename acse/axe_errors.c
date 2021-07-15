@@ -90,8 +90,6 @@ static void printErrorMessage(int errorcode)
       case AXE_INVALID_EXPRESSION :
                   msg = "error: Invalid expression found"; break;
       case AXE_UNKNOWN_VARIABLE : msg = "error: Unknown variable found"; break;
-      case AXE_SY_TABLE_ERROR :
-                  msg = "error: Symbol table returned an errorcode"; break;
       case AXE_NULL_DECLARATION : msg = "error: NULL declaration found"; break;
       case AXE_LABEL_ALREADY_ASSIGNED :
                   msg = "error: label already assigned"; break;

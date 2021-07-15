@@ -10,7 +10,6 @@
 #include <assert.h>
 #include "axe_array.h"
 #include "axe_gencode.h"
-#include "symbol_table.h"
 #include "axe_utils.h"
 #include "axe_errors.h"
 #include "axe_target_info.h"

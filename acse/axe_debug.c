@@ -297,8 +297,8 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
 
       fprintf(fout, "   location = ");
       int sy_error;
-      int reg = getLocation(program->sy_table, var->ID, &sy_error);
-      if (reg == SY_LOCATION_UNSPECIFIED)
+      int reg = getRegLocationOfVariable(program, var->ID);
+      if (reg == REG_INVALID)
          fprintf(fout, "N/A");
       else
          fprintf(fout, "R%d", reg);

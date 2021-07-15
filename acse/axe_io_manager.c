@@ -73,8 +73,6 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
    max_fn = strlen(basename) + 24;
    frontend_out_fn = calloc(max_fn, sizeof(char));
    snprintf(frontend_out_fn, max_fn, "%s_frontend.log", basename);
-   symbol_table_out_fn = calloc(max_fn, sizeof(char));
-   snprintf(symbol_table_out_fn, max_fn, "%s_symbol_table.log", basename);
    cfg_out_fn = calloc(max_fn, sizeof(char));
    snprintf(cfg_out_fn, max_fn, "%s_control_flow.log", basename);
    data_flow_out_fn = calloc(max_fn, sizeof(char));
@@ -86,8 +84,6 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
          "\"%s\". \n", result->output_file_name);
    fprintf(stdout, "The output of the frontend will be written on file: "
          "\"%s\". \n", frontend_out_fn);
-   fprintf(stdout, "The Symbol Table will be written on file: "
-         "\"%s\". \n", symbol_table_out_fn);
    fprintf(stdout, "Intermediate code will be written on file: "
          "\"%s\". \n", cfg_out_fn);
    fprintf(stdout, "control/dataflow informations will "
@@ -99,15 +95,12 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
    result->cfg_1 = fopen(cfg_out_fn, "w");
    result->cfg_2 = fopen(data_flow_out_fn, "w");
    result->reg_alloc_output = fopen(regalloc_out_fn, "w");
-   result->syTable_output = fopen(symbol_table_out_fn, "w");
    if (result->frontend_output == NULL)
       fprintf(stderr, "WARNING : Unable to create file: %s.\n", frontend_out_fn);
    if (result->cfg_1 == NULL)
       fprintf(stderr, "WARNING : Unable to create file: %s.\n", cfg_out_fn);
    if (result->cfg_2 == NULL)
       fprintf(stderr, "WARNING : Unable to create file: %s.\n", data_flow_out_fn);
-   if (result->syTable_output == NULL)
-      fprintf(stderr, "WARNING : Unable to create file: %s.\n", symbol_table_out_fn);
    if (result->reg_alloc_output == NULL)
       fprintf(stderr, "WARNING : Unable to create file: %s.\n", regalloc_out_fn);
 
@@ -142,7 +135,6 @@ t_io_infos * allocOutputInfos()
    result->cfg_1 = stdout;
    result->cfg_2 = stdout;
    result->reg_alloc_output = stdout;
-   result->syTable_output = stdout;
 #endif
 
    /* return the result */
@@ -164,8 +156,6 @@ void finalizeOutputInfos(t_io_infos *infos)
       fclose(infos->cfg_2);
    if (infos->reg_alloc_output != NULL)
       fclose(infos->reg_alloc_output);
-   if (infos->syTable_output != NULL)
-      fclose(infos->syTable_output);
 #endif
 
    free(infos);

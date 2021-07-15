@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "axe_engine.h"
-#include "symbol_table.h"
 #include "axe_errors.h"
 #include "axe_gencode.h"
 #include "axe_target_info.h"
@@ -137,6 +136,7 @@ t_axe_variable * initializeVariable
    result->ID = ID;
    result->init_val = init_val;
    result->labelID = NULL;
+   result->reg_location = REG_INVALID;
 
    /* return the just created and initialized instance of t_axe_variable */
    return result;
@@ -314,7 +314,7 @@ t_axe_variable * getVariable
    return NULL;
 }
 
-int getRegisterForSymbol(t_program_infos *program, char *ID)
+int getRegLocationOfVariable(t_program_infos *program, char *ID)
 {
    int sy_error;
    int location;
@@ -326,10 +326,13 @@ int getRegisterForSymbol(t_program_infos *program, char *ID)
    if (program == NULL)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
    
-   /* get the location of the symbol with the given ID */
-   location = getLocation(program->sy_table, ID, &sy_error);
-   if (sy_error != SY_TABLE_OK)
-      notifyError(AXE_INVALID_VARIABLE);
+   /* get the location of the variable with the given ID */
+   t_axe_variable *var = getVariable(program, ID);
+   
+   if (var->isArray)
+      return REG_INVALID;
+
+   location = var->reg_location;
 
    /* verify if the variable was previously loaded into
    * a register. This check is made by looking to the
@@ -338,11 +341,8 @@ int getRegisterForSymbol(t_program_infos *program, char *ID)
    {
       /* we have to load the variable with the given
       * identifier (ID) */
-      t_axe_label *label;
+      t_axe_label *label = var->labelID;
       int sy_errorcode;
-
-      /* retrieve the label associated with ID */
-      label = getLabelFromVariableID(program, ID);
 
       /* fetch an unused register where to store the
        * result of the load instruction */
@@ -352,16 +352,8 @@ int getRegisterForSymbol(t_program_infos *program, char *ID)
       assert(location != REG_INVALID);
       assert(label != NULL);
 
-      /* update the symbol table */
-      sy_errorcode = setLocation(program->sy_table, ID, location);
-
-      if (sy_errorcode != SY_TABLE_OK)
-         notifyError(AXE_SY_TABLE_ERROR);
-
-#ifndef NDEBUG
-      /* get the location of the symbol with the given ID */
-      location = getLocation(program->sy_table, ID, &sy_error);
-#endif
+      /* update the variable record */
+      var->reg_location = location;
    }
 
    /* test the postconditions */
@@ -391,9 +383,8 @@ t_program_infos * allocProgramInfos()
    result->data = NULL;
    result->current_register = 1; /* we are excluding the register R0 */
    result->lmanager = initializeLabelManager();
-   result->sy_table = initializeSymbolTable();
 
-   if (result->lmanager == NULL || result->sy_table == NULL)
+   if (result->lmanager == NULL)
    {
       finalizeProgramInfos(result);
       notifyError(AXE_OUT_OF_MEMORY);
@@ -794,12 +785,6 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
 
    /* update the list of directives */
    program->data = addElement(program->data, new_data_info, -1);
-
-   /* update the content of the symbol table */
-   sy_error = putSym(program->sy_table, variable->ID, variable->type);
-     
-   if (sy_error != SY_TABLE_OK)
-      notifyError(AXE_SY_TABLE_ERROR);
 }
 
 int getNewRegister(t_program_infos *program)
@@ -829,8 +814,6 @@ void finalizeProgramInfos(t_program_infos *program)
       finalizeDataSegment(program->data);
    if (program->lmanager != NULL)
       finalizeLabelManager(program->lmanager);
-   if (program->sy_table != NULL)
-      finalizeSymbolTable(program->sy_table);
 
    free(program);
 }

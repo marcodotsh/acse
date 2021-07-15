@@ -24,7 +24,6 @@ typedef struct t_io_infos
    FILE *cfg_1;
    FILE *cfg_2;
    FILE *reg_alloc_output;
-   FILE *syTable_output;
 #endif
 }t_io_infos;
 

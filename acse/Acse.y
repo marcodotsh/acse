@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "axe_engine.h"
-#include "symbol_table.h"
 #include "axe_target_asm_print.h"
 #include "axe_target_transform.h"
 #include "axe_errors.h"
@@ -76,7 +75,7 @@ t_program_infos *program;  /* The singleton instance of `program'.
                             * An instance of `t_program_infos' holds in its
                             * internal structure, all the useful informations
                             * about a program. For example: the assembly
-                            * (code and directives); the symbol table;
+                            * (code and directives);
                             * the label manager (see axe_labels.h) etc. */
 t_cflow_Graph *graph;      /* An instance of a control flow graph. This instance
                             * will be generated starting from `program' and will
@@ -280,17 +279,15 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
 
                /* in order to assign a value to a variable, we have to
                 * know where the variable is located (i.e. in which register).
-                * the function `getRegisterForSymbol' is used in order
+                * the function `getRegLocationOfVariable' is used in order
                 * to retrieve the register location assigned to
                 * a given identifier.
-                * A symbol table keeps track of the location of every
-                * declared variable.
-                * `getRegisterForSymbol' perform a query on the symbol table
-                * in order to discover the correct location of
+                * `getRegLocationOfVariable' perform a query on the list
+                * of variables in order to discover the correct location of
                 * the variable with $1 as identifier */
                
-               /* get the location of the symbol with the given ID. */
-               location = getRegisterForSymbol(program, $1);
+               /* get the location of the variable with the given ID. */
+               location = getRegLocationOfVariable(program, $1);
 
                /* update the value of location */
                if ($3.expression_type == IMMEDIATE)
@@ -423,11 +420,11 @@ read_statement : READ LPAR IDENTIFIER RPAR
                
                /* read from standard input an integer value and assign
                 * it to a variable associated with the given identifier */
-               /* get the location of the symbol with the given ID */
+               /* get the location of the variable with the given ID */
                
-               /* lookup the symbol table and fetch the register location
+               /* lookup the variable table and fetch the register location
                 * associated with the IDENTIFIER $3. */
-               location = getRegisterForSymbol(program, $3);
+               location = getRegLocationOfVariable(program, $3);
 
                /* insert a read instruction */
                genREADInstruction (program, location);
@@ -459,7 +456,7 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
    | IDENTIFIER  {
                      int variableReg, expValReg;
                      /* get the location of the symbol with the given ID */
-                     variableReg = getRegisterForSymbol(program, $1);
+                     variableReg = getRegLocationOfVariable(program, $1);
                      /* generate code that copies the value of the variable in
                       * a new register to freeze the expression's value */
                      expValReg = getNewRegister(program);
@@ -579,10 +576,7 @@ int main (int argc, char **argv)
 
 #ifndef NDEBUG
    assert(program != NULL);
-   assert(program->sy_table != NULL);
    assert(file_infos != NULL);
-   assert(file_infos->syTable_output != NULL);
-   printSymbolTable(program->sy_table, file_infos->syTable_output);
    printGraphInfos(graph, file_infos->cfg_1, 0);
       
    fprintf(stdout, "Updating the basic blocks. \n");

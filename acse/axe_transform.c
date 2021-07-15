@@ -9,7 +9,6 @@
 
 #include <assert.h>
 #include "axe_transform.h"
-#include "symbol_table.h"
 #include "axe_reg_alloc.h"
 #include "axe_target_info.h"
 #include "axe_errors.h"
@@ -409,10 +408,24 @@ t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA)
    return result;
 }
 
+t_axe_variable *getVariableFromReg(t_program_infos *program, int reg)
+{
+   t_list *i;
+
+   for (i = program->variables; i; i = LNEXT(i)) {
+      t_axe_variable *variable = LDATA(i);
+      if (variable->reg_location == REG_INVALID)
+         continue;
+      if (variable->reg_location == reg)
+         return variable;
+   }
+
+   return NULL;
+}
+
 t_axe_instruction * createUnaryInstruction
                (t_program_infos *program, int reg, int opcode)
 {
-   char *varID;
    int sy_errorcode;
    t_axe_variable *axe_var;
 
@@ -422,19 +435,15 @@ t_axe_instruction * createUnaryInstruction
       return NULL;
    }
 
-   if (program == NULL || program->sy_table == NULL) {
+   if (program == NULL) {
       errorcode = AXE_PROGRAM_NOT_INITIALIZED;
       return NULL;
    }
 
-   /* initialize the value of errorcode */
-   sy_errorcode = SY_TABLE_OK;
-   varID = getSymbolNameFromReg(program->sy_table, reg, &sy_errorcode);
-   if (varID == NULL)
+   /* find the variable located at the register ID */
+   axe_var = getVariableFromReg(program, reg);
+   if (axe_var == NULL)
       return NULL;
-
-   /* retrieve the variable associated with `varID' */
-   axe_var = getVariable (program, varID);
 
    return _createUnary (program, reg, axe_var->labelID, opcode);
 }

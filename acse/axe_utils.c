@@ -12,7 +12,6 @@
 #include <inttypes.h>
 #include "axe_utils.h"
 #include "axe_gencode.h"
-#include "symbol_table.h"
 #include "axe_labels.h"
 #include "axe_cflow_graph.h"
 #include "axe_reg_alloc.h"
@@ -136,7 +135,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
       /* associate a register to each declared variable
        * that is not an array type */
       if (!(current_decl->isArray))
-         getRegisterForSymbol(program, current_decl->ID);
+         getRegLocationOfVariable(program, current_decl->ID);
 
       /* free the memory associated with the current declaration */
       free(current_decl);
