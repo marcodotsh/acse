@@ -54,35 +54,35 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
       /* we have to produce an instruction */
       switch(binop)
       {
-         case ADD : genADDIInstruction (program, output_register
+         case OP_ADD : genADDIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case ANDB : genANDBIInstruction (program, output_register
+         case OP_ANDB : genANDBIInstruction (program, output_register
                               , exp1.value, exp2.value); break;
-         case ANDL : genANDLIInstruction (program, output_register
+         case OP_ANDL : genANDLIInstruction (program, output_register
                               , exp1.value, exp2.value); break;
-         case ORB  : genORBIInstruction (program, output_register
+         case OP_ORB  : genORBIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case ORL  : genORLIInstruction (program, output_register
+         case OP_ORL  : genORLIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case EORB  : genEORBIInstruction (program, output_register
+         case OP_EORB  : genEORBIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case EORL  : genEORLIInstruction (program, output_register
+         case OP_EORL  : genEORLIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case SUB : genSUBIInstruction (program, output_register
+         case OP_SUB : genSUBIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case MUL : genMULIInstruction (program, output_register
+         case OP_MUL : genMULIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case SHL :
+         case OP_SHL :
                if (exp2.value < 0)
                   printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
                genSHLIInstruction(program, output_register, exp1.value, 
                      exp2.value); break;
-         case SHR : 
+         case OP_SHR : 
                if (exp2.value < 0)
                   printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
                genSHRIInstruction(program, output_register, exp1.value, 
                      exp2.value); break;
-         case DIV :
+         case OP_DIV :
                if (exp2.value == 0){
                   printWarningMessage(WARN_DIVISION_BY_ZERO);
                }
@@ -100,21 +100,21 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
       /* we have to produce an instruction */
       switch(binop)
       {
-         case ADD :  genADDIInstruction (program, output_register
+         case OP_ADD :  genADDIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case ANDB :  genANDBIInstruction (program, output_register
+         case OP_ANDB :  genANDBIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case ANDL :  genANDLIInstruction (program, output_register
+         case OP_ANDL :  genANDLIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case ORB  :  genORBIInstruction (program, output_register
+         case OP_ORB  :  genORBIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case ORL  :  genORLIInstruction (program, output_register
+         case OP_ORL  :  genORLIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case EORB  :  genEORBIInstruction (program, output_register
+         case OP_EORB  :  genEORBIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case EORL  :  genEORLIInstruction (program, output_register
+         case OP_EORL  :  genEORLIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case SUB :
+         case OP_SUB :
                   genSUBIInstruction (program, output_register
                            , exp2.value, exp1.value);
 
@@ -122,9 +122,9 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
                   genNEGInstruction (program, output_register
                            , output_register, CG_DIRECT_ALL);
                   break;
-         case MUL :  genMULIInstruction (program, output_register
+         case OP_MUL :  genMULIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case DIV :
+         case OP_DIV :
                   /* we have to load into a register the immediate value */
                   other_reg = getNewRegister(program);
 
@@ -137,7 +137,7 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
                   genDIVInstruction (program, output_register
                            , other_reg, exp2.value, CG_DIRECT_ALL);
                   break;
-         case SHL :
+         case OP_SHL :
                   /* we have to load into a register the immediate value */
                   other_reg = getNewRegister(program);
 
@@ -150,7 +150,7 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
                   genSHLInstruction (program, output_register
                            , other_reg, exp2.value, CG_DIRECT_ALL);
                   break;
-         case SHR :
+         case OP_SHR :
                   /* we have to load into a register the immediate value */
                   other_reg = getNewRegister(program);
 
@@ -172,40 +172,40 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
       /* we have to produce an instruction */
       switch(binop)
       {
-         case ADD :  genADDInstruction (program, output_register
+         case OP_ADD :  genADDInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case ANDB :  genANDBInstruction (program, output_register
+         case OP_ANDB :  genANDBInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case ANDL :  genANDLInstruction (program, output_register
+         case OP_ANDL :  genANDLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case ORB :  genORBInstruction (program, output_register
+         case OP_ORB :  genORBInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case ORL :  genORLInstruction (program, output_register
+         case OP_ORL :  genORLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case EORB :  genEORBInstruction (program, output_register
+         case OP_EORB :  genEORBInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case EORL :  genEORLInstruction (program, output_register
+         case OP_EORL :  genEORLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case SUB :  genSUBInstruction (program, output_register
+         case OP_SUB :  genSUBInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case MUL :  genMULInstruction (program, output_register
+         case OP_MUL :  genMULInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case DIV :  genDIVInstruction (program, output_register
+         case OP_DIV :  genDIVInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case SHL :  genSHLInstruction (program, output_register
+         case OP_SHL :  genSHLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case SHR :  genSHRInstruction (program, output_register
+         case OP_SHR :  genSHRInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
          default :
@@ -222,24 +222,24 @@ t_axe_expression handle_bin_numeric_op_Imm
 {
    switch(binop)
    {
-      case ADD : return createExpression((val1 + val2), IMMEDIATE);
-      case ANDB : return createExpression((val1 & val2), IMMEDIATE);
-      case ANDL : return createExpression((val1 && val2), IMMEDIATE);
-      case ORB  : return createExpression((val1 | val2), IMMEDIATE);
-      case ORL  : return createExpression((val1 || val2), IMMEDIATE);
-      case EORB  : return createExpression((val1 ^ val2), IMMEDIATE);
-      case EORL  : return createExpression(((!!val1) != (!!val2)), IMMEDIATE);
-      case SUB : return createExpression((val1 - val2), IMMEDIATE);
-      case MUL : return createExpression((val1 * val2), IMMEDIATE);
+      case OP_ADD : return createExpression((val1 + val2), IMMEDIATE);
+      case OP_ANDB : return createExpression((val1 & val2), IMMEDIATE);
+      case OP_ANDL : return createExpression((val1 && val2), IMMEDIATE);
+      case OP_ORB  : return createExpression((val1 | val2), IMMEDIATE);
+      case OP_ORL  : return createExpression((val1 || val2), IMMEDIATE);
+      case OP_EORB  : return createExpression((val1 ^ val2), IMMEDIATE);
+      case OP_EORL  : return createExpression(((!!val1) != (!!val2)), IMMEDIATE);
+      case OP_SUB : return createExpression((val1 - val2), IMMEDIATE);
+      case OP_MUL : return createExpression((val1 * val2), IMMEDIATE);
       /* SHL, SHR, DIV need special handling to avoid undefined behavior */
-      case SHL:
+      case OP_SHL:
          if (val2 < 0) {
             printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
             return createExpression(val2, IMMEDIATE);
          } else if (val2 >= 32)
             return createExpression(0, IMMEDIATE);
          return createExpression((val1 << val2), IMMEDIATE);
-      case SHR:
+      case OP_SHR:
          if (val2 < 0) {
             printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
             return createExpression(val2, IMMEDIATE);
@@ -250,7 +250,7 @@ t_axe_expression handle_bin_numeric_op_Imm
          return createExpression((val1 >> val2) | 
                (val1 < 0 ? (((1 << val2) - 1) << MAX(32 - val2, 0)) : 0), 
                IMMEDIATE);
-      case DIV :
+      case OP_DIV :
          if (val2 == 0){
             printWarningMessage(WARN_DIVISION_BY_ZERO);
             return createExpression(INT_MAX, IMMEDIATE);
@@ -268,12 +268,12 @@ t_axe_expression handle_bin_comparison_Imm
 {
    switch(condition)
    {
-      case _LT_ : return createExpression ((val1 < val2), IMMEDIATE);
-      case _GT_ : return createExpression ((val1 > val2), IMMEDIATE);
-      case _EQ_  : return createExpression ((val1 == val2), IMMEDIATE);
-      case _NOTEQ_ : return createExpression ((val1 != val2), IMMEDIATE);
-      case _LTEQ_ : return createExpression ((val1 <= val2), IMMEDIATE);
-      case _GTEQ_ : return createExpression ((val1 >= val2), IMMEDIATE);
+      case OP_LT : return createExpression ((val1 < val2), IMMEDIATE);
+      case OP_GT : return createExpression ((val1 > val2), IMMEDIATE);
+      case OP_EQ  : return createExpression ((val1 == val2), IMMEDIATE);
+      case OP_NOTEQ : return createExpression ((val1 != val2), IMMEDIATE);
+      case OP_LTEQ : return createExpression ((val1 <= val2), IMMEDIATE);
+      case OP_GTEQ : return createExpression ((val1 >= val2), IMMEDIATE);
       default :
          notifyError(AXE_INVALID_EXPRESSION);
    }
@@ -324,12 +324,12 @@ t_axe_expression handleBinaryComparison (t_program_infos *program
    /* generate a set instruction */
    switch(condition)
    {
-      case _LT_ : genSLTInstruction (program, output_register); break;
-      case _GT_ : genSGTInstruction (program, output_register); break;
-      case _EQ_  : genSEQInstruction (program, output_register); break;
-      case _NOTEQ_ : genSNEInstruction (program, output_register); break;
-      case _LTEQ_ : genSLEInstruction (program, output_register); break;
-      case _GTEQ_ : genSGEInstruction (program, output_register); break;
+      case OP_LT : genSLTInstruction (program, output_register); break;
+      case OP_GT : genSGTInstruction (program, output_register); break;
+      case OP_EQ  : genSEQInstruction (program, output_register); break;
+      case OP_NOTEQ : genSNEInstruction (program, output_register); break;
+      case OP_LTEQ : genSLEInstruction (program, output_register); break;
+      case OP_GTEQ : genSGEInstruction (program, output_register); break;
       default :
          notifyError(AXE_INVALID_EXPRESSION);
    }

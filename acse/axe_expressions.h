@@ -18,13 +18,27 @@
 #define REGISTER 1
 #define INVALID_EXPRESSION -1
 
-/* binary comparison constants */
-#define _LT_ 0
-#define _GT_ 1
-#define _EQ_ 2
-#define _NOTEQ_ 3
-#define _LTEQ_ 4
-#define _GTEQ_ 5
+/* mathematical operator constants */
+#define OP_ADD     0
+#define OP_ANDB    1
+#define OP_ANDL    2
+#define OP_ORB     3
+#define OP_ORL     4
+#define OP_EORB    5
+#define OP_EORL    6
+#define OP_SUB     7
+#define OP_MUL     8
+#define OP_SHL     9
+#define OP_SHR    10
+#define OP_DIV    11
+
+/* binary comparison operator constants */
+#define OP_LT     12
+#define OP_GT     13
+#define OP_EQ     14
+#define OP_NOTEQ  15
+#define OP_LTEQ   16
+#define OP_GTEQ   17
 
 typedef struct t_axe_expression
 {
@@ -44,18 +58,18 @@ extern t_axe_expression createExpression(int value, int type);
  * and an IMMEDIATE expression is returned.
  *
  * Valid values for `binop' are:
- * ADD 
- * ANDB
- * ANDL
- * ORB 
- * ORL 
- * EORB
- * EORL
- * SUB 
- * MUL 
- * SHL 
- * SHR 
- * DIV  */
+ * OP_ADD 
+ * OP_ANDB
+ * OP_ANDL
+ * OP_ORB 
+ * OP_ORL 
+ * OP_EORB
+ * OP_EORL
+ * OP_SUB 
+ * OP_MUL 
+ * OP_SHL 
+ * OP_SHR 
+ * OP_DIV  */
 extern t_axe_expression handleBinaryOperator(t_program_infos *program,
       t_axe_expression exp1, t_axe_expression exp2, int binop);
 
@@ -68,17 +82,17 @@ extern t_axe_expression handleBinaryOperator(t_program_infos *program,
  * and an IMMEDIATE expression is returned.
  *
  * Valid values for `condition' are:
- * _LT_     (used to test if the value of `exp1' is less than
+ * OP_LT     (used to test if the value of `exp1' is less than
  *           the value of `exp2')
- * _GT_     (used to test if the value of `exp1' is greater than
+ * OP_GT     (used to test if the value of `exp1' is greater than
  *           the value of `exp2')
- * _EQ_     (used to test if the value of `exp1' is equal to
+ * OP_EQ     (used to test if the value of `exp1' is equal to
  *           the value of `exp2')
- * _NOTEQ_  (used to test if the value of `exp1' is not equal to
+ * OP_NOTEQ  (used to test if the value of `exp1' is not equal to
  *           the value of `exp2')
- * _LTEQ_   (used to test if the value of `exp1' is less than
+ * OP_LTEQ   (used to test if the value of `exp1' is less than
  *           or equal to the value of `exp2')
- * _GTEQ_   (used to test if the value of `exp1' is greater than
+ * OP_GTEQ   (used to test if the value of `exp1' is greater than
  *           the value of `exp2')  */
 extern t_axe_expression handleBinaryComparison(t_program_infos *program,
       t_axe_expression exp1, t_axe_expression exp2, int condition);

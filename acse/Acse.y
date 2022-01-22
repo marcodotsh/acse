@@ -503,22 +503,22 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
                   $$ = createExpression(output_register, REGISTER);
                }
    }
-   | exp AND_OP exp { $$ = handleBinaryOperator(program, $1, $3, ANDB); }
-   | exp OR_OP exp  { $$ = handleBinaryOperator(program, $1, $3, ORB); }
-   | exp PLUS exp   { $$ = handleBinaryOperator(program, $1, $3, ADD); }
-   | exp MINUS exp  { $$ = handleBinaryOperator(program, $1, $3, SUB); }
-   | exp MUL_OP exp { $$ = handleBinaryOperator(program, $1, $3, MUL); }
-   | exp DIV_OP exp { $$ = handleBinaryOperator(program, $1, $3, DIV); }
-   | exp LT exp     { $$ = handleBinaryComparison(program, $1, $3, _LT_); }
-   | exp GT exp     { $$ = handleBinaryComparison(program, $1, $3, _GT_); }
-   | exp EQ exp     { $$ = handleBinaryComparison(program, $1, $3, _EQ_); }
-   | exp NOTEQ exp  { $$ = handleBinaryComparison(program, $1, $3, _NOTEQ_); }
-   | exp LTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, _LTEQ_); }
-   | exp GTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, _GTEQ_); }
-   | exp SHL_OP exp { $$ = handleBinaryOperator(program, $1, $3, SHL); }
-   | exp SHR_OP exp { $$ = handleBinaryOperator(program, $1, $3, SHR); }
-   | exp ANDAND exp { $$ = handleBinaryOperator(program, $1, $3, ANDL); }
-   | exp OROR exp   { $$ = handleBinaryOperator(program, $1, $3, ORL); }
+   | exp AND_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDB); }
+   | exp OR_OP exp  { $$ = handleBinaryOperator(program, $1, $3, OP_ORB); }
+   | exp PLUS exp   { $$ = handleBinaryOperator(program, $1, $3, OP_ADD); }
+   | exp MINUS exp  { $$ = handleBinaryOperator(program, $1, $3, OP_SUB); }
+   | exp MUL_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_MUL); }
+   | exp DIV_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_DIV); }
+   | exp LT exp     { $$ = handleBinaryComparison(program, $1, $3, OP_LT); }
+   | exp GT exp     { $$ = handleBinaryComparison(program, $1, $3, OP_GT); }
+   | exp EQ exp     { $$ = handleBinaryComparison(program, $1, $3, OP_EQ); }
+   | exp NOTEQ exp  { $$ = handleBinaryComparison(program, $1, $3, OP_NOTEQ); }
+   | exp LTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, OP_LTEQ); }
+   | exp GTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, OP_GTEQ); }
+   | exp SHL_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_SHL); }
+   | exp SHR_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_SHR); }
+   | exp ANDAND exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDL); }
+   | exp OROR exp   { $$ = handleBinaryOperator(program, $1, $3, OP_ORL); }
    | LPAR exp RPAR  { $$ = $2; }
    | MINUS exp {
                   if ($2.expression_type == IMMEDIATE)
@@ -535,7 +535,7 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
                      exp_r0.expression_type = REGISTER;
                      
                      $$ = handleBinaryOperator
-                           (program, exp_r0, $2, SUB);
+                           (program, exp_r0, $2, OP_SUB);
                   }
                }
 ;
