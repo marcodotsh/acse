@@ -8,7 +8,7 @@ ifeq ($(OS), Windows_NT)
    acse_file=$(ACSE).exe
 endif
 
-objects=$(patsubst %.src,%.o,$(wildcard *.src))
+objects=$(patsubst %.src,%.asm,$(wildcard *.src))
 
 .PHONY: test
 ifeq (,$(wildcard _NO_TEST_))
