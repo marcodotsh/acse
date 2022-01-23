@@ -349,12 +349,8 @@ if_stmt  :  IF
 
 while_statement  : WHILE
                   {
-                     /* initialize the value of the non-terminal */
-                     $1 = createWhileStatement();
-
                      /* reserve and fix a new label */
-                     $1.label_condition
-                           = assignNewLabel(program);
+                     $1.label_condition = assignNewLabel(program);
                   }
                   LPAR exp RPAR
                   {
@@ -371,13 +367,12 @@ while_statement  : WHILE
 
                      /* if `exp' returns FALSE, jump to the label 
                       * $1.label_end */
-                     genBEQInstruction (program, $1.label_end, 0);
+                     genBEQInstruction(program, $1.label_end, 0);
                   }
                   code_block
                   {
                      /* jump to the beginning of the loop */
-                     genBTInstruction
-                           (program, $1.label_condition, 0);
+                     genBTInstruction(program, $1.label_condition, 0);
 
                      /* fix the label `label_end' */
                      assignLabel(program, $1.label_end);

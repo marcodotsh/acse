@@ -37,9 +37,6 @@ typedef struct t_while_statement
                                     * that follows the while construct */
 } t_while_statement;
 
-/* create an instance that will mantain infos about a while statement */
-extern t_while_statement createWhileStatement();
-
 /* create an instance of `t_axe_variable' */
 extern t_axe_declaration *initializeDeclaration(
       char *ID, int isArray, int arraySize, int init_val);
