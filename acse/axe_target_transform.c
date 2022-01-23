@@ -70,7 +70,7 @@ void fixLargeImmediates(t_program_infos *program)
       }
       t_list *nexti = LNEXT(curi);
       
-      if (instr->opcode == ADDI && instr->reg_2->ID == REG_0) {
+      if (instr->opcode == OPC_ADDI && instr->reg_2->ID == REG_0) {
          pushInstrInsertionPoint(program, curi);
          int reg = instr->reg_1->ID;
          genLoweredImmediateMove(program, reg, instr->immediate);

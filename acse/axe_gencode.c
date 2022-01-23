@@ -40,358 +40,358 @@ int genLoadImmediate(t_program_infos *program, int immediate)
 t_axe_instruction * genBTInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BT, label, addr);
+   return genJumpInstruction (program, OPC_BT, label, addr);
 }
 
 t_axe_instruction * genBFInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BF, label, addr);
+   return genJumpInstruction (program, OPC_BF, label, addr);
 }
 
 t_axe_instruction * genBHIInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BHI, label, addr);
+   return genJumpInstruction (program, OPC_BHI, label, addr);
 }      
       
 t_axe_instruction * genBLSInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BLS, label, addr);
+   return genJumpInstruction (program, OPC_BLS, label, addr);
 }
 
 t_axe_instruction * genBCCInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BCC, label, addr);
+   return genJumpInstruction (program, OPC_BCC, label, addr);
 }
 
 t_axe_instruction * genBCSInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BCS, label, addr);
+   return genJumpInstruction (program, OPC_BCS, label, addr);
 }
 
 t_axe_instruction * genBNEInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BNE, label, addr);
+   return genJumpInstruction (program, OPC_BNE, label, addr);
 }
 
 t_axe_instruction * genBEQInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BEQ, label, addr);
+   return genJumpInstruction (program, OPC_BEQ, label, addr);
 }
 
 t_axe_instruction * genBVCInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BVC, label, addr);
+   return genJumpInstruction (program, OPC_BVC, label, addr);
 }
 
 t_axe_instruction * genBvsInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BVS, label, addr);
+   return genJumpInstruction (program, OPC_BVS, label, addr);
 }
 
 t_axe_instruction * genBPLInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BPL, label, addr);
+   return genJumpInstruction (program, OPC_BPL, label, addr);
 }
 
 t_axe_instruction * genBMIInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BMI, label, addr);
+   return genJumpInstruction (program, OPC_BMI, label, addr);
 }
 
 t_axe_instruction * genBGEInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BGE, label, addr);
+   return genJumpInstruction (program, OPC_BGE, label, addr);
 }
 
 t_axe_instruction * genBLTInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BLT, label, addr);
+   return genJumpInstruction (program, OPC_BLT, label, addr);
 }
 
 t_axe_instruction * genBGTInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BGT, label, addr);
+   return genJumpInstruction (program, OPC_BGT, label, addr);
 }
 
 t_axe_instruction * genBLEInstruction
       (t_program_infos *program, t_axe_label *label, int addr)
 {
-   return genJumpInstruction (program, BLE, label, addr);
+   return genJumpInstruction (program, OPC_BLE, label, addr);
 }
 
 t_axe_instruction * genADDInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, ADD, r_dest, r_source1, r_source2, flags);
+         (program, OPC_ADD, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genSUBInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, SUB, r_dest, r_source1, r_source2, flags);
+         (program, OPC_SUB, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genANDLInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, ANDL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_ANDL, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genORLInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, ORL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_ORL, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genEORLInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, EORL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_EORL, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genANDBInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, ANDB, r_dest, r_source1, r_source2, flags);
+         (program, OPC_ANDB, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genORBInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, ORB, r_dest, r_source1, r_source2, flags);
+         (program, OPC_ORB, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genEORBInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, EORB, r_dest, r_source1, r_source2, flags);
+         (program, OPC_EORB, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genMULInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, MUL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_MUL, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genDIVInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, DIV, r_dest, r_source1, r_source2, flags);
+         (program, OPC_DIV, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genSHLInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, SHL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_SHL, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genSHRInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, SHR, r_dest, r_source1, r_source2, flags);
+         (program, OPC_SHR, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genNEGInstruction (t_program_infos *program
       , int r_dest, int r_source, int flags)
 {
-   return genTernaryInstruction(program, NEG, r_dest, REG_0, r_source, flags);
+   return genTernaryInstruction(program, OPC_NEG, r_dest, REG_0, r_source, flags);
 }
 
 t_axe_instruction * genSPCLInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, SPCL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_SPCL, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genADDIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, ADDI
+   return genBinaryInstruction(program, OPC_ADDI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genSUBIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, SUBI
+   return genBinaryInstruction(program, OPC_SUBI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genANDLIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, ANDLI
+   return genBinaryInstruction(program, OPC_ANDLI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genORLIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, ORLI
+   return genBinaryInstruction(program, OPC_ORLI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genEORLIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, EORLI
+   return genBinaryInstruction(program, OPC_EORLI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genANDBIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, ANDBI
+   return genBinaryInstruction(program, OPC_ANDBI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genMULIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, MULI
+   return genBinaryInstruction(program, OPC_MULI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genORBIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, ORBI
+   return genBinaryInstruction(program, OPC_ORBI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genEORBIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, EORBI
+   return genBinaryInstruction(program, OPC_EORBI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genDIVIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, DIVI
+   return genBinaryInstruction(program, OPC_DIVI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genSHLIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, SHLI
+   return genBinaryInstruction(program, OPC_SHLI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genSHRIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, SHRI
+   return genBinaryInstruction(program, OPC_SHRI
          , r_dest, r_source1, immediate);
 }
 
 t_axe_instruction * genNOTLInstruction
       (t_program_infos *program, int r_dest, int r_source1)
 {
-   return genBinaryInstruction(program, NOTL
+   return genBinaryInstruction(program, OPC_NOTL
          , r_dest, r_source1, 0);
 }
 
 t_axe_instruction * genNOTBInstruction
       (t_program_infos *program, int r_dest, int r_source1)
 {
-   return genBinaryInstruction(program, NOTB
+   return genBinaryInstruction(program, OPC_NOTB
          , r_dest, r_source1, 0);
 }
 
 t_axe_instruction * genREADInstruction
                (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, AXE_READ, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_AXE_READ, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genWRITEInstruction
                (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, AXE_WRITE, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_AXE_WRITE, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genLOADInstruction
       (t_program_infos *program, int r_dest, t_axe_label *label, int address)
 {
-   return genUnaryInstruction(program, LOAD, r_dest, label, address);
+   return genUnaryInstruction(program, OPC_LOAD, r_dest, label, address);
 }
 
 t_axe_instruction * genSTOREInstruction
       (t_program_infos *program, int r_dest, t_axe_label *label, int address)
 {
-   return genUnaryInstruction(program, STORE, r_dest, label, address);
+   return genUnaryInstruction(program, OPC_STORE, r_dest, label, address);
 }
 
 t_axe_instruction * genMOVAInstruction
       (t_program_infos *program, int r_dest, t_axe_label *label, int address)
 {
-   return genUnaryInstruction(program, MOVA, r_dest, label, address);
+   return genUnaryInstruction(program, OPC_MOVA, r_dest, label, address);
 }
 
 t_axe_instruction * genSGEInstruction
                   (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, SGE, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_SGE, r_dest, NULL, 0);
 }
    
 t_axe_instruction * genSEQInstruction
                   (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, SEQ, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_SEQ, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genSGTInstruction
                   (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, SGT, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_SGT, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genSLEInstruction
                   (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, SLE, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_SLE, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genSLTInstruction
                   (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, SLT, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_SLT, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genSNEInstruction
                   (t_program_infos *program, int r_dest)
 {
-   return genUnaryInstruction(program, SNE, r_dest, NULL, 0);
+   return genUnaryInstruction(program, OPC_SNE, r_dest, NULL, 0);
 }
 
 t_axe_instruction * genHALTInstruction
@@ -404,7 +404,7 @@ t_axe_instruction * genHALTInstruction
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
       
    /* create an instance of `t_axe_instruction' */
-   instr = initializeInstruction(HALT);
+   instr = initializeInstruction(OPC_HALT);
 
    if (instr == NULL)
       notifyError(AXE_OUT_OF_MEMORY);
@@ -425,7 +425,7 @@ t_axe_instruction * genNOPInstruction(t_program_infos *program)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
    
    /* create an instance of `t_axe_instruction' */
-   instr = initializeInstruction(NOP);
+   instr = initializeInstruction(OPC_NOP);
 
    if (instr == NULL)
       notifyError(AXE_OUT_OF_MEMORY);
@@ -465,7 +465,7 @@ t_axe_instruction * genUnaryInstruction (t_program_infos *program
    }
 
    /* test if the opcode is a valid opcode */
-   if (opcode == INVALID_OPCODE)
+   if (opcode == OPC_INVALID)
       notifyError(AXE_INVALID_OPCODE);
 
    /* create an instance of `t_axe_instruction' */
@@ -641,7 +641,7 @@ t_axe_instruction * genJumpInstruction (t_program_infos *program
    }
 
    /* test if the opcode is a valid opcode */
-   if (opcode == INVALID_OPCODE)
+   if (opcode == OPC_INVALID)
       notifyError(AXE_INVALID_OPCODE);
 
    /* create an instance of `t_axe_instruction' */

@@ -159,7 +159,7 @@ void setProgramEnd(t_program_infos *program)
       last_instr = (t_axe_instruction *)LDATA(last_element);
       assert(last_instr != NULL);
 
-      if (last_instr->opcode == HALT)
+      if (last_instr->opcode == OPC_HALT)
          return;
    }
 

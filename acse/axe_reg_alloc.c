@@ -1111,15 +1111,15 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                          * we don't have to set the flag "dirty" for the
                          * register assignedRegisters[current_row], since reg_1
                          * is "used" but not "defined" */
-                        if (  (current_instr->opcode != STORE)
-                              && (current_instr->opcode != AXE_WRITE) )
+                        if (  (current_instr->opcode != OPC_STORE)
+                              && (current_instr->opcode != OPC_AXE_WRITE) )
                         {
                            assignedRegisters[current_row].needsWB = 1;
                         }
                         /* if the current instruction is a STORE we have to
                          * notify that the write back is happened by
                          * resetting the flag "dirty" */
-                        if (current_instr->opcode == STORE)
+                        if (current_instr->opcode == OPC_STORE)
                            assignedRegisters[current_row].needsWB = 0;
                      }
 
@@ -1314,7 +1314,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
 
                      /* test if we need to load the value from register */
                      if (  (current_instr->reg_1)->indirect
-                           || (current_instr->opcode == AXE_WRITE))
+                           || (current_instr->opcode == OPC_AXE_WRITE))
                      {
                         _insertLoadSpill(program, (current_instr->reg_1)->ID
                               , register_found, graph, current_block
@@ -1336,8 +1336,8 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
 
                if (! (current_instr->reg_1)->indirect)
                {
-                  if (  (current_instr->opcode != STORE)
-                        && (current_instr->opcode != AXE_WRITE) )
+                  if (  (current_instr->opcode != OPC_STORE)
+                        && (current_instr->opcode != OPC_AXE_WRITE) )
                   {
                      assignedRegisters[current_row].needsWB = 1;
                   }

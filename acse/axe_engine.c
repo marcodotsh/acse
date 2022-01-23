@@ -431,7 +431,7 @@ int isLoadInstruction(t_axe_instruction *instr)
       return 0;
    }
 
-   return (instr->opcode == LOAD) ? 1 : 0;
+   return (instr->opcode == OPC_LOAD) ? 1 : 0;
 }
 
 int isHaltOrRetInstruction(t_axe_instruction *instr)
@@ -440,7 +440,7 @@ int isHaltOrRetInstruction(t_axe_instruction *instr)
       return 0;
    }
 
-   return instr->opcode == HALT || instr->opcode == RET;
+   return instr->opcode == OPC_HALT || instr->opcode == OPC_RET;
 }
 
 /* test if the current instruction `instr' is a BT or a BF */
@@ -448,7 +448,7 @@ int isUnconditionalJump(t_axe_instruction *instr)
 {
    if (isJumpInstruction(instr))
    {
-      if ((instr->opcode == BT) || (instr->opcode == BF))
+      if ((instr->opcode == OPC_BT) || (instr->opcode == OPC_BF))
          return 1;
    }
 
@@ -463,35 +463,35 @@ int isJumpInstruction(t_axe_instruction *instr)
 
    switch(instr->opcode)
    {
-      case BT :
-      case BF :
-      case BHI :
-      case BLS :
-      case BCC :
-      case BCS :
-      case BNE :
-      case BEQ :
-      case BVC :
-      case BVS :
-      case BPL :
-      case BMI :
-      case BGE :
-      case BLT :
-      case BGT :
-      case BLE : return 1;
+      case OPC_BT :
+      case OPC_BF :
+      case OPC_BHI :
+      case OPC_BLS :
+      case OPC_BCC :
+      case OPC_BCS :
+      case OPC_BNE :
+      case OPC_BEQ :
+      case OPC_BVC :
+      case OPC_BVS :
+      case OPC_BPL :
+      case OPC_BMI :
+      case OPC_BGE :
+      case OPC_BLT :
+      case OPC_BGT :
+      case OPC_BLE : return 1;
       default : return 0;
    }
 }
 
 int isImmediateArgumentInstrOpcode(int opcode)
 {
-   return ADDI <= opcode && opcode <= ROTRI;
+   return OPC_ADDI <= opcode && opcode <= OPC_ROTRI;
 }
 
 int switchOpcodeImmediateForm(int orig)
 {
-   if (!(ADD <= orig && orig <= ROTR) &&
-       !(ADDI <= orig && orig <= ROTRI))
+   if (!(OPC_ADD <= orig && orig <= OPC_ROTR) &&
+       !(OPC_ADDI <= orig && orig <= OPC_ROTRI))
       return orig;
    return orig ^ 0x10;
 }
@@ -520,7 +520,7 @@ int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
    if (outSrcReg) *outSrcReg = NULL;
    if (outSrcAddr) *outSrcAddr = NULL;
 
-   if (instr->opcode == MOVA) {
+   if (instr->opcode == OPC_MOVA) {
       if (outSrcAddr)
          *outSrcAddr = instr->address;
       if (outDest)
@@ -528,9 +528,9 @@ int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
       return 1;
    }
 
-   if ((instr->opcode == ADD && 
+   if ((instr->opcode == OPC_ADD && 
             (instr->reg_2->ID == REG_0 || instr->reg_3->ID == REG_0)) ||
-         (instr->opcode == SUB && instr->reg_3->ID == REG_0)) {
+         (instr->opcode == OPC_SUB && instr->reg_3->ID == REG_0)) {
       if (outSrcReg)
          *outSrcReg = instr->reg_2->ID == REG_0 ? instr->reg_3 : instr->reg_2;
       if (outDest)
@@ -538,7 +538,7 @@ int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
       return 1;
    }
 
-   if (instr->opcode == ADDI && instr->reg_2->ID == REG_0) {
+   if (instr->opcode == OPC_ADDI && instr->reg_2->ID == REG_0) {
       if (outSrcImm)
          *outSrcImm = instr->immediate;
       if (outDest)
@@ -546,7 +546,7 @@ int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
       return 1;
    }
 
-   if (instr->opcode == SUBI && instr->reg_2->ID == REG_0) {
+   if (instr->opcode == OPC_SUBI && instr->reg_2->ID == REG_0) {
       if (outSrcImm)
          *outSrcImm = -(instr->immediate);
       if (outDest)

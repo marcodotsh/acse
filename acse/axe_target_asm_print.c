@@ -98,8 +98,8 @@ int translateInstruction(t_program_infos *program, t_axe_instruction *current_in
    /* print the opcode */
    printOpcode(current_instruction->opcode, fp);
 
-   if (  (current_instruction->opcode == HALT)
-         || (current_instruction->opcode == NOP) )
+   if (  (current_instruction->opcode == OPC_HALT)
+         || (current_instruction->opcode == OPC_NOP) )
    {
       /* do nothing */
    }
@@ -207,7 +207,7 @@ void translateCodeSegment(t_program_infos *program, FILE *fp)
       /* retrieve the current instruction */
       current_instruction = (t_axe_instruction *) LDATA(current_element);
       assert(current_instruction != NULL);
-      assert(current_instruction->opcode != INVALID_OPCODE);
+      assert(current_instruction->opcode != OPC_INVALID);
 
       if (translateInstruction(program, current_instruction, fp)) {
          _error = fclose(fp);
@@ -336,69 +336,69 @@ void printOpcode(int opcode, FILE *fp)
 
    switch(opcode)
    {
-      case ADD : opcode_to_string = "ADD"; break;
-      case SUB : opcode_to_string = "SUB"; break;
-      case ANDL : opcode_to_string = "ANDL"; break;
-      case ORL : opcode_to_string = "ORL"; break;
-      case EORL : opcode_to_string = "EORL"; break;
-      case ANDB : opcode_to_string = "ANDB"; break;
-      case ORB : opcode_to_string = "ORB"; break;
-      case EORB : opcode_to_string = "EORB"; break;
-      case MUL : opcode_to_string = "MUL"; break;
-      case DIV : opcode_to_string = "DIV"; break;
-      case SHL : opcode_to_string = "SHL"; break;
-      case SHR : opcode_to_string = "SHR"; break;
-      case ROTL : opcode_to_string = "ROTL"; break;
-      case ROTR : opcode_to_string = "ROTR"; break;
-      case NEG : opcode_to_string = "NEG"; break;
-      case SPCL : opcode_to_string = "SPCL"; break;
-      case ADDI : opcode_to_string = "ADDI"; break;
-      case SUBI : opcode_to_string = "SUBI"; break;
-      case ANDLI : opcode_to_string = "ANDLI"; break;
-      case ORLI : opcode_to_string = "ORLI"; break;
-      case EORLI : opcode_to_string = "EORLI"; break;
-      case ANDBI : opcode_to_string = "ANDBI"; break;
-      case ORBI : opcode_to_string = "ORBI"; break;
-      case EORBI : opcode_to_string = "EORBI"; break;
-      case MULI : opcode_to_string = "MULI"; break;
-      case DIVI : opcode_to_string = "DIVI"; break;
-      case SHLI : opcode_to_string = "SHLI"; break;
-      case SHRI : opcode_to_string = "SHRI"; break;
-      case ROTLI : opcode_to_string = "ROTLI"; break;
-      case ROTRI : opcode_to_string = "ROTRI"; break;
-      case NOTL : opcode_to_string = "NOTL"; break;
-      case NOTB : opcode_to_string = "NOTB"; break;
-      case NOP : opcode_to_string = "NOP"; break;
-      case MOVA : opcode_to_string = "MOVA"; break;
-      case JSR : opcode_to_string = "JSR"; break;
-      case RET : opcode_to_string = "RET"; break;
-      case HALT : opcode_to_string = "HALT"; break;
-      case BT : opcode_to_string = "BT"; break;
-      case BF : opcode_to_string = "BF"; break;
-      case BHI : opcode_to_string = "BHI"; break;
-      case BLS : opcode_to_string = "BLS"; break;
-      case BCC : opcode_to_string = "BCC"; break;
-      case BCS : opcode_to_string = "BCS"; break;
-      case BNE : opcode_to_string = "BNE"; break;
-      case BEQ : opcode_to_string = "BEQ"; break;
-      case BVC : opcode_to_string = "BVC"; break;
-      case BVS : opcode_to_string = "BVS"; break;
-      case BPL : opcode_to_string = "BPL"; break;
-      case BMI : opcode_to_string = "BMI"; break;
-      case BGE : opcode_to_string = "BGE"; break;
-      case BLT : opcode_to_string = "BLT"; break;
-      case BGT : opcode_to_string = "BGT"; break;
-      case BLE : opcode_to_string = "BLE"; break;
-      case LOAD : opcode_to_string = "LOAD"; break;
-      case STORE : opcode_to_string = "STORE"; break;
-      case SEQ : opcode_to_string = "SEQ"; break;
-      case SGE : opcode_to_string = "SGE"; break;
-      case SGT : opcode_to_string = "SGT"; break;
-      case SLE : opcode_to_string = "SLE"; break;
-      case SLT : opcode_to_string = "SLT"; break;
-      case SNE : opcode_to_string = "SNE"; break;
-      case AXE_READ : opcode_to_string = "READ"; break;
-      case AXE_WRITE : opcode_to_string = "WRITE"; break;
+      case OPC_ADD : opcode_to_string = "ADD"; break;
+      case OPC_SUB : opcode_to_string = "SUB"; break;
+      case OPC_ANDL : opcode_to_string = "ANDL"; break;
+      case OPC_ORL : opcode_to_string = "ORL"; break;
+      case OPC_EORL : opcode_to_string = "EORL"; break;
+      case OPC_ANDB : opcode_to_string = "ANDB"; break;
+      case OPC_ORB : opcode_to_string = "ORB"; break;
+      case OPC_EORB : opcode_to_string = "EORB"; break;
+      case OPC_MUL : opcode_to_string = "MUL"; break;
+      case OPC_DIV : opcode_to_string = "DIV"; break;
+      case OPC_SHL : opcode_to_string = "SHL"; break;
+      case OPC_SHR : opcode_to_string = "SHR"; break;
+      case OPC_ROTL : opcode_to_string = "ROTL"; break;
+      case OPC_ROTR : opcode_to_string = "ROTR"; break;
+      case OPC_NEG : opcode_to_string = "NEG"; break;
+      case OPC_SPCL : opcode_to_string = "SPCL"; break;
+      case OPC_ADDI : opcode_to_string = "ADDI"; break;
+      case OPC_SUBI : opcode_to_string = "SUBI"; break;
+      case OPC_ANDLI : opcode_to_string = "ANDLI"; break;
+      case OPC_ORLI : opcode_to_string = "ORLI"; break;
+      case OPC_EORLI : opcode_to_string = "EORLI"; break;
+      case OPC_ANDBI : opcode_to_string = "ANDBI"; break;
+      case OPC_ORBI : opcode_to_string = "ORBI"; break;
+      case OPC_EORBI : opcode_to_string = "EORBI"; break;
+      case OPC_MULI : opcode_to_string = "MULI"; break;
+      case OPC_DIVI : opcode_to_string = "DIVI"; break;
+      case OPC_SHLI : opcode_to_string = "SHLI"; break;
+      case OPC_SHRI : opcode_to_string = "SHRI"; break;
+      case OPC_ROTLI : opcode_to_string = "ROTLI"; break;
+      case OPC_ROTRI : opcode_to_string = "ROTRI"; break;
+      case OPC_NOTL : opcode_to_string = "NOTL"; break;
+      case OPC_NOTB : opcode_to_string = "NOTB"; break;
+      case OPC_NOP : opcode_to_string = "NOP"; break;
+      case OPC_MOVA : opcode_to_string = "MOVA"; break;
+      case OPC_JSR : opcode_to_string = "JSR"; break;
+      case OPC_RET : opcode_to_string = "RET"; break;
+      case OPC_HALT : opcode_to_string = "HALT"; break;
+      case OPC_BT : opcode_to_string = "BT"; break;
+      case OPC_BF : opcode_to_string = "BF"; break;
+      case OPC_BHI : opcode_to_string = "BHI"; break;
+      case OPC_BLS : opcode_to_string = "BLS"; break;
+      case OPC_BCC : opcode_to_string = "BCC"; break;
+      case OPC_BCS : opcode_to_string = "BCS"; break;
+      case OPC_BNE : opcode_to_string = "BNE"; break;
+      case OPC_BEQ : opcode_to_string = "BEQ"; break;
+      case OPC_BVC : opcode_to_string = "BVC"; break;
+      case OPC_BVS : opcode_to_string = "BVS"; break;
+      case OPC_BPL : opcode_to_string = "BPL"; break;
+      case OPC_BMI : opcode_to_string = "BMI"; break;
+      case OPC_BGE : opcode_to_string = "BGE"; break;
+      case OPC_BLT : opcode_to_string = "BLT"; break;
+      case OPC_BGT : opcode_to_string = "BGT"; break;
+      case OPC_BLE : opcode_to_string = "BLE"; break;
+      case OPC_LOAD : opcode_to_string = "LOAD"; break;
+      case OPC_STORE : opcode_to_string = "STORE"; break;
+      case OPC_SEQ : opcode_to_string = "SEQ"; break;
+      case OPC_SGE : opcode_to_string = "SGE"; break;
+      case OPC_SGT : opcode_to_string = "SGT"; break;
+      case OPC_SLE : opcode_to_string = "SLE"; break;
+      case OPC_SLT : opcode_to_string = "SLT"; break;
+      case OPC_SNE : opcode_to_string = "SNE"; break;
+      case OPC_AXE_READ : opcode_to_string = "READ"; break;
+      case OPC_AXE_WRITE : opcode_to_string = "WRITE"; break;
       default :
          /* close the file and return */
          _error = fclose(fp);

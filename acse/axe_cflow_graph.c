@@ -461,7 +461,7 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
       return;
    }
 
-   if ((node->instr)->opcode == INVALID_OPCODE) {
+   if ((node->instr)->opcode == OPC_INVALID) {
       cflow_errorcode = CFLOW_INVALID_INSTRUCTION;
       return;
    }
@@ -486,16 +486,16 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
    /* set normal register defs/uses */
    switch(instr->opcode)
    {
-      case LOAD : case AXE_READ : node->defs[0] = varDest; break;
-      case STORE : case AXE_WRITE : (node->uses)[0] = varDest; break;
-      case SGE : case SGT: case SLE : case SLT : case SNE :
-      case SEQ : node->defs[0] = varDest; break;
-      case HALT : case RET : case JSR : case NOP : break;
-      case MOVA : node->defs[0] = varDest; break;
-      case NOTB : case NOTL : case ROTRI : case ROTLI :
-      case SHRI : case SHLI : case DIVI : case MULI :
-      case EORBI : case ORBI : case ANDBI : case EORLI :
-      case ORLI : case ANDLI : case SUBI : case ADDI :
+      case OPC_LOAD : case OPC_AXE_READ : node->defs[0] = varDest; break;
+      case OPC_STORE : case OPC_AXE_WRITE : (node->uses)[0] = varDest; break;
+      case OPC_SGE : case OPC_SGT: case OPC_SLE : case OPC_SLT : case OPC_SNE :
+      case OPC_SEQ : node->defs[0] = varDest; break;
+      case OPC_HALT : case OPC_RET : case OPC_JSR : case OPC_NOP : break;
+      case OPC_MOVA : node->defs[0] = varDest; break;
+      case OPC_NOTB : case OPC_NOTL : case OPC_ROTRI : case OPC_ROTLI :
+      case OPC_SHRI : case OPC_SHLI : case OPC_DIVI : case OPC_MULI :
+      case OPC_EORBI : case OPC_ORBI : case OPC_ANDBI : case OPC_EORLI :
+      case OPC_ORLI : case OPC_ANDLI : case OPC_SUBI : case OPC_ADDI :
                 node->defs[0] = varDest;
                 (node->uses)[0] = varSource1; break;
       default :
@@ -511,17 +511,17 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
 
    /* set defs/uses of the flags register */
    switch (instr->opcode) {
-      case ADD: case SUB: case ANDL: case ORL: case EORL: case ANDB: case ORB:
-      case EORB: case MUL: case DIV: case SHL: case SHR: case ROTL: case ROTR:
-      case NEG: case ADDI: case SUBI: case ANDLI: case ORLI: case EORLI:
-      case ANDBI: case ORBI: case EORBI: case MULI: case DIVI: case SHLI:
-      case SHRI: case ROTLI: case ROTRI: case NOTL: case NOTB:
+      case OPC_ADD: case OPC_SUB: case OPC_ANDL: case OPC_ORL: case OPC_EORL: case OPC_ANDB: case OPC_ORB:
+      case OPC_EORB: case OPC_MUL: case OPC_DIV: case OPC_SHL: case OPC_SHR: case OPC_ROTL: case OPC_ROTR:
+      case OPC_NEG: case OPC_ADDI: case OPC_SUBI: case OPC_ANDLI: case OPC_ORLI: case OPC_EORLI:
+      case OPC_ANDBI: case OPC_ORBI: case OPC_EORBI: case OPC_MULI: case OPC_DIVI: case OPC_SHLI:
+      case OPC_SHRI: case OPC_ROTLI: case OPC_ROTRI: case OPC_NOTL: case OPC_NOTB:
          node->defs[1] = varPSW;
          break;
-      case SEQ: case SGE: case SGT: case SLE: case SLT: case SNE: 
+      case OPC_SEQ: case OPC_SGE: case OPC_SGT: case OPC_SLE: case OPC_SLT: case OPC_SNE: 
          node->defs[1] = varPSW;
-      case BHI: case BLS: case BCC: case BCS: case BNE: case BEQ: case BVC:
-      case BVS: case BPL: case BMI: case BGE: case BLT: case BLE:
+      case OPC_BHI: case OPC_BLS: case OPC_BCC: case OPC_BCS: case OPC_BNE: case OPC_BEQ: case OPC_BVC:
+      case OPC_BVS: case OPC_BPL: case OPC_BMI: case OPC_BGE: case OPC_BLT: case OPC_BLE:
          node->uses[0] = varPSW;
          break;
    }
@@ -578,7 +578,7 @@ t_basic_block * searchLabel(t_cflow_Graph *graph, t_axe_label *label)
 int isStartingNode(t_axe_instruction *instr)
 {
    /* preconditions */
-   if ((instr == NULL) || (instr->opcode == INVALID_OPCODE))
+   if ((instr == NULL) || (instr->opcode == OPC_INVALID))
    {
       cflow_errorcode = CFLOW_INVALID_INSTRUCTION;
       return 0;
@@ -597,7 +597,7 @@ int isStartingNode(t_axe_instruction *instr)
 int isEndingNode(t_axe_instruction *instr)
 {
    /* preconditions */
-   if ((instr == NULL) || (instr->opcode == INVALID_OPCODE))
+   if ((instr == NULL) || (instr->opcode == OPC_INVALID))
    {
       cflow_errorcode = CFLOW_INVALID_INSTRUCTION;
       return 0;
@@ -605,25 +605,25 @@ int isEndingNode(t_axe_instruction *instr)
 
    switch (instr->opcode)
    {
-      case JSR :
-      case RET :
-      case HALT:
-      case BT :
-      case BF :
-      case BHI :
-      case BLS :
-      case BCC :
-      case BCS :
-      case BNE :
-      case BEQ :
-      case BVC :
-      case BVS :
-      case BPL :
-      case BMI :
-      case BGE :
-      case BLT :
-      case BGT :
-      case BLE : return 1;
+      case OPC_JSR :
+      case OPC_RET :
+      case OPC_HALT:
+      case OPC_BT :
+      case OPC_BF :
+      case OPC_BHI :
+      case OPC_BLS :
+      case OPC_BCC :
+      case OPC_BCS :
+      case OPC_BNE :
+      case OPC_BEQ :
+      case OPC_BVC :
+      case OPC_BVS :
+      case OPC_BPL :
+      case OPC_BMI :
+      case OPC_BGE :
+      case OPC_BLT :
+      case OPC_BGT :
+      case OPC_BLE : return 1;
       default : return 0;
    }
 }
