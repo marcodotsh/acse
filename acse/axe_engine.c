@@ -425,77 +425,6 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    }
 }
 
-int isLoadInstruction(t_axe_instruction *instr)
-{
-   if (instr == NULL) {
-      return 0;
-   }
-
-   return (instr->opcode == OPC_LOAD) ? 1 : 0;
-}
-
-int isHaltOrRetInstruction(t_axe_instruction *instr)
-{
-   if (instr == NULL) {
-      return 0;
-   }
-
-   return instr->opcode == OPC_HALT || instr->opcode == OPC_RET;
-}
-
-/* test if the current instruction `instr' is a BT or a BF */
-int isUnconditionalJump(t_axe_instruction *instr)
-{
-   if (isJumpInstruction(instr))
-   {
-      if ((instr->opcode == OPC_BT) || (instr->opcode == OPC_BF))
-         return 1;
-   }
-
-   return 0;
-}
-
-/* test if the current instruction `instr' is a branch instruction */
-int isJumpInstruction(t_axe_instruction *instr)
-{
-   if (instr == NULL)
-      return 0;
-
-   switch(instr->opcode)
-   {
-      case OPC_BT :
-      case OPC_BF :
-      case OPC_BHI :
-      case OPC_BLS :
-      case OPC_BCC :
-      case OPC_BCS :
-      case OPC_BNE :
-      case OPC_BEQ :
-      case OPC_BVC :
-      case OPC_BVS :
-      case OPC_BPL :
-      case OPC_BMI :
-      case OPC_BGE :
-      case OPC_BLT :
-      case OPC_BGT :
-      case OPC_BLE : return 1;
-      default : return 0;
-   }
-}
-
-int isImmediateArgumentInstrOpcode(int opcode)
-{
-   return OPC_ADDI <= opcode && opcode <= OPC_ROTRI;
-}
-
-int switchOpcodeImmediateForm(int orig)
-{
-   if (!(OPC_ADD <= orig && orig <= OPC_ROTR) &&
-       !(OPC_ADDI <= orig && orig <= OPC_ROTRI))
-      return orig;
-   return orig ^ 0x10;
-}
-
 void setMCRegisterWhitelist(t_axe_register *regObj, ...)
 {
    t_list *res = NULL;
@@ -512,49 +441,6 @@ void setMCRegisterWhitelist(t_axe_register *regObj, ...)
    if (regObj->mcRegWhitelist)
       freeList(regObj->mcRegWhitelist);
    regObj->mcRegWhitelist = res;
-}
-
-int isMoveInstruction(t_axe_instruction *instr, t_axe_register **outDest,
-      t_axe_register **outSrcReg, t_axe_address **outSrcAddr, int *outSrcImm)
-{
-   if (outSrcReg) *outSrcReg = NULL;
-   if (outSrcAddr) *outSrcAddr = NULL;
-
-   if (instr->opcode == OPC_MOVA) {
-      if (outSrcAddr)
-         *outSrcAddr = instr->address;
-      if (outDest)
-         *outDest = instr->reg_1;
-      return 1;
-   }
-
-   if ((instr->opcode == OPC_ADD && 
-            (instr->reg_2->ID == REG_0 || instr->reg_3->ID == REG_0)) ||
-         (instr->opcode == OPC_SUB && instr->reg_3->ID == REG_0)) {
-      if (outSrcReg)
-         *outSrcReg = instr->reg_2->ID == REG_0 ? instr->reg_3 : instr->reg_2;
-      if (outDest)
-         *outDest = instr->reg_1;
-      return 1;
-   }
-
-   if (instr->opcode == OPC_ADDI && instr->reg_2->ID == REG_0) {
-      if (outSrcImm)
-         *outSrcImm = instr->immediate;
-      if (outDest)
-         *outDest = instr->reg_1;
-      return 1;
-   }
-
-   if (instr->opcode == OPC_SUBI && instr->reg_2->ID == REG_0) {
-      if (outSrcImm)
-         *outSrcImm = -(instr->immediate);
-      if (outDest)
-         *outDest = instr->reg_1;
-      return 1;
-   }
-
-   return 0;
 }
 
 void removeInstructionLink(t_program_infos *program, t_list *instrLi)

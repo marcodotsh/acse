@@ -10,6 +10,7 @@
 #include "axe_debug.h"
 #include "collections.h"
 #include "axe_reg_alloc.h"
+#include "axe_target_info.h"
 
 #define LABEL_WIDTH (3*2)
 #define INSTR_WIDTH (3*7)

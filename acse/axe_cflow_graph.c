@@ -13,6 +13,7 @@
 #include "collections.h"
 #include "axe_utils.h"
 #include "axe_debug.h"
+#include "axe_target_info.h"
 
 int cflow_errorcode;
 
@@ -597,35 +598,13 @@ int isStartingNode(t_axe_instruction *instr)
 int isEndingNode(t_axe_instruction *instr)
 {
    /* preconditions */
-   if ((instr == NULL) || (instr->opcode == OPC_INVALID))
+   if (instr == NULL)
    {
       cflow_errorcode = CFLOW_INVALID_INSTRUCTION;
       return 0;
    }
 
-   switch (instr->opcode)
-   {
-      case OPC_JSR :
-      case OPC_RET :
-      case OPC_HALT:
-      case OPC_BT :
-      case OPC_BF :
-      case OPC_BHI :
-      case OPC_BLS :
-      case OPC_BCC :
-      case OPC_BCS :
-      case OPC_BNE :
-      case OPC_BEQ :
-      case OPC_BVC :
-      case OPC_BVS :
-      case OPC_BPL :
-      case OPC_BMI :
-      case OPC_BGE :
-      case OPC_BLT :
-      case OPC_BGT :
-      case OPC_BLE : return 1;
-      default : return 0;
-   }
+   return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
 }
 
 /* allocate memory for a control flow graph */
@@ -1049,12 +1028,6 @@ t_cflow_Graph * createFlowGraph(t_list *instructions)
       /* retrieve the current instruction */
       current_instr = (t_axe_instruction *) LDATA(current_element);
       assert(current_instr != NULL);
-
-      if (isLoadInstruction(current_instr))
-      {
-         current_element = LNEXT(current_element);
-         continue;
-      }
          
       /* create a new node for the current basic block */
       current_node = allocNode(result, current_instr);

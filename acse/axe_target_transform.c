@@ -11,6 +11,7 @@
 #include "axe_gencode.h"
 #include "axe_utils.h"
 #include "collections.h"
+#include "axe_target_info.h"
 
 void moveLabel(t_axe_instruction *dest, t_axe_instruction *src)
 {
@@ -22,6 +23,19 @@ void moveLabel(t_axe_instruction *dest, t_axe_instruction *src)
       dest->user_comment = src->user_comment;
       src->user_comment = NULL;
    }
+}
+
+int isImmediateArgumentInstrOpcode(int opcode)
+{
+   return OPC_ADDI <= opcode && opcode <= OPC_ROTRI;
+}
+
+int switchOpcodeImmediateForm(int orig)
+{
+   if (!(OPC_ADD <= orig && orig <= OPC_ROTR) &&
+       !(OPC_ADDI <= orig && orig <= OPC_ROTRI))
+      return orig;
+   return orig ^ 0x10;
 }
 
 int is_int16(int immediate)

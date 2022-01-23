@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include "axe_target_asm_print.h"
+#include "axe_target_info.h"
 
 #define LABEL_WIDTH (3*2)
 #define INSTR_WIDTH (3*7)

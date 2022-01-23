@@ -9,6 +9,7 @@
 
 #include "axe_gencode.h"
 #include "axe_errors.h"
+#include "axe_target_info.h"
 
 
 static t_axe_instruction * genUnaryInstruction (t_program_infos *program
