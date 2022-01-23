@@ -14,6 +14,9 @@
 #include "axe_engine.h"
 #include "axe_errors.h"
 
+/* Convert an opcode ID to a string. */
+extern const char *opcodeToString(int opcode); 
+
 /* write the corresponding assembly for the given program */
 extern void writeAssembly(t_program_infos *program, char *output_file);
 

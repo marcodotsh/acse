@@ -35,6 +35,82 @@ static void translateCodeSegment(t_program_infos *program, FILE *fp);
 static off_t printFormPadding(off_t formBegin, int formSize, FILE *fout);
 
 
+extern const char *opcodeToString(int opcode)
+{
+   const char *opcode_to_string;
+
+   switch(opcode)
+   {
+      case OPC_ADD : opcode_to_string = "ADD"; break;
+      case OPC_SUB : opcode_to_string = "SUB"; break;
+      case OPC_AND : opcode_to_string = "ANDB"; break;
+      case OPC_OR : opcode_to_string = "ORB"; break;
+      case OPC_XOR : opcode_to_string = "EORB"; break;
+      case OPC_MUL : opcode_to_string = "MUL"; break;
+      case OPC_DIV : opcode_to_string = "DIV"; break;
+      case OPC_SLL : opcode_to_string = "SHL"; break;
+      case OPC_SRL : opcode_to_string = "SHR"; break;
+      case OPC_ADDI : opcode_to_string = "ADDI"; break;
+      case OPC_SUBI : opcode_to_string = "SUBI"; break;
+      case OPC_ANDI : opcode_to_string = "ANDBI"; break;
+      case OPC_ORI : opcode_to_string = "ORBI"; break;
+      case OPC_XORI : opcode_to_string = "EORBI"; break;
+      case OPC_MULI : opcode_to_string = "MULI"; break;
+      case OPC_DIVI : opcode_to_string = "DIVI"; break;
+      case OPC_SLLI : opcode_to_string = "SHLI"; break;
+      case OPC_SRLI : opcode_to_string = "SHRI"; break;
+      case OPC_NOP : opcode_to_string = "NOP"; break;
+      case OPC_HALT : opcode_to_string = "HALT"; break;
+      case OPC_OLD_ANDL : opcode_to_string = "ANDL"; break;
+      case OPC_OLD_ORL : opcode_to_string = "ORL"; break;
+      case OPC_OLD_EORL : opcode_to_string = "EORL"; break;
+      case OPC_OLD_ROTL : opcode_to_string = "ROTL"; break;
+      case OPC_OLD_ROTR : opcode_to_string = "ROTR"; break;
+      case OPC_OLD_NEG : opcode_to_string = "NEG"; break;
+      case OPC_OLD_SPCL : opcode_to_string = "SPCL"; break;
+      case OPC_OLD_ANDLI : opcode_to_string = "ANDLI"; break;
+      case OPC_OLD_ORLI : opcode_to_string = "ORLI"; break;
+      case OPC_OLD_EORLI : opcode_to_string = "EORLI"; break;
+      case OPC_OLD_ROTLI : opcode_to_string = "ROTLI"; break;
+      case OPC_OLD_ROTRI : opcode_to_string = "ROTRI"; break;
+      case OPC_OLD_NOTL : opcode_to_string = "NOTL"; break;
+      case OPC_OLD_NOTB : opcode_to_string = "NOTB"; break;
+      case OPC_OLD_MOVA : opcode_to_string = "MOVA"; break;
+      case OPC_OLD_JSR : opcode_to_string = "JSR"; break;
+      case OPC_OLD_RET : opcode_to_string = "RET"; break;
+      case OPC_OLD_BT : opcode_to_string = "BT"; break;
+      case OPC_OLD_BF : opcode_to_string = "BF"; break;
+      case OPC_OLD_BHI : opcode_to_string = "BHI"; break;
+      case OPC_OLD_BLS : opcode_to_string = "BLS"; break;
+      case OPC_OLD_BCC : opcode_to_string = "BCC"; break;
+      case OPC_OLD_BCS : opcode_to_string = "BCS"; break;
+      case OPC_OLD_BNE : opcode_to_string = "BNE"; break;
+      case OPC_OLD_BEQ : opcode_to_string = "BEQ"; break;
+      case OPC_OLD_BVC : opcode_to_string = "BVC"; break;
+      case OPC_OLD_BVS : opcode_to_string = "BVS"; break;
+      case OPC_OLD_BPL : opcode_to_string = "BPL"; break;
+      case OPC_OLD_BMI : opcode_to_string = "BMI"; break;
+      case OPC_OLD_BGE : opcode_to_string = "BGE"; break;
+      case OPC_OLD_BLT : opcode_to_string = "BLT"; break;
+      case OPC_OLD_BGT : opcode_to_string = "BGT"; break;
+      case OPC_OLD_BLE : opcode_to_string = "BLE"; break;
+      case OPC_OLD_LOAD : opcode_to_string = "LOAD"; break;
+      case OPC_OLD_STORE : opcode_to_string = "STORE"; break;
+      case OPC_OLD_SEQ : opcode_to_string = "SEQ"; break;
+      case OPC_OLD_SGE : opcode_to_string = "SGE"; break;
+      case OPC_OLD_SGT : opcode_to_string = "SGT"; break;
+      case OPC_OLD_SLE : opcode_to_string = "SLE"; break;
+      case OPC_OLD_SLT : opcode_to_string = "SLT"; break;
+      case OPC_OLD_SNE : opcode_to_string = "SNE"; break;
+      case OPC_AXE_READ : opcode_to_string = "READ"; break;
+      case OPC_AXE_WRITE : opcode_to_string = "WRITE"; break;
+      default : opcode_to_string = "<unknown>";
+   }
+
+   return opcode_to_string;
+}
+
+
 void writeAssembly(t_program_infos *program, char *output_file)
 {
    FILE *fp;
@@ -328,87 +404,15 @@ void translateDataSegment(t_program_infos *program, FILE *fp)
 
 void printOpcode(int opcode, FILE *fp)
 {
-   char *opcode_to_string;
+   const char *opcode_to_string;
    int _error;
    
    /* preconditions: fp must be different from NULL */
    if (fp == NULL)
       notifyError(AXE_INVALID_INPUT_FILE);
 
-   switch(opcode)
-   {
-      case OPC_ADD : opcode_to_string = "ADD"; break;
-      case OPC_SUB : opcode_to_string = "SUB"; break;
-      case OPC_OLD_ANDL : opcode_to_string = "ANDL"; break;
-      case OPC_OLD_ORL : opcode_to_string = "ORL"; break;
-      case OPC_OLD_EORL : opcode_to_string = "EORL"; break;
-      case OPC_AND : opcode_to_string = "ANDB"; break;
-      case OPC_OR : opcode_to_string = "ORB"; break;
-      case OPC_XOR : opcode_to_string = "EORB"; break;
-      case OPC_MUL : opcode_to_string = "MUL"; break;
-      case OPC_DIV : opcode_to_string = "DIV"; break;
-      case OPC_SLL : opcode_to_string = "SHL"; break;
-      case OPC_SRL : opcode_to_string = "SHR"; break;
-      case OPC_OLD_ROTL : opcode_to_string = "ROTL"; break;
-      case OPC_OLD_ROTR : opcode_to_string = "ROTR"; break;
-      case OPC_OLD_NEG : opcode_to_string = "NEG"; break;
-      case OPC_OLD_SPCL : opcode_to_string = "SPCL"; break;
-      case OPC_ADDI : opcode_to_string = "ADDI"; break;
-      case OPC_SUBI : opcode_to_string = "SUBI"; break;
-      case OPC_OLD_ANDLI : opcode_to_string = "ANDLI"; break;
-      case OPC_OLD_ORLI : opcode_to_string = "ORLI"; break;
-      case OPC_OLD_EORLI : opcode_to_string = "EORLI"; break;
-      case OPC_ANDI : opcode_to_string = "ANDBI"; break;
-      case OPC_ORI : opcode_to_string = "ORBI"; break;
-      case OPC_XORI : opcode_to_string = "EORBI"; break;
-      case OPC_MULI : opcode_to_string = "MULI"; break;
-      case OPC_DIVI : opcode_to_string = "DIVI"; break;
-      case OPC_SLLI : opcode_to_string = "SHLI"; break;
-      case OPC_SRLI : opcode_to_string = "SHRI"; break;
-      case OPC_OLD_ROTLI : opcode_to_string = "ROTLI"; break;
-      case OPC_OLD_ROTRI : opcode_to_string = "ROTRI"; break;
-      case OPC_OLD_NOTL : opcode_to_string = "NOTL"; break;
-      case OPC_OLD_NOTB : opcode_to_string = "NOTB"; break;
-      case OPC_NOP : opcode_to_string = "NOP"; break;
-      case OPC_OLD_MOVA : opcode_to_string = "MOVA"; break;
-      case OPC_OLD_JSR : opcode_to_string = "JSR"; break;
-      case OPC_OLD_RET : opcode_to_string = "RET"; break;
-      case OPC_HALT : opcode_to_string = "HALT"; break;
-      case OPC_OLD_BT : opcode_to_string = "BT"; break;
-      case OPC_OLD_BF : opcode_to_string = "BF"; break;
-      case OPC_OLD_BHI : opcode_to_string = "BHI"; break;
-      case OPC_OLD_BLS : opcode_to_string = "BLS"; break;
-      case OPC_OLD_BCC : opcode_to_string = "BCC"; break;
-      case OPC_OLD_BCS : opcode_to_string = "BCS"; break;
-      case OPC_OLD_BNE : opcode_to_string = "BNE"; break;
-      case OPC_OLD_BEQ : opcode_to_string = "BEQ"; break;
-      case OPC_OLD_BVC : opcode_to_string = "BVC"; break;
-      case OPC_OLD_BVS : opcode_to_string = "BVS"; break;
-      case OPC_OLD_BPL : opcode_to_string = "BPL"; break;
-      case OPC_OLD_BMI : opcode_to_string = "BMI"; break;
-      case OPC_OLD_BGE : opcode_to_string = "BGE"; break;
-      case OPC_OLD_BLT : opcode_to_string = "BLT"; break;
-      case OPC_OLD_BGT : opcode_to_string = "BGT"; break;
-      case OPC_OLD_BLE : opcode_to_string = "BLE"; break;
-      case OPC_OLD_LOAD : opcode_to_string = "LOAD"; break;
-      case OPC_OLD_STORE : opcode_to_string = "STORE"; break;
-      case OPC_OLD_SEQ : opcode_to_string = "SEQ"; break;
-      case OPC_OLD_SGE : opcode_to_string = "SGE"; break;
-      case OPC_OLD_SGT : opcode_to_string = "SGT"; break;
-      case OPC_OLD_SLE : opcode_to_string = "SLE"; break;
-      case OPC_OLD_SLT : opcode_to_string = "SLT"; break;
-      case OPC_OLD_SNE : opcode_to_string = "SNE"; break;
-      case OPC_AXE_READ : opcode_to_string = "READ"; break;
-      case OPC_AXE_WRITE : opcode_to_string = "WRITE"; break;
-      default :
-         /* close the file and return */
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_INVALID_OPCODE);
-         return;
-   }
-      
+   opcode_to_string = opcodeToString(opcode);
+   
    /* postconditions */
    if (fprintf(fp, "%s", opcode_to_string) < 0)
    {
