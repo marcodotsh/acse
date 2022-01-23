@@ -73,6 +73,17 @@ extern const char *opcodeToString(int opcode)
       case OPC_SGTU:      return "sgtu";
       case OPC_SLE :      return "sle";
       case OPC_SLEU:      return "sleu";
+      /*   Comparison with immediate */
+      case OPC_SEQI :      return "seqi";
+      case OPC_SNEI :      return "snei";
+      case OPC_SLTI :      return "slti";
+      case OPC_SLTIU:      return "sltiu";
+      case OPC_SGEI :      return "sgei";
+      case OPC_SGEIU:      return "sgeiu";
+      case OPC_SGTI :      return "sgti";
+      case OPC_SGTIU:      return "sgtiu";
+      case OPC_SLEI :      return "slei";
+      case OPC_SLEIU:      return "sleiu";
       /*   Jump, Branch */
       case OPC_J :        return "j";
       case OPC_BEQ :      return "beq";

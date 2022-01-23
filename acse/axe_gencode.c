@@ -280,61 +280,61 @@ t_axe_instruction *genSLEUInstruction(t_program_infos *program,
 t_axe_instruction *genSEQIInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SEQ, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SEQI, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSNEIInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SNE, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SNEI, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSLTIInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SLT, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SLTI, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSLTIUInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SLTU, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SLTIU, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSGEIInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SGE, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SGEI, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSGEIUInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SGEU, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SGEIU, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSGTIInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SGT, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SGTI, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSGTIUInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SGTU, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SGTIU, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSLEIInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SLE, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SLEI, r_dest, r_src1, immediate);
 }
 
 t_axe_instruction *genSLEIUInstruction(t_program_infos *program,
       int r_dest, int r_src1, int immediate)
 {
-   return genIFormatInstruction(program, OPC_SLEU, r_dest, r_src1, immediate);
+   return genIFormatInstruction(program, OPC_SLEIU, r_dest, r_src1, immediate);
 }
 
 
@@ -509,7 +509,7 @@ t_axe_instruction * genREADInstruction(t_program_infos *program, int r_dest)
 t_axe_instruction * genWRITEInstruction
                (t_program_infos *program, int r_src1)
 {
-   return genInstruction(program, OPC_AXE_READ,
+   return genInstruction(program, OPC_AXE_WRITE,
          NULL, initializeRegister(r_src1, 0), NULL, NULL, 0);
 }
 

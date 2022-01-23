@@ -289,10 +289,10 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                location = getRegLocationOfVariable(program, $1);
 
                /* update the value of location */
-               if ($3.expression_type == IMMEDIATE)
-                  genMoveImmediate(program, location, $3.value);
+               if ($3.type == IMMEDIATE)
+                  genMoveImmediate(program, location, $3.immediate);
                else
-                  genADDInstruction(program, location, REG_0, $3.value);
+                  genADDInstruction(program, location, REG_0, $3.registerId);
 
                /* free the memory associated with the IDENTIFIER */
                free($1);
@@ -331,12 +331,12 @@ if_stmt  :  IF
                }
                LPAR exp RPAR
                {
-                  if ($4.expression_type == IMMEDIATE) {
-                     if ($4.value == 0)
+                  if ($4.type == IMMEDIATE) {
+                     if ($4.immediate == 0)
                         genJInstruction(program, $1);
                   } else {
                      /* if `exp' returns FALSE, jump to the label $1 */
-                     genBEQInstruction(program, $4.value, REG_0, $1);
+                     genBEQInstruction(program, $4.registerId, REG_0, $1);
                   }
                }
                code_block { $$ = $1; }
@@ -354,13 +354,13 @@ while_statement  : WHILE
                       * block */
                      $1.label_end = newLabel(program);
 
-                     if ($4.expression_type == IMMEDIATE) {
-                        if ($4.value == 0)
+                     if ($4.type == IMMEDIATE) {
+                        if ($4.immediate == 0)
                            genJInstruction(program, $1.label_end);
                      } else {
                         /* if `exp' returns FALSE, jump to the label 
                          * $1.label_end */
-                        genBEQInstruction(program, $4.value, REG_0, 
+                        genBEQInstruction(program, $4.registerId, REG_0, 
                                           $1.label_end);
                      }
                   }
@@ -385,12 +385,12 @@ do_while_statement  : DO
                      }
                      code_block WHILE LPAR exp RPAR
                      {
-                        if ($6.expression_type == IMMEDIATE) {
-                           if ($6.value != 0)
+                        if ($6.type == IMMEDIATE) {
+                           if ($6.immediate != 0)
                               genJInstruction(program, $1);
                         } else {
                            /* if `exp' returns TRUE, jump to the label $1 */
-                           genBNEInstruction(program, $6.value, REG_0, $1);
+                           genBNEInstruction(program, $6.registerId, REG_0, $1);
                         }
                      }
 ;
@@ -426,21 +426,21 @@ write_statement : WRITE LPAR exp RPAR
             {
                int location;
 
-               if ($3.expression_type == IMMEDIATE)
+               if ($3.type == IMMEDIATE)
                {
                   /* load `immediate' into a new register. Returns the new
                    * register identifier or REG_INVALID if an error occurs */
-                  location = genLoadImmediate(program, $3.value);
+                  location = genLoadImmediate(program, $3.immediate);
                }
                else
-                  location = $3.value;
+                  location = $3.registerId;
 
                /* write to standard output an integer value */
                genWRITEInstruction (program, location);
             }
 ;
 
-exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
+exp: NUMBER      { $$ = getImmediateExpression($1); }
    | IDENTIFIER  {
                      int variableReg, expValReg;
                      /* get the location of the symbol with the given ID */
@@ -450,7 +450,7 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
                      expValReg = getNewRegister(program);
                      genADDIInstruction(program, expValReg, variableReg, 0);
                      /* return that register as the expression value */
-                     $$ = createExpression(expValReg, REGISTER);
+                     $$ = getRegisterExpression(expValReg);
                      /* free the memory associated with the IDENTIFIER */
                      free($1);
    }
@@ -462,18 +462,18 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
                      reg = genLoadArrayElement(program, $1, $3);
 
                      /* create a new expression */
-                     $$ = createExpression (reg, REGISTER);
+                     $$ = getRegisterExpression(reg);
 
                      /* free the memory associated with the IDENTIFIER */
                      free($1);
    }
    | NOT_OP exp {
-               if ($2.expression_type == IMMEDIATE)
+               if ($2.type == IMMEDIATE)
                {
                   /* IMMEDIATE (constant) expression: compute the value at
                    * compile-time and place the result in a new IMMEDIATE
                    * expression */
-                  $$ = createExpression(!($2.value), IMMEDIATE);
+                  $$ = getImmediateExpression(!($2.immediate));
                }
                else
                {
@@ -481,14 +481,14 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
                    * the result at compile time */
 
                   /* Reserve a new register for the result */
-                  int output_register = getNewRegister(program);
+                  int res_reg = getNewRegister(program);
 
                   /* Generate a SUBI instruction which will store the negated
                    * logic value into the register we reserved */
-                  genSEQInstruction(program, output_register, $2.value, REG_0);
+                  genSEQInstruction(program, res_reg, $2.registerId, REG_0);
                   
                   /* Return a REGISTER expression with the result register */
-                  $$ = createExpression(output_register, REGISTER);
+                  $$ = getRegisterExpression(res_reg);
                }
    }
    | exp AND_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDB); }
@@ -497,33 +497,27 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
    | exp MINUS exp  { $$ = handleBinaryOperator(program, $1, $3, OP_SUB); }
    | exp MUL_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_MUL); }
    | exp DIV_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_DIV); }
-   | exp LT exp     { $$ = handleBinaryComparison(program, $1, $3, OP_LT); }
-   | exp GT exp     { $$ = handleBinaryComparison(program, $1, $3, OP_GT); }
-   | exp EQ exp     { $$ = handleBinaryComparison(program, $1, $3, OP_EQ); }
-   | exp NOTEQ exp  { $$ = handleBinaryComparison(program, $1, $3, OP_NOTEQ); }
-   | exp LTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, OP_LTEQ); }
-   | exp GTEQ exp   { $$ = handleBinaryComparison(program, $1, $3, OP_GTEQ); }
+   | exp LT exp     { $$ = handleBinaryOperator(program, $1, $3, OP_LT); }
+   | exp GT exp     { $$ = handleBinaryOperator(program, $1, $3, OP_GT); }
+   | exp EQ exp     { $$ = handleBinaryOperator(program, $1, $3, OP_EQ); }
+   | exp NOTEQ exp  { $$ = handleBinaryOperator(program, $1, $3, OP_NOTEQ); }
+   | exp LTEQ exp   { $$ = handleBinaryOperator(program, $1, $3, OP_LTEQ); }
+   | exp GTEQ exp   { $$ = handleBinaryOperator(program, $1, $3, OP_GTEQ); }
    | exp SHL_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_SHL); }
    | exp SHR_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_SHR); }
    | exp ANDAND exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDL); }
    | exp OROR exp   { $$ = handleBinaryOperator(program, $1, $3, OP_ORL); }
    | LPAR exp RPAR  { $$ = $2; }
    | MINUS exp {
-                  if ($2.expression_type == IMMEDIATE)
+                  if ($2.type == IMMEDIATE)
                   {
-                     $$ = $2;
-                     $$.value = - ($$.value);
+                     $$ = getImmediateExpression(-($2.immediate));
                   }
                   else
                   {
-                     t_axe_expression exp_r0;
-
                      /* create an expression for register REG_0 */
-                     exp_r0.value = REG_0;
-                     exp_r0.expression_type = REGISTER;
-                     
-                     $$ = handleBinaryOperator
-                           (program, exp_r0, $2, OP_SUB);
+                     t_axe_expression exp_r0 = getRegisterExpression(REG_0);
+                     $$ = handleBinaryOperator(program, exp_r0, $2, OP_SUB);
                   }
                }
 ;

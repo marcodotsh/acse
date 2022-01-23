@@ -182,25 +182,25 @@ extern t_axe_instruction *genSLEUInstruction(t_program_infos *program,
  *---------------------------------------------------*/
 
 extern t_axe_instruction *genSEQIInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSNEIInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSLTIInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSLTIUInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSGEIInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSGEIUInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSGTIInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSGTIUInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSLEIInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 extern t_axe_instruction *genSLEIUInstruction(t_program_infos *program,
-      int r_dest, int r_src1, int r_src2);
+      int r_dest, int r_src1, int immediate);
 
 
 /*----------------------------------------------------

@@ -16,7 +16,13 @@
 /* EXPRESSION TYPES */
 #define IMMEDIATE 0
 #define REGISTER 1
-#define INVALID_EXPRESSION -1
+
+typedef struct t_axe_expression {
+   int type;         /* REGISTER or IMMEDIATE */
+   int immediate;    /* an immediate value (only when type is IMMEDIATE) */
+   int registerId;   /* a register ID (only when type is REGISTER) */
+} t_axe_expression;
+
 
 /* mathematical operator constants */
 #define OP_ADD     0
@@ -24,8 +30,7 @@
 #define OP_ANDL    2
 #define OP_ORB     3
 #define OP_ORL     4
-#define OP_EORB    5
-#define OP_EORL    6
+#define OP_XORB    5
 #define OP_SUB     7
 #define OP_MUL     8
 #define OP_SHL     9
@@ -40,14 +45,12 @@
 #define OP_LTEQ   16
 #define OP_GTEQ   17
 
-typedef struct t_axe_expression
-{
-   int value;           /* an immediate value or a register identifier */
-   int expression_type; /* actually only integer values are supported */
-} t_axe_expression;
 
-/* create an expression */
-extern t_axe_expression createExpression(int value, int type);
+/* create an immediate (constant) expression */
+extern t_axe_expression getImmediateExpression(int value);
+
+/* create a register expression */
+extern t_axe_expression getRegisterExpression(int registerId);
 
 /* This function generats instructions for binary numeric
  * operations.  It takes as input two expressions and a binary
@@ -57,31 +60,18 @@ extern t_axe_expression createExpression(int value, int type);
  * If the two expressions are both IMMEDIATE, no instructions are generated
  * and an IMMEDIATE expression is returned.
  *
- * Valid values for `binop' are:
+ * Valid values for `operator' are:
  * OP_ADD 
  * OP_ANDB
  * OP_ANDL
  * OP_ORB 
  * OP_ORL 
- * OP_EORB
- * OP_EORL
+ * OP_XORB
  * OP_SUB 
  * OP_MUL 
  * OP_SHL 
  * OP_SHR 
- * OP_DIV  */
-extern t_axe_expression handleBinaryOperator(t_program_infos *program,
-      t_axe_expression exp1, t_axe_expression exp2, int binop);
-
-/* This function generates instructions that perform a
- * comparison between two values.  It takes as input two
- * expressions and a binary comparison identifier, and it
- * returns a new expression that represents the result of the
- * specified binary comparison between `exp1' and `exp2'.
- * If the two expressions are both IMMEDIATE, no instructions are generated
- * and an IMMEDIATE expression is returned.
- *
- * Valid values for `condition' are:
+ * OP_DIV
  * OP_LT     (used to test if the value of `exp1' is less than
  *           the value of `exp2')
  * OP_GT     (used to test if the value of `exp1' is greater than
@@ -93,8 +83,9 @@ extern t_axe_expression handleBinaryOperator(t_program_infos *program,
  * OP_LTEQ   (used to test if the value of `exp1' is less than
  *           or equal to the value of `exp2')
  * OP_GTEQ   (used to test if the value of `exp1' is greater than
- *           the value of `exp2')  */
-extern t_axe_expression handleBinaryComparison(t_program_infos *program,
-      t_axe_expression exp1, t_axe_expression exp2, int condition);
+ *           the value of `exp2')
+ */
+extern t_axe_expression handleBinaryOperator(t_program_infos *program,
+      t_axe_expression exp1, t_axe_expression exp2, int operator);
 
 #endif

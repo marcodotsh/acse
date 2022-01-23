@@ -14,326 +14,234 @@
 #include "axe_utils.h"
 
 
-static t_axe_expression handle_bin_numeric_op_Imm
-         (int val1, int val2, int binop);
-         
-static t_axe_expression handle_bin_comparison_Imm
-         (int val1, int val2, int condition);
-
-
-/* create an expression */
-t_axe_expression createExpression (int value, int type)
+t_axe_expression getImmediateExpression(int value)
 {
-   t_axe_expression expression;
-
-   expression.value = value;
-   expression.expression_type = type;
-
-   return expression;
+   t_axe_expression exp;
+   exp.type = IMMEDIATE;
+   exp.immediate = value;
+   exp.registerId = REG_INVALID;
+   return exp;
 }
 
-t_axe_expression handleBinaryOperator (t_program_infos *program
-         , t_axe_expression exp1, t_axe_expression exp2, int binop)
+t_axe_expression getRegisterExpression(int registerId)
 {
-   int output_register;
-
-   /* we have to test if one (or both) of
-   * the two operands is an immediate value */
-   if (  (exp2.expression_type == IMMEDIATE)
-         && (exp1.expression_type == IMMEDIATE) )
-   {
-      return handle_bin_numeric_op_Imm(exp1.value, exp2.value, binop);
-   }
-   
-   /* at first we have to ask for a free register
-   * where to store the result of the operation. */
-   output_register = getNewRegister(program);
-
-   if (exp2.expression_type == IMMEDIATE)
-   {
-      /* we have to produce an instruction */
-      switch(binop)
-      {
-         case OP_ADD : genADDIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_ANDB : genANDIInstruction (program, output_register
-                              , exp1.value, exp2.value); break;
-         case OP_ANDL : OLDgenANDLIInstruction (program, output_register
-                              , exp1.value, exp2.value); break;
-         case OP_ORB  : genORIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_ORL  : OLDgenORLIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_EORB  : genXORIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_EORL  : OLDgenEORLIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_SUB : genSUBIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_MUL : genMULIInstruction (program, output_register
-                             , exp1.value, exp2.value); break;
-         case OP_SHL :
-               if (exp2.value < 0)
-                  printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-               genSLLIInstruction(program, output_register, exp1.value, 
-                     exp2.value); break;
-         case OP_SHR : 
-               if (exp2.value < 0)
-                  printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-               genSRAIInstruction(program, output_register, exp1.value, 
-                     exp2.value); break;
-         case OP_DIV :
-               if (exp2.value == 0){
-                  printWarningMessage(WARN_DIVISION_BY_ZERO);
-               }
-               genDIVIInstruction (program, output_register
-                        , exp1.value, exp2.value);
-               break;
-         default :
-               notifyError(AXE_INVALID_EXPRESSION);
-      }
-   }
-   else if (exp1.expression_type == IMMEDIATE)
-   {
-      int other_reg;
-
-      /* we have to produce an instruction */
-      switch(binop)
-      {
-         case OP_ADD :  genADDIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_ANDB :  genANDIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_ANDL :  OLDgenANDLIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_ORB  :  genORIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_ORL  :  OLDgenORLIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_EORB  :  genXORIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_EORL  :  OLDgenEORLIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_SUB :
-                  genSUBIInstruction (program, output_register
-                           , exp2.value, exp1.value);
-
-                  /* we have to produce a NEG instruction */
-                  OLDgenNEGInstruction (program, output_register
-                           , output_register, CG_DIRECT_ALL);
-                  break;
-         case OP_MUL :  genMULIInstruction (program, output_register
-                              , exp2.value, exp1.value); break;
-         case OP_DIV :
-                  /* we have to load into a register the immediate value */
-                  other_reg = getNewRegister(program);
-
-                  /* In order to load the immediate inside a new
-                   * register we have to insert an ADDI instr. */
-                  genADDIInstruction (program, other_reg
-                           , REG_0, exp1.value);
-
-                  /* we have to produce a DIV instruction */
-                  OLDgenDIVInstruction (program, output_register
-                           , other_reg, exp2.value, CG_DIRECT_ALL);
-                  break;
-         case OP_SHL :
-                  /* we have to load into a register the immediate value */
-                  other_reg = getNewRegister(program);
-
-                  /* In order to load the immediate inside a new
-                   * register we have to insert an ADDI instr. */
-                  genADDIInstruction (program, other_reg
-                           , REG_0, exp1.value);
-
-                  /* we have to produce a SHL instruction */
-                  OLDgenSLLInstruction (program, output_register
-                           , other_reg, exp2.value, CG_DIRECT_ALL);
-                  break;
-         case OP_SHR :
-                  /* we have to load into a register the immediate value */
-                  other_reg = getNewRegister(program);
-
-                  /* In order to load the immediate inside a new
-                   * register we have to insert an ADDI instr. */
-                  genADDIInstruction (program, other_reg
-                           , REG_0, exp1.value);
-
-                  /* we have to produce a SHR instruction */
-                  OLDgenSRAInstruction (program, output_register
-                           , other_reg, exp2.value, CG_DIRECT_ALL);
-                  break;
-         default :
-                  notifyError(AXE_INVALID_EXPRESSION);
-      }
-   }
-   else
-   {
-      /* we have to produce an instruction */
-      switch(binop)
-      {
-         case OP_ADD :  OLDgenADDInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_ANDB :  OLDgenANDInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_ANDL :  OLDgenANDLInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_ORB :  OLDgenORInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_ORL :  OLDgenORLInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_EORB :  OLDgenXORInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_EORL :  OLDgenEORLInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_SUB :  OLDgenSUBInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_MUL :  OLDgenMULInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_DIV :  OLDgenDIVInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_SHL :  OLDgenSLLInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         case OP_SHR :  OLDgenSRAInstruction (program, output_register
-                              , exp1.value, exp2.value, CG_DIRECT_ALL);
-                     break;
-         default :
-                     notifyError(AXE_INVALID_EXPRESSION);
-      }
-   }
-         
-   /* assign a value to result */
-   return createExpression (output_register, REGISTER);
+   t_axe_expression exp;
+   exp.type = REGISTER;
+   exp.immediate = 0;
+   exp.registerId = registerId;
+   return exp;
 }
 
-t_axe_expression handle_bin_numeric_op_Imm
-         (int val1, int val2, int binop)
+
+int computeBinaryOperation(int val1, int val2, int binop)
 {
-   switch(binop)
-   {
-      case OP_ADD : return createExpression((val1 + val2), IMMEDIATE);
-      case OP_ANDB : return createExpression((val1 & val2), IMMEDIATE);
-      case OP_ANDL : return createExpression((val1 && val2), IMMEDIATE);
-      case OP_ORB  : return createExpression((val1 | val2), IMMEDIATE);
-      case OP_ORL  : return createExpression((val1 || val2), IMMEDIATE);
-      case OP_EORB  : return createExpression((val1 ^ val2), IMMEDIATE);
-      case OP_EORL  : return createExpression(((!!val1) != (!!val2)), IMMEDIATE);
-      case OP_SUB : return createExpression((val1 - val2), IMMEDIATE);
-      case OP_MUL : return createExpression((val1 * val2), IMMEDIATE);
+   switch (binop) {
+      case OP_ADD: return val1 + val2;
+      case OP_ANDB: return val1 & val2;
+      case OP_ANDL: return val1 && val2;
+      case OP_ORB: return val1 | val2;
+      case OP_ORL: return val1 || val2;
+      case OP_XORB: return val1 ^ val2;
+      case OP_SUB: return val1 - val2;
+      case OP_MUL: return val1 * val2;
       /* SHL, SHR, DIV need special handling to avoid undefined behavior */
       case OP_SHL:
          if (val2 < 0) {
             printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-            return createExpression(val2, IMMEDIATE);
+            return val2;
          } else if (val2 >= 32)
-            return createExpression(0, IMMEDIATE);
-         return createExpression((val1 << val2), IMMEDIATE);
+            return 0;
+         return val1 << val2;
       case OP_SHR:
          if (val2 < 0) {
             printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-            return createExpression(val2, IMMEDIATE);
+            return val2;
          } else if (val2 >= 32)
             val2 = 31;
          /* the C language does not guarantee a right shift of a signed value
           * is an arithmetic shift, so we have to make sure it is */
-         return createExpression((val1 >> val2) | 
-               (val1 < 0 ? (((1 << val2) - 1) << MAX(32 - val2, 0)) : 0), 
-               IMMEDIATE);
-      case OP_DIV :
-         if (val2 == 0){
+         return (val1 >> val2) |
+                     (val1 < 0 ? (((1 << val2) - 1) << MAX(32 - val2, 0)) : 0);
+      case OP_DIV:
+         if (val2 == 0) {
             printWarningMessage(WARN_DIVISION_BY_ZERO);
-            return createExpression(INT_MAX, IMMEDIATE);
+            return INT_MAX;
          }
-         return createExpression ((val1 / val2), IMMEDIATE);
-      default :
-         notifyError(AXE_INVALID_EXPRESSION);
+         return val1 / val2;
+      case OP_LT: return val1 < val2;
+      case OP_GT: return val1 > val2;
+      case OP_EQ: return val1 == val2;
+      case OP_NOTEQ: return val1 != val2;
+      case OP_LTEQ: return val1 <= val2;
+      case OP_GTEQ: return val1 >= val2;
    }
-   
-   return createExpression (0, INVALID_EXPRESSION);
+
+   notifyError(AXE_INVALID_EXPRESSION);
+   return 0;
 }
 
-t_axe_expression handle_bin_comparison_Imm
-         (int val1, int val2, int condition)
+int genBinaryOperationWithImmediate(t_program_infos *program,
+      int r1, int immediate, int op)
 {
-   switch(condition)
-   {
-      case OP_LT : return createExpression ((val1 < val2), IMMEDIATE);
-      case OP_GT : return createExpression ((val1 > val2), IMMEDIATE);
-      case OP_EQ  : return createExpression ((val1 == val2), IMMEDIATE);
-      case OP_NOTEQ : return createExpression ((val1 != val2), IMMEDIATE);
-      case OP_LTEQ : return createExpression ((val1 <= val2), IMMEDIATE);
-      case OP_GTEQ : return createExpression ((val1 >= val2), IMMEDIATE);
-      default :
-         notifyError(AXE_INVALID_EXPRESSION);
+   int rd = getNewRegister(program);
+
+   if (op == OP_ANDL || op == OP_ORL) {
+      int norm_r1 = getNewRegister(program);
+      genSLTUInstruction(program, norm_r1, REG_0, r1);
+      if (op == OP_ANDL)
+         genANDIInstruction(program, rd, norm_r1, !!immediate);
+      else
+         genORIInstruction(program, rd, norm_r1, !!immediate);
+   } else{
+      switch (op) {
+         case OP_ADD:
+            genADDIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_ANDB:
+            genANDIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_ORB:
+            genORIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_XORB:
+            genXORIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_SUB:
+            genSUBIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_MUL:
+            genMULIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_SHL:
+            genSLLIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_SHR:
+            genSRAIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_DIV:
+            genDIVIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_LT:
+            genSLTIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_GT:
+            genSGTIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_EQ:
+            genSEQIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_NOTEQ:
+            genSNEIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_LTEQ:
+            genSLEIInstruction(program, rd, r1, immediate);
+            break;
+         case OP_GTEQ:
+            genSGEIInstruction(program, rd, r1, immediate);
+            break;
+         default:
+            notifyError(AXE_INVALID_EXPRESSION);
+      }
    }
 
-   return createExpression (0, INVALID_EXPRESSION);
+   return rd;
 }
 
-t_axe_expression handleBinaryComparison (t_program_infos *program
-         , t_axe_expression exp1, t_axe_expression exp2, int condition)
+int genBinaryOperation(t_program_infos *program, int r1, int r2, int op)
 {
-   int output_register;
+   int rd = getNewRegister(program);
 
-   /* we have to test if one (or both) of
-   * the two operands is an immediate value */
-   if (  (exp2.expression_type == IMMEDIATE)
-         && (exp1.expression_type == IMMEDIATE) )
-   {
-      return handle_bin_comparison_Imm
-                  (exp1.value, exp2.value, condition);
+   if (op == OP_ANDL || op == OP_ORL) {
+      int norm_r1 = getNewRegister(program);
+      int norm_r2 = getNewRegister(program);
+      genSLTUInstruction(program, norm_r1, REG_0, r1);
+      genSLTUInstruction(program, norm_r2, REG_0, r2);
+      if (op == OP_ANDL)
+         genANDInstruction(program, rd, norm_r1, norm_r2);
+      else
+         genORInstruction(program, rd, norm_r1, norm_r2);
+   } else{
+      switch (op) {
+         case OP_ADD:
+            genADDInstruction(program, rd, r1, r2);
+            break;
+         case OP_ANDB:
+            genANDInstruction(program, rd, r1, r2);
+            break;
+         case OP_ORB:
+            genORInstruction(program, rd, r1, r2);
+            break;
+         case OP_XORB:
+            genXORInstruction(program, rd, r1, r2);
+            break;
+         case OP_SUB:
+            genSUBInstruction(program, rd, r1, r2);
+            break;
+         case OP_MUL:
+            genMULInstruction(program, rd, r1, r2);
+            break;
+         case OP_SHL:
+            genSLLInstruction(program, rd, r1, r2);
+            break;
+         case OP_SHR:
+            genSRAInstruction(program, rd, r1, r2);
+            break;
+         case OP_DIV:
+            genDIVInstruction(program, rd, r1, r2);
+            break;
+         case OP_LT:
+            genSLTInstruction(program, rd, r1, r2);
+            break;
+         case OP_GT:
+            genSGTInstruction(program, rd, r1, r2);
+            break;
+         case OP_EQ:
+            genSEQInstruction(program, rd, r1, r2);
+            break;
+         case OP_NOTEQ:
+            genSNEInstruction(program, rd, r1, r2);
+            break;
+         case OP_LTEQ:
+            genSLEInstruction(program, rd, r1, r2);
+            break;
+         case OP_GTEQ:
+            genSGEInstruction(program, rd, r1, r2);
+            break;
+         default:
+            notifyError(AXE_INVALID_EXPRESSION);
+      }
    }
-                     
-   /* at first we have to ask for a free register
-   * where to store the result of the comparison. */
-   output_register = getNewRegister(program);
 
-   if (exp2.expression_type == IMMEDIATE)
-   {
-      /* we have to produce a SUBI instruction */
-      genSUBIInstruction (program, output_register
-               , exp1.value, exp2.value);
-   }
-   else if (exp1.expression_type == IMMEDIATE)
-   {
-      genSUBIInstruction (program, output_register
-               , exp2.value, exp1.value);
+   return rd;
+}
 
-      /* we have to produce a NEG instruction */
-      OLDgenNEGInstruction (program, output_register
-               , output_register, CG_DIRECT_ALL);
-   }
-   else
-   {
-      /* we have to produce a SUB instruction */
-      OLDgenSUBInstruction (program, output_register
-               , exp1.value, exp2.value, CG_DIRECT_ALL);
-   }
+t_axe_expression handleBinaryOperator(t_program_infos *program,
+      t_axe_expression exp1, t_axe_expression exp2, int operator)
+{
+   t_axe_expression res;
 
-   /* generate a set instruction */
-   switch(condition)
-   {
-      case OP_LT : OLDgenSLTInstruction (program, output_register); break;
-      case OP_GT : OLDgenSGTInstruction (program, output_register); break;
-      case OP_EQ  : OLDgenSEQInstruction (program, output_register); break;
-      case OP_NOTEQ : OLDgenSNEInstruction (program, output_register); break;
-      case OP_LTEQ : OLDgenSLEInstruction (program, output_register); break;
-      case OP_GTEQ : OLDgenSGEInstruction (program, output_register); break;
-      default :
-         notifyError(AXE_INVALID_EXPRESSION);
+   if (exp1.type == IMMEDIATE && exp2.type == IMMEDIATE) {
+      int v = computeBinaryOperation(exp1.immediate, exp2.immediate, operator);
+      res = getImmediateExpression(v);
+
+   } else if (exp1.type == REGISTER && exp2.type == IMMEDIATE) {
+      int rd = genBinaryOperationWithImmediate(program,
+            exp1.registerId, exp2.immediate, operator);
+      res = getRegisterExpression(rd);
+
+   } else if ((exp1.type == IMMEDIATE || exp1.type == REGISTER)
+                && exp2.type == REGISTER) {
+      int r1, rd;
+      if (exp1.type == IMMEDIATE)
+         r1 = genLoadImmediate(program, exp1.immediate);
+      else
+         r1 = exp1.registerId;
+      rd = genBinaryOperation(program, r1, exp2.registerId, operator);
+      res = getRegisterExpression(rd);
+
+   } else {
+      notifyError(AXE_INVALID_EXPRESSION);
    }
 
-   /* return the new expression */
-   return createExpression (output_register, REGISTER);
+   return res;
 }

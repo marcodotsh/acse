@@ -22,16 +22,16 @@ void genStoreArrayElement(t_program_infos *program, char *ID
    
    address = genLoadArrayAddress(program, ID, index);
 
-   if (data.expression_type == REGISTER)
+   if (data.type == REGISTER)
    {
       /* load the value indirectly into `mova_register' */
-      genSWInstruction(program, data.value, 0, address);
+      genSWInstruction(program, data.registerId, 0, address);
    }
    else
    {
       int imm_register;
 
-      imm_register = genLoadImmediate(program, data.value);
+      imm_register = genLoadImmediate(program, data.immediate);
 
       /* load the value indirectly into `load_register' */
       genSWInstruction(program, imm_register, 0, address);
@@ -88,22 +88,22 @@ int genLoadArrayAddress(t_program_infos *program
     * the type can only be an INTEGER_TYPE */
    int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
 
-   if (index.expression_type == IMMEDIATE)
+   if (index.type == IMMEDIATE)
    {
-      if (index.value != 0)
+      if (index.immediate != 0)
       {
          genADDIInstruction(program, mova_register
-                     , mova_register, index.value * sizeofElem);
+                     , mova_register, index.immediate * sizeofElem);
       }
    }
    else
    {
-      assert(index.expression_type == REGISTER);
+      assert(index.type == REGISTER);
 
-      int idxReg = index.value;
+      int idxReg = index.registerId;
       if (sizeofElem != 1) {
          idxReg = getNewRegister(program);
-         genMULIInstruction(program, idxReg, index.value, sizeofElem);
+         genMULIInstruction(program, idxReg, index.registerId, sizeofElem);
       }
       
       genADDInstruction(program, mova_register, mova_register, idxReg);
