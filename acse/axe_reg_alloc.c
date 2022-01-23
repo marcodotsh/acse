@@ -40,7 +40,6 @@ static t_live_interval * allocLiveInterval(int varID, t_list *mcRegs, int startP
 static t_list * spillAtInterval(t_reg_allocator *RA
       , t_list *active_intervals, t_live_interval *interval);
 
-
 /*
  * Perform a spill that allows the allocation of the given
  * interval, given the list of active live intervals
@@ -274,19 +273,25 @@ t_list *optimizeRegisterSet(t_list *a, t_list *b)
 
 void initializeRegisterConstraints(t_reg_allocator *ra)
 {
+   /* Create a list of all free registers we are allowed to use */
    t_list *allregs = NULL;
    t_list *allregs2 = ra->freeRegisters;
    for (; allregs2; allregs2 = LNEXT(allregs2)) {
       int reg = *(int *)LDATA(allregs2);
-      allregs = addElement(allregs, INTDATA(reg), -1);
+      if (!isSpecialRegister(reg))
+         allregs = addElement(allregs, INTDATA(reg), -1);
    }
 
+   /* Initialize the register constraint set on all variables that don't have
+    * one. */
    t_list *i = ra->live_intervals;
    for (; i; i = LNEXT(i)) {
       t_live_interval *interval = LDATA(i);
       if (interval->mcRegConstraints)
          continue;
       interval->mcRegConstraints = cloneList(allregs);
+
+      /* Scan the variables that are alive together with this variable */
       t_list *j = LNEXT(i);
       for (; j; j = LNEXT(j)) {
          t_live_interval *overlappingIval = LDATA(j);
@@ -295,19 +300,25 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
          if (!overlappingIval->mcRegConstraints)
             continue;
          if (overlappingIval->startPoint == interval->endPoint) {
-            /* an instruction is using interval as a source and overlappingIval
+            /* An instruction is using interval as a source and overlappingIval
              * as a destination. Optimize the constraint order to allow
              * allocating source and destination to the same register
              * if possible. */
             interval->mcRegConstraints = optimizeRegisterSet(
                interval->mcRegConstraints, overlappingIval->mcRegConstraints);
          } else {
+            /* Another variable (defined after this one) wants to be allocated
+             * to a restricted set of registers. Punch a hole in the current
+             * variable's set of allowed registers to ensure that this is
+             * possible. */
             interval->mcRegConstraints = subtractRegisterSets(
                interval->mcRegConstraints, overlappingIval->mcRegConstraints);
          }
       }
       assert(interval->mcRegConstraints);
    }
+
+   freeList(allregs);
 }
 
 /*
@@ -333,7 +344,7 @@ t_reg_allocator * initializeRegAlloc(t_cflow_Graph *graph)
    
    /* initialize the register allocator informations */
    /* Reserve a few registers (NUM_SPILL_REGS) to handle spills */
-   result->regNum = NUM_REGISTERS - NUM_SPILL_REGS;
+   result->regNum = NUM_REGISTERS;
 
    /* retrieve the max identifier from each live interval */
    max_var_ID = 0;
@@ -1189,8 +1200,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                {
                   if (assignedRegisters[current_row].inUse == 0)
                   {
-                     int register_found = current_row + NUM_REGISTERS
-                           + 1 - NUM_SPILL_REGS;
+                     int register_found = getSpillRegister(current_row);
                      
                      if (assignedRegisters[current_row].needsWB == 1)
                      {
@@ -1238,8 +1248,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                {
                   if (assignedRegisters[current_row].inUse == 0)
                   {
-                     int register_found = current_row + NUM_REGISTERS
-                           + 1 - NUM_SPILL_REGS;
+                     int register_found = getSpillRegister(current_row);
                      
                      if (assignedRegisters[current_row].needsWB == 1)
                      {
@@ -1287,8 +1296,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                {
                   if (assignedRegisters[current_row].inUse == 0)
                   {
-                     int register_found = current_row + NUM_REGISTERS
-                           + 1 - NUM_SPILL_REGS;
+                     int register_found = getSpillRegister(current_row);
                      
                      if (assignedRegisters[current_row].needsWB == 1)
                      {
@@ -1335,8 +1343,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
          {
             if (used_Registers[0] != -1)
             {
-               current_instr->reg_dest->ID = used_Registers[0] + NUM_REGISTERS
-                           + 1 - NUM_SPILL_REGS;
+               current_instr->reg_dest->ID = getSpillRegister(used_Registers[0]);
 
                assignedRegisters[used_Registers[0]].inUse = 0;
             }
@@ -1348,8 +1355,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
          {
             if (used_Registers[1] != -1)
             {
-               current_instr->reg_src1->ID = used_Registers[1] + NUM_REGISTERS
-                           + 1 - NUM_SPILL_REGS;
+               current_instr->reg_src1->ID = getSpillRegister(used_Registers[1]);
                assignedRegisters[used_Registers[1]].inUse = 0;
             }
             else
@@ -1360,8 +1366,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
          {
             if (used_Registers[2] != -1)
             {
-               current_instr->reg_src2->ID = used_Registers[2] + NUM_REGISTERS
-                           + 1 - NUM_SPILL_REGS;
+               current_instr->reg_src2->ID = getSpillRegister(used_Registers[2]);
                assignedRegisters[used_Registers[2]].inUse = 0;
             }
             else
@@ -1384,7 +1389,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
          {
             /* NEED WRITE BACK */
             _insertStoreSpill(program, assignedRegisters[counter].assignedVar
-                     , (counter + NUM_REGISTERS + 1 - NUM_SPILL_REGS)
+                     , (getSpillRegister(counter))
                            , graph, current_block
                               , current_node, label_bindings, bbHasTermInstr);
          }

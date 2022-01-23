@@ -13,8 +13,10 @@
 
 #include "axe_engine.h"
 
-
 #define TARGET_NAME "RISC-V_RV32IM"
+
+/* Number of bytes for each memory address */
+#define TARGET_PTR_GRANULARITY 4
 
 /* Number of registers for this target (excluding REG_0) */
 #define NUM_REGISTERS 31
@@ -22,8 +24,17 @@
  * the maximum number of unique register operands in a single instruction. */
 #define NUM_SPILL_REGS 3
 
-/* Number of bytes for each memory address */
-#define TARGET_PTR_GRANULARITY 4
+/* Register names */
+enum {
+   REG_ZERO = REG_0,
+   REG_RA, REG_SP, REG_GP, REG_TP,
+   REG_T0, REG_T1, REG_T2,
+   REG_S0, REG_S1,
+   REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7, 
+   REG_S2, REG_S3, REG_S4, REG_S5, REG_S6,
+   REG_S7, REG_S8, REG_S9, REG_S10, REG_S11,
+   REG_T3, REG_T4, REG_T5, REG_T6
+};
 
 /*
  * TARGET OPCODES
@@ -171,6 +182,13 @@ extern int isHaltOrRetInstruction(t_axe_instruction *instr);
  * flags register. */
 extern int instructionUsesPSW(t_axe_instruction *instr);
 extern int instructionDefinesPSW(t_axe_instruction *instr);
+
+/* Returns 1 if the register can be used by the register allocator.
+ * Must return 0 for all registers that are reserved for spills. */
+extern int isSpecialRegister(int regId);
+/* Returns a register ID suitable for spill operations. The maximum index
+ * is always bounded by NUM_SPILL_REGS. */
+extern int getSpillRegister(int i);
 
 #endif
 

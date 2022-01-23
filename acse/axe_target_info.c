@@ -8,8 +8,8 @@
  * Properties of the target machine
  */
 
+#include <assert.h>
 #include "axe_target_info.h"
-
 
 int isHaltOrRetInstruction(t_axe_instruction *instr)
 {
@@ -99,3 +99,27 @@ extern int instructionDefinesPSW(t_axe_instruction *instr)
    }
    return 0;
 }
+
+extern int isSpecialRegister(int regId)
+{
+   switch (regId) {
+      case REG_0:
+      case REG_RA:
+      case REG_SP:
+      case REG_GP:
+      case REG_TP:
+      case REG_T3:
+      case REG_T4:
+      case REG_T5:
+      case REG_T6:
+         return 1;
+   }
+   return 0;
+}
+
+extern int getSpillRegister(int i)
+{
+   assert(i < NUM_SPILL_REGS);
+   return i + REG_T3;
+}
+
