@@ -109,5 +109,4 @@ extern t_cflow_Graph *createFlowGraph(t_list *instructions);
 /* dataflow analysis */
 extern void performLivenessAnalysis(t_cflow_Graph *graph);
 
-
 #endif
