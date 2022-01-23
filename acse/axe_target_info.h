@@ -92,11 +92,11 @@
 
 /*   Other */
 #define OPC_NOP      32 // pseudo
-#define OPC_HALT     36 // pseudo
 #define OPC_ECALL  1500
 #define OPC_EBREAK 1501
 
 /* Syscall opcodes */
+#define OPC_HALT        36
 #define OPC_AXE_READ    61
 #define OPC_AXE_WRITE   62
 
