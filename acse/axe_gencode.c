@@ -484,8 +484,8 @@ t_axe_instruction * genUnaryInstruction (t_program_infos *program
       notifyError(AXE_OUT_OF_MEMORY);
    }
    
-   /* update the reg_1 info */
-   instr->reg_1 = reg;
+   /* update the reg_dest info */
+   instr->reg_dest = reg;
 
    /* initialize an address info */
    address = initializeAddress(addressType, addr, label);
@@ -535,8 +535,8 @@ t_axe_instruction * genBinaryInstruction (t_program_infos *program
       notifyError(AXE_OUT_OF_MEMORY);
    }
 
-   /* update the reg_1 info */
-   instr->reg_1 = reg_dest;
+   /* update the reg_dest info */
+   instr->reg_dest = reg_dest;
 
    reg_source1 = initializeRegister(r_source1, 0);
    if (reg_source1 == NULL)
@@ -546,8 +546,8 @@ t_axe_instruction * genBinaryInstruction (t_program_infos *program
       return NULL;
    }
 
-   /* update the reg_1 info */
-   instr->reg_2 = reg_source1;
+   /* update the reg_dest info */
+   instr->reg_src1 = reg_source1;
 
    /* assign an immediate value */
    instr->immediate = immediate;
@@ -590,8 +590,8 @@ t_axe_instruction * genTernaryInstruction (t_program_infos *program
       notifyError(AXE_OUT_OF_MEMORY);
    }
 
-   /* update the reg_1 info */
-   instr->reg_1 = reg_dest;
+   /* update the reg_dest info */
+   instr->reg_dest = reg_dest;
 
    reg_source1 = initializeRegister(r_source1, 0);
    if (reg_source1 == NULL)
@@ -600,8 +600,8 @@ t_axe_instruction * genTernaryInstruction (t_program_infos *program
       notifyError(AXE_OUT_OF_MEMORY);
    }
 
-   /* update the reg_2 info */
-   instr->reg_2 = reg_source1;
+   /* update the reg_src1 info */
+   instr->reg_src1 = reg_source1;
 
    reg_source2 = initializeRegister(r_source2, ((flags & CG_INDIRECT_SOURCE)? 1 : 0));
    if (reg_source1 == NULL)
@@ -610,8 +610,8 @@ t_axe_instruction * genTernaryInstruction (t_program_infos *program
       notifyError(AXE_OUT_OF_MEMORY);
    }
 
-   /* update the reg_3 info */
-   instr->reg_3 = reg_source2;
+   /* update the reg_src2 info */
+   instr->reg_src2 = reg_source2;
 
    /* add the newly created instruction to the current program */
    if (program != NULL)

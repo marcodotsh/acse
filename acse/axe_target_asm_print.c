@@ -111,18 +111,18 @@ int translateInstruction(t_program_infos *program, t_axe_instruction *current_in
          return 1;
       }
 
-      if (current_instruction->reg_1 != NULL)
+      if (current_instruction->reg_dest != NULL)
       {
-         printRegister(current_instruction->reg_1, fp);
+         printRegister(current_instruction->reg_dest, fp);
          
          if (fputc(' ', fp) == EOF)
          {
             return 1;
          }
       }
-      if (current_instruction->reg_2 != NULL)
+      if (current_instruction->reg_src1 != NULL)
       {
-         printRegister(current_instruction->reg_2, fp);
+         printRegister(current_instruction->reg_src1, fp);
          if (errorcode != AXE_OK)
             return 1;
 
@@ -131,9 +131,9 @@ int translateInstruction(t_program_infos *program, t_axe_instruction *current_in
             return 1;
          }
       }
-      if (current_instruction->reg_3 != NULL)
+      if (current_instruction->reg_src2 != NULL)
       {
-         printRegister(current_instruction->reg_3, fp);
+         printRegister(current_instruction->reg_src2, fp);
       }
       else if (current_instruction->address != NULL)
       {

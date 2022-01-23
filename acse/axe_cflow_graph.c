@@ -477,12 +477,12 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
    t_cflow_var *varPSW = allocVariable(graph, VAR_PSW, NULL);
    
    /* update the values of the variables */
-   if (instr->reg_1 != NULL)
-      varDest = allocVariable(graph, (instr->reg_1)->ID, instr->reg_1->mcRegWhitelist);
-   if (instr->reg_2 != NULL)
-      varSource1 = allocVariable(graph, (instr->reg_2)->ID, instr->reg_2->mcRegWhitelist);
-   if (instr->reg_3 != NULL)
-      varSource2 = allocVariable(graph, (instr->reg_3)->ID, instr->reg_3->mcRegWhitelist);
+   if (instr->reg_dest != NULL)
+      varDest = allocVariable(graph, (instr->reg_dest)->ID, instr->reg_dest->mcRegWhitelist);
+   if (instr->reg_src1 != NULL)
+      varSource1 = allocVariable(graph, (instr->reg_src1)->ID, instr->reg_src1->mcRegWhitelist);
+   if (instr->reg_src2 != NULL)
+      varSource2 = allocVariable(graph, (instr->reg_src2)->ID, instr->reg_src2->mcRegWhitelist);
    
    /* set normal register defs/uses */
    switch(instr->opcode)
@@ -501,7 +501,7 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
                 (node->uses)[0] = varSource1; break;
       default :
          if (!isJumpInstruction(instr)) {
-                if ((instr->reg_1)->indirect)
+                if ((instr->reg_dest)->indirect)
                      (node->uses)[2] = varDest;
                 else
                      node->defs[0] = varDest;

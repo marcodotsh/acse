@@ -84,9 +84,9 @@ void fixLargeImmediates(t_program_infos *program)
       }
       t_list *nexti = LNEXT(curi);
       
-      if (instr->opcode == OPC_ADDI && instr->reg_2->ID == REG_0) {
+      if (instr->opcode == OPC_ADDI && instr->reg_src1->ID == REG_0) {
          pushInstrInsertionPoint(program, curi);
-         int reg = instr->reg_1->ID;
+         int reg = instr->reg_dest->ID;
          genLoweredImmediateMove(program, reg, instr->immediate);
          removeInstructionLink(program, curi);
          popInstrInsertionPoint(program);
@@ -96,7 +96,7 @@ void fixLargeImmediates(t_program_infos *program)
          int reg = getNewRegister(program);
          moveLabel(genLoweredImmediateMove(program, reg, instr->immediate), instr);
          instr->immediate = 0;
-         instr->reg_3 = initializeRegister(reg, 0);
+         instr->reg_src2 = initializeRegister(reg, 0);
          instr->opcode = switchOpcodeImmediateForm(instr->opcode);
          popInstrInsertionPoint(program);
       }

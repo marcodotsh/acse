@@ -70,9 +70,9 @@ typedef struct t_axe_variable
 typedef struct t_axe_instruction
 {
    int opcode;                   /* instruction opcode (for example: ADD) */
-   t_axe_register *reg_1;        /* destination register */
-   t_axe_register *reg_2;        /* first source register */
-   t_axe_register *reg_3;        /* second source register */
+   t_axe_register *reg_dest;     /* destination register */
+   t_axe_register *reg_src1;     /* first source register */
+   t_axe_register *reg_src2;     /* second source register */
    int immediate;                /* immediate value */
    t_axe_address *address;       /* an address operand */
    int mcFlags;                  /* flags; used only by the backend */

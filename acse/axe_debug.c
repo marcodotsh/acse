@@ -410,25 +410,25 @@ void debugPrintInstruction(t_axe_instruction *instr, FILE *fout)
       case OPC_INVALID : fprintf(fout, "[INVALID] ");
    }
 
-   if (instr->reg_1 != NULL)
+   if (instr->reg_dest != NULL)
    {
-      if (!(instr->reg_1)->indirect)
-         fprintf(fout, "R%d ", (instr->reg_1)->ID);
+      if (!(instr->reg_dest)->indirect)
+         fprintf(fout, "R%d ", (instr->reg_dest)->ID);
       else
-         fprintf(fout, "(R%d) ", (instr->reg_1)->ID);
+         fprintf(fout, "(R%d) ", (instr->reg_dest)->ID);
    }
-   if (instr->reg_2 != NULL)
+   if (instr->reg_src1 != NULL)
    {
-      if (!(instr->reg_2)->indirect)
-         fprintf(fout, "R%d ", (instr->reg_2)->ID);
+      if (!(instr->reg_src1)->indirect)
+         fprintf(fout, "R%d ", (instr->reg_src1)->ID);
       else
-         fprintf(fout, "(R%d) ", (instr->reg_2)->ID);
-      if (instr->reg_3 != NULL)
+         fprintf(fout, "(R%d) ", (instr->reg_src1)->ID);
+      if (instr->reg_src2 != NULL)
       {
-         if (!(instr->reg_3)->indirect)
-            fprintf(fout, "R%d ", (instr->reg_3)->ID);
+         if (!(instr->reg_src2)->indirect)
+            fprintf(fout, "R%d ", (instr->reg_src2)->ID);
          else
-            fprintf(fout, "(R%d) ", (instr->reg_3)->ID);
+            fprintf(fout, "(R%d) ", (instr->reg_src2)->ID);
       }
       else
          fprintf(fout, "#%d ", instr->immediate);

@@ -75,9 +75,9 @@ t_axe_instruction * initializeInstruction(int opcode)
 
    /* ininitialize the fields of `result' */
    result->opcode = opcode;
-   result->reg_1 = NULL;
-   result->reg_2 = NULL;
-   result->reg_3 = NULL;
+   result->reg_dest = NULL;
+   result->reg_src1 = NULL;
+   result->reg_src2 = NULL;
    result->immediate = 0;
    result->labelID = NULL;
    result->address = NULL;
@@ -150,17 +150,17 @@ void finalizeInstruction(t_axe_instruction *inst)
       return;
    
    /* free memory */
-   if (inst->reg_1 != NULL) {
-      freeList(inst->reg_1->mcRegWhitelist);
-      free(inst->reg_1);
+   if (inst->reg_dest != NULL) {
+      freeList(inst->reg_dest->mcRegWhitelist);
+      free(inst->reg_dest);
    }
-   if (inst->reg_2 != NULL) {
-      freeList(inst->reg_2->mcRegWhitelist);
-      free(inst->reg_2);
+   if (inst->reg_src1 != NULL) {
+      freeList(inst->reg_src1->mcRegWhitelist);
+      free(inst->reg_src1);
    }
-   if (inst->reg_3 != NULL) {
-      freeList(inst->reg_3->mcRegWhitelist);
-      free(inst->reg_3);
+   if (inst->reg_src2 != NULL) {
+      freeList(inst->reg_src2->mcRegWhitelist);
+      free(inst->reg_src2);
    }
    if (inst->address != NULL) {
       free(inst->address);
