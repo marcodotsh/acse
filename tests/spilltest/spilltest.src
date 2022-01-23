@@ -98,3 +98,5 @@ write(v03);
 write(v02);
 write(v01);
 write(v00);
+
+v00 = v01 + v02 + v03 + v04 + v05;

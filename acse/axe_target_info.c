@@ -59,3 +59,30 @@ int isJumpInstruction(t_axe_instruction *instr)
       default : return 0;
    }
 }
+
+extern int instructionUsesPSW(t_axe_instruction *instr)
+{
+   switch (instr->opcode) {
+      case OPC_SEQ: case OPC_SGE: case OPC_SGT: case OPC_SLE: case OPC_SLT: case OPC_SNE: 
+      case OPC_BHI: case OPC_BLS: case OPC_BCC: case OPC_BCS: case OPC_BNE: case OPC_BEQ: case OPC_BVC:
+      case OPC_BVS: case OPC_BPL: case OPC_BMI: case OPC_BGE: case OPC_BLT: case OPC_BLE:
+         return 1;
+         break;
+   }
+   return 0;
+}
+
+extern int instructionDefinesPSW(t_axe_instruction *instr)
+{
+   switch (instr->opcode) {
+      case OPC_ADD: case OPC_SUB: case OPC_ANDL: case OPC_ORL: case OPC_EORL: case OPC_ANDB: case OPC_ORB:
+      case OPC_EORB: case OPC_MUL: case OPC_DIV: case OPC_SHL: case OPC_SHR: case OPC_ROTL: case OPC_ROTR:
+      case OPC_NEG: case OPC_ADDI: case OPC_SUBI: case OPC_ANDLI: case OPC_ORLI: case OPC_EORLI:
+      case OPC_ANDBI: case OPC_ORBI: case OPC_EORBI: case OPC_MULI: case OPC_DIVI: case OPC_SHLI:
+      case OPC_SHRI: case OPC_ROTLI: case OPC_ROTRI: case OPC_NOTL: case OPC_NOTB:
+      case OPC_SEQ: case OPC_SGE: case OPC_SGT: case OPC_SLE: case OPC_SLT: case OPC_SNE: 
+         return 1;
+         break;
+   }
+   return 0;
+}

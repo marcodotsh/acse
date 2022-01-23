@@ -485,7 +485,11 @@ t_axe_instruction * genUnaryInstruction (t_program_infos *program
    }
    
    /* update the reg_dest info */
-   instr->reg_dest = reg;
+   if (opcode != OPC_AXE_WRITE && opcode != OPC_STORE) {
+      instr->reg_dest = reg;
+   } else {
+      instr->reg_src1 = reg;
+   }
 
    /* initialize an address info */
    address = initializeAddress(addressType, addr, label);

@@ -100,6 +100,12 @@ extern int isUnconditionalJump(t_axe_instruction *instr);
  * instruction. */
 extern int isHaltOrRetInstruction(t_axe_instruction *instr);
 
+/* Returns 1 if the instruction uses/defines the PSW (flags) register, 0
+ * otherwise. Always returns zero on architectures that do not have a
+ * flags register. */
+extern int instructionUsesPSW(t_axe_instruction *instr);
+extern int instructionDefinesPSW(t_axe_instruction *instr);
+
 #endif
 
 

@@ -445,6 +445,7 @@ t_cflow_var * allocVariable (t_cflow_Graph *graph, int identifier, t_list *mcReg
 void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
 {
    t_axe_instruction *instr;
+   int def_i, use_i;
 
    /* preconditions */
    if (graph == NULL) {
@@ -483,49 +484,21 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
       varSource1 = allocVariable(graph, (instr->reg_src1)->ID, instr->reg_src1->mcRegWhitelist);
    if (instr->reg_src2 != NULL)
       varSource2 = allocVariable(graph, (instr->reg_src2)->ID, instr->reg_src2->mcRegWhitelist);
-   
-   /* set normal register defs/uses */
-   switch(instr->opcode)
-   {
-      case OPC_LOAD : case OPC_AXE_READ : node->defs[0] = varDest; break;
-      case OPC_STORE : case OPC_AXE_WRITE : (node->uses)[0] = varDest; break;
-      case OPC_SGE : case OPC_SGT: case OPC_SLE : case OPC_SLT : case OPC_SNE :
-      case OPC_SEQ : node->defs[0] = varDest; break;
-      case OPC_HALT : case OPC_RET : case OPC_JSR : case OPC_NOP : break;
-      case OPC_MOVA : node->defs[0] = varDest; break;
-      case OPC_NOTB : case OPC_NOTL : case OPC_ROTRI : case OPC_ROTLI :
-      case OPC_SHRI : case OPC_SHLI : case OPC_DIVI : case OPC_MULI :
-      case OPC_EORBI : case OPC_ORBI : case OPC_ANDBI : case OPC_EORLI :
-      case OPC_ORLI : case OPC_ANDLI : case OPC_SUBI : case OPC_ADDI :
-                node->defs[0] = varDest;
-                (node->uses)[0] = varSource1; break;
-      default :
-         if (!isJumpInstruction(instr)) {
-                if ((instr->reg_dest)->indirect)
-                     (node->uses)[2] = varDest;
-                else
-                     node->defs[0] = varDest;
-                (node->uses)[0] = varSource1;
-                (node->uses)[1] = varSource2;
-         }
-   }
 
-   /* set defs/uses of the flags register */
-   switch (instr->opcode) {
-      case OPC_ADD: case OPC_SUB: case OPC_ANDL: case OPC_ORL: case OPC_EORL: case OPC_ANDB: case OPC_ORB:
-      case OPC_EORB: case OPC_MUL: case OPC_DIV: case OPC_SHL: case OPC_SHR: case OPC_ROTL: case OPC_ROTR:
-      case OPC_NEG: case OPC_ADDI: case OPC_SUBI: case OPC_ANDLI: case OPC_ORLI: case OPC_EORLI:
-      case OPC_ANDBI: case OPC_ORBI: case OPC_EORBI: case OPC_MULI: case OPC_DIVI: case OPC_SHLI:
-      case OPC_SHRI: case OPC_ROTLI: case OPC_ROTRI: case OPC_NOTL: case OPC_NOTB:
-         node->defs[1] = varPSW;
-         break;
-      case OPC_SEQ: case OPC_SGE: case OPC_SGT: case OPC_SLE: case OPC_SLT: case OPC_SNE: 
-         node->defs[1] = varPSW;
-      case OPC_BHI: case OPC_BLS: case OPC_BCC: case OPC_BCS: case OPC_BNE: case OPC_BEQ: case OPC_BVC:
-      case OPC_BVS: case OPC_BPL: case OPC_BMI: case OPC_BGE: case OPC_BLT: case OPC_BLE:
-         node->uses[0] = varPSW;
-         break;
-   }
+   def_i = 0;
+   use_i = 0;
+
+   if (varDest)
+      node->defs[def_i++] = varDest;
+   if (instructionDefinesPSW(instr))
+      node->defs[def_i++] = varPSW;
+   
+   if (varSource1)
+      node->uses[use_i++] = varSource1;
+   if (varSource1)
+      node->uses[use_i++] = varSource2;
+   if (instructionUsesPSW(instr))
+      node->uses[use_i++] = varPSW;
 }
 
 /* look up for a label inside the graph */

@@ -1102,25 +1102,11 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                      /* set currently used flag */
                      assignedRegisters[current_row].inUse = 1;
 
-                     /* test if a write back is needed */
+                     /* test if a write back is needed. Writebacks are needed
+                      * when an instruction modifies a spilled register. */
                      if (! (current_instr->reg_dest)->indirect)
                      {
-                        /* if the current instruction is a STORE we don't need
-                         * to write back the value of reg_dest again in memory. */
-                        /* Also if the current instruction is a WRITE instruction
-                         * we don't have to set the flag "dirty" for the
-                         * register assignedRegisters[current_row], since reg_dest
-                         * is "used" but not "defined" */
-                        if (  (current_instr->opcode != OPC_STORE)
-                              && (current_instr->opcode != OPC_AXE_WRITE) )
-                        {
-                           assignedRegisters[current_row].needsWB = 1;
-                        }
-                        /* if the current instruction is a STORE we have to
-                         * notify that the write back is happened by
-                         * resetting the flag "dirty" */
-                        if (current_instr->opcode == OPC_STORE)
-                           assignedRegisters[current_row].needsWB = 0;
+                        assignedRegisters[current_row].needsWB = 1;
                      }
 
                      /* notify that the value was found */
@@ -1313,8 +1299,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                      }
 
                      /* test if we need to load the value from register */
-                     if (  (current_instr->reg_dest)->indirect
-                           || (current_instr->opcode == OPC_AXE_WRITE))
+                     if ((current_instr->reg_dest)->indirect)
                      {
                         _insertLoadSpill(program, (current_instr->reg_dest)->ID
                               , register_found, graph, current_block
@@ -1336,11 +1321,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
 
                if (! (current_instr->reg_dest)->indirect)
                {
-                  if (  (current_instr->opcode != OPC_STORE)
-                        && (current_instr->opcode != OPC_AXE_WRITE) )
-                  {
-                     assignedRegisters[current_row].needsWB = 1;
-                  }
+                  assignedRegisters[current_row].needsWB = 1;
                }
                used_Registers[0] = current_row;
 
