@@ -62,7 +62,7 @@
 
 /*   Comparison */
 #define OPC_SEQ    1200  /* rd = rs1 == rs2            (pseudo) */
-#define OPC_SNE    1201  /* rd = rs1 == rs2            (pseudo) */
+#define OPC_SNE    1201  /* rd = rs1 != rs2            (pseudo) */
 #define OPC_SLT    1202  /* rd = rs1 <  rs2 (signed)            */
 #define OPC_SLTU   1203  /* rd = rs1 <  rs2 (unsigned)          */
 #define OPC_SGE    1204  /* rd = rs1 >= rs2 (signed)   (pseudo) */
@@ -71,6 +71,18 @@
 #define OPC_SGTU   1207  /* rd = rs1 >  rs2 (unsigned) (pseudo) */
 #define OPC_SLE    1208  /* rd = rs1 <= rs2 (signed)   (pseudo) */
 #define OPC_SLEU   1209  /* rd = rs1 <= rs2 (unsigned) (pseudo) */
+
+/*   Comparison with immediate */
+#define OPC_SEQI   1210  /* rd = rs1 == imm            (pseudo) */
+#define OPC_SNEI   1211  /* rd = rs1 != imm            (pseudo) */
+#define OPC_SLTI   1212  /* rd = rs1 <  imm (signed)            */
+#define OPC_SLTIU  1213  /* rd = rs1 <  imm (unsigned)          */
+#define OPC_SGEI   1214  /* rd = rs1 >= imm (signed)   (pseudo) */
+#define OPC_SGEIU  1215  /* rd = rs1 >= imm (unsigned) (pseudo) */
+#define OPC_SGTI   1216  /* rd = rs1 >  imm (signed)   (pseudo) */
+#define OPC_SGTIU  1217  /* rd = rs1 >  imm (unsigned) (pseudo) */
+#define OPC_SLEI   1218  /* rd = rs1 <= imm (signed)   (pseudo) */
+#define OPC_SLEIU  1219  /* rd = rs1 <= imm (unsigned) (pseudo) */
 
 /*   Jump/Branch */
 #define OPC_J      1600  /* goto addr; */

@@ -14,17 +14,13 @@
 
 void genMoveImmediate(t_program_infos *program, int dest, int immediate)
 {
-   genADDIInstruction(program, dest, REG_0, immediate);
+   genLIInstruction(program, dest, immediate);
 }
 
 int genLoadImmediate(t_program_infos *program, int immediate)
 {
-   int imm_register;
-
-   imm_register = getNewRegister(program);
-
+   int imm_register = getNewRegister(program);
    genMoveImmediate(program, imm_register, immediate);
-
    return imm_register;
 }
 
@@ -278,6 +274,67 @@ t_axe_instruction *genSLEUInstruction(t_program_infos *program,
       int r_dest, int r_src1, int r_src2)
 {
    return genRFormatInstruction(program, OPC_SLEU, r_dest, r_src1, r_src2);
+}
+
+
+t_axe_instruction *genSEQIInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SEQ, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSNEIInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SNE, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSLTIInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SLT, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSLTIUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SLTU, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSGEIInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SGE, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSGEIUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SGEU, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSGTIInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SGT, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSGTIUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SGTU, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSLEIInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SLE, r_dest, r_src1, immediate);
+}
+
+t_axe_instruction *genSLEIUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int immediate)
+{
+   return genIFormatInstruction(program, OPC_SLEU, r_dest, r_src1, immediate);
 }
 
 
