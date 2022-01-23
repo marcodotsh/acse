@@ -445,10 +445,6 @@ t_axe_instruction * genUnaryInstruction (t_program_infos *program
    t_axe_address *address;
    int addressType;
 
-   /* test if program is initialized */
-   if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
-
    if (r_dest == REG_INVALID)
       notifyError(AXE_INVALID_REGISTER_INFO);
    
@@ -503,7 +499,8 @@ t_axe_instruction * genUnaryInstruction (t_program_infos *program
    instr->address = address;
 
    /* add the newly created instruction to the current program */
-   addInstruction(program, instr);
+   if (program != NULL)
+      addInstruction(program, instr);
 
    /* return the load instruction */
    return instr;
@@ -515,10 +512,6 @@ t_axe_instruction * genBinaryInstruction (t_program_infos *program
    t_axe_instruction *instr;
    t_axe_register *reg_dest;
    t_axe_register *reg_source1;
-
-   /* test if program is initialized */
-   if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
 
    /* test if value is correctly initialized */
    if (  (r_dest == REG_INVALID)
@@ -559,7 +552,8 @@ t_axe_instruction * genBinaryInstruction (t_program_infos *program
    instr->immediate = immediate;
 
    /* add the newly created instruction to the current program */
-   addInstruction(program, instr);
+   if (program != NULL)
+      addInstruction(program, instr);
 
    /* return the load instruction */
    return instr;
@@ -572,10 +566,6 @@ t_axe_instruction * genTernaryInstruction (t_program_infos *program
    t_axe_register *reg_dest;
    t_axe_register *reg_source1;
    t_axe_register *reg_source2;
-   
-   /* test if program is initialized */
-   if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
 
    /* test if value is correctly initialized */
    if (  (r_dest == REG_INVALID)
@@ -623,7 +613,8 @@ t_axe_instruction * genTernaryInstruction (t_program_infos *program
    instr->reg_3 = reg_source2;
 
    /* add the newly created instruction to the current program */
-   addInstruction(program, instr);
+   if (program != NULL)
+      addInstruction(program, instr);
 
    /* return the load instruction */
    return instr;
@@ -635,10 +626,6 @@ t_axe_instruction * genJumpInstruction (t_program_infos *program
    t_axe_instruction *instr;
    t_axe_address * address;
    int addressType;
-
-   /* test if program is initialized */
-   if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
 
    /* test if value is correctly initialized */
    if (label != NULL)
@@ -676,7 +663,8 @@ t_axe_instruction * genJumpInstruction (t_program_infos *program
    instr->address = address;
 
    /* add the newly created instruction to the current program */
-   addInstruction(program, instr);
+   if (program != NULL)
+      addInstruction(program, instr);
 
    /* return the load instruction */
    return instr;

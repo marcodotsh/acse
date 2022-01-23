@@ -13,6 +13,7 @@
 #include "axe_debug.h"
 #include "axe_errors.h"
 #include "axe_utils.h"
+#include "axe_gencode.h"
 
 /*
  * LINEAR SCAN
@@ -891,47 +892,6 @@ void updateTheDataSegment(t_program_infos *program, t_list *labelBindings)
    }
 }
 
-t_axe_instruction * _createUnary (t_program_infos *program
-            , int reg, t_axe_label *label, int opcode)
-{
-   t_axe_instruction *result;
-   
-   /* preconditions */
-   if (program == NULL) {
-      errorcode = AXE_PROGRAM_NOT_INITIALIZED;
-      return NULL;
-   }
-   
-   if (label == NULL) {
-      errorcode = AXE_INVALID_LABEL;
-      return NULL;
-   }
-
-   /* create an instance of `t_axe_instruction' */
-   result = initializeInstruction(opcode);
-   if (result == NULL) {
-      errorcode = AXE_OUT_OF_MEMORY;
-      return NULL;
-   }
-
-   result->reg_1 = initializeRegister(reg, 0);
-   if (result->reg_1 == NULL) {
-      errorcode = AXE_OUT_OF_MEMORY;
-      finalizeInstruction(result);
-      return NULL;
-   }
-
-   /* initialize an address info */
-   result->address = initializeAddress(LABEL_TYPE, 0, label);
-   if (result->address == NULL) {
-      errorcode = AXE_OUT_OF_MEMORY;
-      finalizeInstruction(result);
-      return NULL;
-   }
-
-   return result;
-}
-
 int compareTempLabels(void *valA, void *valB)
 {
    t_tempLabel *tlA;
@@ -1478,14 +1438,7 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
    assert(tlabel != NULL);
 
    /* create a store instruction */
-   storeInstr = _createUnary (program
-            , selected_register, tlabel->labelID, STORE);
-
-   /* test if an error occurred */
-   if (errorcode != AXE_OK) {
-      finalizeInstruction(storeInstr);
-      return -1;
-   }
+   storeInstr = genSTOREInstruction(NULL, selected_register, tlabel->labelID, 0);
 
    /* create a node for the load instruction */
    storeNode = allocNode (graph, storeInstr);
@@ -1528,20 +1481,9 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
 
    tlabel = (t_tempLabel *) LDATA(elementFound);
    assert(tlabel != NULL);
-      
+   
    /* create a load instruction */
-   loadInstr = _createUnary (program
-            , selected_register, tlabel->labelID, LOAD);
-
-   /* test if an error occurred */
-   if (errorcode != AXE_OK) {
-      finalizeInstruction(loadInstr);
-      finalizeNode(loadNode);
-      return -1;
-   }
-
-   /* update the value of storeInstr and instr */
-   (loadInstr->reg_1)->ID = selected_register;
+   loadInstr = genLOADInstruction(NULL, selected_register, tlabel->labelID, 0);
 
    /* create a node for the load instruction */
    loadNode = allocNode (graph, loadInstr);
@@ -1560,7 +1502,7 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
       loadInstr->labelID = (current_node->instr)->labelID;
       (current_node->instr)->labelID = NULL;
    }
-                  
+   
    if (before == 1)
       /* insert the node `loadNode' before `current_node' */
       insertNodeBefore(block, current_node, loadNode);
