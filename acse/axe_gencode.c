@@ -215,7 +215,7 @@ t_axe_instruction * genSHRInstruction (t_program_infos *program
       , int r_dest, int r_source1, int r_source2, int flags)
 {
    return genTernaryInstruction
-         (program, OPC_SRL, r_dest, r_source1, r_source2, flags);
+         (program, OPC_SRA, r_dest, r_source1, r_source2, flags);
 }
 
 t_axe_instruction * genNEGInstruction (t_program_infos *program
@@ -311,7 +311,7 @@ t_axe_instruction * genSHLIInstruction
 t_axe_instruction * genSHRIInstruction
       (t_program_infos *program, int r_dest, int r_source1, int immediate)
 {
-   return genBinaryInstruction(program, OPC_SRLI
+   return genBinaryInstruction(program, OPC_SRAI
          , r_dest, r_source1, immediate);
 }
 
@@ -356,7 +356,7 @@ t_axe_instruction * genSTOREInstruction
 t_axe_instruction * genMOVAInstruction
       (t_program_infos *program, int r_dest, t_axe_label *label, int address)
 {
-   return genUnaryInstruction(program, OPC_OLD_MOVA, r_dest, label, address);
+   return genUnaryInstruction(program, OPC_LA, r_dest, label, address);
 }
 
 t_axe_instruction * genSGEInstruction

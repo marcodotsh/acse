@@ -85,7 +85,7 @@ int genLoadArrayAddress(t_program_infos *program
    mova_register = getNewRegister(program);
 
    /* generate the MOVA instruction */
-   genMOVAInstruction(program, mova_register, label, 0);
+   genLAInstruction(program, mova_register, label, 0);
 
    /* We are making the following assumption:
     * the type can only be an INTEGER_TYPE */

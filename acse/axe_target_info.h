@@ -45,8 +45,8 @@
 #define OPC_MUL       8  /* rd = rs1 *  rs2              */
 #define OPC_DIV       9  /* rd = rs1 /  rs2              */
 #define OPC_SLL      10  /* rd = rs1 << rs2              */
-#define OPC_SRL      11  /* rd = rs1 >> rs2 (logical)    */
-#define OPC_SRA    1000  /* rd = rs1 >> rs2 (arithmetic) */
+#define OPC_SRL    1000  /* rd = rs1 >> rs2 (logical)    */
+#define OPC_SRA      11  /* rd = rs1 >> rs2 (arithmetic) */
 
 /*   Arithmetic with immediate */
 #define OPC_ADDI     16  /* rd = rs1 +  imm                       */
@@ -57,8 +57,8 @@
 #define OPC_MULI     24  /* rd = rs1 *  imm              (pseudo) */
 #define OPC_DIVI     25  /* rd = rs1 /  imm              (pseudo) */
 #define OPC_SLLI     26  /* rd = rs1 << imm                       */
-#define OPC_SRLI     27  /* rd = rs1 >> imm (logical)             */
-#define OPC_SRAI   1100  /* rd = rs1 >> imm (arithmetic)          */
+#define OPC_SRLI   1100  /* rd = rs1 >> imm (logical)             */
+#define OPC_SRAI     27  /* rd = rs1 >> imm (arithmetic)          */
 
 /*   Comparison */
 #define OPC_SEQ    1200  /* rd = rs1 == rs2            (pseudo) */
@@ -88,7 +88,7 @@
 #define OPC_LW     1400  /* rd = *(int *)(addr + rs1)  */
 #define OPC_SW     1401  /* *(int *)(addr + rs1) = rs2 */
 #define OPC_LI     1402  /* rd = imm                   */
-#define OPC_LA     1403  /* rd = addr                  */
+#define OPC_LA       33  /* rd = addr                  */
 
 /*   Other */
 #define OPC_NOP      32 // pseudo
@@ -115,7 +115,6 @@
 #define OPC_OLD_ROTRI 29
 #define OPC_OLD_NOTL 30
 #define OPC_OLD_NOTB 31
-#define OPC_OLD_MOVA 33
 #define OPC_OLD_JSR 34
 #define OPC_OLD_RET 35
 #define OPC_OLD_SEQ 37

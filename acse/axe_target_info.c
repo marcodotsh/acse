@@ -76,10 +76,10 @@ extern int instructionDefinesPSW(t_axe_instruction *instr)
 {
    switch (instr->opcode) {
       case OPC_ADD: case OPC_SUB: case OPC_OLD_ANDL: case OPC_OLD_ORL: case OPC_OLD_EORL: case OPC_AND: case OPC_OR:
-      case OPC_XOR: case OPC_MUL: case OPC_DIV: case OPC_SLL: case OPC_SRL: case OPC_OLD_ROTL: case OPC_OLD_ROTR:
+      case OPC_XOR: case OPC_MUL: case OPC_DIV: case OPC_SLL: case OPC_SRA: case OPC_OLD_ROTL: case OPC_OLD_ROTR:
       case OPC_OLD_NEG: case OPC_ADDI: case OPC_SUBI: case OPC_OLD_ANDLI: case OPC_OLD_ORLI: case OPC_OLD_EORLI:
       case OPC_ANDI: case OPC_ORI: case OPC_XORI: case OPC_MULI: case OPC_DIVI: case OPC_SLLI:
-      case OPC_SRLI: case OPC_OLD_ROTLI: case OPC_OLD_ROTRI: case OPC_OLD_NOTL: case OPC_OLD_NOTB:
+      case OPC_SRAI: case OPC_OLD_ROTLI: case OPC_OLD_ROTRI: case OPC_OLD_NOTL: case OPC_OLD_NOTB:
       case OPC_OLD_SEQ: case OPC_OLD_SGE: case OPC_OLD_SGT: case OPC_OLD_SLE: case OPC_OLD_SLT: case OPC_OLD_SNE: 
          return 1;
          break;

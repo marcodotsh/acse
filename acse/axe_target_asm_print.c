@@ -112,7 +112,6 @@ extern const char *opcodeToString(int opcode)
       case OPC_OLD_ROTRI: opcode_to_string = "OLD_ROTRI"; break;
       case OPC_OLD_NOTL:  opcode_to_string = "OLD_NOTL"; break;
       case OPC_OLD_NOTB:  opcode_to_string = "OLD_NOTB"; break;
-      case OPC_OLD_MOVA:  opcode_to_string = "OLD_MOVA"; break;
       case OPC_OLD_JSR:   opcode_to_string = "OLD_JSR"; break;
       case OPC_OLD_RET:   opcode_to_string = "OLD_RET"; break;
       case OPC_OLD_BT:    opcode_to_string = "OLD_BT"; break;
