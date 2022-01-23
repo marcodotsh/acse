@@ -292,7 +292,7 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                if ($3.expression_type == IMMEDIATE)
                   genMoveImmediate(program, location, $3.value);
                else
-                  genADDInstruction(program,
+                  OLDgenADDInstruction(program,
                                       location,
                                       REG_0,
                                       $3.value,
@@ -315,7 +315,7 @@ if_statement   : if_stmt
                   $2 = newLabel(program);
    
                   /* exit from the if-else */
-                  genBTInstruction (program, $2, 0);
+                  OLDgenBTInstruction (program, $2, 0);
    
                   /* fix the `label_else' */
                   assignLabel(program, $1);
@@ -338,11 +338,11 @@ if_stmt  :  IF
                      if ($4.expression_type == IMMEDIATE)
                          genLoadImmediate(program, $4.value);
                      else
-                         genANDBInstruction(program, $4.value,
+                         OLDgenANDInstruction(program, $4.value,
                              $4.value, $4.value, CG_DIRECT_ALL);
 
                      /* if `exp' returns FALSE, jump to the label $1 */
-                     genBEQInstruction (program, $1, 0);
+                     OLDgenBEQInstruction (program, $1, 0);
                }
                code_block { $$ = $1; }
 ;
@@ -357,7 +357,7 @@ while_statement  : WHILE
                      if ($4.expression_type == IMMEDIATE)
                         genLoadImmediate(program, $4.value);
                      else
-                         genANDBInstruction(program, $4.value,
+                         OLDgenANDInstruction(program, $4.value,
                              $4.value, $4.value, CG_DIRECT_ALL);
 
                      /* reserve a new label. This new label will point
@@ -367,12 +367,12 @@ while_statement  : WHILE
 
                      /* if `exp' returns FALSE, jump to the label 
                       * $1.label_end */
-                     genBEQInstruction(program, $1.label_end, 0);
+                     OLDgenBEQInstruction(program, $1.label_end, 0);
                   }
                   code_block
                   {
                      /* jump to the beginning of the loop */
-                     genBTInstruction(program, $1.label_condition, 0);
+                     OLDgenBTInstruction(program, $1.label_condition, 0);
 
                      /* fix the label `label_end' */
                      assignLabel(program, $1.label_end);
@@ -393,11 +393,11 @@ do_while_statement  : DO
                            if ($6.expression_type == IMMEDIATE)
                                genLoadImmediate(program, $6.value);
                            else
-                               genANDBInstruction(program, $6.value,
+                               OLDgenANDInstruction(program, $6.value,
                                    $6.value, $6.value, CG_DIRECT_ALL);
 
                            /* if `exp' returns TRUE, jump to the label $1 */
-                           genBNEInstruction (program, $1, 0);
+                           OLDgenBNEInstruction (program, $1, 0);
                      }
 ;
 
@@ -491,7 +491,7 @@ exp: NUMBER      { $$ = createExpression ($1, IMMEDIATE); }
 
                   /* Generate a NOTL instruction which will store the negated
                    * logic value into the register we reserved */
-                  genNOTLInstruction(program, output_register, $2.value);
+                  OLDgenNOTLInstruction(program, output_register, $2.value);
                   
                   /* Return a REGISTER expression with the result register */
                   $$ = createExpression(output_register, REGISTER);

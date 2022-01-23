@@ -56,17 +56,17 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
       {
          case OP_ADD : genADDIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case OP_ANDB : genANDBIInstruction (program, output_register
+         case OP_ANDB : genANDIInstruction (program, output_register
                               , exp1.value, exp2.value); break;
-         case OP_ANDL : genANDLIInstruction (program, output_register
+         case OP_ANDL : OLDgenANDLIInstruction (program, output_register
                               , exp1.value, exp2.value); break;
-         case OP_ORB  : genORBIInstruction (program, output_register
+         case OP_ORB  : genORIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case OP_ORL  : genORLIInstruction (program, output_register
+         case OP_ORL  : OLDgenORLIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case OP_EORB  : genEORBIInstruction (program, output_register
+         case OP_EORB  : genXORIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
-         case OP_EORL  : genEORLIInstruction (program, output_register
+         case OP_EORL  : OLDgenEORLIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
          case OP_SUB : genSUBIInstruction (program, output_register
                              , exp1.value, exp2.value); break;
@@ -75,12 +75,12 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
          case OP_SHL :
                if (exp2.value < 0)
                   printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-               genSHLIInstruction(program, output_register, exp1.value, 
+               genSLLIInstruction(program, output_register, exp1.value, 
                      exp2.value); break;
          case OP_SHR : 
                if (exp2.value < 0)
                   printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-               genSHRIInstruction(program, output_register, exp1.value, 
+               genSRAIInstruction(program, output_register, exp1.value, 
                      exp2.value); break;
          case OP_DIV :
                if (exp2.value == 0){
@@ -102,24 +102,24 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
       {
          case OP_ADD :  genADDIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case OP_ANDB :  genANDBIInstruction (program, output_register
+         case OP_ANDB :  genANDIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case OP_ANDL :  genANDLIInstruction (program, output_register
+         case OP_ANDL :  OLDgenANDLIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case OP_ORB  :  genORBIInstruction (program, output_register
+         case OP_ORB  :  genORIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case OP_ORL  :  genORLIInstruction (program, output_register
+         case OP_ORL  :  OLDgenORLIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case OP_EORB  :  genEORBIInstruction (program, output_register
+         case OP_EORB  :  genXORIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
-         case OP_EORL  :  genEORLIInstruction (program, output_register
+         case OP_EORL  :  OLDgenEORLIInstruction (program, output_register
                               , exp2.value, exp1.value); break;
          case OP_SUB :
                   genSUBIInstruction (program, output_register
                            , exp2.value, exp1.value);
 
                   /* we have to produce a NEG instruction */
-                  genNEGInstruction (program, output_register
+                  OLDgenNEGInstruction (program, output_register
                            , output_register, CG_DIRECT_ALL);
                   break;
          case OP_MUL :  genMULIInstruction (program, output_register
@@ -134,7 +134,7 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
                            , REG_0, exp1.value);
 
                   /* we have to produce a DIV instruction */
-                  genDIVInstruction (program, output_register
+                  OLDgenDIVInstruction (program, output_register
                            , other_reg, exp2.value, CG_DIRECT_ALL);
                   break;
          case OP_SHL :
@@ -147,7 +147,7 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
                            , REG_0, exp1.value);
 
                   /* we have to produce a SHL instruction */
-                  genSHLInstruction (program, output_register
+                  OLDgenSLLInstruction (program, output_register
                            , other_reg, exp2.value, CG_DIRECT_ALL);
                   break;
          case OP_SHR :
@@ -160,7 +160,7 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
                            , REG_0, exp1.value);
 
                   /* we have to produce a SHR instruction */
-                  genSHRInstruction (program, output_register
+                  OLDgenSRAInstruction (program, output_register
                            , other_reg, exp2.value, CG_DIRECT_ALL);
                   break;
          default :
@@ -172,40 +172,40 @@ t_axe_expression handleBinaryOperator (t_program_infos *program
       /* we have to produce an instruction */
       switch(binop)
       {
-         case OP_ADD :  genADDInstruction (program, output_register
+         case OP_ADD :  OLDgenADDInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_ANDB :  genANDBInstruction (program, output_register
+         case OP_ANDB :  OLDgenANDInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_ANDL :  genANDLInstruction (program, output_register
+         case OP_ANDL :  OLDgenANDLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_ORB :  genORBInstruction (program, output_register
+         case OP_ORB :  OLDgenORInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_ORL :  genORLInstruction (program, output_register
+         case OP_ORL :  OLDgenORLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_EORB :  genEORBInstruction (program, output_register
+         case OP_EORB :  OLDgenXORInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_EORL :  genEORLInstruction (program, output_register
+         case OP_EORL :  OLDgenEORLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_SUB :  genSUBInstruction (program, output_register
+         case OP_SUB :  OLDgenSUBInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_MUL :  genMULInstruction (program, output_register
+         case OP_MUL :  OLDgenMULInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_DIV :  genDIVInstruction (program, output_register
+         case OP_DIV :  OLDgenDIVInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_SHL :  genSHLInstruction (program, output_register
+         case OP_SHL :  OLDgenSLLInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
-         case OP_SHR :  genSHRInstruction (program, output_register
+         case OP_SHR :  OLDgenSRAInstruction (program, output_register
                               , exp1.value, exp2.value, CG_DIRECT_ALL);
                      break;
          default :
@@ -311,25 +311,25 @@ t_axe_expression handleBinaryComparison (t_program_infos *program
                , exp2.value, exp1.value);
 
       /* we have to produce a NEG instruction */
-      genNEGInstruction (program, output_register
+      OLDgenNEGInstruction (program, output_register
                , output_register, CG_DIRECT_ALL);
    }
    else
    {
       /* we have to produce a SUB instruction */
-      genSUBInstruction (program, output_register
+      OLDgenSUBInstruction (program, output_register
                , exp1.value, exp2.value, CG_DIRECT_ALL);
    }
 
    /* generate a set instruction */
    switch(condition)
    {
-      case OP_LT : genSLTInstruction (program, output_register); break;
-      case OP_GT : genSGTInstruction (program, output_register); break;
-      case OP_EQ  : genSEQInstruction (program, output_register); break;
-      case OP_NOTEQ : genSNEInstruction (program, output_register); break;
-      case OP_LTEQ : genSLEInstruction (program, output_register); break;
-      case OP_GTEQ : genSGEInstruction (program, output_register); break;
+      case OP_LT : OLDgenSLTInstruction (program, output_register); break;
+      case OP_GT : OLDgenSGTInstruction (program, output_register); break;
+      case OP_EQ  : OLDgenSEQInstruction (program, output_register); break;
+      case OP_NOTEQ : OLDgenSNEInstruction (program, output_register); break;
+      case OP_LTEQ : OLDgenSLEInstruction (program, output_register); break;
+      case OP_GTEQ : OLDgenSGEInstruction (program, output_register); break;
       default :
          notifyError(AXE_INVALID_EXPRESSION);
    }

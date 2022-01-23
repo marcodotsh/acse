@@ -59,7 +59,7 @@ t_axe_instruction *genLoweredImmediateMove(
    int basereg = REG_0;
    if (imm1) {
       firstInstr = genADDIInstruction(program, dest, basereg, imm1);
-      genSHLIInstruction(program, dest, dest, 16);
+      genSLLIInstruction(program, dest, dest, 16);
       basereg = dest;
    }
    if (imm0 || basereg == REG_0) {
