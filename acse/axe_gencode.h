@@ -238,11 +238,6 @@ extern t_axe_instruction *genBLEUInstruction(t_program_infos *program,
  *                  LOAD/STORE
  *---------------------------------------------------*/
 
-extern t_axe_instruction *genLWInstruction(
-      t_program_infos *program, int r_dest, t_axe_label *label, int rs1);
-extern t_axe_instruction *genSWInstruction(
-      t_program_infos *program, t_axe_label *label, int rs1, int rs2);
-
 extern t_axe_instruction *genLIInstruction(
       t_program_infos *program, int r_dest, int immediate);
 
@@ -251,6 +246,16 @@ extern t_axe_instruction *genLIInstruction(
  * or a number (numeric address) */
 extern t_axe_instruction *genLAInstruction(
       t_program_infos *program, int r_dest, t_axe_label *label);
+
+extern t_axe_instruction *genLWInstruction(
+      t_program_infos *program, int r_dest, int immediate, int rs1);
+extern t_axe_instruction *genSWInstruction(
+      t_program_infos *program, int rs2, int immediate, int rs1);
+
+extern t_axe_instruction *genLWGlobalInstruction(
+      t_program_infos *program, int r_dest, t_axe_label *label);
+extern t_axe_instruction *genSWGlobalInstruction(
+      t_program_infos *program, int rs2, t_axe_label *label);
 
 
 /*----------------------------------------------------

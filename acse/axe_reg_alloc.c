@@ -1424,7 +1424,7 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
    assert(tlabel != NULL);
 
    /* create a store instruction */
-   storeInstr = OLDgenSTOREInstruction(NULL, selected_register, tlabel->labelID, 0);
+   storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->labelID);
 
    /* create a node for the load instruction */
    storeNode = allocNode (graph, storeInstr);
@@ -1469,7 +1469,7 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
    assert(tlabel != NULL);
    
    /* create a load instruction */
-   loadInstr = OLDgenLOADInstruction(NULL, selected_register, tlabel->labelID, 0);
+   loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->labelID);
 
    /* create a node for the load instruction */
    loadNode = allocNode (graph, loadInstr);

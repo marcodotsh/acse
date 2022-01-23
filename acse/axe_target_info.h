@@ -109,10 +109,12 @@ enum {
 #define OPC_BLEU   1309  /* if (rs1 <= rs2) goto addr; (unsigned) (pseudo) */
 
 /*   Load/Store */
-#define OPC_LW     1400  /* rd = *(int *)(addr + rs1)  */
-#define OPC_SW     1401  /* *(int *)(addr + rs1) = rs2 */
-#define OPC_LI     1402  /* rd = imm                   */
-#define OPC_LA       33  /* rd = addr                  */
+#define OPC_LI     1400  /* rd = imm                                 */
+#define OPC_LA       33  /* rd = addr                                */
+#define OPC_LW     1401  /* rd = *(int *)(immediate + rs1)           */
+#define OPC_SW     1402  /* *(int *)(immediate + rs1) = rs2          */
+#define OPC_LW_G   1403  /* rd = *(int *)label              (pseudo) */
+#define OPC_SW_G   1404  /* *(int *)label = rs2             (pseudo) */
 
 /*   Other */
 #define OPC_NOP      32 // pseudo

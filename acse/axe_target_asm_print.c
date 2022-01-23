@@ -87,7 +87,9 @@ extern const char *opcodeToString(int opcode)
       case OPC_BLEU:      return "bleu";
       /*   Load/Store */
       case OPC_LW  :      return "lw";
+      case OPC_LW_G:      return "lw";
       case OPC_SW  :      return "sw";
+      case OPC_SW_G:      return "sw";
       case OPC_LI  :      return "li";
       case OPC_LA  :      return "la";
       /*   Other */
@@ -144,16 +146,18 @@ extern const char *opcodeToString(int opcode)
 }
 
 
-#define FORMAT_AUTO  -1
-#define FORMAT_OP     0   /* mnemonic rd, rs1, rs2    */
-#define FORMAT_OPIMM  1   /* mnemonic rd, rs1, imm    */
-#define FORMAT_LOAD   2   /* mnemonic rd, imm(rs1)    */
-#define FORMAT_STORE  3   /* mnemonic rs2, imm(rs1)   */
-#define FORMAT_BRANCH 4   /* mnemonic rs1, rs2, label */
-#define FORMAT_JUMP   5   /* mnemonic label           */
-#define FORMAT_LI     6   /* mnemonic rd, imm         */
-#define FORMAT_LA     7   /* mnemonic rd, label       */
-#define FORMAT_SYSTEM 8   /* mnemonic                 */
+#define FORMAT_AUTO    -1
+#define FORMAT_OP       0   /* mnemonic rd, rs1, rs2    */
+#define FORMAT_OPIMM    1   /* mnemonic rd, rs1, imm    */
+#define FORMAT_LOAD     2   /* mnemonic rd, imm(rs1)    */
+#define FORMAT_LOAD_GL  3   /* mnemonic rd, label       */
+#define FORMAT_STORE    4   /* mnemonic rs2, imm(rs1)   */
+#define FORMAT_STORE_GL 5   /* mnemonic rs2, label, rs1 */
+#define FORMAT_BRANCH   6   /* mnemonic rs1, rs2, label */
+#define FORMAT_JUMP     7   /* mnemonic label           */
+#define FORMAT_LI       8   /* mnemonic rd, imm         */
+#define FORMAT_LA       9   /* mnemonic rd, label       */
+#define FORMAT_SYSTEM  10   /* mnemonic                 */
 
 static int opcodeToFormat(int opcode)
 {
@@ -215,8 +219,12 @@ static int opcodeToFormat(int opcode)
          return FORMAT_BRANCH;
       case OPC_LW:
          return FORMAT_LOAD;
+      case OPC_LW_G:
+         return FORMAT_LOAD_GL;
       case OPC_SW:
          return FORMAT_STORE;
+      case OPC_SW_G:
+         return FORMAT_STORE_GL;
       case OPC_LI:
          return FORMAT_LI;
       case OPC_LA:
@@ -320,11 +328,23 @@ int printInstruction(t_axe_instruction *current_instruction, FILE *fp)
          printRegister(current_instruction->reg_src1, fp);
          fprintf(fp, ")");
          break;
+      case FORMAT_LOAD_GL:
+         printRegister(current_instruction->reg_dest, fp);
+         fprintf(fp, ", ");
+         printAddress(current_instruction->address, fp);
+         break;
       case FORMAT_STORE:
          printRegister(current_instruction->reg_src2, fp);
          fprintf(fp, ", %d(", current_instruction->immediate);
          printRegister(current_instruction->reg_src1, fp);
          fprintf(fp, ")");
+         break;
+      case FORMAT_STORE_GL:
+         printRegister(current_instruction->reg_src2, fp);
+         fprintf(fp, ", ");
+         printAddress(current_instruction->address, fp);
+         fprintf(fp, ", ");
+         printRegister(current_instruction->reg_src1, fp);
          break;
       case FORMAT_BRANCH:
          printRegister(current_instruction->reg_src1, fp);

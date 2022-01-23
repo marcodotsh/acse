@@ -411,29 +411,7 @@ t_axe_instruction *genBLEUInstruction(t_program_infos *program,
 }
 
 
-extern t_axe_instruction *genLWInstruction(
-      t_program_infos *program, int r_dest, t_axe_label *label, int rs1)
-{
-   return genInstruction(program, OPC_LW,
-         initializeRegister(r_dest, 0),
-         initializeRegister(rs1, 0),
-         NULL,
-         label,
-         0);
-}
-
-extern t_axe_instruction *genSWInstruction(
-      t_program_infos *program, t_axe_label *label, int rs1, int rs2)
-{
-   return genInstruction(program, OPC_SW,
-         NULL,
-         initializeRegister(rs1, 0),
-         initializeRegister(rs2, 0),
-         label,
-         0);
-}
-
-extern t_axe_instruction *genLIInstruction(
+t_axe_instruction *genLIInstruction(
       t_program_infos *program, int r_dest, int immediate)
 {
    return genInstruction(program, OPC_LI,
@@ -451,6 +429,50 @@ t_axe_instruction * genLAInstruction(t_program_infos *program,
          initializeRegister(r_dest, 0),
          NULL,
          NULL,
+         label,
+         0);
+}
+
+t_axe_instruction *genLWInstruction(
+      t_program_infos *program, int r_dest, int immediate, int rs1)
+{
+   return genInstruction(program, OPC_LW,
+         initializeRegister(r_dest, 0),
+         initializeRegister(rs1, 0),
+         NULL,
+         NULL,
+         immediate);
+}
+
+t_axe_instruction *genSWInstruction(
+      t_program_infos *program, int rs2, int immediate, int rs1)
+{
+   return genInstruction(program, OPC_SW,
+         NULL,
+         initializeRegister(rs1, 0),
+         initializeRegister(rs2, 0),
+         NULL,
+         immediate);
+}
+
+t_axe_instruction *genLWGlobalInstruction(
+      t_program_infos *program, int r_dest, t_axe_label *label)
+{
+   return genInstruction(program, OPC_LW_G,
+         initializeRegister(r_dest, 0),
+         NULL,
+         NULL,
+         label,
+         0);
+}
+
+t_axe_instruction *genSWGlobalInstruction(
+      t_program_infos *program, int rs2, t_axe_label *label)
+{
+   return genInstruction(program, OPC_SW_G,
+         NULL,
+         initializeRegister(REG_T6, 0), // T6
+         initializeRegister(rs2, 0),
          label,
          0);
 }
