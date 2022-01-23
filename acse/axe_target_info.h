@@ -14,7 +14,7 @@
 #include "axe_engine.h"
 
 
-#define TARGET_NAME "MACE"
+#define TARGET_NAME "RISC-V_RV32IM"
 
 /* Number of registers for this target (excluding REG_0) */
 #define NUM_REGISTERS 31
