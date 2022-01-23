@@ -45,12 +45,11 @@ t_axe_register * initializeRegister(int ID, int indirect)
    t_axe_register *result;
 
    /* create an instance of `t_axe_register' */
-   result = (t_axe_register *)
-            malloc(sizeof(t_axe_register));
+   result = (t_axe_register *)malloc(sizeof(t_axe_register));
    
    /* check the postconditions */
    if (result == NULL)
-      return NULL;
+      notifyError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new label */
    result->ID = ID;
@@ -67,11 +66,11 @@ t_axe_instruction * initializeInstruction(int opcode)
    t_axe_instruction *result;
 
    /* create an instance of `t_axe_data' */
-   result = (t_axe_instruction *) malloc(sizeof(t_axe_instruction));
+   result = (t_axe_instruction *)malloc(sizeof(t_axe_instruction));
    
    /* check the postconditions */
    if (result == NULL)
-      return NULL;
+      notifyError(AXE_OUT_OF_MEMORY);
 
    /* ininitialize the fields of `result' */
    result->opcode = opcode;
@@ -183,11 +182,10 @@ t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
 {
    t_axe_address *result;
 
-   result = (t_axe_address *)
-         malloc(sizeof(t_axe_address));
+   result = (t_axe_address *)malloc(sizeof(t_axe_address));
 
    if (result == NULL)
-      return NULL;
+      notifyError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new instance of `t_axe_address' */
    result->type = type;

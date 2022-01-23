@@ -72,7 +72,8 @@
 #define OPC_SLE    1208  /* rd = rs1 <= rs2 (signed)   (pseudo) */
 #define OPC_SLEU   1209  /* rd = rs1 <= rs2 (unsigned) (pseudo) */
 
-/*   Compare-And-Branch */
+/*   Jump/Branch */
+#define OPC_J      1600  /* goto addr; */
 #define OPC_BEQ    1300  /* if (rs1 == rs2) goto addr;                     */
 #define OPC_BNE    1301  /* if (rs1 == rs2) goto addr;                     */
 #define OPC_BLT    1302  /* if (rs1 <  rs2) goto addr; (signed)            */

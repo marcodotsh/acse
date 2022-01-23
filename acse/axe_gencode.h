@@ -31,6 +31,27 @@ extern void genMoveImmediate(t_program_infos *program, int dest, int imm);
  *                   ARITHMETIC
  *---------------------------------------------------*/
 
+extern t_axe_instruction *genADDInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSUBInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genANDInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genORInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genXORInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genMULInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genDIVInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSLLInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSRLInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSRAInstruction(t_program_infos *program,
+   int r_dest, int r_src1, int r_src2);
+
 /*----------------------------------------------------
  *                   ARITHMETIC WITH IMMEDIATE
  *---------------------------------------------------*/
@@ -47,7 +68,7 @@ extern void genMoveImmediate(t_program_infos *program, int dest, int imm);
  * value. The content of `r_source1' is added to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
 extern t_axe_instruction *genADDIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a SUBI instruction. The semantic of an SUBI instruction
@@ -61,7 +82,7 @@ extern t_axe_instruction *genADDIInstruction(
  * value. The content of `r_source1' is subtracted to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
 extern t_axe_instruction *genSUBIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * an ANDBI instruction. An example RTL representation of ANDBI R1 R2 #IMM is:
@@ -70,7 +91,7 @@ extern t_axe_instruction *genSUBIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genANDIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * an ORBI instruction. An example RTL representation of ORBI R1 R2 #IMM is:
@@ -79,7 +100,7 @@ extern t_axe_instruction *genANDIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genORIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a EORBI instruction. An example RTL representation of EORBI R1 R2 #IMM is:
@@ -88,7 +109,7 @@ extern t_axe_instruction *genORIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genXORIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a MULI instruction. An example RTL representation of MULI is:
@@ -97,7 +118,7 @@ extern t_axe_instruction *genXORIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genMULIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a DIVI instruction. An example RTL representation of DIVI R1 R2 #IMM is:
@@ -106,7 +127,7 @@ extern t_axe_instruction *genMULIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genDIVIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a SHLI instruction. An example RTL representation of SHLI R1 R2 #IMM is:
@@ -115,7 +136,10 @@ extern t_axe_instruction *genDIVIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genSLLIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
+
+extern t_axe_instruction *genSRLIInstruction(
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a SHRI instruction. An example RTL representation of SHRI R1 R2 #IMM is:
@@ -124,18 +148,83 @@ extern t_axe_instruction *genSLLIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 extern t_axe_instruction *genSRAIInstruction(
-      t_program_infos *program, int r_dest, int r_source1, int immediate);
+      t_program_infos *program, int r_dest, int r_src1, int immediate);
+
+
+/*----------------------------------------------------
+ *                   COMPARISON
+ *---------------------------------------------------*/
+
+extern t_axe_instruction *genSEQInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSNEInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSLTInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSLTUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSGEInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSGEUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSGTInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSGTUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSLEInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+extern t_axe_instruction *genSLEUInstruction(t_program_infos *program,
+      int r_dest, int r_src1, int r_src2);
+
+
+/*----------------------------------------------------
+ *                   JUMP
+ *---------------------------------------------------*/
+
+extern t_axe_instruction *genJInstruction(t_program_infos *program,
+      t_axe_label *label);
+
+extern t_axe_instruction *genBEQInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);
+extern t_axe_instruction *genBEQInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);
+extern t_axe_instruction *genBNEInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBLTInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBLTUInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBGEInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBGEUInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBGTInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBGTUInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBLEInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
+extern t_axe_instruction *genBLEUInstruction(t_program_infos *program,
+      int rs1, int rs2, t_axe_label *label);  
 
 
 /*----------------------------------------------------
  *                  LOAD/STORE
  *---------------------------------------------------*/
 
+extern t_axe_instruction *genLWInstruction(
+      t_program_infos *program, int r_dest, t_axe_label *label, int rs1);
+extern t_axe_instruction *genSWInstruction(
+      t_program_infos *program, t_axe_label *label, int rs1, int rs2);
+
+extern t_axe_instruction *genLIInstruction(
+      t_program_infos *program, int r_dest, int immediate);
+
 /* A MOVA instruction copies an address value into a register.
  * An address can be either an instance of `t_axe_label'
  * or a number (numeric address) */
 extern t_axe_instruction *genLAInstruction(
-      t_program_infos *program, int r_dest, t_axe_label *label, int address);
+      t_program_infos *program, int r_dest, t_axe_label *label);
 
 
 /*----------------------------------------------------
@@ -146,6 +235,9 @@ extern t_axe_instruction *genLAInstruction(
  * to `program'. A NOP instruction doesn't make use of
  * any kind of parameter */
 extern t_axe_instruction *genNOPInstruction(t_program_infos *program);
+
+extern t_axe_instruction *genECALLInstruction(t_program_infos *program);
+extern t_axe_instruction *genEBREAKInstruction(t_program_infos *program);
 
 
 /*----------------------------------------------------
@@ -167,7 +259,7 @@ extern t_axe_instruction *genREADInstruction(
  * A destination register (where the value
  * that will be written to the standard output is located). */
 extern t_axe_instruction *genWRITEInstruction(
-      t_program_infos *program, int r_dest);
+      t_program_infos *program, int r_src1);
 
 
 
