@@ -25,8 +25,7 @@ void genStoreArrayElement(t_program_infos *program, char *ID
    if (data.expression_type == REGISTER)
    {
       /* load the value indirectly into `mova_register' */
-      OLDgenADDInstruction(program, address, REG_0
-               , data.value, CG_INDIRECT_DEST);
+      genSWInstruction(program, data.value, 0, address);
    }
    else
    {
@@ -35,8 +34,7 @@ void genStoreArrayElement(t_program_infos *program, char *ID
       imm_register = genLoadImmediate(program, data.value);
 
       /* load the value indirectly into `load_register' */
-      OLDgenADDInstruction(program, address, REG_0
-               ,imm_register, CG_INDIRECT_DEST);
+      genSWInstruction(program, imm_register, 0, address);
    }
 }
 
@@ -53,8 +51,7 @@ int genLoadArrayElement(t_program_infos *program
    load_register = getNewRegister(program);
 
    /* load the value into `load_register' */
-   OLDgenADDInstruction(program, load_register, REG_0
-            , address, CG_INDIRECT_SOURCE);
+   genLWInstruction(program, load_register, 0, address);
 
    /* return the register ID that holds the required data */
    return load_register;
@@ -109,8 +106,7 @@ int genLoadArrayAddress(t_program_infos *program
          genMULIInstruction(program, idxReg, index.value, sizeofElem);
       }
       
-      OLDgenADDInstruction(program, mova_register, mova_register
-               , idxReg, CG_DIRECT_ALL);
+      genADDInstruction(program, mova_register, mova_register, idxReg);
    }
 
    /* return the identifier of the register that contains

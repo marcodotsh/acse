@@ -16,7 +16,7 @@
 #define TARGET_NAME "RISC-V_RV32IM"
 
 /* Number of bytes for each memory address */
-#define TARGET_PTR_GRANULARITY 4
+#define TARGET_PTR_GRANULARITY 1
 
 /* Number of registers for this target (excluding REG_0) */
 #define NUM_REGISTERS 31
