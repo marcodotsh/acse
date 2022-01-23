@@ -25,6 +25,8 @@ int isUnconditionalJump(t_axe_instruction *instr)
 {
    if (isJumpInstruction(instr))
    {
+      if (instr->opcode == OPC_J)
+         return 1;
       if ((instr->opcode == OPC_OLD_BT) || (instr->opcode == OPC_OLD_BF))
          return 1;
    }
@@ -40,6 +42,17 @@ int isJumpInstruction(t_axe_instruction *instr)
 
    switch(instr->opcode)
    {
+      case OPC_J   :
+      case OPC_BEQ :
+      case OPC_BNE :
+      case OPC_BLT :
+      case OPC_BLTU:
+      case OPC_BGE :
+      case OPC_BGEU:
+      case OPC_BGT :
+      case OPC_BGTU:
+      case OPC_BLE :
+      case OPC_BLEU:
       case OPC_OLD_BT :
       case OPC_OLD_BF :
       case OPC_OLD_BHI :
