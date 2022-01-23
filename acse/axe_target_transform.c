@@ -27,48 +27,61 @@ void moveLabel(t_axe_instruction *dest, t_axe_instruction *src)
 
 int isImmediateArgumentInstrOpcode(int opcode)
 {
-   return OPC_ADDI <= opcode && opcode <= OPC_OLD_ROTRI;
+   switch (opcode) {
+      case OPC_ADDI:
+      case OPC_SUBI:
+      case OPC_ANDI:
+      case OPC_ORI:
+      case OPC_XORI:
+      case OPC_MULI:
+      case OPC_DIVI:
+      case OPC_SLLI:
+      case OPC_SRLI:
+      case OPC_SRAI:
+      case OPC_SEQI:
+      case OPC_SNEI:
+      case OPC_SLTI:
+      case OPC_SLTIU:
+      case OPC_SGEI:
+      case OPC_SGEIU:
+      case OPC_SGTI:
+      case OPC_SGTIU:
+      case OPC_SLEI:
+      case OPC_SLEIU: return 1;
+   }
+   return 0;
 }
 
 int switchOpcodeImmediateForm(int orig)
 {
-   if (!(OPC_ADD <= orig && orig <= OPC_OLD_ROTR) &&
-       !(OPC_ADDI <= orig && orig <= OPC_OLD_ROTRI))
-      return orig;
-   return orig ^ 0x10;
+   switch (orig) {
+      case OPC_ADDI: return OPC_ADD;
+      case OPC_SUBI: return OPC_SUB;
+      case OPC_ANDI: return OPC_AND;
+      case OPC_ORI: return OPC_OR;
+      case OPC_XORI: return OPC_XOR;
+      case OPC_MULI: return OPC_MUL;
+      case OPC_DIVI: return OPC_DIV;
+      case OPC_SLLI: return OPC_SLL;
+      case OPC_SRLI: return OPC_SRL;
+      case OPC_SRAI: return OPC_SRA;
+      case OPC_SEQI: return OPC_SEQ;
+      case OPC_SNEI: return OPC_SNE;
+      case OPC_SLTI: return OPC_SLT;
+      case OPC_SLTIU: return OPC_SLTU;
+      case OPC_SGEI: return OPC_SGE;
+      case OPC_SGEIU: return OPC_SGEU;
+      case OPC_SGTI: return OPC_SGT;
+      case OPC_SGTIU: return OPC_SGTU;
+      case OPC_SLEI: return OPC_SLE;
+      case OPC_SLEIU: return OPC_SLEU;
+   }
+   return orig;
 }
 
-int is_int16(int immediate)
+int is_int12(int immediate)
 {
-   return immediate < (1 << 15) && immediate >= -(1 << 15);
-}
-
-t_axe_instruction *genLoweredImmediateMove(
-      t_program_infos *program, int dest, int immediate)
-{
-   t_axe_instruction *firstInstr = NULL;
-   
-   int imm0 = immediate;
-   int imm1 = 0;
-   if (!is_int16(imm0)) {
-      /* cast to int16_t to perform sign-extension */
-      imm0 = (int16_t)(immediate & 0xFFFF); 
-      imm1 = (immediate - imm0) >> 16;
-   }
-
-   int basereg = REG_0;
-   if (imm1) {
-      firstInstr = genADDIInstruction(program, dest, basereg, imm1);
-      genSLLIInstruction(program, dest, dest, 16);
-      basereg = dest;
-   }
-   if (imm0 || basereg == REG_0) {
-      t_axe_instruction *i = genADDIInstruction(program, dest, basereg, imm0);
-      if (!firstInstr)
-         firstInstr = i;
-   }
-   
-   return firstInstr;
+   return immediate < (1 << 11) && immediate >= -(1 << 11);
 }
 
 void fixLargeImmediates(t_program_infos *program)
@@ -78,7 +91,7 @@ void fixLargeImmediates(t_program_infos *program)
    while (curi) {
       t_axe_instruction *instr = LDATA(curi);
       
-      if (!isImmediateArgumentInstrOpcode(instr->opcode) || is_int16(instr->immediate)) {
+      if (!isImmediateArgumentInstrOpcode(instr->opcode) || is_int12(instr->immediate)) {
          curi = LNEXT(curi);
          continue;
       }
@@ -87,14 +100,14 @@ void fixLargeImmediates(t_program_infos *program)
       if (instr->opcode == OPC_ADDI && instr->reg_src1->ID == REG_0) {
          pushInstrInsertionPoint(program, curi);
          int reg = instr->reg_dest->ID;
-         genLoweredImmediateMove(program, reg, instr->immediate);
+         genLIInstruction(program, reg, instr->immediate);
          removeInstructionLink(program, curi);
          popInstrInsertionPoint(program);
          
       } else {
          pushInstrInsertionPoint(program, curi->prev);
          int reg = getNewRegister(program);
-         moveLabel(genLoweredImmediateMove(program, reg, instr->immediate), instr);
+         moveLabel(genLIInstruction(program, reg, instr->immediate), instr);
          instr->immediate = 0;
          instr->reg_src2 = initializeRegister(reg, 0);
          instr->opcode = switchOpcodeImmediateForm(instr->opcode);
