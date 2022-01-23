@@ -16,6 +16,7 @@
 #define LABEL_WIDTH (3*2)
 #define INSTR_WIDTH (3*7)
 
+static void debugPrintInstruction(t_axe_instruction *instr, FILE *fout);
 static void printArrayOfVariables(t_cflow_var **array, int size, FILE *fout);
 static void printListOfVariables(t_list *variables, FILE *fout);
 static void printCFlowGraphVariable(t_cflow_var *var, FILE *fout);
@@ -339,48 +340,7 @@ void debugPrintInstruction(t_axe_instruction *instr, FILE *fout)
       return;
    }
 
-   if (instr->labelID != NULL)
-      printLabel(instr->labelID, 1, fout);
-   formBegin = printFormPadding(formBegin, LABEL_WIDTH, fout);
-   
-   fprintf(fout, "%s ", opcodeToString(instr->opcode));
-
-   if (instr->reg_dest != NULL)
-   {
-      if (!(instr->reg_dest)->indirect)
-         fprintf(fout, "R%d ", (instr->reg_dest)->ID);
-      else
-         fprintf(fout, "(R%d) ", (instr->reg_dest)->ID);
-   }
-   if (instr->reg_src1 != NULL)
-   {
-      if (!(instr->reg_src1)->indirect)
-         fprintf(fout, "R%d ", (instr->reg_src1)->ID);
-      else
-         fprintf(fout, "(R%d) ", (instr->reg_src1)->ID);
-      if (instr->reg_src2 != NULL)
-      {
-         if (!(instr->reg_src2)->indirect)
-            fprintf(fout, "R%d ", (instr->reg_src2)->ID);
-         else
-            fprintf(fout, "(R%d) ", (instr->reg_src2)->ID);
-      }
-      else
-         fprintf(fout, "#%d ", instr->immediate);
-   }
-   
-   if (instr->address != NULL)
-   {
-      if ((instr->address)->type == LABEL_TYPE)
-         printLabel(instr->address->labelID, 1, fout);
-      else
-         fprintf(fout, "%d", (instr->address)->addr);
-   }
-
-   if (instr->user_comment) {
-      printFormPadding(formBegin, INSTR_WIDTH, fout);
-      fprintf(fout, "/* %s */", instr->user_comment);
-   }
+   printInstruction(instr, fout);
 }
 
 char * dataTypeToString(int codedType)
