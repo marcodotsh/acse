@@ -607,7 +607,6 @@ int main (int argc, char **argv)
    /* apply changes to the program informations by using the informations
    * of the register allocation process */
    materializeRegisterAllocation(program, graph, RA);
-   updateProgramInfos(program, graph);
 
 #ifndef NDEBUG
    fprintf(stdout, "Writing the assembly file... \n");

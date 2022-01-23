@@ -783,7 +783,6 @@ int executeLinearScan(t_reg_allocator *RA)
  * MATERIALIZATION AND SPILL
  */
 
-extern int errorcode;
 extern int cflow_errorcode;
 
 typedef struct t_tempLabel
@@ -1021,11 +1020,7 @@ void materializeRegisterAllocation(t_program_infos *program,
 
    /* finalize the list of tempLabels */
    finalizeListOfTempLabels(label_bindings);
-}
 
-void updateProgramInfos(t_program_infos *program,
-   t_cflow_Graph *graph)
-{  
    /* erase the old code segment */
    freeList(program->instructions);
    program->instructions = NULL;
