@@ -286,7 +286,7 @@ extern t_axe_label *newNamedLabel(t_program_infos *program, const char *name);
 extern t_axe_label *assignNewNamedLabel(
       t_program_infos *program, const char *name);
 
-/* get the label that marks the starting address of the variable
+/* get the label that marks the starting address of the array variable
  * with name "ID" */
 extern t_axe_label *getLabelFromVariableID(t_program_infos *program, char *ID);
 

@@ -291,9 +291,11 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
       }
       fprintf(fout, "\n");
 
-      fprintf(fout, "   label = ");
-      printLabel(var->labelID, 0, fout);
-      fprintf(fout, "\n");
+      if (var->isArray) {
+         fprintf(fout, "   label = ");
+         printLabel(var->labelID, 0, fout);
+         fprintf(fout, "\n");
+      }
 
       fprintf(fout, "   location = ");
       int sy_error;

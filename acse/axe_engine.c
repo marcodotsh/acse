@@ -203,19 +203,42 @@ void createVariable(t_program_infos *program, char *ID
       , int type, int isArray, int arraySize, int init_val)
 {
    t_axe_variable *var;
+   int sizeofElem;
+   t_axe_data *new_data_info;
+   int sy_error;
          
    /* test the preconditions */
    if (program == NULL)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+
+   if (type != INTEGER_TYPE)
+      notifyError(AXE_INVALID_TYPE);
 
    /* initialize a new variable */
    var = initializeVariable(ID, type, isArray, arraySize, init_val);
    if (var == NULL)
       notifyError(AXE_OUT_OF_MEMORY);
    
-   /* assign a new label to the newly created variable `var' */
-   var->labelID = newLabel(program);
-   setLabelName(program->lmanager, var->labelID, ID);
+   if (isArray) {
+      /* arrays are stored in memory and need a variable location */
+      var->labelID = newLabel(program);
+      if (var->labelID == NULL)
+         notifyError(AXE_OUT_OF_MEMORY);
+      setLabelName(program->lmanager, var->labelID, ID);
+
+      /* create an instance of `t_axe_data' */   
+      sizeofElem = 4 / TARGET_PTR_GRANULARITY;
+      new_data_info = initializeData(DIR_SPACE, var->arraySize * sizeofElem,
+            var->labelID);
+      if (new_data_info == NULL)
+         notifyError(AXE_OUT_OF_MEMORY);
+
+      /* update the list of directives */
+      program->data = addElement(program->data, new_data_info, -1);
+   } else {
+      /* scalars are stored in registers */
+      var->reg_location = getNewRegister(program);
+   }
 
    /* add the new variable to program */
    addVariable(program, var);
@@ -333,32 +356,6 @@ int getRegLocationOfVariable(t_program_infos *program, char *ID)
       return REG_INVALID;
 
    location = var->reg_location;
-
-   /* verify if the variable was previously loaded into
-   * a register. This check is made by looking to the
-   * value of `location'.*/
-   if (location == REG_INVALID)
-   {
-      /* we have to load the variable with the given
-      * identifier (ID) */
-      t_axe_label *label = var->labelID;
-      int sy_errorcode;
-
-      /* fetch an unused register where to store the
-       * result of the load instruction */
-      location = getNewRegister(program);
-
-      /* assertions */
-      assert(location != REG_INVALID);
-      assert(label != NULL);
-
-      /* update the variable record */
-      var->reg_location = location;
-   }
-
-   /* test the postconditions */
-   assert(location != REG_INVALID);
-
    return location;
 }
 
@@ -695,8 +692,6 @@ t_axe_label * assignNewLabel(t_program_infos *program)
 void addVariable(t_program_infos *program, t_axe_variable *variable)
 {
    t_axe_variable *variableFound;
-   t_axe_data *new_data_info;
-   int sy_error;
    
    /* test the preconditions */
    if (variable == NULL)
@@ -734,13 +729,21 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
          notifyError(AXE_INVALID_ARRAY_SIZE);
          return;
       }
+      if (variable->labelID == NULL)
+      {
+         finalizeVariable(variable);
+         notifyError(AXE_INVALID_LABEL);
+         return;
+      }
    }
-   
-   if (variable->labelID == NULL)
+   else
    {
-      finalizeVariable(variable);
-      notifyError(AXE_INVALID_LABEL);
-      return;
+      if (variable->reg_location == REG_INVALID)
+      {
+         finalizeVariable(variable);
+         notifyError(AXE_INVALID_VARIABLE);
+         return;
+      }
    }
    
    /* we have to test if already exists a variable with the same ID */
@@ -755,36 +758,6 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
 
    /* now we can add the new variable to the program */
    program->variables = addElement(program->variables, variable, -1);
-
-   /* create an instance of `t_axe_data' */
-   if (variable->type == INTEGER_TYPE)
-   {
-      if (variable->isArray)
-      {
-         int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
-         new_data_info = initializeData(DIR_SPACE,
-               variable->arraySize * sizeofElem, variable->labelID);
-         
-         if (new_data_info == NULL)
-            notifyError(AXE_OUT_OF_MEMORY);
-      }
-      else
-      {
-         new_data_info = initializeData
-            (DIR_WORD, variable->init_val, variable->labelID);
-         
-         if (new_data_info == NULL)
-            notifyError(AXE_OUT_OF_MEMORY);
-      }
-   }
-   else
-   {
-      notifyError(AXE_INVALID_TYPE);
-      return;
-   }
-
-   /* update the list of directives */
-   program->data = addElement(program->data, new_data_info, -1);
 }
 
 int getNewRegister(t_program_infos *program)

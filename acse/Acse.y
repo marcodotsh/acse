@@ -578,15 +578,7 @@ int main (int argc, char **argv)
    assert(program != NULL);
    assert(file_infos != NULL);
    printGraphInfos(graph, file_infos->cfg_1, 0);
-      
-   fprintf(stdout, "Updating the basic blocks. \n");
-#endif
-      
-   /* update the control flow graph by inserting load and stores inside
-   * every basic block */
-   graph = insertLoadAndStoreInstr(program, graph);
 
-#ifndef NDEBUG
    fprintf(stdout, "Executing a liveness analysis on the intermediate code \n");
 #endif
    performLivenessAnalysis(graph);

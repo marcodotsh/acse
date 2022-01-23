@@ -27,8 +27,6 @@ typedef struct t_tempLabel
 
 static t_axe_instruction * _createUnary (t_program_infos *program
             , int reg, t_axe_label *label, int opcode);
-static t_axe_instruction * createUnaryInstruction
-               (t_program_infos *program, int reg, int opcode);
 static t_tempLabel * allocTempLabel(t_axe_label *labelID, int regID);
 static void freeTempLabel(t_tempLabel *tempLabel);
 static void finalizeListOfTempLabels(t_list *tempLabels);
@@ -40,19 +38,6 @@ static void updateTheDataSegment
             (t_program_infos *program, t_list *tempLabels);
 static void updateTheCodeSegment
             (t_program_infos *program, t_cflow_Graph *graph);
-static t_list * _insertLoad(t_program_infos *program, t_cflow_Graph *graph
-      , t_basic_block *block, t_cflow_Node *current_node
-            , t_cflow_var *var, t_list *usedVars);
-static t_list * _insertStore(t_program_infos *program, t_cflow_Graph *graph
-      , t_basic_block *block, t_cflow_Node *current_node
-            , t_cflow_var *var, t_list *usedVars);
-            
-/* create a load instruction without assigning it to program */
-static t_axe_instruction * createLoadInstruction
-                  (t_program_infos *program, int reg);
-/* create a store instruction without assigning it to program */
-static t_axe_instruction * createStoreInstruction
-                  (t_program_infos *program, int reg);
 
 /* update the control flow informations by unsing the result
  * of the register allocation process and a list of bindings
@@ -72,95 +57,6 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
 int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_register
             , t_cflow_Graph *graph, t_basic_block *current_block
             , t_cflow_Node *current_node, t_list *labelBindings, int before);
-
-      
-static t_list * _insertStore(t_program_infos *program, t_cflow_Graph *graph
-      , t_basic_block *current_block, t_cflow_Node *current_node
-            , t_cflow_var *var, t_list *usedVars)
-{
-   /* we have to insert a store instruction into the code */
-   t_axe_instruction *storeInstr;
-   t_cflow_Node *storeNode;
-
-   /* create a load instruction */
-   storeInstr = createStoreInstruction
-            (program, var->ID);
-
-   /* test if an error occurred */
-   if (errorcode != AXE_OK) {
-      finalizeInstruction(storeInstr);
-      notifyError(errorcode);
-   }
-               
-   if (storeInstr != NULL)
-   {
-      /* create a node for the store instruction */
-      storeNode = allocNode (graph, storeInstr);
-      if (cflow_errorcode != CFLOW_OK) {
-         finalizeNode(storeNode);
-         finalizeInstruction(storeInstr);
-         return usedVars;
-      }
-
-      /* insert the node `loadNode' before `current_node' */
-      insertNodeAfter(current_block, current_node, storeNode);
-   
-      /* update the list of usedVars */
-      usedVars = removeElement(usedVars, var);
-   }
-
-   return usedVars;
-}
-
-t_list * _insertLoad(t_program_infos *program, t_cflow_Graph *graph
-      , t_basic_block *current_block, t_cflow_Node *current_node
-            , t_cflow_var *var, t_list *usedVars)
-{
-   /* we have to insert a load instruction into the code */
-   t_axe_instruction *current_instr;
-   t_axe_instruction *loadInstr;
-   t_cflow_Node *loadNode;
-
-   /* retrieve the current instruction from the current node */
-   current_instr = current_node->instr;
-
-   /* create a load instruction */
-   loadInstr = createLoadInstruction
-         (program, var->ID);
-
-   /* test if an error occurred */
-   if (errorcode != AXE_OK) {
-      finalizeInstruction(loadInstr);
-      notifyError(errorcode);
-   }
-
-   if (loadInstr != NULL)
-   {
-      /* create a node for the load instruction */
-      loadNode = allocNode (graph, loadInstr);
-
-      /* test if an error occurred */
-      if (cflow_errorcode != CFLOW_OK) {
-         finalizeNode(loadNode);
-         finalizeInstruction(loadInstr);
-         return usedVars;
-      }
-
-      /* update the label informations */
-      if (current_instr->labelID != NULL) {
-         loadInstr->labelID = current_instr->labelID;
-         current_instr->labelID = NULL;
-      }
-   
-      /* insert the node `loadNode' before `current_node' */
-      insertNodeBefore(current_block, current_node, loadNode);
-
-      /* update the list of usedVars */
-      usedVars = addElement(usedVars, var, -1);
-   }
-
-   return usedVars;
-}
 
 void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph)
 {
@@ -406,159 +302,6 @@ t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA)
    
    /* postcondition: return the list of bindings */
    return result;
-}
-
-t_axe_variable *getVariableFromReg(t_program_infos *program, int reg)
-{
-   t_list *i;
-
-   for (i = program->variables; i; i = LNEXT(i)) {
-      t_axe_variable *variable = LDATA(i);
-      if (variable->reg_location == REG_INVALID)
-         continue;
-      if (variable->reg_location == reg)
-         return variable;
-   }
-
-   return NULL;
-}
-
-t_axe_instruction * createUnaryInstruction
-               (t_program_infos *program, int reg, int opcode)
-{
-   int sy_errorcode;
-   t_axe_variable *axe_var;
-
-   /* test the preconditions */
-   if ((reg == REG_INVALID) || (reg == REG_0)) {
-      errorcode = AXE_INVALID_REGISTER_INFO;
-      return NULL;
-   }
-
-   if (program == NULL) {
-      errorcode = AXE_PROGRAM_NOT_INITIALIZED;
-      return NULL;
-   }
-
-   /* find the variable located at the register ID */
-   axe_var = getVariableFromReg(program, reg);
-   if (axe_var == NULL)
-      return NULL;
-
-   return _createUnary (program, reg, axe_var->labelID, opcode);
-}
-
-t_axe_instruction * createStoreInstruction
-                  (t_program_infos *program, int reg)
-{
-   return createUnaryInstruction(program, reg, STORE);
-}
-
-t_axe_instruction * createLoadInstruction
-                  (t_program_infos *program, int reg)
-{
-   return createUnaryInstruction(program, reg, LOAD);
-}
-
-t_cflow_Graph * insertLoadAndStoreInstr
-         (t_program_infos *program, t_cflow_Graph *graph)
-{
-   t_list *current_bb_element;
-   t_basic_block *current_block;
-   t_list *current_nd_element;
-   t_cflow_Node *current_node;
-   t_list *usedVars;
-
-   /* assertions */
-   assert(program != NULL);
-   assert(graph != NULL);
-   
-   /* initialize the list of variables used by this basic block */
-   usedVars = NULL;
-   current_bb_element = graph->blocks;
-   while (current_bb_element != NULL)
-   {
-      current_block = (t_basic_block *) LDATA(current_bb_element);
-
-      /* retrieve the list of nodes for the current basic block */
-      current_nd_element = current_block->nodes;
-      while(current_nd_element != NULL)
-      {
-         int usei, defi;
-         current_node = (t_cflow_Node *) LDATA(current_nd_element);
-
-         /* test if we have to insert a load */
-         for (usei=0; usei<CFLOW_MAX_USES; usei++) {
-            t_cflow_var *use = current_node->uses[usei];
-            if ((use != NULL) && (use->ID != REG_0) && (use->ID != VAR_PSW))
-            {
-               if (findElement(usedVars, use) == NULL)
-               {
-                  usedVars = _insertLoad(program, graph, current_block
-                        , current_node, use, usedVars);
-               }
-            }
-         }
-
-         /* test if we have to insert a store */
-         for (defi=0; defi<CFLOW_MAX_DEFS; defi++) {
-            t_cflow_var *def = current_node->defs[defi];
-            if ((def != NULL) && (def->ID != REG_0) && (def->ID != VAR_PSW))
-            {
-               if (findElement(usedVars, def) == NULL)
-               {
-                  usedVars = addElement(usedVars, def, -1);
-               }
-            }
-         }
-
-         /* retrieve the next element */
-         current_nd_element = LNEXT(current_nd_element);
-      }
-
-      current_nd_element = getLastElement(current_block->nodes);
-      while((current_nd_element != NULL) && (usedVars != NULL))
-      {
-         int usei, defi;
-         current_node = (t_cflow_Node *) LDATA(current_nd_element);
-
-         /* test if we have to insert a store */
-         for (usei=0; usei<CFLOW_MAX_USES; usei++) {
-            t_cflow_var *use = current_node->uses[usei];
-            if ((use != NULL) && (use->ID != REG_0) && (use->ID != VAR_PSW))
-            {
-               if (findElement(usedVars, use) != NULL)
-               {
-                  usedVars = _insertStore(program, graph, current_block
-                        , current_node, use, usedVars);
-               }
-            }
-         }
-
-         /* test if we have to insert a store */
-         for (defi=0; defi<CFLOW_MAX_DEFS; defi++) {
-            t_cflow_var *def = current_node->defs[defi];
-            if ((def != NULL) && (def->ID != REG_0) && (def->ID != VAR_PSW))
-            {
-               if (findElement(usedVars, def) != NULL)
-               {
-                  usedVars = _insertStore(program, graph, current_block
-                        , current_node, def, usedVars);
-               }
-            }
-         }
-         
-         /* retrieve the previous element */
-         current_nd_element = LPREV(current_nd_element);
-      }
-
-      current_bb_element = LNEXT(current_bb_element);
-   }
-
-   /* free the list `usedVars' */
-   freeList(usedVars);
-   
-   return graph;
 }
 
 void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
@@ -921,7 +664,6 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
                current_instr->reg_3->ID =
                      RA->bindings[(current_instr->reg_3)->ID];
          }
-
 
          /* retrieve the previous element */
          current_nd_element = LNEXT(current_nd_element);

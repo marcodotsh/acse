@@ -16,12 +16,6 @@
 #include "axe_cflow_graph.h"
 #include "axe_reg_alloc.h"
 
-/* once executed the liveness analysis, by calling this function
- * we will obtain a graph with the correct load and store
- * instructions */
-extern t_cflow_Graph *insertLoadAndStoreInstr(
-      t_program_infos *program, t_cflow_Graph *graph);
-
 /* Replace the variable identifiers in the instructions of the CFG with the
  * register assignments in the register allocator. Materialize spilled
  * variables to the scratch registers. All new instructions are inserted
