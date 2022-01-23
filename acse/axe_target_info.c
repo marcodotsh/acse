@@ -17,7 +17,7 @@ int isHaltOrRetInstruction(t_axe_instruction *instr)
       return 0;
    }
 
-   return instr->opcode == OPC_HALT || instr->opcode == OPC_RET;
+   return instr->opcode == OPC_HALT || instr->opcode == OPC_OLD_RET;
 }
 
 /* test if the current instruction `instr' is a BT or a BF */
@@ -25,7 +25,7 @@ int isUnconditionalJump(t_axe_instruction *instr)
 {
    if (isJumpInstruction(instr))
    {
-      if ((instr->opcode == OPC_BT) || (instr->opcode == OPC_BF))
+      if ((instr->opcode == OPC_OLD_BT) || (instr->opcode == OPC_OLD_BF))
          return 1;
    }
 
@@ -40,22 +40,22 @@ int isJumpInstruction(t_axe_instruction *instr)
 
    switch(instr->opcode)
    {
-      case OPC_BT :
-      case OPC_BF :
-      case OPC_BHI :
-      case OPC_BLS :
-      case OPC_BCC :
-      case OPC_BCS :
-      case OPC_BNE :
-      case OPC_BEQ :
-      case OPC_BVC :
-      case OPC_BVS :
-      case OPC_BPL :
-      case OPC_BMI :
-      case OPC_BGE :
-      case OPC_BLT :
-      case OPC_BGT :
-      case OPC_BLE : return 1;
+      case OPC_OLD_BT :
+      case OPC_OLD_BF :
+      case OPC_OLD_BHI :
+      case OPC_OLD_BLS :
+      case OPC_OLD_BCC :
+      case OPC_OLD_BCS :
+      case OPC_OLD_BNE :
+      case OPC_OLD_BEQ :
+      case OPC_OLD_BVC :
+      case OPC_OLD_BVS :
+      case OPC_OLD_BPL :
+      case OPC_OLD_BMI :
+      case OPC_OLD_BGE :
+      case OPC_OLD_BLT :
+      case OPC_OLD_BGT :
+      case OPC_OLD_BLE : return 1;
       default : return 0;
    }
 }
@@ -63,9 +63,9 @@ int isJumpInstruction(t_axe_instruction *instr)
 extern int instructionUsesPSW(t_axe_instruction *instr)
 {
    switch (instr->opcode) {
-      case OPC_SEQ: case OPC_SGE: case OPC_SGT: case OPC_SLE: case OPC_SLT: case OPC_SNE: 
-      case OPC_BHI: case OPC_BLS: case OPC_BCC: case OPC_BCS: case OPC_BNE: case OPC_BEQ: case OPC_BVC:
-      case OPC_BVS: case OPC_BPL: case OPC_BMI: case OPC_BGE: case OPC_BLT: case OPC_BLE:
+      case OPC_OLD_SEQ: case OPC_OLD_SGE: case OPC_OLD_SGT: case OPC_OLD_SLE: case OPC_OLD_SLT: case OPC_OLD_SNE: 
+      case OPC_OLD_BHI: case OPC_OLD_BLS: case OPC_OLD_BCC: case OPC_OLD_BCS: case OPC_OLD_BNE: case OPC_OLD_BEQ: case OPC_OLD_BVC:
+      case OPC_OLD_BVS: case OPC_OLD_BPL: case OPC_OLD_BMI: case OPC_OLD_BGE: case OPC_OLD_BLT: case OPC_OLD_BLE:
          return 1;
          break;
    }
@@ -75,12 +75,12 @@ extern int instructionUsesPSW(t_axe_instruction *instr)
 extern int instructionDefinesPSW(t_axe_instruction *instr)
 {
    switch (instr->opcode) {
-      case OPC_ADD: case OPC_SUB: case OPC_ANDL: case OPC_ORL: case OPC_EORL: case OPC_ANDB: case OPC_ORB:
-      case OPC_EORB: case OPC_MUL: case OPC_DIV: case OPC_SHL: case OPC_SHR: case OPC_ROTL: case OPC_ROTR:
-      case OPC_NEG: case OPC_ADDI: case OPC_SUBI: case OPC_ANDLI: case OPC_ORLI: case OPC_EORLI:
-      case OPC_ANDBI: case OPC_ORBI: case OPC_EORBI: case OPC_MULI: case OPC_DIVI: case OPC_SHLI:
-      case OPC_SHRI: case OPC_ROTLI: case OPC_ROTRI: case OPC_NOTL: case OPC_NOTB:
-      case OPC_SEQ: case OPC_SGE: case OPC_SGT: case OPC_SLE: case OPC_SLT: case OPC_SNE: 
+      case OPC_ADD: case OPC_SUB: case OPC_OLD_ANDL: case OPC_OLD_ORL: case OPC_OLD_EORL: case OPC_AND: case OPC_OR:
+      case OPC_XOR: case OPC_MUL: case OPC_DIV: case OPC_SLL: case OPC_SRL: case OPC_OLD_ROTL: case OPC_OLD_ROTR:
+      case OPC_OLD_NEG: case OPC_ADDI: case OPC_SUBI: case OPC_OLD_ANDLI: case OPC_OLD_ORLI: case OPC_OLD_EORLI:
+      case OPC_ANDI: case OPC_ORI: case OPC_XORI: case OPC_MULI: case OPC_DIVI: case OPC_SLLI:
+      case OPC_SRLI: case OPC_OLD_ROTLI: case OPC_OLD_ROTRI: case OPC_OLD_NOTL: case OPC_OLD_NOTB:
+      case OPC_OLD_SEQ: case OPC_OLD_SGE: case OPC_OLD_SGT: case OPC_OLD_SLE: case OPC_OLD_SLT: case OPC_OLD_SNE: 
          return 1;
          break;
    }

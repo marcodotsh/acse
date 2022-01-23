@@ -27,13 +27,13 @@ void moveLabel(t_axe_instruction *dest, t_axe_instruction *src)
 
 int isImmediateArgumentInstrOpcode(int opcode)
 {
-   return OPC_ADDI <= opcode && opcode <= OPC_ROTRI;
+   return OPC_ADDI <= opcode && opcode <= OPC_OLD_ROTRI;
 }
 
 int switchOpcodeImmediateForm(int orig)
 {
-   if (!(OPC_ADD <= orig && orig <= OPC_ROTR) &&
-       !(OPC_ADDI <= orig && orig <= OPC_ROTRI))
+   if (!(OPC_ADD <= orig && orig <= OPC_OLD_ROTR) &&
+       !(OPC_ADDI <= orig && orig <= OPC_OLD_ROTRI))
       return orig;
    return orig ^ 0x10;
 }
