@@ -274,9 +274,9 @@ void fixSyscalls(t_program_infos *program)
       
       if (instr->opcode == OPC_HALT)
          callid = 93;
-      else if (instr->opcode == OPC_AXE_READ)
-         callid = 0x10002;
       else if (instr->opcode == OPC_AXE_WRITE)
+         callid = 0x10002;
+      else if (instr->opcode == OPC_AXE_READ)
          callid = 0x10003;
       rcallid = getNewRegister(program);
       i1 = genLIInstruction(program, rcallid, callid);
