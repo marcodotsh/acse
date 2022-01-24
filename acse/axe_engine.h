@@ -154,6 +154,10 @@ extern void setMCRegisterWhitelist(t_axe_register *regObj, ...);
  * called by all the functions defined in `axe_gencode.h' */
 extern void addInstruction(t_program_infos *program, t_axe_instruction *instr);
 
+extern t_axe_instruction *genInstruction(t_program_infos *program,
+      int opcode, t_axe_register *r_dest, t_axe_register *r_src1,
+      t_axe_register *r_src2, t_axe_label *label, int immediate);
+
 /* remove an instruction from the program, given its link in the instruction
  * list. */
 extern void removeInstructionLink(t_program_infos *program, t_list *instrLi);

@@ -25,41 +25,6 @@ int genLoadImmediate(t_program_infos *program, int immediate)
 }
 
 
-static t_axe_instruction *genInstruction(t_program_infos *program,
-      int opcode, t_axe_register *r_dest, t_axe_register *r_src1,
-      t_axe_register *r_src2, t_axe_label *label, int immediate)
-{
-   t_axe_instruction *instr;
-
-   /* create an instance of `t_axe_instruction' */
-   instr = initializeInstruction(opcode);
-
-   /* initialize the instruction's registers */
-   instr->reg_dest = r_dest;
-   if (r_dest && r_dest->ID < 0)
-      notifyError(AXE_INVALID_REGISTER_INFO);
-   instr->reg_src1 = r_src1;
-   if (r_src1 && r_src1->ID < 0)
-      notifyError(AXE_INVALID_REGISTER_INFO);
-   instr->reg_src2 = r_src2;
-   if (r_src2 && r_src2->ID < 0)
-      notifyError(AXE_INVALID_REGISTER_INFO);
-
-   /* attach an address if needed */
-   if (label)
-      instr->address = initializeAddress(LABEL_TYPE, 0, label);
-
-   /* initialize the immediate field */
-   instr->immediate = immediate;
-
-   /* add the newly created instruction to the current program */
-   if (program != NULL)
-      addInstruction(program, instr);
-
-   /* return the load instruction */
-   return instr;
-}
-
 static t_axe_instruction *genRFormatInstruction(t_program_infos *program,
       int opcode, int rd, int rs1, int rs2)
 {

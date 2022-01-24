@@ -11,6 +11,7 @@
 #include <assert.h>
 #include "axe_target_asm_print.h"
 #include "axe_target_info.h"
+#include "axe_target_transform.h"
 
 #define LABEL_WIDTH (3*2)
 #define INSTR_WIDTH (3*7)
@@ -111,6 +112,9 @@ extern const char *opcodeToString(int opcode)
       case OPC_HALT:      return "HALT";
       case OPC_AXE_READ:  return "READ";
       case OPC_AXE_WRITE: return "WRITE";
+      /*   Fake use/define */
+      case CFLOW_OPC_DEFINE: return "[def]";
+      case CFLOW_OPC_USE:    return "[use]";
       /* (to be removed) */
       case OPC_OLD_ANDL:  return "OLD_ANDL";
       case OPC_OLD_ORL:   return "OLD_ORL";
@@ -169,6 +173,8 @@ extern const char *opcodeToString(int opcode)
 #define FORMAT_LI       8   /* mnemonic rd, imm         */
 #define FORMAT_LA       9   /* mnemonic rd, label       */
 #define FORMAT_SYSTEM  10   /* mnemonic                 */
+#define FORMAT_USE     11   /* mnemonic rs1             */
+#define FORMAT_DEFINE  12   /* menmonic rd              */
 
 static int opcodeToFormat(int opcode)
 {
@@ -245,6 +251,12 @@ static int opcodeToFormat(int opcode)
       case OPC_EBREAK:
       case OPC_HALT:
          return FORMAT_SYSTEM;
+      case OPC_AXE_READ:
+      case CFLOW_OPC_DEFINE:
+         return FORMAT_DEFINE;
+      case OPC_AXE_WRITE:
+      case CFLOW_OPC_USE:
+         return FORMAT_USE;
    }
    return -1;
 }
@@ -376,6 +388,12 @@ int printInstruction(t_axe_instruction *current_instruction, FILE *fp)
          fprintf(fp, ", ");
          printAddress(current_instruction->address, fp);
          break;
+      case FORMAT_DEFINE:
+         printRegister(current_instruction->reg_dest, fp);
+         break;
+      case FORMAT_USE: 
+         printRegister(current_instruction->reg_src1, fp);
+         break;
       default:
       case FORMAT_SYSTEM:
          break;
@@ -430,6 +448,12 @@ void translateCodeSegment(t_program_infos *program, FILE *fp)
       current_instruction = (t_axe_instruction *) LDATA(current_element);
       assert(current_instruction != NULL);
       assert(current_instruction->opcode != OPC_INVALID);
+
+      if (current_instruction->opcode == CFLOW_OPC_DEFINE ||
+            current_instruction->opcode == CFLOW_OPC_USE) {
+         current_element = LNEXT(current_element);
+         continue;
+      }
 
       printInstruction(current_instruction, fp);
       if (fprintf(fp, "\n") < 0) {

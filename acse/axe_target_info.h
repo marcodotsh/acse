@@ -61,7 +61,7 @@ enum {
 
 /*   Arithmetic with immediate */
 #define OPC_ADDI     16  /* rd = rs1 +  imm                       */
-#define OPC_SUBI     17  /* rd = rs1 -  imm                       */
+#define OPC_SUBI     17  /* rd = rs1 -  imm              (pseudo) */
 #define OPC_ANDI     21  /* rd = rs1 &  imm                       */
 #define OPC_ORI      22  /* rd = rs1 |  imm                       */
 #define OPC_XORI     23  /* rd = rs1 ^  imm                       */
