@@ -126,48 +126,6 @@ enum {
 #define OPC_AXE_READ    61
 #define OPC_AXE_WRITE   62
 
-/* Opcodes to remove */
-#define OPC_OLD_ANDL 2
-#define OPC_OLD_ORL 3
-#define OPC_OLD_EORL 4
-#define OPC_OLD_ROTL 12
-#define OPC_OLD_ROTR 13
-#define OPC_OLD_NEG 14
-#define OPC_OLD_SPCL 15
-#define OPC_OLD_ANDLI 18
-#define OPC_OLD_ORLI 19
-#define OPC_OLD_EORLI 20
-#define OPC_OLD_ROTLI 28
-#define OPC_OLD_ROTRI 29
-#define OPC_OLD_NOTL 30
-#define OPC_OLD_NOTB 31
-#define OPC_OLD_JSR 34
-#define OPC_OLD_RET 35
-#define OPC_OLD_SEQ 37
-#define OPC_OLD_SGE 38
-#define OPC_OLD_SGT 39
-#define OPC_OLD_SLE 40
-#define OPC_OLD_SLT 41
-#define OPC_OLD_SNE 42
-#define OPC_OLD_BT 43
-#define OPC_OLD_BF 44
-#define OPC_OLD_BHI 45
-#define OPC_OLD_BLS 46
-#define OPC_OLD_BCC 47
-#define OPC_OLD_BCS 48
-#define OPC_OLD_BNE 49
-#define OPC_OLD_BEQ 50
-#define OPC_OLD_BVC 51
-#define OPC_OLD_BVS 52
-#define OPC_OLD_BPL 53
-#define OPC_OLD_BMI 54
-#define OPC_OLD_BGE 55
-#define OPC_OLD_BLT 56
-#define OPC_OLD_BGT 57
-#define OPC_OLD_BLE 58
-#define OPC_OLD_LOAD 59
-#define OPC_OLD_STORE 60
-
 
 /* Returns 1 if `instr` is a jump (branch) instruction. */
 extern int isJumpInstruction(t_axe_instruction *instr);

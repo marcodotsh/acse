@@ -115,47 +115,6 @@ extern const char *opcodeToString(int opcode)
       /*   Fake use/define */
       case CFLOW_OPC_DEFINE: return "[def]";
       case CFLOW_OPC_USE:    return "[use]";
-      /* (to be removed) */
-      case OPC_OLD_ANDL:  return "OLD_ANDL";
-      case OPC_OLD_ORL:   return "OLD_ORL";
-      case OPC_OLD_EORL:  return "OLD_EORL";
-      case OPC_OLD_ROTL:  return "OLD_ROTL";
-      case OPC_OLD_ROTR:  return "OLD_ROTR";
-      case OPC_OLD_NEG:   return "OLD_NEG";
-      case OPC_OLD_SPCL:  return "OLD_SPCL";
-      case OPC_OLD_ANDLI: return "OLD_ANDLI";
-      case OPC_OLD_ORLI:  return "OLD_ORLI";
-      case OPC_OLD_EORLI: return "OLD_EORLI";
-      case OPC_OLD_ROTLI: return "OLD_ROTLI";
-      case OPC_OLD_ROTRI: return "OLD_ROTRI";
-      case OPC_OLD_NOTL:  return "OLD_NOTL";
-      case OPC_OLD_NOTB:  return "OLD_NOTB";
-      case OPC_OLD_JSR:   return "OLD_JSR";
-      case OPC_OLD_RET:   return "OLD_RET";
-      case OPC_OLD_BT:    return "OLD_BT";
-      case OPC_OLD_BF:    return "OLD_BF";
-      case OPC_OLD_BHI:   return "OLD_BHI";
-      case OPC_OLD_BLS:   return "OLD_BLS";
-      case OPC_OLD_BCC:   return "OLD_BCC";
-      case OPC_OLD_BCS:   return "OLD_BCS";
-      case OPC_OLD_BNE:   return "OLD_BNE";
-      case OPC_OLD_BEQ:   return "OLD_BEQ";
-      case OPC_OLD_BVC:   return "OLD_BVC";
-      case OPC_OLD_BVS:   return "OLD_BVS";
-      case OPC_OLD_BPL:   return "OLD_BPL";
-      case OPC_OLD_BMI:   return "OLD_BMI";
-      case OPC_OLD_BGE:   return "OLD_BGE";
-      case OPC_OLD_BLT:   return "OLD_BLT";
-      case OPC_OLD_BGT:   return "OLD_BGT";
-      case OPC_OLD_BLE:   return "OLD_BLE";
-      case OPC_OLD_LOAD:  return "OLD_LOAD";
-      case OPC_OLD_STORE: return "OLD_STORE";
-      case OPC_OLD_SEQ:   return "OLD_SEQ";
-      case OPC_OLD_SGE:   return "OLD_SGE";
-      case OPC_OLD_SGT:   return "OLD_SGT";
-      case OPC_OLD_SLE:   return "OLD_SLE";
-      case OPC_OLD_SLT:   return "OLD_SLT";
-      case OPC_OLD_SNE:   return "OLD_SNE";
    }
    return "<unknown>";
 }
