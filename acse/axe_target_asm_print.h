@@ -15,10 +15,10 @@
 #include "axe_errors.h"
 
 /* Convert an opcode ID to a string. */
-extern const char *opcodeToString(int opcode); 
+extern const char *opcodeToString(int opcode);
 
 /* print the specified instruction to the file */
-extern int printInstruction(t_axe_instruction *current_instruction, FILE *fp);
+extern int printInstruction(t_axe_instruction *inst, FILE *fp, int machineRegIDs);
 
 /* write the corresponding assembly for the given program */
 extern void writeAssembly(t_program_infos *program, char *output_file);

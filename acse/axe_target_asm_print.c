@@ -2,10 +2,10 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * Daniele Cattaneo
- * Politecnico di Milano, 2020
+ * Politecnico di Milano, 2020-2022
  * 
- * axe_mace_asm_print.h
- * Formal Languages & Compilers Machine, 2007-2020
+ * axe_target_asm_print.c
+ * Formal Languages & Compilers Machine, 2007-2022
  */
 
 #include <assert.h>
@@ -13,32 +13,9 @@
 #include "axe_target_info.h"
 #include "axe_target_transform.h"
 
-#define LABEL_WIDTH (3*2)
-#define INSTR_WIDTH (3*7)
+#define BUF_LENGTH 256
 
-extern int errorcode;
-
-/* print out a label to the file `fp' */
-void printLabel(t_axe_label *label, FILE *fp);
-
-/* print out an opcode to the file `fp' */
-static void printOpcode(int opcode, FILE *fp);
-
-/* print out a register information to the file `fp' */
-static void printRegister(t_axe_register *reg, FILE *fp);
-
-void printAddress(t_axe_address *addr, FILE *fp);
-
-/* Translate the assembler directives (definitions inside the data segment) */
-static void translateDataSegment(t_program_infos *program, FILE *fp);
-
-/* Translate all the instructions within the code segment */
-static void translateCodeSegment(t_program_infos *program, FILE *fp);
-
-static off_t printFormPadding(off_t formBegin, int formSize, FILE *fout);
-
-
-extern const char *opcodeToString(int opcode)
+const char *opcodeToString(int opcode)
 {
    switch (opcode) {
       /*   Arithmetic */
@@ -118,7 +95,6 @@ extern const char *opcodeToString(int opcode)
    }
    return "<unknown>";
 }
-
 
 #define FORMAT_AUTO    -1
 #define FORMAT_OP       0   /* mnemonic rd, rs1, rs2    */
@@ -220,11 +196,303 @@ static int opcodeToFormat(int opcode)
    return -1;
 }
 
+int registerToString(char *buf, int bufsz, t_axe_register *reg, int machineRegIDs)
+{
+   static const char *mcRegIds[] = {
+      "zero", "ra", "sp", "gp", "tp",
+      "t0", "t1", "t2",
+      "s0", "s1",
+      "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
+      "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
+      "t3", "t4", "t5", "t6"
+   };
+
+   if (!reg)
+      return -1;
+   
+   if (machineRegIDs) {
+      if (reg->ID < 0 || reg->ID >= 32)
+         return -1;
+      return snprintf(buf, bufsz, "%s", mcRegIds[reg->ID]);
+   }
+
+   if (reg->ID < 0) 
+      return snprintf(buf, bufsz, "%s", "invalid_reg");
+   return snprintf(buf, bufsz, "x%d", reg->ID);
+}
+
+int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
+{
+   if (!label)
+      return -1;
+   
+   if (label->name) {
+      if (finalColon)
+         return snprintf(buf, bufsz, "%s:", label->name);
+      else
+         return snprintf(buf, bufsz, "%s", label->name);
+   }
+   
+   if (finalColon)
+      snprintf(buf, bufsz, "L%u:", label->labelID);
+   return snprintf(buf, bufsz, "L%u", label->labelID);
+}
+
+int addressToString(char *buf, int bufsz, t_axe_address *addr)
+{
+   if (!addr)
+      return -1;
+   
+   if (addr->type == ADDRESS_TYPE) {
+      return snprintf(buf, bufsz, "%d", addr->addr);
+   }
+   assert(addr->type == LABEL_TYPE);
+   return labelToString(buf, bufsz, addr->labelID, 0);
+}
+
+int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int machineRegIDs)
+{
+   int format, res;
+   const char *fmtstring;
+   const char *opc;
+   char rd[16], rs1[16], rs2[16];
+   int32_t imm;
+   char *address = NULL;
+
+   opc = opcodeToString(instr->opcode);
+   registerToString(rd, sizeof(rd), instr->reg_dest, machineRegIDs);
+   registerToString(rs1, sizeof(rs1), instr->reg_src1, machineRegIDs);
+   registerToString(rs2, sizeof(rs2), instr->reg_src2, machineRegIDs);
+   if (instr->address) {
+      int n = addressToString(NULL, 0, instr->address);
+      address = calloc(n+1, sizeof(char));
+      if (!address)
+         notifyError(AXE_OUT_OF_MEMORY);
+      addressToString(address, n+1, instr->address);
+   }
+   imm = instr->immediate;
+
+   format = opcodeToFormat(instr->opcode);
+   switch (format) {
+      case FORMAT_OP:
+         if (!instr->reg_dest || !instr->reg_src1 || !instr->reg_src2)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rd, rs1, rs2);
+         break;
+      case FORMAT_OPIMM:
+         if (!instr->reg_dest || !instr->reg_src1)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %s, %d", opc, rd, rs1, imm);
+         break;
+      case FORMAT_LOAD:
+         if (!instr->reg_dest || !instr->reg_src1)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rd, imm, rs1);
+         break;
+      case FORMAT_LOAD_GL:
+         if (!instr->reg_dest || !instr->address)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
+         break;
+      case FORMAT_STORE:
+         if (!instr->reg_src2 || !instr->reg_src1)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
+         break;
+      case FORMAT_STORE_GL:
+         if (!instr->reg_src1 || !instr->reg_src2 || !instr->address)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs2, address, rs1);
+         break;
+      case FORMAT_BRANCH:
+         if (!instr->reg_src1 || !instr->reg_src2 || !instr->address)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, rs2, address);
+         break;
+      case FORMAT_JUMP:
+         if (!instr->address)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s", opc, address);
+         break;
+      case FORMAT_LI:
+         if (!instr->reg_dest)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %d", opc, rd, imm);
+         break;
+      case FORMAT_LA:
+         if (!instr->reg_dest || !instr->address)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
+         break;
+      case FORMAT_DEFINE:
+         if (!instr->reg_dest)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s", opc, rd);
+         break;
+      case FORMAT_USE: 
+         if (!instr->reg_src1)
+            notifyError(AXE_INVALID_INSTRUCTION);
+         res = snprintf(buf, bufsz, "%-6s %s", opc, rs1);
+         break;
+      case FORMAT_SYSTEM:
+      default:
+         res = snprintf(buf, bufsz, "%-6s", opc);
+   }
+
+   free(address);
+   return res;
+}
+
+/* translate each instruction in its assembler symbolic representation */
+int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
+{
+   char buf[BUF_LENGTH];
+   int format, res;
+
+   if (instr->labelID != NULL) {
+      labelToString(buf, BUF_LENGTH, instr->labelID, 1);
+   } else {
+      buf[0] = '\0';
+   }
+   if (fprintf(fp, "%-6s", buf) < 0)
+      return -1;
+
+   instructionToString(buf, BUF_LENGTH, instr, machineRegIDs);
+   if (instr->user_comment) {
+      res = fprintf(fp, "%-20s /* %s */", buf, instr->user_comment);
+   } else {
+      res = fprintf(fp, "%s", buf);
+   }
+   if (res < 0)
+      return -1;
+
+   return 0;
+}
+
+/* translate each instruction in its assembler symbolic representation */
+int translateCodeSegment(t_program_infos *program, FILE *fp)
+{
+   t_list *current_element;
+   t_axe_instruction *current_instr;
+   
+   /* preconditions */
+   if (fp == NULL)
+      notifyError(AXE_INVALID_INPUT_FILE);
+   if (program == NULL)
+      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+
+   /* if the instruction list is empty, there is nothing to print, exit */
+   if (!program->instructions)
+      return 0;
+
+   /* write the .text directive */
+   if (fprintf(fp, ".text\n") < 0)
+      return -1;
+
+   /* iterate through the instruction list */
+   current_element = program->instructions;
+   while (current_element != NULL) {
+      /* retrieve the current instruction */
+      current_instr = (t_axe_instruction *)LDATA(current_element);
+      if (current_instr == NULL || current_instr->opcode == OPC_INVALID)
+         notifyError(AXE_INVALID_INSTRUCTION);
+
+      /* skip internal placeholder instructions */
+      if (current_instr->opcode == CFLOW_OPC_DEFINE ||
+            current_instr->opcode == CFLOW_OPC_USE) {
+         current_element = LNEXT(current_element);
+         continue;
+      }
+
+      /* print label, instruction and comment */
+      if (printInstruction(current_instr, fp, 1) < 0)
+         return -1;
+      if (fprintf(fp, "\n") < 0)
+         return -1;
+
+      /* advance to the next instruction */
+      current_element = LNEXT(current_element);
+   }
+
+   return 0;
+}
+
+int printDirective(t_axe_data *data, FILE *fp)
+{
+   char buf[BUF_LENGTH];
+
+   /* print the label */
+   if (data->labelID != NULL) {
+      labelToString(buf, BUF_LENGTH, data->labelID, 1);
+   } else {
+      buf[0] = '\0';
+   }
+   if (fprintf(fp, "%-6s", buf) < 0)
+      return -1;
+
+   /* print the directive */
+   switch (data->directiveType) {
+      case DIR_WORD:
+         if (fprintf(fp, ".word %d", data->value) < 0)
+            return -1;
+         break;
+      case DIR_SPACE:
+         if (fprintf(fp, ".space %d", data->value) < 0)
+            return -1;
+         break;
+      default:
+         notifyError(AXE_INVALID_DATA_FORMAT);
+   }
+   
+   return 0;
+}
+
+int translateDataSegment(t_program_infos *program, FILE *fp)
+{
+   t_list *current_element;
+   t_axe_data *current_data;
+   
+   /* preconditions */
+   if (fp == NULL)
+      notifyError(AXE_INVALID_INPUT_FILE);
+   if (program == NULL)
+      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+
+   /* if the list of directives is empty, there is nothing to print */
+   if (program->data == NULL)
+      return 0;
+
+   /* write the .data directive */
+   if (fprintf(fp, ".data\n") < 0)
+      return -1;
+
+   /* iterate over all data directives */
+   current_element = program->data;
+   while (current_element != NULL) {
+      /* retrieve the current data element */
+      current_data = (t_axe_data *)LDATA(current_element);
+
+      /* assertions */
+      if (current_data == NULL)
+         notifyError(AXE_INVALID_DATA_FORMAT);
+
+      /* print label and directive */
+      if (printDirective(current_data, fp) < 0)
+         return -1;
+      if (fprintf(fp, "\n") < 0)
+         return -1;
+
+      /* advance to the next element */
+      current_element = LNEXT(current_element);
+   }
+
+   return 0;
+}
 
 void writeAssembly(t_program_infos *program, char *output_file)
 {
    FILE *fp;
-   int _error;
+   int error;
 
    /* test the preconditions */
    if (program == NULL)
@@ -232,21 +500,13 @@ void writeAssembly(t_program_infos *program, char *output_file)
 
    /* If necessary, set the value of `output_file' to "output.asm" */
    if (output_file == NULL)
-   {
-      /* set "output.asm" as output file name */
       output_file = "output.asm";
-   }
 
 #ifndef NDEBUG
-   fprintf(stdout, "\n\n*******************************************\n");
-   fprintf(stdout, "INITIALIZING OUTPUT FILE: %s. \n", output_file);
-   fprintf(stdout, "CODE SEGMENT has a size of %d instructions \n"
-         , getLength(program->instructions));
-   fprintf(stdout, "DATA SEGMENT has a size of %d elements \n"
-         , getLength(program->data));
-   fprintf(stdout, "NUMBER OF LABELS : %d. \n"
-         , getLabelCount(program->lmanager));
-   fprintf(stdout, "*******************************************\n\n");
+   fprintf(stdout, "  Output File: \"%s\"\n", output_file);
+   fprintf(stdout, "  Size of the code segment: %d instructions\n", getLength(program->instructions));
+   fprintf(stdout, "  Size of the data segment: %d elements\n", getLength(program->data));
+   fprintf(stdout, "  Number of labels: %d\n", getLabelCount(program->lmanager));
 #endif
    
    /* open a new file */
@@ -255,388 +515,15 @@ void writeAssembly(t_program_infos *program, char *output_file)
       notifyError(AXE_FOPEN_ERROR);
 
    /* print the data segment */
-   translateDataSegment(program, fp);
+   if (translateDataSegment(program, fp) < 0)
+      notifyError(AXE_FWRITE_ERROR);
 
    /* print the code segment */
-   translateCodeSegment(program, fp);
+   if (translateCodeSegment(program, fp) < 0)
+      notifyError(AXE_FWRITE_ERROR);
 
    /* close the file and return */
-   _error = fclose(fp);
-   if (_error == EOF)
+   if (fclose(fp) == EOF)
       notifyError(AXE_FCLOSE_ERROR);
-}
-
-/* translate each instruction in his assembler symbolic representation */
-int printInstruction(t_axe_instruction *current_instruction, FILE *fp)
-{
-   int format;
-   int rd, rs1, rs2;
-
-   off_t lastFormBegin = ftello(fp);
-   if (current_instruction->labelID != NULL)
-   {
-      printLabel(current_instruction->labelID, fp);
-      fprintf(fp, ":");
-      lastFormBegin = printFormPadding(lastFormBegin, LABEL_WIDTH, fp);
-   }
-   else
-   {
-      /* create a string identifier for the label */
-      lastFormBegin = printFormPadding(lastFormBegin, LABEL_WIDTH, fp);
-   }
-
-   /* print the opcode */
-   printOpcode(current_instruction->opcode, fp);
-   fputc(' ', fp);
-
-   format = opcodeToFormat(current_instruction->opcode);
-   switch (format) {
-      case FORMAT_OP:
-         printRegister(current_instruction->reg_dest, fp);
-         fprintf(fp, ", ");
-         printRegister(current_instruction->reg_src1, fp);
-         fprintf(fp, ", ");
-         printRegister(current_instruction->reg_src2, fp);
-         break;
-      case FORMAT_OPIMM:
-         printRegister(current_instruction->reg_dest, fp);
-         fprintf(fp, ", ");
-         printRegister(current_instruction->reg_src1, fp);
-         fprintf(fp, ", %d", current_instruction->immediate);
-         break;
-      case FORMAT_LOAD:
-         printRegister(current_instruction->reg_dest, fp);
-         fprintf(fp, ", %d(", current_instruction->immediate);
-         printRegister(current_instruction->reg_src1, fp);
-         fprintf(fp, ")");
-         break;
-      case FORMAT_LOAD_GL:
-         printRegister(current_instruction->reg_dest, fp);
-         fprintf(fp, ", ");
-         printAddress(current_instruction->address, fp);
-         break;
-      case FORMAT_STORE:
-         printRegister(current_instruction->reg_src2, fp);
-         fprintf(fp, ", %d(", current_instruction->immediate);
-         printRegister(current_instruction->reg_src1, fp);
-         fprintf(fp, ")");
-         break;
-      case FORMAT_STORE_GL:
-         printRegister(current_instruction->reg_src2, fp);
-         fprintf(fp, ", ");
-         printAddress(current_instruction->address, fp);
-         fprintf(fp, ", ");
-         printRegister(current_instruction->reg_src1, fp);
-         break;
-      case FORMAT_BRANCH:
-         printRegister(current_instruction->reg_src1, fp);
-         fprintf(fp, ", ");
-         printRegister(current_instruction->reg_src2, fp);
-         fprintf(fp, ", ");
-         printAddress(current_instruction->address, fp);
-         break;
-      case FORMAT_JUMP:
-         printAddress(current_instruction->address, fp);
-         break;
-      case FORMAT_LI:
-         printRegister(current_instruction->reg_dest, fp);
-         fprintf(fp, ", %d", current_instruction->immediate);
-         break;
-      case FORMAT_LA:
-         printRegister(current_instruction->reg_dest, fp);
-         fprintf(fp, ", ");
-         printAddress(current_instruction->address, fp);
-         break;
-      case FORMAT_DEFINE:
-         printRegister(current_instruction->reg_dest, fp);
-         break;
-      case FORMAT_USE: 
-         printRegister(current_instruction->reg_src1, fp);
-         break;
-      default:
-      case FORMAT_SYSTEM:
-         break;
-   }
-
-   if (current_instruction->user_comment)
-   {
-      printFormPadding(lastFormBegin, INSTR_WIDTH, fp);
-      fprintf(fp, "/* %s */", current_instruction->user_comment);
-   }
-   return 0;
-}
-
-/* translate each instruction in its assembler symbolic representation */
-void translateCodeSegment(t_program_infos *program, FILE *fp)
-{
-   t_list *current_element;
-   t_axe_instruction *current_instruction;
-   int _error;
-   
-   /* preconditions */
-   if (fp == NULL)
-      notifyError(AXE_INVALID_INPUT_FILE);
-
-   if (program == NULL)
-   {
-      _error = fclose(fp);
-      if (_error == EOF)
-         notifyError(AXE_FCLOSE_ERROR);
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
-   }
-
-   /* initialize the current_element */
-   current_element = program->instructions;
-
-   /* write the .text directive */
-   if (current_element != NULL)
-   {
-      printFormPadding(ftello(fp), LABEL_WIDTH, fp);
-      if (fprintf(fp, ".text\n") < 0)
-      {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-   }
-
-   while (current_element != NULL)
-   {
-      /* retrieve the current instruction */
-      current_instruction = (t_axe_instruction *) LDATA(current_element);
-      assert(current_instruction != NULL);
-      assert(current_instruction->opcode != OPC_INVALID);
-
-      if (current_instruction->opcode == CFLOW_OPC_DEFINE ||
-            current_instruction->opcode == CFLOW_OPC_USE) {
-         current_element = LNEXT(current_element);
-         continue;
-      }
-
-      printInstruction(current_instruction, fp);
-      if (fprintf(fp, "\n") < 0) {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-
-      /* loop termination condition */
-      current_element = LNEXT(current_element);
-   }
-}
-
-void translateDataSegment(t_program_infos *program, FILE *fp)
-{
-   t_list *current_element;
-   t_axe_data *current_data;
-   int _error;
-   int fprintf_error;
-   
-   /* preconditions */
-   if (fp == NULL)
-      notifyError(AXE_INVALID_INPUT_FILE);
-
-   /* initialize the local variable `fprintf_error' */
-   fprintf_error = 0;
-   
-   if (program == NULL)
-   {
-      _error = fclose(fp);
-      if (_error == EOF)
-         notifyError(AXE_FCLOSE_ERROR);
-
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
-   }
-
-   /* initialize the value of `current_element' */
-   current_element = program->data;
-
-   /* write the .data directive */
-   if (current_element != NULL)
-   {
-      printFormPadding(ftello(fp), LABEL_WIDTH, fp);
-      if (fprintf(fp, ".data\n") < 0)
-      {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-   }
-
-   /* iterate all the elements inside the data segment */
-   while (current_element != NULL)
-   {
-      off_t lastFormBegin = ftello(fp);
-
-      /* retrieve the current data element */
-      current_data = (t_axe_data *) LDATA(current_element);
-
-      /* assertions */
-      assert (current_data->directiveType != DIR_INVALID);
-
-      /* create a string identifier for the label */
-      if (current_data->labelID != NULL)
-      {
-         printLabel(current_data->labelID, fp);
-         fprintf_error = fprintf(fp, ":");
-      }
-      printFormPadding(lastFormBegin, LABEL_WIDTH, fp);
-
-      /* test if an error occurred while executing the `fprintf' function */
-      if (fprintf_error < 0)
-      {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-
-      /* print the directive identifier */
-      if (current_data->directiveType == DIR_WORD)
-      {
-         if (fprintf(fp, ".WORD ") < 0)
-         {
-            _error = fclose(fp);
-            if (_error == EOF)
-               notifyError(AXE_FCLOSE_ERROR);
-            notifyError(AXE_FWRITE_ERROR);
-         }
-      }
-      
-      else if (current_data->directiveType == DIR_SPACE)
-      {
-         if (fprintf(fp, ".SPACE ") < 0)
-         {
-            _error = fclose(fp);
-            if (_error == EOF)
-               notifyError(AXE_FCLOSE_ERROR);
-            notifyError(AXE_FWRITE_ERROR);
-         }
-      }
-
-      /* print the value associated with the directive */
-      if (fprintf(fp, "%d\n", current_data->value) < 0)
-      {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-
-      /* loop termination condition */
-      current_element = LNEXT(current_element);
-   }
-}
-
-void printOpcode(int opcode, FILE *fp)
-{
-   const char *opcode_to_string;
-   int _error;
-   
-   /* preconditions: fp must be different from NULL */
-   if (fp == NULL)
-      notifyError(AXE_INVALID_INPUT_FILE);
-
-   opcode_to_string = opcodeToString(opcode);
-   
-   /* postconditions */
-   if (fprintf(fp, "%s", opcode_to_string) < 0)
-   {
-      _error = fclose(fp);
-      if (_error == EOF)
-         notifyError(AXE_FCLOSE_ERROR);
-      notifyError(AXE_FWRITE_ERROR);
-   }
-}
-
-void printLabel(t_axe_label *label, FILE *fp)
-{
-   if (!label)
-      return;
-   
-   if (label->name) {
-      fputs(label->name, fp);
-   } else {
-      fprintf(fp, "L%u", label->labelID);
-   }
-}
-
-void printRegister(t_axe_register *reg, FILE *fp)
-{
-   int _error;
-   
-   /* preconditions: fp must be different from NULL */
-   if (fp == NULL)
-      notifyError(AXE_INVALID_INPUT_FILE);
-   if (reg == NULL)
-   {
-      _error = fclose(fp);
-      if (_error == EOF)
-         notifyError(AXE_FCLOSE_ERROR);
-      notifyError(AXE_INVALID_REGISTER_INFO);
-   }
-   if (reg->ID == REG_INVALID)
-   {
-      _error = fclose(fp);
-      if (_error == EOF)
-         notifyError(AXE_FCLOSE_ERROR);
-      notifyError(AXE_INVALID_REGISTER_INFO);
-   }
-
-   if (reg->indirect)
-   {
-      if (fprintf(fp, "(x%d)", reg->ID) < 0)
-      {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-   }
-   else
-   {
-      if (fprintf(fp, "x%d", reg->ID) < 0)
-      {
-         _error = fclose(fp);
-         if (_error == EOF)
-            notifyError(AXE_FCLOSE_ERROR);
-         notifyError(AXE_FWRITE_ERROR);
-      }
-   }
-}
-
-void printAddress(t_axe_address *addr, FILE *fp)
-{
-   if (!fp)
-      notifyError(AXE_INVALID_INPUT_FILE);
-   if (!addr)
-      notifyError(AXE_INVALID_ADDRESS);
-   
-   if (addr->type == ADDRESS_TYPE)
-   {
-      fprintf(fp, "%d", addr->addr < 0);
-   }
-   else
-   {
-      assert(addr->type == LABEL_TYPE);
-      printLabel(addr->labelID, fp);
-   }
-}
-
-off_t printFormPadding(off_t formBegin, int formSize, FILE *fout)
-{
-   off_t currentLoc = ftello(fout);
-   off_t padding = formSize - (currentLoc - formBegin);
-   if (padding > 1) {
-      off_t i;
-      for (i = 0; i < padding - 1; i++) {
-         putc(' ', fout);
-      }
-   }
-   putc(' ', fout);
-   return ftello(fout);
 }
 

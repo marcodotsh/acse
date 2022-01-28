@@ -340,7 +340,7 @@ void debugPrintInstruction(t_axe_instruction *instr, FILE *fout)
       return;
    }
 
-   printInstruction(instr, fout);
+   printInstruction(instr, fout, 0);
 }
 
 char * dataTypeToString(int codedType)
