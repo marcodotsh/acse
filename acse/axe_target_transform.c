@@ -225,11 +225,12 @@ void fixPseudoInstructions(t_program_infos *program)
          instr->immediate += 1;
 
       } else if (instr->opcode == OPC_SGT || instr->opcode == OPC_SGTU) {
+         t_axe_register *tmp;
          if (instr->opcode == OPC_SGT)
             instr->opcode = OPC_SLT;
          else
             instr->opcode = OPC_SLTU;
-         t_axe_register *tmp = instr->reg_src1;
+         tmp = instr->reg_src1;
          instr->reg_src1 = instr->reg_src2;
          instr->reg_src2 = tmp;
       }
@@ -240,13 +241,14 @@ void fixPseudoInstructions(t_program_infos *program)
 
 void markRegistersTouchedByCall(t_program_infos *program, int numRet)
 {
+   int i;
    /* list of registers potentially affected by a function call */
    static const int regList[] = {
       REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7,
       REG_T0, REG_T1, REG_T2
    };
 
-   for (int i = numRet; i<sizeof(regList)/sizeof(int); i++) {
+   for (i = numRet; i<sizeof(regList)/sizeof(int); i++) {
       int reg = regList[i];
       genDefOfPhysReg(program, reg);
    }

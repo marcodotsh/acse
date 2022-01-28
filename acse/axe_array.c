@@ -60,7 +60,7 @@ int genLoadArrayElement(t_program_infos *program
 int genLoadArrayAddress(t_program_infos *program
             , char *ID, t_axe_expression index)
 {
-   int mova_register;
+   int mova_register, sizeofElem;
    t_axe_label *label;
 
    /* preconditions */
@@ -86,7 +86,7 @@ int genLoadArrayAddress(t_program_infos *program
 
    /* We are making the following assumption:
     * the type can only be an INTEGER_TYPE */
-   int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
+   sizeofElem = 4 / TARGET_PTR_GRANULARITY;
 
    if (index.type == IMMEDIATE)
    {
@@ -98,9 +98,10 @@ int genLoadArrayAddress(t_program_infos *program
    }
    else
    {
+      int idxReg;
       assert(index.type == REGISTER);
 
-      int idxReg = index.registerId;
+      idxReg = index.registerId;
       if (sizeofElem != 1) {
          idxReg = getNewRegister(program);
          genMULIInstruction(program, idxReg, index.registerId, sizeofElem);

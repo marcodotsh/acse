@@ -339,6 +339,7 @@ int getRegLocationOfVariable(t_program_infos *program, char *ID)
 {
    int sy_error;
    int location;
+   t_axe_variable *var;
 
    /* preconditions: ID and program shouldn't be NULL pointer */
    if (ID == NULL)
@@ -348,7 +349,7 @@ int getRegLocationOfVariable(t_program_infos *program, char *ID)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
    
    /* get the location of the variable with the given ID */
-   t_axe_variable *var = getVariable(program, ID);
+   var = getVariable(program, ID);
    
    if (var->isArray)
       return REG_INVALID;
@@ -392,6 +393,8 @@ t_program_infos * allocProgramInfos()
 /* add an instruction at the tail of the list `program->instructions'. */
 void addInstruction(t_program_infos *program, t_axe_instruction *instr)
 {
+   t_list *ip;
+
    /* test the preconditions */
    if (program == NULL)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
@@ -413,7 +416,7 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    prev_line_num = line_num;
 
    /* update the list of instructions */
-   t_list *ip = LDATA(program->instrInsPtrStack);
+   ip = LDATA(program->instrInsPtrStack);
    if (!ip) {
       program->instructions = addElement(program->instructions, instr, 0);
       SET_DATA(program->instrInsPtrStack, program->instructions);
@@ -462,9 +465,10 @@ void setMCRegisterWhitelist(t_axe_register *regObj, ...)
 {
    t_list *res = NULL;
    va_list args;
+   int cur;
 
    va_start(args, regObj);
-   int cur = va_arg(args, int);
+   cur = va_arg(args, int);
    while (cur != REG_INVALID) {
       res = addElement(res, INTDATA(cur), -1);
       cur = va_arg(args, int);
@@ -478,6 +482,7 @@ void setMCRegisterWhitelist(t_axe_register *regObj, ...)
 
 void removeInstructionLink(t_program_infos *program, t_list *instrLi)
 {
+   t_list *ipi;
    t_axe_instruction *instrToRemove = (t_axe_instruction *)LDATA(instrLi);
 
    /* move the label and/or the comment to the next instruction */
@@ -509,7 +514,7 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
    }
 
    /* fixup the insertion pointer stack */
-   t_list *ipi = program->instrInsPtrStack;
+   ipi = program->instrInsPtrStack;
    while (ipi) {
       if (LDATA(ipi) && LDATA(ipi) == instrLi)
          SET_DATA(ipi, LPREV(instrLi));
@@ -529,11 +534,14 @@ void pushInstrInsertionPoint(t_program_infos *p, t_list *ip)
 
 t_list *popInstrInsertionPoint(t_program_infos *p)
 {
+   t_list *ip;
+   t_axe_label *label;
+
    prev_line_num = -1;
-   t_list *ip = LDATA(p->instrInsPtrStack);
+   ip = LDATA(p->instrInsPtrStack);
 
    /* affix the currently pending label, if needed */
-   t_axe_label *label = getLastPendingLabel(p->lmanager);
+   label = getLastPendingLabel(p->lmanager);
    if (label) {
       t_list *labelPos = ip ? LNEXT(ip) : NULL;
       t_axe_instruction *instrToLabel;
@@ -551,6 +559,8 @@ t_list *popInstrInsertionPoint(t_program_infos *p)
 /* reserve a new label identifier for future uses */
 t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
 {
+   t_axe_label *label;
+
    /* test the preconditions */
    if (program == NULL)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
@@ -558,7 +568,7 @@ t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
    if (program->lmanager == NULL)
       notifyError(AXE_INVALID_LABEL_MANAGER);
 
-   t_axe_label *label = newLabelID(program->lmanager);
+   label = newLabelID(program->lmanager);
    if (name)
       setLabelName(program->lmanager, label, name);
    return label;
@@ -572,6 +582,8 @@ t_axe_label * newLabel(t_program_infos *program)
 /* assign a new label identifier to the next instruction */
 t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
 {
+   t_list *li;
+
    /* test the preconditions */
    if (program == NULL)
       notifyError(AXE_PROGRAM_NOT_INITIALIZED);
@@ -579,7 +591,7 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
    if (program->lmanager == NULL)
       notifyError(AXE_INVALID_LABEL_MANAGER);
    
-   for (t_list *li = program->instructions; li != NULL; li = LNEXT(li)) {
+   for (li = program->instructions; li != NULL; li = LNEXT(li)) {
       t_axe_instruction *instr = LDATA(li);
       if (instr->labelID && instr->labelID->labelID == label->labelID)
          notifyError(AXE_LABEL_ALREADY_ASSIGNED);
@@ -592,7 +604,7 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
 /* reserve a new label identifier */
 t_axe_label *assignNewNamedLabel(t_program_infos *program, const char *name)
 {
-   t_axe_label * reserved_label;
+   t_axe_label *reserved_label;
 
    /* reserve a new label */
    reserved_label = newNamedLabel(program, name);

@@ -445,6 +445,7 @@ t_cflow_var * allocVariable (t_cflow_Graph *graph, int identifier, t_list *mcReg
 void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
 {
    t_axe_instruction *instr;
+   t_cflow_var *varDest, *varSource1, *varSource2, *varPSW;
    int def_i, use_i;
 
    /* preconditions */
@@ -472,10 +473,10 @@ void setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
    instr = node->instr;
 
    /* initialize the values of varDest, varSource1 and varSource2 */
-   t_cflow_var *varDest = NULL;
-   t_cflow_var *varSource1 = NULL;
-   t_cflow_var *varSource2 = NULL;
-   t_cflow_var *varPSW = allocVariable(graph, VAR_PSW, NULL);
+   varDest = NULL;
+   varSource1 = NULL;
+   varSource2 = NULL;
+   varPSW = allocVariable(graph, VAR_PSW, NULL);
    
    /* update the values of the variables */
    if (instr->reg_dest != NULL)

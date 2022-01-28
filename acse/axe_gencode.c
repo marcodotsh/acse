@@ -436,7 +436,7 @@ t_axe_instruction *genSWGlobalInstruction(
 {
    return genInstruction(program, OPC_SW_G,
          NULL,
-         initializeRegister(REG_T6, 0), // T6
+         initializeRegister(REG_T6, 0),
          initializeRegister(rs2, 0),
          label,
          0);

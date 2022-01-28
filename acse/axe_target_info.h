@@ -48,76 +48,76 @@ enum {
  */
 
 /*   Arithmetic */
-#define OPC_ADD       0  /* rd = rs1 +  rs2              */
-#define OPC_SUB       1  /* rd = rs1 -  rs2              */
-#define OPC_AND       5  /* rd = rs1 &  rs2              */
-#define OPC_OR        6  /* rd = rs1 |  rs2              */
-#define OPC_XOR       7  /* rd = rs1 ^  rs2              */
-#define OPC_MUL       8  /* rd = rs1 *  rs2              */
-#define OPC_DIV       9  /* rd = rs1 /  rs2              */
-#define OPC_SLL      10  /* rd = rs1 << rs2              */
-#define OPC_SRL    1000  /* rd = rs1 >> rs2 (logical)    */
-#define OPC_SRA      11  /* rd = rs1 >> rs2 (arithmetic) */
-
-/*   Arithmetic with immediate */
-#define OPC_ADDI     16  /* rd = rs1 +  imm                       */
-#define OPC_SUBI     17  /* rd = rs1 -  imm              (pseudo) */
-#define OPC_ANDI     21  /* rd = rs1 &  imm                       */
-#define OPC_ORI      22  /* rd = rs1 |  imm                       */
-#define OPC_XORI     23  /* rd = rs1 ^  imm                       */
-#define OPC_MULI     24  /* rd = rs1 *  imm              (pseudo) */
-#define OPC_DIVI     25  /* rd = rs1 /  imm              (pseudo) */
-#define OPC_SLLI     26  /* rd = rs1 << imm                       */
-#define OPC_SRLI   1100  /* rd = rs1 >> imm (logical)             */
-#define OPC_SRAI     27  /* rd = rs1 >> imm (arithmetic)          */
+#define OPC_ADD       0  /* rd = rs1 +  rs2                                  */
+#define OPC_SUB       1  /* rd = rs1 -  rs2                                  */
+#define OPC_AND       5  /* rd = rs1 &  rs2                                  */
+#define OPC_OR        6  /* rd = rs1 |  rs2                                  */
+#define OPC_XOR       7  /* rd = rs1 ^  rs2                                  */
+#define OPC_MUL       8  /* rd = rs1 *  rs2                                  */
+#define OPC_DIV       9  /* rd = rs1 /  rs2                                  */
+#define OPC_SLL      10  /* rd = rs1 << rs2                                  */
+#define OPC_SRL    1000  /* rd = rs1 >> rs2            (logical)             */
+#define OPC_SRA      11  /* rd = rs1 >> rs2            (arithmetic)          */
+           
+/*   Arithmetic with immediate */           
+#define OPC_ADDI     16  /* rd = rs1 +  imm                                  */
+#define OPC_SUBI     17  /* rd = rs1 -  imm                         (pseudo) */
+#define OPC_ANDI     21  /* rd = rs1 &  imm                                  */
+#define OPC_ORI      22  /* rd = rs1 |  imm                                  */
+#define OPC_XORI     23  /* rd = rs1 ^  imm                                  */
+#define OPC_MULI     24  /* rd = rs1 *  imm                         (pseudo) */
+#define OPC_DIVI     25  /* rd = rs1 /  imm                         (pseudo) */
+#define OPC_SLLI     26  /* rd = rs1 << imm                                  */
+#define OPC_SRLI   1100  /* rd = rs1 >> imm            (logical)             */
+#define OPC_SRAI     27  /* rd = rs1 >> imm            (arithmetic)          */
 
 /*   Comparison */
-#define OPC_SEQ    1200  /* rd = rs1 == rs2            (pseudo) */
-#define OPC_SNE    1201  /* rd = rs1 != rs2            (pseudo) */
-#define OPC_SLT    1202  /* rd = rs1 <  rs2 (signed)            */
-#define OPC_SLTU   1203  /* rd = rs1 <  rs2 (unsigned)          */
-#define OPC_SGE    1204  /* rd = rs1 >= rs2 (signed)   (pseudo) */
-#define OPC_SGEU   1205  /* rd = rs1 >= rs2 (unsigned) (pseudo) */
-#define OPC_SGT    1206  /* rd = rs1 >  rs2 (signed)   (pseudo) */
-#define OPC_SGTU   1207  /* rd = rs1 >  rs2 (unsigned) (pseudo) */
-#define OPC_SLE    1208  /* rd = rs1 <= rs2 (signed)   (pseudo) */
-#define OPC_SLEU   1209  /* rd = rs1 <= rs2 (unsigned) (pseudo) */
-
-/*   Comparison with immediate */
-#define OPC_SEQI   1210  /* rd = rs1 == imm            (pseudo) */
-#define OPC_SNEI   1211  /* rd = rs1 != imm            (pseudo) */
-#define OPC_SLTI   1212  /* rd = rs1 <  imm (signed)            */
-#define OPC_SLTIU  1213  /* rd = rs1 <  imm (unsigned)          */
-#define OPC_SGEI   1214  /* rd = rs1 >= imm (signed)   (pseudo) */
-#define OPC_SGEIU  1215  /* rd = rs1 >= imm (unsigned) (pseudo) */
-#define OPC_SGTI   1216  /* rd = rs1 >  imm (signed)   (pseudo) */
-#define OPC_SGTIU  1217  /* rd = rs1 >  imm (unsigned) (pseudo) */
-#define OPC_SLEI   1218  /* rd = rs1 <= imm (signed)   (pseudo) */
-#define OPC_SLEIU  1219  /* rd = rs1 <= imm (unsigned) (pseudo) */
+#define OPC_SEQ    1200  /* rd = rs1 == rs2                         (pseudo) */
+#define OPC_SNE    1201  /* rd = rs1 != rs2                         (pseudo) */
+#define OPC_SLT    1202  /* rd = rs1 <  rs2            (signed)              */
+#define OPC_SLTU   1203  /* rd = rs1 <  rs2            (unsigned)            */
+#define OPC_SGE    1204  /* rd = rs1 >= rs2            (signed)     (pseudo) */
+#define OPC_SGEU   1205  /* rd = rs1 >= rs2            (unsigned)   (pseudo) */
+#define OPC_SGT    1206  /* rd = rs1 >  rs2            (signed)     (pseudo) */
+#define OPC_SGTU   1207  /* rd = rs1 >  rs2            (unsigned)   (pseudo) */
+#define OPC_SLE    1208  /* rd = rs1 <= rs2            (signed)     (pseudo) */
+#define OPC_SLEU   1209  /* rd = rs1 <= rs2            (unsigned)   (pseudo) */
+            
+/*   Comparison with immediate */             
+#define OPC_SEQI   1210  /* rd = rs1 == imm                         (pseudo) */
+#define OPC_SNEI   1211  /* rd = rs1 != imm                         (pseudo) */
+#define OPC_SLTI   1212  /* rd = rs1 <  imm            (signed)              */
+#define OPC_SLTIU  1213  /* rd = rs1 <  imm            (unsigned)            */
+#define OPC_SGEI   1214  /* rd = rs1 >= imm            (signed)     (pseudo) */
+#define OPC_SGEIU  1215  /* rd = rs1 >= imm            (unsigned)   (pseudo) */
+#define OPC_SGTI   1216  /* rd = rs1 >  imm            (signed)     (pseudo) */
+#define OPC_SGTIU  1217  /* rd = rs1 >  imm            (unsigned)   (pseudo) */
+#define OPC_SLEI   1218  /* rd = rs1 <= imm            (signed)     (pseudo) */
+#define OPC_SLEIU  1219  /* rd = rs1 <= imm            (unsigned)   (pseudo) */
 
 /*   Jump/Branch */
-#define OPC_J      1600  /* goto addr; */
-#define OPC_BEQ    1300  /* if (rs1 == rs2) goto addr;                     */
-#define OPC_BNE    1301  /* if (rs1 == rs2) goto addr;                     */
-#define OPC_BLT    1302  /* if (rs1 <  rs2) goto addr; (signed)            */
-#define OPC_BLTU   1303  /* if (rs1 <  rs2) goto addr; (unsigned)          */
-#define OPC_BGE    1304  /* if (rs1 >= rs2) goto addr; (signed)            */
-#define OPC_BGEU   1305  /* if (rs1 >= rs2) goto addr; (unsigned)          */
-#define OPC_BGT    1306  /* if (rs1 >  rs2) goto addr; (signed)   (pseudo) */
-#define OPC_BGTU   1307  /* if (rs1 >  rs2) goto addr; (unsigned) (pseudo) */
-#define OPC_BLE    1308  /* if (rs1 <= rs2) goto addr; (signed)   (pseudo) */
-#define OPC_BLEU   1309  /* if (rs1 <= rs2) goto addr; (unsigned) (pseudo) */
+#define OPC_J      1600  /* goto addr;                                       */
+#define OPC_BEQ    1300  /* if (rs1 == rs2) goto addr;                       */
+#define OPC_BNE    1301  /* if (rs1 == rs2) goto addr;                       */
+#define OPC_BLT    1302  /* if (rs1 <  rs2) goto addr; (signed)              */
+#define OPC_BLTU   1303  /* if (rs1 <  rs2) goto addr; (unsigned)            */
+#define OPC_BGE    1304  /* if (rs1 >= rs2) goto addr; (signed)              */
+#define OPC_BGEU   1305  /* if (rs1 >= rs2) goto addr; (unsigned)            */
+#define OPC_BGT    1306  /* if (rs1 >  rs2) goto addr; (signed)     (pseudo) */
+#define OPC_BGTU   1307  /* if (rs1 >  rs2) goto addr; (unsigned)   (pseudo) */
+#define OPC_BLE    1308  /* if (rs1 <= rs2) goto addr; (signed)     (pseudo) */
+#define OPC_BLEU   1309  /* if (rs1 <= rs2) goto addr; (unsigned)   (pseudo) */
 
 /*   Load/Store */
-#define OPC_LI     1400  /* rd = imm                                 */
-#define OPC_LA       33  /* rd = addr                                */
-#define OPC_LW     1401  /* rd = *(int *)(immediate + rs1)           */
-#define OPC_SW     1402  /* *(int *)(immediate + rs1) = rs2          */
-#define OPC_LW_G   1403  /* rd = *(int *)label              (pseudo) */
-#define OPC_SW_G   1404  /* *(int *)label = rs2             (pseudo) */
+#define OPC_LI     1400  /* rd = imm                                         */
+#define OPC_LA       33  /* rd = addr                                        */
+#define OPC_LW     1401  /* rd = *(int *)(immediate + rs1)                   */
+#define OPC_SW     1402  /* *(int *)(immediate + rs1) = rs2                  */
+#define OPC_LW_G   1403  /* rd = *(int *)label                      (pseudo) */
+#define OPC_SW_G   1404  /* *(int *)label = rs2                     (pseudo) */
 
 /*   Other */
-#define OPC_NOP      32 // pseudo
+#define OPC_NOP      32
 #define OPC_ECALL  1500
 #define OPC_EBREAK 1501
 

@@ -274,6 +274,8 @@ void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose)
 
 void printProgramInfos(t_program_infos *program, FILE *fout)
 {
+   t_list *cur_var, *cur_inst;
+
    fprintf(fout,"**************************\n");
    fprintf(fout,"          PROGRAM         \n");
    fprintf(fout,"**************************\n\n");
@@ -281,8 +283,10 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
    fprintf(fout,"-----------\n");
    fprintf(fout," VARIABLES\n");
    fprintf(fout,"-----------\n");
-   t_list *cur_var = program->variables;
+   cur_var = program->variables;
    while (cur_var) {
+      int reg;
+
       t_axe_variable *var = LDATA(cur_var);
       fprintf(fout, "[%s]\n", var->ID);
 
@@ -301,8 +305,8 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
       }
 
       fprintf(fout, "   location = ");
-      int sy_error;
-      int reg = getRegLocationOfVariable(program, var->ID);
+
+      reg = getRegLocationOfVariable(program, var->ID);
       if (reg == REG_INVALID)
          fprintf(fout, "N/A");
       else
@@ -315,7 +319,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
    fprintf(fout,"\n--------------\n");
    fprintf(fout," INSTRUCTIONS\n");
    fprintf(fout,"--------------\n");
-   t_list *cur_inst = program->instructions;
+   cur_inst = program->instructions;
    while (cur_inst) {
       t_axe_instruction *instr = LDATA(cur_inst);
       debugPrintInstruction(instr, fout);

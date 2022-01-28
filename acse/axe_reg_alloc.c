@@ -237,8 +237,10 @@ int assignRegister(t_reg_allocator *RA, t_list *constraints)
 
    t_list *i = constraints;
    for (; i; i = LNEXT(i)) {
+      t_list *freeReg;
+
       regID = LINTDATA(i);
-      t_list *freeReg = findElementWithCallback(RA->freeRegisters, &regID, _compareFreeRegLI);
+      freeReg = findElementWithCallback(RA->freeRegisters, &regID, _compareFreeRegLI);
       if (freeReg) {
          free(LDATA(freeReg));
          RA->freeRegisters = removeElementLink(RA->freeRegisters, freeReg);
@@ -273,9 +275,11 @@ t_list *optimizeRegisterSet(t_list *a, t_list *b)
 
 void initializeRegisterConstraints(t_reg_allocator *ra)
 {
+   t_list *i, *j, *allregs, *allregs2;
+
    /* Create a list of all free registers we are allowed to use */
-   t_list *allregs = NULL;
-   t_list *allregs2 = ra->freeRegisters;
+   allregs = NULL;
+   allregs2 = ra->freeRegisters;
    for (; allregs2; allregs2 = LNEXT(allregs2)) {
       int reg = *(int *)LDATA(allregs2);
       if (!isSpecialRegister(reg))
@@ -284,7 +288,7 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
 
    /* Initialize the register constraint set on all variables that don't have
     * one. */
-   t_list *i = ra->live_intervals;
+   i = ra->live_intervals;
    for (; i; i = LNEXT(i)) {
       t_live_interval *interval = LDATA(i);
       if (interval->mcRegConstraints)
@@ -292,7 +296,7 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
       interval->mcRegConstraints = cloneList(allregs);
 
       /* Scan the variables that are alive together with this variable */
-      t_list *j = LNEXT(i);
+      j = LNEXT(i);
       for (; j; j = LNEXT(j)) {
          t_live_interval *overlappingIval = LDATA(j);
          if (overlappingIval->startPoint > interval->endPoint)
@@ -741,6 +745,7 @@ int executeLinearScan(t_reg_allocator *RA)
    t_list *current_element;
    t_live_interval *current_interval;
    t_list *active_intervals;
+   int reg;
    
    /* test the preconditions */
    if (RA == NULL)   /* Register allocator created? */
@@ -764,7 +769,7 @@ int executeLinearScan(t_reg_allocator *RA)
       active_intervals = expireOldIntervals
                (RA, active_intervals, current_interval);
 
-      int reg = assignRegister(RA, current_interval->mcRegConstraints);
+      reg = assignRegister(RA, current_interval->mcRegConstraints);
 
       /* If all registers are busy, perform a spill */
       if (reg == RA_SPILL_REQUIRED)
@@ -1041,15 +1046,20 @@ t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA)
 void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
             , t_reg_allocator *RA, t_list *label_bindings)
 {
+   t_list *current_bb_element;
+
    /* preconditions */
    assert(program != NULL);
    assert(graph != NULL);
    assert(RA != NULL);
    
-   t_list *current_bb_element = graph->blocks;
+   current_bb_element = graph->blocks;
    while (current_bb_element != NULL)
    {
-      int counter;
+      int counter, bbHasTermInstr;
+      t_list *current_nd_element;
+      t_axe_instruction *current_instr;
+      t_cflow_Node *current_node;
 
       /* spill register slots
        * each array element corresponds to one of the registers reserved for
@@ -1073,9 +1083,8 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
 
       /* phase one
        * retrieve the list of nodes for the current basic block */
-      t_list *current_nd_element = current_block->nodes;
-      t_axe_instruction *current_instr;
-      t_cflow_Node *current_node;
+      current_nd_element = current_block->nodes;
+
       while(current_nd_element != NULL)
       {
          /* reordering table which associates the three instruction registers
@@ -1378,7 +1387,7 @@ void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
          current_nd_element = LNEXT(current_nd_element);
       }
 
-      int bbHasTermInstr = current_block->nodes && 
+      bbHasTermInstr = current_block->nodes && 
             (isJumpInstruction(current_instr) || 
             isHaltOrRetInstruction(current_instr));
 

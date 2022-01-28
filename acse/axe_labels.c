@@ -229,22 +229,20 @@ int getLabelCount(t_axe_label_manager *lmanager)
 void setLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
       const char *name)
 {
-   char *sanitizedName;
-   char *finalName;
-   int serial = -1;
-   int ok;
+   int serial = -1, ok, allocatedSpace;
+   char *sanitizedName, *finalName, *dstp;
+   const char *srcp;
 
    /* remove all non a-zA-Z0-9_ characters */
    sanitizedName = calloc(strlen(name)+1, 1);
-   const char *srcp = name;
-   char *dstp;
+   srcp = name;
    for (dstp = sanitizedName; *srcp; srcp++) {
       if (*srcp == '_' || isalnum(*srcp))
          *dstp++ = *srcp;
    }
 
    /* append a sequential number to disambiguate labels with the same name */
-   int allocatedSpace = strlen(sanitizedName)+24;
+   allocatedSpace = strlen(sanitizedName)+24;
    finalName = calloc(allocatedSpace, 1);
    snprintf(finalName, allocatedSpace, "_%s", sanitizedName);
    do {

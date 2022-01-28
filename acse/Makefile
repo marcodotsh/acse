@@ -8,7 +8,7 @@ override YFLAGS +=
 override LFLAGS +=
 
 objdir = ./obj
-override CFLAGS += -I$(objdir) -I.
+override CFLAGS += -I$(objdir) -I. -g -ansi -pedantic-errors
 
 y_src = Acse.y
 lex_src = Acse.lex
