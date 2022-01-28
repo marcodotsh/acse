@@ -1,23 +1,23 @@
-objects = executor asm compiler
-dirs:=mace assembler acse tests
+.PHONY: all
+all: acse simrv32im
 
+.PHONY: acse
+acse:
+	$(MAKE) -C acse
 
-all : $(objects)
+.PHONY: simrv32im
+simrv32im:
+	$(MAKE) -C simrv32im
 
-tests : 
-	cd ./tests && $(MAKE)
+.PHONY: tests
+tests: 
+	$(MAKE) -C tests
 
-executor :
-	cd ./mace && $(MAKE)
-
-asm :
-	cd ./assembler && $(MAKE)
-
-compiler :
-	cd ./acse && $(MAKE)
-
-clean :
-	for i in $(dirs) ; do cd $$i && $(MAKE) clean; cd .. ; done
+.PHONY: clean
+clean:
+	$(MAKE) -C acse clean
+	$(MAKE) -C simrv32im clean
+	$(MAKE) -C tests clean
 	rm -rf bin
 
 .PHONY : all clean tests executor asm compiler
