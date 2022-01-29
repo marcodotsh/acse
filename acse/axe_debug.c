@@ -301,19 +301,3 @@ void debugPrintInstruction(t_axe_instruction *instr, FILE *fout)
 
    printInstruction(instr, fout, 0);
 }
-
-char * dataTypeToString(int codedType)
-{
-   switch (codedType)
-   {
-      case INTEGER_TYPE : return "INTEGER";
-      default : return "<INVALID_TYPE>";
-   }
-}
-
-void debugPrintLabel(t_axe_label *label, FILE *fout)
-{
-   char *labelName = getLabelName(label);
-   fprintf(fout, "%s (ID=%d)", labelName, label->labelID);
-   free(labelName);
-}

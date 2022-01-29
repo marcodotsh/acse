@@ -19,9 +19,6 @@
  * output like `printf'. Otherwise, does nothing and returns zero. */
 extern int debugPrintf(const char *fmt, ...);
 
-/* print debug information about the program */
-extern void printProgramInfos(t_program_infos *program, FILE *fout);
-
 /* print debug informations about the control flow graph */
 extern void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose);
 
