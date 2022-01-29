@@ -235,7 +235,7 @@ void createVariable(t_program_infos *program, char *ID
       program->data = addElement(program->data, new_data_info, -1);
    } else {
       /* scalars are stored in registers */
-      var->reg_location = getNewRegister(program);
+      var->reg_location = genLoadImmediate(program, init_val);
    }
 
    /* add the new variable to program */
