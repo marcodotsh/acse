@@ -324,55 +324,55 @@ t_axe_instruction *genBEQInstruction(t_program_infos *program,
 t_axe_instruction *genBNEInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BNE, rs1, rs2, label);
 }
 
 t_axe_instruction *genBLTInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BLT, rs1, rs2, label);
 }
 
 t_axe_instruction *genBLTUInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BLTU, rs1, rs2, label);
 }
 
 t_axe_instruction *genBGEInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BGE, rs1, rs2, label);
 }
 
 t_axe_instruction *genBGEUInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BGEU, rs1, rs2, label);
 }
 
 t_axe_instruction *genBGTInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BGT, rs1, rs2, label);
 }
 
 t_axe_instruction *genBGTUInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BGTU, rs1, rs2, label);
 }
 
 t_axe_instruction *genBLEInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BLE, rs1, rs2, label);
 }
 
 t_axe_instruction *genBLEUInstruction(t_program_infos *program,
       int rs1, int rs2, t_axe_label *label)
 {
-   return genBFormatInstruction(program, OPC_BEQ, rs1, rs2, label);
+   return genBFormatInstruction(program, OPC_BLEU, rs1, rs2, label);
 }
 
 
