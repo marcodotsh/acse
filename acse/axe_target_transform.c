@@ -139,6 +139,9 @@ void fixUnsupportedImmediates(t_program_infos *program)
          instr->reg_src2 = initializeRegister(reg, 0);
          instr->opcode = switchOpcodeImmediateForm(instr->opcode);
          popInstrInsertionPoint(program);
+
+      } else if (instr->opcode == OPC_SLLI || instr->opcode == OPC_SRLI || instr->opcode == OPC_SRAI) {
+         instr->immediate = (unsigned)(instr->immediate) & 0x1F;
       }
 
       curi = nexti;
