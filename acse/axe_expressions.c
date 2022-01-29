@@ -46,18 +46,16 @@ int computeBinaryOperation(int val1, int val2, int binop)
       case OP_MUL: return val1 * val2;
       /* SHL, SHR, DIV need special handling to avoid undefined behavior */
       case OP_SHL:
-         if (val2 < 0) {
+         if (val2 < 0 || val2 >= 32) {
             printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-            return val2;
-         } else if (val2 >= 32)
-            return 0;
-         return val1 << val2;
+            val2 = (unsigned)val2 & 0x1F;
+         }
+         return val1 << (val2 & 0x1F);
       case OP_SHR:
-         if (val2 < 0) {
+         if (val2 < 0 || val2 >= 32) {
             printWarningMessage(WARN_INVALID_SHIFT_AMOUNT);
-            return val2;
-         } else if (val2 >= 32)
-            val2 = 31;
+            val2 = (unsigned)val2 & 0x1F;
+         }
          /* the C language does not guarantee a right shift of a signed value
           * is an arithmetic shift, so we have to make sure it is */
          return (val1 >> val2) |
@@ -66,6 +64,9 @@ int computeBinaryOperation(int val1, int val2, int binop)
          if (val2 == 0) {
             printWarningMessage(WARN_DIVISION_BY_ZERO);
             return INT_MAX;
+         } else if (val1 == INT_MIN && val2 == -1) {
+            printWarningMessage(WARN_OVERFLOW);
+            return INT_MIN;
          }
          return val1 / val2;
       case OP_LT: return val1 < val2;

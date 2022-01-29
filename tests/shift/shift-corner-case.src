@@ -28,12 +28,14 @@ write(1073741824 >> b);
 write(a >> 31);
 write(a >> b);
 
+/* should all print 1073741824 (32 wraps around to 0) */
 b = 32;
 write(1073741824 >> 32);
 write(1073741824 >> b);
 write(a >> 32);
 write(a >> b);
 
+/* should all print 536870912 (33 wraps around to 1) */
 b = 33;
 write(1073741824 >> 33);
 write(1073741824 >> b);
@@ -48,13 +50,14 @@ write(-1 << b);
 write(a << 31);
 write(a << b);
 
-/* should all print 0 */
+/* should all print -1 (32 wraps around to 0) */
 b = 32;
 write(-1 << 32);
 write(-1 << b);
 write(a << 32);
 write(a << b);
 
+/* should all print -2 (32 wraps around to 1) */
 b = 33;
 write(-1 << 33);
 write(-1 << b);
@@ -69,13 +72,14 @@ write(1 << b);
 write(a << 31);
 write(a << b);
 
-/* should all print 0 */
+/* should all print 1 (32 wraps around to 0) */
 b = 32;
 write(1 << 32);
 write(1 << b);
 write(a << 32);
 write(a << b);
 
+/* should all print 2 (33 wraps around to 1) */
 b = 33;
 write(1 << 33);
 write(1 << b);

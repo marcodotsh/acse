@@ -5,7 +5,7 @@ b = 5;
 c = 100;
 d = -5;
 
-/* should all print -20, flags NZVC=1000 (except when constant folding) */
+/* should all print -20 */
 write((-100) / 5);
 write((-100) / b);
 write(a / 5);
@@ -16,32 +16,34 @@ write(100 / d);
 write(c / -5);
 write(c / d);
 
-/* should all print -4, flags NZVC=1001 (except when constant folding) */
+/* should all print -4 */
 write((-100) >> 5);
 write((-100) >> b);
 write(a >> 5);
 write(a >> b);
 
-/* should all print -2, flags NZVC=1000 (except when constant folding) */
+/* should all print -2 */
 b = 6;
 write((-100) >> 6);
 write((-100) >> b);
 write(a >> 6);
 write(a >> b);
 
-/* should all print -1, flags NZVC=1001 (except when constant folding) */
+/* should all print -1 */
 b = 31;
 write((-100) >> 31);
 write((-100) >> b);
 write(a >> 31);
 write(a >> b);
 
+/* should all print -100 (32 wraps around to 0) */
 b = 32;
 write((-100) >> 32);
 write((-100) >> b);
 write(a >> 32);
 write(a >> b);
 
+/* should all print -50 (33 wraps around to 1) */
 b = 33;
 write((-100) >> 33);
 write((-100) >> b);

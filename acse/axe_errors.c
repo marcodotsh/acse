@@ -26,8 +26,8 @@ static void printErrorMessage(int errorcode);
 
 void printMessage(const char *msg)
 {
-   if (line_num != -1)
-      fprintf(stderr, "\nAt line %d, %s.\n", line_num, msg);
+   if (line_num >= 0)
+      fprintf(stderr, "At line %d, %s.\n", line_num, msg);
    else
       fprintf(stderr, "%s.\n", msg);
 }
@@ -108,16 +108,16 @@ void abortProgram()
 void printWarningMessage(int warningcode)
 {
    char *msg;
-   
-   switch (warningcode)
-   {
-      case WARN_DIVISION_BY_ZERO : msg = "warning: division by zero"; break;
-      case WARN_INVALID_SHIFT_AMOUNT: 
-            msg = "warning: shift amount is less than 0 or greater than 31";
-            break;
-      default : msg = "<invalid warning>"; break;
+
+   switch (warningcode) {
+      case WARN_DIVISION_BY_ZERO: msg = "warning: division by zero"; break;
+      case WARN_INVALID_SHIFT_AMOUNT:
+         msg = "warning: shift amount is less than 0 or greater than 31";
+         break;
+      case WARN_OVERFLOW: msg = "warning: overflow"; break;
+      default: msg = "<invalid warning>"; break;
    }
-   
+
    /* print out to the standard error the warning message */
    printMessage(msg);
 
