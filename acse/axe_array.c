@@ -65,14 +65,14 @@ int genLoadArrayAddress(t_program_infos *program
 
    /* preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (ID == NULL)
-      notifyError(AXE_VARIABLE_ID_UNSPECIFIED);
+      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
    
    /* retrieve the label associated with the given
    * identifier */
-   label = getLabelFromVariableID(program, ID);
+   label = getMemLocationOfArray(program, ID);
                      
    /* test if an error occurred */
    if (label == NULL)

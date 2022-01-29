@@ -211,7 +211,7 @@ t_list * addFreeRegister(t_list *registers, int regID, int position)
    /* Allocate memory space for the reg id */
    element = (int *) malloc(sizeof(int));
    if (element == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize element */
    (* element) = regID;
@@ -339,12 +339,12 @@ t_reg_allocator * initializeRegAlloc(t_cflow_Graph *graph)
 
    /* Check preconditions: the cfg must exist */
    if (graph == NULL)
-      notifyError(AXE_INVALID_CFLOW_GRAPH);
+      fatalError(AXE_INVALID_CFLOW_GRAPH);
 
    /* allocate memory for a new instance of `t_reg_allocator' */
    result = (t_reg_allocator *) malloc(sizeof(t_reg_allocator));
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
    
    /* initialize the register allocator informations */
    /* Reserve a few registers (NUM_SPILL_REGS) to handle spills */
@@ -375,7 +375,7 @@ t_reg_allocator * initializeRegAlloc(t_cflow_Graph *graph)
    
    /* test if an error occurred */
    if (result->bindings == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
       
    /* initialize the array of bindings */
    for (counter = 0; counter < result->varNum; counter++)
@@ -390,7 +390,7 @@ t_reg_allocator * initializeRegAlloc(t_cflow_Graph *graph)
    {
       if (insertListOfIntervals(result, intervals) != RA_OK)
       {
-         notifyError(AXE_REG_ALLOC_ERROR);
+         fatalError(AXE_REG_ALLOC_ERROR);
       }
 
       /* deallocate memory used to hold the results of the
@@ -477,7 +477,7 @@ t_live_interval * allocLiveInterval
    /* create a new instance of `t_live_interval' */
    result = malloc(sizeof(t_live_interval));
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new instance */
    result->varID = varID;
@@ -621,7 +621,7 @@ t_list *updateVarInterval(t_cflow_var *var, int counter, t_list *intervals )
         /* we have to add a new live interval */
         interval_found = allocLiveInterval(var->ID, var->mcRegWhitelist, counter, counter);
         if (interval_found == NULL)
-            notifyError(AXE_OUT_OF_MEMORY);
+            fatalError(AXE_OUT_OF_MEMORY);
         intervals = addElement(intervals, interval_found, -1);
     }
     
@@ -851,10 +851,10 @@ void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph)
    
    /* preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (graph == NULL)
-      notifyError(AXE_INVALID_CFLOW_GRAPH);
+      fatalError(AXE_INVALID_CFLOW_GRAPH);
 
    current_bb_element = graph->blocks;
    while(current_bb_element != NULL)
@@ -885,7 +885,7 @@ void updateTheDataSegment(t_program_infos *program, t_list *labelBindings)
    /* preconditions */
    if (program == NULL) {
       finalizeListOfTempLabels(labelBindings);
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
    }
 
    /* initialize the value of `current_element' */
@@ -898,7 +898,7 @@ void updateTheDataSegment(t_program_infos *program, t_list *labelBindings)
          
       if (new_data_info == NULL){
          finalizeListOfTempLabels(labelBindings);
-         notifyError(AXE_OUT_OF_MEMORY);
+         fatalError(AXE_OUT_OF_MEMORY);
       }
 
       /* update the list of directives */
@@ -1014,9 +1014,9 @@ t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA)
    
    /* preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
    if (RA == NULL)
-      notifyError(AXE_INVALID_REG_ALLOC);
+      fatalError(AXE_INVALID_REG_ALLOC);
 
    /* initialize the local variable `result' */
    result = NULL;
@@ -1029,7 +1029,7 @@ t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA)
          /* retrieve a new label */
          axe_label = newLabel(program);
          if (axe_label == NULL)
-            notifyError(AXE_INVALID_LABEL);
+            fatalError(AXE_INVALID_LABEL);
 
          /* create a new tempLabel */
          tlabel = allocTempLabel(axe_label, counter);

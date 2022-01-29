@@ -204,7 +204,7 @@ declaration : IDENTIFIER ASSIGN NUMBER
 
                /* test if an `out of memory' occurred */
                if ($$ == NULL)
-                  notifyError(AXE_OUT_OF_MEMORY);
+                  fatalError(AXE_OUT_OF_MEMORY);
             }
             | IDENTIFIER LSQUARE NUMBER RSQUARE
             {
@@ -213,7 +213,7 @@ declaration : IDENTIFIER ASSIGN NUMBER
 
                   /* test if an `out of memory' occurred */
                if ($$ == NULL)
-                  notifyError(AXE_OUT_OF_MEMORY);
+                  fatalError(AXE_OUT_OF_MEMORY);
             }
             | IDENTIFIER
             {
@@ -222,7 +222,7 @@ declaration : IDENTIFIER ASSIGN NUMBER
                
                /* test if an `out of memory' occurred */
                if ($$ == NULL)
-                  notifyError(AXE_OUT_OF_MEMORY);
+                  fatalError(AXE_OUT_OF_MEMORY);
             }
 ;
 
@@ -278,15 +278,15 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
 
                /* in order to assign a value to a variable, we have to
                 * know where the variable is located (i.e. in which register).
-                * the function `getRegLocationOfVariable' is used in order
+                * the function `getRegLocationOfScalar' is used in order
                 * to retrieve the register location assigned to
                 * a given identifier.
-                * `getRegLocationOfVariable' perform a query on the list
+                * `getRegLocationOfScalar' perform a query on the list
                 * of variables in order to discover the correct location of
                 * the variable with $1 as identifier */
                
                /* get the location of the variable with the given ID. */
-               location = getRegLocationOfVariable(program, $1);
+               location = getRegLocationOfScalar(program, $1);
 
                /* update the value of location */
                if ($3.type == IMMEDIATE)
@@ -412,7 +412,7 @@ read_statement : READ LPAR IDENTIFIER RPAR
                
                /* lookup the variable table and fetch the register location
                 * associated with the IDENTIFIER $3. */
-               location = getRegLocationOfVariable(program, $3);
+               location = getRegLocationOfScalar(program, $3);
 
                /* insert a read instruction */
                genREADInstruction (program, location);
@@ -444,7 +444,7 @@ exp: NUMBER      { $$ = getImmediateExpression($1); }
    | IDENTIFIER  {
                      int variableReg, expValReg;
                      /* get the location of the symbol with the given ID */
-                     variableReg = getRegLocationOfVariable(program, $1);
+                     variableReg = getRegLocationOfScalar(program, $1);
                      /* generate code that copies the value of the variable in
                       * a new register to freeze the expression's value */
                      expValReg = getNewRegister(program);

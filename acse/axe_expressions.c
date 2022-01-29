@@ -76,7 +76,7 @@ int computeBinaryOperation(int val1, int val2, int binop)
       case OP_GTEQ: return val1 >= val2;
    }
 
-   notifyError(AXE_INVALID_EXPRESSION);
+   fatalError(AXE_INVALID_EXPRESSION);
    return 0;
 }
 
@@ -140,7 +140,7 @@ int genBinaryOperationWithImmediate(t_program_infos *program,
             genSGEIInstruction(program, rd, r1, immediate);
             break;
          default:
-            notifyError(AXE_INVALID_EXPRESSION);
+            fatalError(AXE_INVALID_EXPRESSION);
       }
    }
 
@@ -208,7 +208,7 @@ int genBinaryOperation(t_program_infos *program, int r1, int r2, int op)
             genSGEInstruction(program, rd, r1, r2);
             break;
          default:
-            notifyError(AXE_INVALID_EXPRESSION);
+            fatalError(AXE_INVALID_EXPRESSION);
       }
    }
 
@@ -240,7 +240,7 @@ t_axe_expression handleBinaryOperator(t_program_infos *program,
       res = getRegisterExpression(rd);
 
    } else {
-      notifyError(AXE_INVALID_EXPRESSION);
+      fatalError(AXE_INVALID_EXPRESSION);
    }
 
    return res;

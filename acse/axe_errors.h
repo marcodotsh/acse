@@ -47,8 +47,7 @@
 #define AXE_UNKNOWN_ERROR 28
 
 extern void printWarningMessage(int warningcode);
-extern void printMessage(const char *msg);
-extern void notifyError(int axe_errorcode);
+extern void fatalError(int axe_errorcode);
 extern void checkConsistency();
 
 #endif

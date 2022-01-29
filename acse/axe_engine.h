@@ -191,10 +191,6 @@ extern t_axe_label *newNamedLabel(t_program_infos *program, const char *name);
 extern t_axe_label *assignNewNamedLabel(
       t_program_infos *program, const char *name);
 
-/* get the label that marks the starting address of the array variable
- * with name "ID" */
-extern t_axe_label *getLabelFromVariableID(t_program_infos *program, char *ID);
-
 /*  VARIABLES  */
 
 /* add a variable to the program */
@@ -207,8 +203,12 @@ extern t_axe_variable *getVariable(t_program_infos *program, char *ID);
 /* Given a variable identifier (ID) this function
  * returns a register location where the value is stored
  * (the value of the variable identified by `ID'). If an error occurs,
- * getRegLocationOfVariable returns a REG_INVALID errorcode */
-extern int getRegLocationOfVariable(t_program_infos *program, char *ID);
+ * getRegLocationOfScalar returns REG_INVALID */
+extern int getRegLocationOfScalar(t_program_infos *program, char *ID);
+
+/* get the label that marks the starting address of the array variable
+ * with name "ID" */
+extern t_axe_label *getMemLocationOfArray(t_program_infos *program, char *ID);
 
 /*  DATA DIRECTIVES  */
 

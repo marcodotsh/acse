@@ -85,7 +85,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
    if (program == NULL)
    {
       free_new_variables(variables);
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
    }
 
    /* initialize `current_element' */
@@ -98,7 +98,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
       if (current_decl == NULL)
       {
          free_new_variables(variables);
-         notifyError(AXE_NULL_DECLARATION);
+         fatalError(AXE_NULL_DECLARATION);
       }
 
       /* create and assign a new variable to program */
@@ -123,7 +123,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
       /* associate a register to each declared variable
        * that is not an array type */
       if (!(current_decl->isArray))
-         getRegLocationOfVariable(program, current_decl->ID);
+         getRegLocationOfScalar(program, current_decl->ID);
 
       /* free the memory associated with the current declaration */
       free(current_decl);
@@ -138,7 +138,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
 void setProgramEnd(t_program_infos *program)
 {
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (isAssigningLabel(program->lmanager))
    {

@@ -49,7 +49,7 @@ t_axe_register * initializeRegister(int ID, int indirect)
    
    /* check the postconditions */
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new label */
    result->ID = ID;
@@ -70,7 +70,7 @@ t_axe_instruction * initializeInstruction(int opcode)
    
    /* check the postconditions */
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* ininitialize the fields of `result' */
    result->opcode = opcode;
@@ -185,7 +185,7 @@ t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
    result = (t_axe_address *)malloc(sizeof(t_axe_address));
 
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new instance of `t_axe_address' */
    result->type = type;
@@ -207,21 +207,21 @@ void createVariable(t_program_infos *program, char *ID
          
    /* test the preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (type != INTEGER_TYPE)
-      notifyError(AXE_INVALID_TYPE);
+      fatalError(AXE_INVALID_TYPE);
 
    /* initialize a new variable */
    var = initializeVariable(ID, type, isArray, arraySize, init_val);
    if (var == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
    
    if (isArray) {
       /* arrays are stored in memory and need a variable location */
       var->labelID = newLabel(program);
       if (var->labelID == NULL)
-         notifyError(AXE_OUT_OF_MEMORY);
+         fatalError(AXE_OUT_OF_MEMORY);
       setLabelName(program->lmanager, var->labelID, ID);
 
       /* create an instance of `t_axe_data' */   
@@ -229,7 +229,7 @@ void createVariable(t_program_infos *program, char *ID
       new_data_info = initializeData(DIR_SPACE, var->arraySize * sizeofElem,
             var->labelID);
       if (new_data_info == NULL)
-         notifyError(AXE_OUT_OF_MEMORY);
+         fatalError(AXE_OUT_OF_MEMORY);
 
       /* update the list of directives */
       program->data = addElement(program->data, new_data_info, -1);
@@ -316,10 +316,10 @@ t_axe_variable * getVariable
    
    /* preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (ID == NULL)
-      notifyError(AXE_VARIABLE_ID_UNSPECIFIED);
+      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
 
    /* initialize the pattern */
    search_pattern.ID = ID;
@@ -335,7 +335,7 @@ t_axe_variable * getVariable
    return NULL;
 }
 
-int getRegLocationOfVariable(t_program_infos *program, char *ID)
+int getRegLocationOfScalar(t_program_infos *program, char *ID)
 {
    int sy_error;
    int location;
@@ -343,10 +343,10 @@ int getRegLocationOfVariable(t_program_infos *program, char *ID)
 
    /* preconditions: ID and program shouldn't be NULL pointer */
    if (ID == NULL)
-      notifyError(AXE_VARIABLE_ID_UNSPECIFIED);
+      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
 
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
    
    /* get the location of the variable with the given ID */
    var = getVariable(program, ID);
@@ -370,7 +370,7 @@ t_program_infos * allocProgramInfos()
    /* verify if an error occurred during the memory allocation
     * process */
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new instance of `result' */
    result->variables = NULL;
@@ -383,7 +383,7 @@ t_program_infos * allocProgramInfos()
    if (result->lmanager == NULL)
    {
       finalizeProgramInfos(result);
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
    }
    
    /* postcondition: return an instance of `t_program_infos' */
@@ -397,13 +397,13 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
 
    /* test the preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
    
    if (instr == NULL)
-      notifyError(AXE_INVALID_INSTRUCTION);
+      fatalError(AXE_INVALID_INSTRUCTION);
 
    if (program->lmanager == NULL)
-      notifyError(AXE_INVALID_LABEL_MANAGER);
+      fatalError(AXE_INVALID_LABEL_MANAGER);
 
    instr->labelID = getLastPendingLabel(program->lmanager);
 
@@ -438,13 +438,13 @@ t_axe_instruction *genInstruction(t_program_infos *program,
    /* initialize the instruction's registers */
    instr->reg_dest = r_dest;
    if (r_dest && r_dest->ID < 0)
-      notifyError(AXE_INVALID_REGISTER_INFO);
+      fatalError(AXE_INVALID_REGISTER_INFO);
    instr->reg_src1 = r_src1;
    if (r_src1 && r_src1->ID < 0)
-      notifyError(AXE_INVALID_REGISTER_INFO);
+      fatalError(AXE_INVALID_REGISTER_INFO);
    instr->reg_src2 = r_src2;
    if (r_src2 && r_src2->ID < 0)
-      notifyError(AXE_INVALID_REGISTER_INFO);
+      fatalError(AXE_INVALID_REGISTER_INFO);
 
    /* attach an address if needed */
    if (label)
@@ -563,10 +563,10 @@ t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
 
    /* test the preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (program->lmanager == NULL)
-      notifyError(AXE_INVALID_LABEL_MANAGER);
+      fatalError(AXE_INVALID_LABEL_MANAGER);
 
    label = newLabelID(program->lmanager);
    if (name)
@@ -586,15 +586,15 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
 
    /* test the preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    if (program->lmanager == NULL)
-      notifyError(AXE_INVALID_LABEL_MANAGER);
+      fatalError(AXE_INVALID_LABEL_MANAGER);
    
    for (li = program->instructions; li != NULL; li = LNEXT(li)) {
       t_axe_instruction *instr = LDATA(li);
       if (instr->labelID && instr->labelID->labelID == label->labelID)
-         notifyError(AXE_LABEL_ALREADY_ASSIGNED);
+         fatalError(AXE_LABEL_ALREADY_ASSIGNED);
    }
 
    /* fix the label */
@@ -627,28 +627,28 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
    /* test the preconditions */
    if (variable == NULL)
    {
-      notifyError(AXE_INVALID_VARIABLE);
+      fatalError(AXE_INVALID_VARIABLE);
       return;
    }
 
    if (program == NULL)
    {
       finalizeVariable(variable);
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
       return;
    }
 
    if (variable->ID == NULL)
    {
       finalizeVariable(variable);
-      notifyError(AXE_VARIABLE_ID_UNSPECIFIED);
+      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
       return;
    }
 
    if (variable->type == UNKNOWN_TYPE)
    {
       finalizeVariable(variable);
-      notifyError(AXE_INVALID_TYPE);
+      fatalError(AXE_INVALID_TYPE);
       return;
    }
 
@@ -657,13 +657,13 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
       if (variable->arraySize <= 0)
       {
          finalizeVariable(variable);
-         notifyError(AXE_INVALID_ARRAY_SIZE);
+         fatalError(AXE_INVALID_ARRAY_SIZE);
          return;
       }
       if (variable->labelID == NULL)
       {
          finalizeVariable(variable);
-         notifyError(AXE_INVALID_LABEL);
+         fatalError(AXE_INVALID_LABEL);
          return;
       }
    }
@@ -672,7 +672,7 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
       if (variable->reg_location == REG_INVALID)
       {
          finalizeVariable(variable);
-         notifyError(AXE_INVALID_VARIABLE);
+         fatalError(AXE_INVALID_VARIABLE);
          return;
       }
    }
@@ -683,7 +683,7 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
    if (variableFound != NULL)
    {
       finalizeVariable(variable);
-      notifyError(AXE_VARIABLE_ALREADY_DECLARED);
+      fatalError(AXE_VARIABLE_ALREADY_DECLARED);
       return;
    }
 
@@ -697,7 +697,7 @@ int getNewRegister(t_program_infos *program)
    
    /* test the preconditions */
    if (program == NULL)
-      notifyError(AXE_PROGRAM_NOT_INITIALIZED);
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
    result = program->current_register;
    program->current_register++;
@@ -722,7 +722,7 @@ void finalizeProgramInfos(t_program_infos *program)
    free(program);
 }
 
-t_axe_label * getLabelFromVariableID(t_program_infos *program, char *ID)
+t_axe_label * getMemLocationOfArray(t_program_infos *program, char *ID)
 {
    t_axe_variable *var;
    

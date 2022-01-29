@@ -21,40 +21,15 @@ extern const char *errormsg;
 extern int cflow_errorcode;
 
 
-static void abortProgram();
 static void printErrorMessage(int errorcode);
 
-void abortProgram()
+
+void printMessage(const char *msg)
 {
-   if (num_error > 0)
-   {
-      fprintf(stderr,   "Input file contains some errors. "
-                        "No assembly file written\n");
-      fprintf(stderr, "**%d error(s) found \n\n", num_error);
-   }
-
-   /* finalize all the data structures */
-   shutdownCompiler(-1);
-}
-
-void printWarningMessage(int warningcode)
-{
-   char *msg;
-   
-   switch (warningcode)
-   {
-      case WARN_DIVISION_BY_ZERO : msg = "warning: division by zero"; break;
-      case WARN_INVALID_SHIFT_AMOUNT: 
-            msg = "warning: shift amount is less than 0 or greater than 31";
-            break;
-      default : msg = "<invalid warning>"; break;
-   }
-   
-   /* print out to the standard error the warning message */
-   printMessage(msg);
-
-   /* update the value of num_warning */
-   num_warning++;
+   if (line_num != -1)
+      fprintf(stderr, "\nAt line %d, %s.\n", line_num, msg);
+   else
+      fprintf(stderr, "%s.\n", msg);
 }
 
 static void printErrorMessage(int errorcode)
@@ -117,15 +92,40 @@ static void printErrorMessage(int errorcode)
    num_error++;
 }
 
-void printMessage(const char *msg)
+void abortProgram()
 {
-   if (line_num != -1)
-      fprintf(stderr, "\nAt line %d, %s.\n", line_num, msg);
-   else
-      fprintf(stderr, "%s.\n", msg);
+   if (num_error > 0)
+   {
+      fprintf(stderr,   "Input file contains some errors. "
+                        "No assembly file written\n");
+      fprintf(stderr, "**%d error(s) found \n\n", num_error);
+   }
+
+   /* finalize all the data structures */
+   shutdownCompiler(-1);
 }
 
-void notifyError(int axe_errorcode)
+void printWarningMessage(int warningcode)
+{
+   char *msg;
+   
+   switch (warningcode)
+   {
+      case WARN_DIVISION_BY_ZERO : msg = "warning: division by zero"; break;
+      case WARN_INVALID_SHIFT_AMOUNT: 
+            msg = "warning: shift amount is less than 0 or greater than 31";
+            break;
+      default : msg = "<invalid warning>"; break;
+   }
+   
+   /* print out to the standard error the warning message */
+   printMessage(msg);
+
+   /* update the value of num_warning */
+   num_warning++;
+}
+
+void fatalError(int axe_errorcode)
 {
    assert(axe_errorcode != AXE_OK);
    errorcode = axe_errorcode;

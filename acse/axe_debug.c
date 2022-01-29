@@ -306,7 +306,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
 
       fprintf(fout, "   location = ");
 
-      reg = getRegLocationOfVariable(program, var->ID);
+      reg = getRegLocationOfScalar(program, var->ID);
       if (reg == REG_INVALID)
          fprintf(fout, "N/A");
       else

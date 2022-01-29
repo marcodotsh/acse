@@ -52,7 +52,7 @@ int isAssigningLabel(t_axe_label_manager *lmanager)
 {
    /* preconditions: lmanager must be different from NULL */
    if (lmanager == NULL)
-      notifyError(AXE_INVALID_LABEL_MANAGER);
+      fatalError(AXE_INVALID_LABEL_MANAGER);
 
    if (lmanager->label_to_assign != NULL)
    {
@@ -109,7 +109,7 @@ t_axe_label * assignLabelID(t_axe_label_manager *lmanager, t_axe_label *label)
    if (  (label == NULL)
          || (label->labelID >= lmanager->current_label_ID))
    {
-      notifyError(AXE_INVALID_LABEL);
+      fatalError(AXE_INVALID_LABEL);
    }
 
    /* test if the next instruction has already a label */
@@ -153,7 +153,7 @@ t_axe_label_manager * initializeLabelManager()
          malloc (sizeof(t_axe_label_manager));
 
    if (result == NULL)
-      notifyError(AXE_OUT_OF_MEMORY);
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new instance */
    result->labels = NULL;
@@ -202,7 +202,7 @@ t_axe_label * getLastPendingLabel(t_axe_label_manager *lmanager)
    
    /* precondition: lmanager must be different from NULL */
    if (lmanager == NULL)
-      notifyError(AXE_INVALID_LABEL_MANAGER);
+      fatalError(AXE_INVALID_LABEL_MANAGER);
 
    /* the label that must be returned (can be a NULL pointer) */
    result = lmanager->label_to_assign;
