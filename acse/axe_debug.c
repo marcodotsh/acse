@@ -14,9 +14,6 @@
 #include "axe_target_info.h"
 #include "axe_target_asm_print.h"
 
-#define LABEL_WIDTH (3*2)
-#define INSTR_WIDTH (3*7)
-
 static void debugPrintInstruction(t_axe_instruction *instr, FILE *fout);
 static void printArrayOfVariables(t_cflow_var **array, int size, FILE *fout);
 static void printListOfVariables(t_list *variables, FILE *fout);
@@ -24,8 +21,7 @@ static void printCFlowGraphVariable(t_cflow_var *var, FILE *fout);
 static void printBBlockInfos(t_basic_block *block, FILE *fout, int verbose);
 static void printLiveIntervals(t_list *intervals, FILE *fout);
 static void printBindings(int *bindings, int numVars, FILE *fout);
-static void printLabel(t_axe_label *label, int printInline, FILE *fout);
-static off_t printFormPadding(off_t formBegin, int formSize, FILE *fout);
+static void debugPrintLabel(t_axe_label *label, FILE *fout);
 
 
 int debugPrintf(const char *fmt, ...)
@@ -317,7 +313,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
 
       if (var->isArray) {
          fprintf(fout, "   label = ");
-         printLabel(var->labelID, 0, fout);
+         debugPrintLabel(var->labelID, fout);
          fprintf(fout, "\n");
       }
 
@@ -373,29 +369,9 @@ char * dataTypeToString(int codedType)
    }
 }
 
-void printLabel(t_axe_label *label, int printInline, FILE *fout)
+void debugPrintLabel(t_axe_label *label, FILE *fout)
 {
    char *labelName = getLabelName(label);
-
-   if (printInline) {
-      fprintf(fout, "%s", labelName);
-   } else {
-      fprintf(fout, "%s (ID=%d)", labelName, label->labelID);
-   }
-
+   fprintf(fout, "%s (ID=%d)", labelName, label->labelID);
    free(labelName);
-}
-
-off_t printFormPadding(off_t formBegin, int formSize, FILE *fout)
-{
-   off_t currentLoc = ftello(fout);
-   off_t padding = formSize - (currentLoc - formBegin);
-   if (padding > 1) {
-      off_t i;
-      for (i = 0; i < padding - 1; i++) {
-         putc(' ', fout);
-      }
-   }
-   putc(' ', fout);
-   return ftello(fout);
 }
