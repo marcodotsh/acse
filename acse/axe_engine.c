@@ -15,6 +15,7 @@
 #include "axe_errors.h"
 #include "axe_gencode.h"
 #include "axe_target_info.h"
+#include "axe_target_asm_print.h"
 
 /* global variable errorcode */
 int errorcode;
@@ -388,6 +389,72 @@ t_program_infos * allocProgramInfos()
    
    /* postcondition: return an instance of `t_program_infos' */
    return result;
+}
+
+void printProgramInfos(t_program_infos *program, FILE *fout)
+{
+   t_list *cur_var, *cur_inst;
+
+   fprintf(fout,"**************************\n");
+   fprintf(fout,"          PROGRAM         \n");
+   fprintf(fout,"**************************\n\n");
+
+   fprintf(fout,"-----------\n");
+   fprintf(fout," VARIABLES\n");
+   fprintf(fout,"-----------\n");
+   cur_var = program->variables;
+   while (cur_var) {
+      int reg;
+
+      t_axe_variable *var = LDATA(cur_var);
+      fprintf(fout, "[%s]\n", var->ID);
+
+      fprintf(fout, "   type = ");
+      if (var->type == INTEGER_TYPE)
+         fprintf(fout, "int");
+      else
+         fprintf(fout, "(invalid)");
+      
+      if (var->isArray) {
+         fprintf(fout, ", array size = %d", var->arraySize);
+      } else {
+         fprintf(fout, ", scalar initial value = %d", var->init_val);
+      }
+      fprintf(fout, "\n");
+
+      if (var->isArray) {
+         char *labelName = getLabelName(var->label);
+         fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
+         free(labelName);
+      }
+
+      fprintf(fout, "   location = ");
+
+      reg = getRegLocationOfScalar(program, var->ID);
+      if (reg == REG_INVALID)
+         fprintf(fout, "N/A");
+      else
+         fprintf(fout, "R%d", reg);
+      fprintf(fout, "\n");
+
+      cur_var = LNEXT(cur_var);
+   }
+
+   fprintf(fout,"\n--------------\n");
+   fprintf(fout," INSTRUCTIONS\n");
+   fprintf(fout,"--------------\n");
+   cur_inst = program->instructions;
+   while (cur_inst) {
+      t_axe_instruction *instr = LDATA(cur_inst);
+      if (instr == NULL)
+         fprintf(fout, "(null)");
+      else
+         printInstruction(instr, fout, 0);
+      fprintf(fout, "\n");
+      cur_inst = LNEXT(cur_inst);
+   }
+
+   fflush(fout);
 }
 
 /* add an instruction at the tail of the list `program->instructions'. */

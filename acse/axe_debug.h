@@ -28,7 +28,4 @@ extern void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose);
 /* print debug informations about register allocation infos */
 extern void printRegAllocInfos(t_reg_allocator *RA, FILE *fout);
 
-/* returns a string that represent the codedType given as input */
-extern char *dataTypeToString(int codedType);
-
 #endif

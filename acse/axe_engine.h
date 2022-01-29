@@ -126,6 +126,9 @@ extern t_program_infos *allocProgramInfos();
 /* finalize all the data structures associated with `program' */
 extern void finalizeProgramInfos(t_program_infos *program);
 
+/* print information about the program in the specified file */
+extern void printProgramInfos(t_program_infos *program, FILE *fout);
+
 /*  INSTRUCTIONS  */
 
 /* get a register still not used. This function returns
