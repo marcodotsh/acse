@@ -28,7 +28,7 @@
 
 typedef struct t_tempLabel
 {
-   t_axe_label *labelID;
+   t_axe_label *label;
    int regID;
 } t_tempLabel;
 
@@ -970,7 +970,7 @@ void updateTheDataSegment(t_program_infos *program, t_list *labelBindings)
    {
       current_TL = (t_tempLabel *) LDATA(current_element);
 
-      new_data_info = initializeData (DIR_WORD, 0, current_TL->labelID);
+      new_data_info = initializeData (DIR_WORD, 0, current_TL->label);
          
       if (new_data_info == NULL){
          finalizeListOfTempLabels(labelBindings);
@@ -1000,12 +1000,12 @@ int compareTempLabels(void *valA, void *valB)
    return (tlA->regID == tlB->regID);
 }
 
-t_tempLabel * allocTempLabel(t_axe_label *labelID, int regID)
+t_tempLabel * allocTempLabel(t_axe_label *label, int regID)
 {
    t_tempLabel *result;
 
    /* preconditions */
-   if (labelID == NULL) {
+   if (label == NULL) {
       errorcode = AXE_INVALID_LABEL;
       return NULL;
    }
@@ -1018,7 +1018,7 @@ t_tempLabel * allocTempLabel(t_axe_label *labelID, int regID)
    }
    
    /* initialize the temp label */
-   result->labelID = labelID;
+   result->label = label;
    result->regID = regID;
 
    return result;
@@ -1509,7 +1509,7 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
    assert(tlabel != NULL);
 
    /* create a store instruction */
-   storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->labelID);
+   storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label);
 
    /* create a node for the load instruction */
    storeNode = allocNode (graph, storeInstr);
@@ -1554,7 +1554,7 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
    assert(tlabel != NULL);
    
    /* create a load instruction */
-   loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->labelID);
+   loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->label);
 
    /* create a node for the load instruction */
    loadNode = allocNode (graph, loadInstr);

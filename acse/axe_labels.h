@@ -12,7 +12,7 @@
 #define _AXE_LABELS_H
 
 typedef struct t_axe_label {
-   unsigned int labelID; /* label identifier */
+   unsigned int labelID; /* Unique identifier for the label */
    char *name;           /* Name of the label. If NULL, the name will be 
                           * automatically generated in the form L<ID>. */
    int global;           /* zero for local labels, non-zero for global labels.*/
