@@ -15,9 +15,11 @@
 #include "axe_engine.h"
 #include "collections.h"
 
+
 /* maximum and minimum between two values */
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
+
 
 typedef struct t_axe_declaration
 {
@@ -36,6 +38,11 @@ typedef struct t_while_statement
    t_axe_label *label_end;         /* this label points to the instruction
                                     * that follows the while construct */
 } t_while_statement;
+
+
+/* In debug builds (NDEBUG not defined), prints a message on the standard
+ * output like `printf'. Otherwise, does nothing and returns zero. */
+extern int debugPrintf(const char *fmt, ...);
 
 /* create an instance of `t_axe_variable' */
 extern t_axe_declaration *initializeDeclaration(

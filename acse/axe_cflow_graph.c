@@ -12,7 +12,7 @@
 #include "axe_cflow_graph.h"
 #include "collections.h"
 #include "axe_utils.h"
-#include "axe_debug.h"
+#include "axe_utils.h"
 #include "axe_target_info.h"
 #include "axe_target_asm_print.h"
 

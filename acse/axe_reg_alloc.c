@@ -10,7 +10,6 @@
 #include <assert.h>
 #include "axe_reg_alloc.h"
 #include "axe_target_info.h"
-#include "axe_debug.h"
 #include "axe_errors.h"
 #include "axe_utils.h"
 #include "axe_gencode.h"

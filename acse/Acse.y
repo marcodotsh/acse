@@ -28,7 +28,6 @@
 #include "axe_cflow_graph.h"
 #include "axe_reg_alloc.h"
 #include "axe_io_manager.h"
-#include "axe_debug.h"
 
 /* global variables */
 int line_num;        /* this variable will keep track of the

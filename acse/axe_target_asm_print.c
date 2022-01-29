@@ -9,13 +9,14 @@
  */
 
 #include <assert.h>
+#include "axe_labels.h"
+#include "axe_utils.h"
 #include "axe_target_asm_print.h"
 #include "axe_target_info.h"
 #include "axe_target_transform.h"
-#include "axe_labels.h"
-#include "axe_debug.h"
 
 #define BUF_LENGTH 256
+
 
 const char *opcodeToString(int opcode)
 {
