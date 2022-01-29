@@ -14,12 +14,45 @@
 #include "axe_errors.h"
 #include "axe_utils.h"
 #include "axe_gencode.h"
+#include "axe_engine.h"
+#include "collections.h"
+#include "axe_cflow_graph.h"
+#include "axe_io_manager.h"
 
-/*
- * LINEAR SCAN
- */
+/* errorcodes */
+#define RA_OK 0
+#define RA_INVALID_ALLOCATOR 1
+#define RA_INVALID_INTERVAL 2
+#define RA_INTERVAL_ALREADY_INSERTED 3
+#define RA_INVALID_NUMBER_OF_REGISTERS 4
+
+typedef struct t_tempLabel
+{
+   t_axe_label *labelID;
+   int regID;
+} t_tempLabel;
+
 
 extern int errorcode;
+extern int cflow_errorcode;
+extern t_io_infos *file_infos;
+
+/* Initialize the internal structure of the register allocator */
+static t_reg_allocator * initializeRegAlloc(t_cflow_Graph *graph);
+
+/* finalize all the data structure associated with the given register allocator */
+static void finalizeRegAlloc(t_reg_allocator *RA);
+
+/* execute the register allocation algorithm (Linear Scan) */
+static int executeLinearScan(t_reg_allocator *RA);
+
+/* Replace the variable identifiers in the instructions of the CFG with the
+ * register assignments in the register allocator. Materialize spilled
+ * variables to the scratch registers. All new instructions are inserted
+ * in the CFG. Synchronize the list of instructions with the newly
+ * modified program. */
+static void materializeRegisterAllocation(
+      t_program_infos *program, t_cflow_Graph *graph, t_reg_allocator *RA);
 
 static int compareIntervalIDs(void *varA, void *varB);
 static int compareStartPoints(void *varA, void *varB);
@@ -39,6 +72,91 @@ static void finalizeLiveInterval (t_live_interval *interval);
 static t_live_interval * allocLiveInterval(int varID, t_list *mcRegs, int startPoint, int endPoint);
 static t_list * spillAtInterval(t_reg_allocator *RA
       , t_list *active_intervals, t_live_interval *interval);
+
+static t_axe_instruction * _createUnary (t_program_infos *program
+            , int reg, t_axe_label *label, int opcode);
+static t_tempLabel * allocTempLabel(t_axe_label *labelID, int regID);
+static void freeTempLabel(t_tempLabel *tempLabel);
+static void finalizeListOfTempLabels(t_list *tempLabels);
+static int compareTempLabels(void *valA, void *valB);
+
+/* create new locations into the data segment in order to manage correctly
+ * spilled variables */
+static void updateTheDataSegment
+            (t_program_infos *program, t_list *tempLabels);
+static void updateTheCodeSegment
+            (t_program_infos *program, t_cflow_Graph *graph);
+
+/* update the control flow informations by unsing the result
+ * of the register allocation process and a list of bindings
+ * between new assembly labels and spilled variables */
+static void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
+            , t_reg_allocator *RA, t_list *label_bindings);
+
+/* this function returns a list of t_templabel containing binding
+ * informations between spilled variables and labels that will point
+ * to a memory block in the data segment */
+static t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA);
+      
+static int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_register
+            , t_cflow_Graph *graph, t_basic_block *current_block
+            , t_cflow_Node *current_node, t_list *labelBindings, int before);
+            
+static int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_register
+            , t_cflow_Graph *graph, t_basic_block *current_block
+            , t_cflow_Node *current_node, t_list *labelBindings, int before);
+
+
+void doRegisterAllocation(t_program_infos *program)
+{
+   t_cflow_Graph *graph;
+   t_reg_allocator *RA;
+
+   /* create the control flow graph */
+   debugPrintf("Creating a control flow graph.\n");
+   graph = createFlowGraph(program->instructions);
+   checkConsistency();
+
+#ifndef NDEBUG
+   assert(program != NULL);
+   assert(file_infos != NULL);
+   printGraphInfos(graph, file_infos->cfg_1, 0);
+#endif
+
+   debugPrintf("Executing a liveness analysis on the intermediate code\n");
+   performLivenessAnalysis(graph);
+   checkConsistency();
+
+#ifndef NDEBUG
+   printGraphInfos(graph, file_infos->cfg_2, 1);
+#endif
+      
+   debugPrintf("Performing register allocation using the linear scan algorithm.\n");
+
+   /* initialize the register allocator by using the control flow
+    * informations stored into the control flow graph */
+   RA = initializeRegAlloc(graph);
+   
+   /* execute the linear scan algorithm */
+   executeLinearScan(RA);
+      
+#ifndef NDEBUG
+   printRegAllocInfos(RA, file_infos->reg_alloc_output);
+#endif
+
+   /* apply changes to the program informations by using the informations
+    * of the register allocation process */
+   debugPrintf("Updating the control flow informations.\n");
+   materializeRegisterAllocation(program, graph, RA);
+
+   finalizeRegAlloc(RA);
+   finalizeGraph(graph);
+}
+
+
+/*
+ * LINEAR SCAN
+ */
 
 /*
  * Perform a spill that allows the allocation of the given
@@ -799,48 +917,6 @@ int executeLinearScan(t_reg_allocator *RA)
 /*
  * MATERIALIZATION AND SPILL
  */
-
-extern int cflow_errorcode;
-
-typedef struct t_tempLabel
-{
-   t_axe_label *labelID;
-   int regID;
-} t_tempLabel;
-
-
-static t_axe_instruction * _createUnary (t_program_infos *program
-            , int reg, t_axe_label *label, int opcode);
-static t_tempLabel * allocTempLabel(t_axe_label *labelID, int regID);
-static void freeTempLabel(t_tempLabel *tempLabel);
-static void finalizeListOfTempLabels(t_list *tempLabels);
-static int compareTempLabels(void *valA, void *valB);
-
-/* create new locations into the data segment in order to manage correctly
- * spilled variables */
-static void updateTheDataSegment
-            (t_program_infos *program, t_list *tempLabels);
-static void updateTheCodeSegment
-            (t_program_infos *program, t_cflow_Graph *graph);
-
-/* update the control flow informations by unsing the result
- * of the register allocation process and a list of bindings
- * between new assembly labels and spilled variables */
-static void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
-            , t_reg_allocator *RA, t_list *label_bindings);
-
-/* this function returns a list of t_templabel containing binding
- * informations between spilled variables and labels that will point
- * to a memory block in the data segment */
-static t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA);
-      
-int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_register
-            , t_cflow_Graph *graph, t_basic_block *current_block
-            , t_cflow_Node *current_node, t_list *labelBindings, int before);
-            
-int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_register
-            , t_cflow_Graph *graph, t_basic_block *current_block
-            , t_cflow_Node *current_node, t_list *labelBindings, int before);
 
 void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph)
 {

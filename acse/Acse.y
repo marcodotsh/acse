@@ -61,11 +61,6 @@ extern int errorcode;   /* this variable is used to test if an error is found
 extern const char *errormsg; /* When errorcode is not equal to AXE_OK,
                          * this variable may be set to an error message to print
                          * if desired. */
-
-extern int cflow_errorcode;   /* As for `errorcode' this value is used to
-                        * test if an error occurs during the creation process of
-                        * a control flow graph. More informations can be found
-                        * analyzing the file `axe_cflow_graph.h'. */
                      
 /* program informations */
 t_program_infos *program;  /* The singleton instance of `program'.
@@ -74,12 +69,6 @@ t_program_infos *program;  /* The singleton instance of `program'.
                             * about a program. For example: the assembly
                             * (code and directives);
                             * the label manager (see axe_labels.h) etc. */
-t_cflow_Graph *graph;      /* An instance of a control flow graph. This instance
-                            * will be generated starting from `program' and will
-                            * be used during the register allocation process */
-
-t_reg_allocator *RA;       /* Register allocator. It implements the "Linear
-                            * scan" algorithm */
 
 t_io_infos *file_infos;    /* input and output files used by the compiler */
 
@@ -546,42 +535,7 @@ int main (int argc, char **argv)
 
    doTargetSpecificTransformations(program);
 
-   /* create the control flow graph */
-   debugPrintf("Creating a control flow graph.\n");
-   graph = createFlowGraph(program->instructions);
-   checkConsistency();
-
-#ifndef NDEBUG
-   assert(program != NULL);
-   assert(file_infos != NULL);
-   printGraphInfos(graph, file_infos->cfg_1, 0);
-#endif
-
-   debugPrintf("Executing a liveness analysis on the intermediate code\n");
-   performLivenessAnalysis(graph);
-   checkConsistency();
-
-#ifndef NDEBUG
-   printGraphInfos(graph, file_infos->cfg_2, 1);
-#endif
-      
-   debugPrintf("Starting the register allocation process.\n");
-
-   /* initialize the register allocator by using the control flow
-    * informations stored into the control flow graph */
-   RA = initializeRegAlloc(graph);
-      
-   /* execute the linear scan algorithm */
-   executeLinearScan(RA);
-      
-#ifndef NDEBUG
-   printRegAllocInfos(RA, file_infos->reg_alloc_output);
-#endif
-
-   /* apply changes to the program informations by using the informations
-    * of the register allocation process */
-   debugPrintf("Updating the control flow informations.\n");
-   materializeRegisterAllocation(program, graph, RA);
+   doRegisterAllocation(program);
 
    debugPrintf("Writing the assembly file...\n");
    writeAssembly(program, file_infos->output_file_name);
