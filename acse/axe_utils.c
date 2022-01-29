@@ -188,6 +188,8 @@ void shutdownCompiler(int exitStatus)
 
 void initializeCompiler(int argc, char **argv)
 {
+   t_axe_label *l_start;
+
    debugPrintf("ACSE compiler, version %s, targeting %s\n\n", axe_version, TARGET_NAME);
 
    /* initialize all the global variables */
@@ -212,6 +214,11 @@ void initializeCompiler(int argc, char **argv)
 
    /* initialize the line number */
    line_num = 1;
+
+   /* Create the start label */
+   l_start = newLabelID(program->lmanager, 1);
+   setLabelName(program->lmanager, l_start, "_start");
+   assignLabelID(program->lmanager, l_start);
 
    checkConsistency();
 }
