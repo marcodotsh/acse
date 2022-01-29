@@ -40,9 +40,9 @@ int genDefOfPhysReg(t_program_infos *program, int physReg)
 
 void moveLabel(t_axe_instruction *dest, t_axe_instruction *src)
 {
-   assert(dest->labelID == NULL && "moveLabel failed: destination already is labeled");
-   dest->labelID = src->labelID;
-   src->labelID = NULL;
+   assert(dest->label == NULL && "moveLabel failed: destination already is labeled");
+   dest->label = src->label;
+   src->label = NULL;
    
    if (!dest->user_comment) {
       dest->user_comment = src->user_comment;

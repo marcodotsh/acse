@@ -1567,11 +1567,11 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
       return -1;
    }
 
-   if ((current_node->instr)->labelID != NULL)
+   if ((current_node->instr)->label != NULL)
    {
       /* modify the label informations */
-      loadInstr->labelID = (current_node->instr)->labelID;
-      (current_node->instr)->labelID = NULL;
+      loadInstr->label = (current_node->instr)->label;
+      (current_node->instr)->label = NULL;
    }
    
    if (before == 1)

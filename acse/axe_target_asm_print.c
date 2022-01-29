@@ -386,8 +386,8 @@ int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
    char buf[BUF_LENGTH];
    int format, res;
 
-   if (instr->labelID != NULL) {
-      labelToString(buf, BUF_LENGTH, instr->labelID, 1);
+   if (instr->label != NULL) {
+      labelToString(buf, BUF_LENGTH, instr->label, 1);
    } else {
       buf[0] = '\0';
    }

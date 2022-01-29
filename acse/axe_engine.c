@@ -78,7 +78,7 @@ t_axe_instruction * initializeInstruction(int opcode)
    result->reg_src1 = NULL;
    result->reg_src2 = NULL;
    result->immediate = 0;
-   result->labelID = NULL;
+   result->label = NULL;
    result->address = NULL;
    result->user_comment = NULL;
    result->mcFlags = 0;
@@ -405,7 +405,7 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    if (program->lmanager == NULL)
       fatalError(AXE_INVALID_LABEL_MANAGER);
 
-   instr->labelID = getLastPendingLabel(program->lmanager);
+   instr->label = getLastPendingLabel(program->lmanager);
 
    if (line_num >= 0 && line_num != prev_line_num) {
       instr->user_comment = calloc(20, sizeof(char));
@@ -486,7 +486,7 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
    t_axe_instruction *instrToRemove = (t_axe_instruction *)LDATA(instrLi);
 
    /* move the label and/or the comment to the next instruction */
-   if (instrToRemove->labelID || instrToRemove->user_comment) {
+   if (instrToRemove->label || instrToRemove->user_comment) {
       /* find the next instruction, if it exists */
       t_list *nextPos = LNEXT(instrLi);
       t_axe_instruction *nextInst = NULL;
@@ -494,16 +494,16 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
          nextInst = LDATA(nextPos);
          
       /* move the label */
-      if (instrToRemove->labelID) {
+      if (instrToRemove->label) {
          /* generate a nop if there was no next instruction or if the next instruction
           * is already labeled */
-         if (!nextInst || (nextInst->labelID)) {
+         if (!nextInst || (nextInst->label)) {
             pushInstrInsertionPoint(program, instrLi);
             nextInst = genNOPInstruction(program);
             popInstrInsertionPoint(program);
          }
-         nextInst->labelID = instrToRemove->labelID;
-         instrToRemove->labelID = NULL;
+         nextInst->label = instrToRemove->label;
+         instrToRemove->label = NULL;
       }
       
       /* move the comment, if possible; otherwise it will be discarded */
@@ -549,7 +549,7 @@ t_list *popInstrInsertionPoint(t_program_infos *p)
          instrToLabel = genNOPInstruction(p);
       else
          instrToLabel = LDATA(labelPos);
-      instrToLabel->labelID = label;
+      instrToLabel->label = label;
    }
 
    p->instrInsPtrStack = removeFirst(p->instrInsPtrStack);
@@ -593,7 +593,7 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
    
    for (li = program->instructions; li != NULL; li = LNEXT(li)) {
       t_axe_instruction *instr = LDATA(li);
-      if (instr->labelID && instr->labelID->labelID == label->labelID)
+      if (instr->label && compareLabels(instr->label, label))
          fatalError(AXE_LABEL_ALREADY_ASSIGNED);
    }
 

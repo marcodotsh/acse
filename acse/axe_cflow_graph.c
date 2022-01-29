@@ -535,9 +535,9 @@ t_basic_block * searchLabel(t_cflow_Graph *graph, t_axe_label *label)
 
       /* if the first node holds a label information, we
        * have to verify if we have found the right label */
-      if ((current_node->instr)->labelID != NULL)
+      if ((current_node->instr)->label != NULL)
       {
-         if (compareLabels((current_node->instr)->labelID, label))
+         if (compareLabels((current_node->instr)->label, label))
             /* we found the correct basic block */
             break;
       }
@@ -560,7 +560,7 @@ int isStartingNode(t_axe_instruction *instr)
    }
 
    /* test if the instruction holds a label identifier */
-   if (instr->labelID != NULL)
+   if (instr->label != NULL)
    {
       return 1;
    }
