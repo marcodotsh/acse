@@ -204,9 +204,6 @@ void initializeCompiler(int argc, char **argv)
    /* initialize the translation infos */
    program = allocProgramInfos(&errorcode);
 
-   /* initialize the line number */
-   line_num = 1;
-
    /* Create the start label */
    l_start = newLabelID(program->lmanager, 1);
    setLabelName(program->lmanager, l_start, "_start");
