@@ -234,7 +234,7 @@ int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
    }
    
    if (finalColon)
-      snprintf(buf, bufsz, "L%u:", label->labelID);
+      return snprintf(buf, bufsz, "L%u:", label->labelID);
    return snprintf(buf, bufsz, "L%u", label->labelID);
 }
 
