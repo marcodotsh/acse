@@ -313,7 +313,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
 
       if (var->isArray) {
          fprintf(fout, "   label = ");
-         debugPrintLabel(var->labelID, fout);
+         debugPrintLabel(var->label, fout);
          fprintf(fout, "\n");
       }
 

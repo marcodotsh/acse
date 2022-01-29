@@ -58,7 +58,7 @@ typedef struct t_axe_variable
                    * modified in future. */
    char *ID;               /* variable identifier (should never be a NULL
                             * pointer or an empty string "") */
-   t_axe_label *labelID;   /* a label that refers to the location
+   t_axe_label *label;     /* a label that refers to the location
                             * of the variable inside the data segment */
    int reg_location;       /* the register ID associated to the variable */
 } t_axe_variable;
@@ -80,7 +80,7 @@ typedef struct t_axe_instruction
                                   * instruction that generated the current
                                   * assembly. This string will be written
                                   * into the output code as a comment */
-   t_axe_label *labelID;        /* a label associated with the current
+   t_axe_label *labelID;         /* a label associated with the current
                                   * instruction */
 }t_axe_instruction;
 

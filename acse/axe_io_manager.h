@@ -31,5 +31,5 @@ typedef struct t_io_infos
 extern void finalizeOutputInfos(t_io_infos *infos);
 extern t_io_infos * initializeOutputInfos(int argc, char **argv);
 
-      
+
 #endif

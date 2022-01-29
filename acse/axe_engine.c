@@ -134,7 +134,7 @@ t_axe_variable * initializeVariable
    result->arraySize = arraySize;
    result->ID = ID;
    result->init_val = init_val;
-   result->labelID = NULL;
+   result->label = NULL;
    result->reg_location = REG_INVALID;
 
    /* return the just created and initialized instance of t_axe_variable */
@@ -219,15 +219,15 @@ void createVariable(t_program_infos *program, char *ID
    
    if (isArray) {
       /* arrays are stored in memory and need a variable location */
-      var->labelID = newLabel(program);
-      if (var->labelID == NULL)
+      var->label = newLabel(program);
+      if (var->label == NULL)
          fatalError(AXE_OUT_OF_MEMORY);
-      setLabelName(program->lmanager, var->labelID, ID);
+      setLabelName(program->lmanager, var->label, ID);
 
       /* create an instance of `t_axe_data' */   
       sizeofElem = 4 / TARGET_PTR_GRANULARITY;
       new_data_info = initializeData(DIR_SPACE, var->arraySize * sizeofElem,
-            var->labelID);
+            var->label);
       if (new_data_info == NULL)
          fatalError(AXE_OUT_OF_MEMORY);
 
@@ -660,7 +660,7 @@ void addVariable(t_program_infos *program, t_axe_variable *variable)
          fatalError(AXE_INVALID_ARRAY_SIZE);
          return;
       }
-      if (variable->labelID == NULL)
+      if (variable->label == NULL)
       {
          finalizeVariable(variable);
          fatalError(AXE_INVALID_LABEL);
@@ -731,9 +731,9 @@ t_axe_label * getMemLocationOfArray(t_program_infos *program, char *ID)
       return NULL;
 
    /* test the postconditions */
-   assert(var->labelID != NULL);
+   assert(var->label != NULL);
    
-   return var->labelID;
+   return var->label;
 }
 
 void finalizeVariables(t_list *variables)
