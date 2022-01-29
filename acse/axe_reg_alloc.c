@@ -26,6 +26,32 @@
 #define RA_INTERVAL_ALREADY_INSERTED 3
 #define RA_INVALID_NUMBER_OF_REGISTERS 4
 
+/* constants */
+#define RA_SPILL_REQUIRED -1
+#define RA_REGISTER_INVALID 0
+#define RA_EXCLUDED_VARIABLE 0
+
+typedef struct t_live_interval {
+   int varID;     /* a variable identifier */
+   t_list *mcRegConstraints; /* list of all registers where this variable can
+                              * be allocated. */
+   int startPoint;  /* the index of the first instruction
+                     * that make use of (or define) this variable */
+   int endPoint;   /* the index of the last instruction
+                    * that make use of (or define) this variable */
+} t_live_interval;
+
+typedef struct t_reg_allocator {
+   t_list *live_intervals;    /* an ordered list of live intervals */
+   int regNum;                /* the number of registers of the machine */
+   int varNum;                /* number of variables */
+   int *bindings;             /* an array of bindings of kind : varID-->register.
+                               * If a certain variable X need to be spilled
+                               * in memory, the value of `register' is set
+                               * to the value of the macro RA_SPILL_REQUIRED */
+   t_list *freeRegisters;     /* a list of free registers */
+} t_reg_allocator;
+
 typedef struct t_tempLabel
 {
    t_axe_label *label;
@@ -105,6 +131,9 @@ static int _insertLoadSpill(t_program_infos *program, int temp_register, int sel
 static int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_register
             , t_cflow_Graph *graph, t_basic_block *current_block
             , t_cflow_Node *current_node, t_list *labelBindings, int before);
+
+/* print debug informations about register allocation infos */
+static void printRegAllocInfos(t_reg_allocator *RA, FILE *fout);
 
 
 void doRegisterAllocation(t_program_infos *program)
@@ -1581,5 +1610,87 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
       insertNodeAfter(block, current_node, loadNode);
 
    return 0;
+}
+
+void printBindings(int *bindings, int numVars, FILE *fout)
+{
+   int counter;
+   
+   if (bindings == NULL)
+      return;
+
+   if (fout == NULL)
+      return;
+
+   fprintf(fout, "BINDINGS : \n");
+   for (counter = 0; counter < numVars; counter++) {
+      if (bindings[counter] != RA_SPILL_REQUIRED)
+      {
+         fprintf(fout, "VAR T%d will be assigned to register R%d \n"
+                  , counter, bindings[counter]);
+      }
+      else
+      {
+         fprintf(fout, "VAR T%d will be spilled \n", counter);
+      }
+   }
+
+   fflush(fout);
+}
+
+void printLiveIntervals(t_list *intervals, FILE *fout)
+{
+   t_list *current_element;
+   t_live_interval *interval;
+
+   /* precondition */
+   if (fout == NULL)
+      return;
+
+   fprintf(fout, "LIVE_INTERVALS:\n");
+
+   /* retireve the first element of the list */
+   current_element = intervals;
+   while (current_element != NULL)
+   {
+      interval = (t_live_interval *) LDATA(current_element);
+
+      fprintf(fout, "\tLIVE_INTERVAL of T%d : [%d, %d]"
+            , interval->varID, interval->startPoint, interval->endPoint);
+
+      if (interval->mcRegConstraints) {
+         t_list *i = interval->mcRegConstraints;
+         fprintf(fout, " CONSTRAINED TO R%d", LINTDATA(i));
+         i = LNEXT(i);
+         for (; i; i = LNEXT(i)) {
+             fprintf(fout, ", R%d", LINTDATA(i));
+         }
+      }
+
+      fprintf(fout, "\n");
+      
+      /* retrieve the next element in the list of intervals */
+      current_element = LNEXT(current_element);
+   }
+   fflush(fout);
+}
+
+void printRegAllocInfos(t_reg_allocator *RA, FILE *fout)
+{
+   if (RA == NULL)
+      return;
+   if (fout == NULL)
+      return;
+   fprintf(fout, "\n\n*************************\n");
+   fprintf(fout, "REGISTER ALLOCATION INFOS\n");
+   fprintf(fout, "*************************\n");
+   fprintf(fout, "AVAILABLE REGISTERS : %d \n", RA->regNum + 3);
+   fprintf(fout, "USED VARIABLES : %d \n", RA->varNum);
+   fprintf(fout, "-------------------------\n");
+   printLiveIntervals(RA->live_intervals, fout);
+   fprintf(fout, "-------------------------\n");
+   printBindings(RA->bindings, RA->varNum, fout);
+   fprintf(fout, "*************************\n\n");
+   fflush(fout);
 }
 
