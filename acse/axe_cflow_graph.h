@@ -109,4 +109,7 @@ extern t_cflow_Graph *createFlowGraph(t_list *instructions);
 /* dataflow analysis */
 extern void performLivenessAnalysis(t_cflow_Graph *graph);
 
+/* print debug informations about the control flow graph */
+extern void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose);
+
 #endif
