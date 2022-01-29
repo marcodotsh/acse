@@ -7,6 +7,7 @@
  * 
  */
 
+#include <stdarg.h>
 #include "axe_debug.h"
 #include "collections.h"
 #include "axe_reg_alloc.h"
@@ -25,6 +26,22 @@ static void printLiveIntervals(t_list *intervals, FILE *fout);
 static void printBindings(int *bindings, int numVars, FILE *fout);
 static void printLabel(t_axe_label *label, int printInline, FILE *fout);
 static off_t printFormPadding(off_t formBegin, int formSize, FILE *fout);
+
+
+int debugPrintf(const char *fmt, ...)
+{
+#ifndef NDEBUG
+   int res;
+   va_list args;
+
+   va_start(args, fmt);
+   res = vprintf(fmt, args);
+   va_end(args);
+   return res;
+#else
+   return 0;
+#endif
+}
 
 void printBindings(int *bindings, int numVars, FILE *fout)
 {

@@ -28,9 +28,7 @@
 #include "axe_cflow_graph.h"
 #include "axe_reg_alloc.h"
 #include "axe_io_manager.h"
-#ifndef NDEBUG
-#  include "axe_debug.h"
-#endif
+#include "axe_debug.h"
 
 /* global variables */
 int line_num;        /* this variable will keep track of the
@@ -533,9 +531,9 @@ int main (int argc, char **argv)
    
    /* start the parsing procedure */
    yyparse();
+   debugPrintf("Parsing process completed. \n");
    
 #ifndef NDEBUG
-   fprintf(stdout, "Parsing process completed. \n");
    printProgramInfos(program, file_infos->frontend_output);
 #endif
 
@@ -547,12 +545,9 @@ int main (int argc, char **argv)
    line_num = -1;
 
    doTargetSpecificTransformations(program);
-   
-#ifndef NDEBUG
-   fprintf(stdout, "Creating a control flow graph. \n");
-#endif
 
    /* create the control flow graph */
+   debugPrintf("Creating a control flow graph.\n");
    graph = createFlowGraph(program->instructions);
    checkConsistency();
 
@@ -560,9 +555,9 @@ int main (int argc, char **argv)
    assert(program != NULL);
    assert(file_infos != NULL);
    printGraphInfos(graph, file_infos->cfg_1, 0);
-
-   fprintf(stdout, "Executing a liveness analysis on the intermediate code \n");
 #endif
+
+   debugPrintf("Executing a liveness analysis on the intermediate code\n");
    performLivenessAnalysis(graph);
    checkConsistency();
 
@@ -570,9 +565,8 @@ int main (int argc, char **argv)
    printGraphInfos(graph, file_infos->cfg_2, 1);
 #endif
       
-#ifndef NDEBUG
-   fprintf(stdout, "Starting the register allocation process. \n");
-#endif
+   debugPrintf("Starting the register allocation process.\n");
+
    /* initialize the register allocator by using the control flow
     * informations stored into the control flow graph */
    RA = initializeRegAlloc(graph);
@@ -584,21 +578,15 @@ int main (int argc, char **argv)
    printRegAllocInfos(RA, file_infos->reg_alloc_output);
 #endif
 
-#ifndef NDEBUG
-   fprintf(stdout, "Updating the control flow informations. \n");
-#endif
    /* apply changes to the program informations by using the informations
-   * of the register allocation process */
+    * of the register allocation process */
+   debugPrintf("Updating the control flow informations.\n");
    materializeRegisterAllocation(program, graph, RA);
 
-#ifndef NDEBUG
-   fprintf(stdout, "Writing the assembly file... \n");
-#endif
+   debugPrintf("Writing the assembly file...\n");
    writeAssembly(program, file_infos->output_file_name);
       
-#ifndef NDEBUG
-   fprintf(stdout, "Assembly written on file \"%s\".\n", file_infos->output_file_name);
-#endif
+   debugPrintf("Assembly written on file \"%s\".\n", file_infos->output_file_name);
    
    /* shutdown the compiler */
    shutdownCompiler(0);

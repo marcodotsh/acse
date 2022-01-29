@@ -18,6 +18,7 @@
 #include "axe_io_manager.h"
 #include "axe_errors.h"
 #include "axe_target_info.h"
+#include "axe_debug.h"
 
 extern int errorcode;
 extern int line_num;
@@ -169,9 +170,7 @@ void setProgramEnd(t_program_infos *program)
 
 void shutdownCompiler(int exitStatus)
 {
-#ifndef NDEBUG
-   fprintf(stdout, "Finalizing the compiler data structures.. \n");
-#endif
+   debugPrintf("Finalizing the compiler data structures.\n");
 
    /* shutdown the asm engine */
    finalizeProgramInfos(program);
@@ -182,20 +181,14 @@ void shutdownCompiler(int exitStatus)
    /* close all the files used by the compiler */
    finalizeOutputInfos(file_infos);
 
-#ifndef NDEBUG
-   fprintf(stdout, "Done. \n");
-#endif
+   debugPrintf("Done.\n");
 
    exit(exitStatus);
 }
 
 void initializeCompiler(int argc, char **argv)
 {
-#ifndef NDEBUG
-   fprintf(stdout, "ACSE compiler, version %s, targeting %s\n\n", 
-         axe_version, TARGET_NAME);
-   fprintf(stdout, "Starting the compilation process.\n\n");
-#endif
+   debugPrintf("ACSE compiler, version %s, targeting %s\n\n", axe_version, TARGET_NAME);
 
    /* initialize all the global variables */
    errorcode = AXE_OK;
@@ -207,9 +200,7 @@ void initializeCompiler(int argc, char **argv)
    RA = NULL;
    file_infos = NULL;
 
-#ifndef NDEBUG
-   fprintf(stdout, "Initialize the compiler internal data structures. \n");
-#endif
+   debugPrintf("Initializing the compiler's internal data structures.\n");
 
    /* initialize all the files used by the compiler */
    file_infos = initializeOutputInfos(argc, argv);

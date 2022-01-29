@@ -12,6 +12,7 @@
 #include "axe_target_asm_print.h"
 #include "axe_target_info.h"
 #include "axe_target_transform.h"
+#include "axe_debug.h"
 
 #define BUF_LENGTH 256
 
@@ -502,12 +503,9 @@ void writeAssembly(t_program_infos *program, char *output_file)
    if (output_file == NULL)
       output_file = "output.asm";
 
-#ifndef NDEBUG
-   fprintf(stdout, "  Output File: \"%s\"\n", output_file);
-   fprintf(stdout, "  Size of the code segment: %d instructions\n", getLength(program->instructions));
-   fprintf(stdout, "  Size of the data segment: %d elements\n", getLength(program->data));
-   fprintf(stdout, "  Number of labels: %d\n", getLabelCount(program->lmanager));
-#endif
+   debugPrintf("  Code segment size: %d instructions\n", getLength(program->instructions));
+   debugPrintf("  Data segment size: %d elements\n", getLength(program->data));
+   debugPrintf("  Number of labels: %d\n", getLabelCount(program->lmanager));
    
    /* open a new file */
    fp = fopen(output_file, "w");

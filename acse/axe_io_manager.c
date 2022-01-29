@@ -9,10 +9,35 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "axe_debug.h"
 #include "axe_io_manager.h"
 
-static t_io_infos * allocOutputInfos();
 
+t_io_infos * allocOutputInfos()
+{
+   t_io_infos *result;
+
+   /* Allocate memory for an instance of `t_output_infos' */
+   result = (t_io_infos *)
+         malloc(sizeof(t_io_infos));
+
+   /* test if malloc returned a null pointer */
+   if (result == NULL)
+      return NULL;
+      
+   /* initialize the instance internal data */
+   result->output_file_name = NULL;
+   result->input_file = stdin;
+#ifndef NDEBUG
+   result->frontend_output = stdout;
+   result->cfg_1 = stdout;
+   result->cfg_2 = stdout;
+   result->reg_alloc_output = stdout;
+#endif
+
+   /* return the result */
+   return result;
+}
 
 t_io_infos * initializeOutputInfos(int argc, char **argv)
 {
@@ -40,17 +65,13 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
       result->input_file = fopen(argv[0], "r");
       if (result->input_file == NULL)
       {
-         fprintf( stderr, "File not found : %s.\n", argv[0]);
+         fprintf(stderr, "File not found: %s.\n", argv[0]);
          exit(-1);
       }
-#ifndef NDEBUG
-      fprintf(stdout, "Input file: %s. \n", argv[0]);
-#endif
+      debugPrintf("Input file: %s. \n", argv[0]);
    }
-#ifndef NDEBUG
    else
-      fprintf(stdout, "Input file: %s. \n", "standard input");
-#endif
+      debugPrintf("Input file: %s. \n", "standard input");
 
    /* update the value of yyin */
    yyin = result->input_file;
@@ -80,15 +101,15 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
    regalloc_out_fn = calloc(max_fn, sizeof(char));
    snprintf(regalloc_out_fn, max_fn, "%s_reg_alloc.log", basename);
 
-   fprintf(stdout, "Output will be written on file: "
+   debugPrintf("Output will be written on file: "
          "\"%s\". \n", result->output_file_name);
-   fprintf(stdout, "The output of the frontend will be written on file: "
+   debugPrintf("The output of the frontend will be written on file: "
          "\"%s\". \n", frontend_out_fn);
-   fprintf(stdout, "Intermediate code will be written on file: "
+   debugPrintf("Intermediate code will be written on file: "
          "\"%s\". \n", cfg_out_fn);
-   fprintf(stdout, "control/dataflow informations will "
+   debugPrintf("control/dataflow informations will "
                    "be written on file: \"%s\". \n", data_flow_out_fn);
-   fprintf(stdout, "Output of the register allocator "
+   debugPrintf("Output of the register allocator "
                    "will be written on file: \"%s\". \n\n", regalloc_out_fn);
 
    result->frontend_output = fopen(frontend_out_fn, "w");
@@ -96,13 +117,13 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
    result->cfg_2 = fopen(data_flow_out_fn, "w");
    result->reg_alloc_output = fopen(regalloc_out_fn, "w");
    if (result->frontend_output == NULL)
-      fprintf(stderr, "WARNING : Unable to create file: %s.\n", frontend_out_fn);
+      debugPrintf("WARNING: Unable to create file: %s.\n", frontend_out_fn);
    if (result->cfg_1 == NULL)
-      fprintf(stderr, "WARNING : Unable to create file: %s.\n", cfg_out_fn);
+      debugPrintf("WARNING: Unable to create file: %s.\n", cfg_out_fn);
    if (result->cfg_2 == NULL)
-      fprintf(stderr, "WARNING : Unable to create file: %s.\n", data_flow_out_fn);
+      debugPrintf("WARNING: Unable to create file: %s.\n", data_flow_out_fn);
    if (result->reg_alloc_output == NULL)
-      fprintf(stderr, "WARNING : Unable to create file: %s.\n", regalloc_out_fn);
+      debugPrintf("WARNING: Unable to create file: %s.\n", regalloc_out_fn);
 
    free(basename);
    free(frontend_out_fn);
@@ -112,32 +133,6 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
    free(regalloc_out_fn);
 #endif
 
-   return result;
-}
-
-t_io_infos * allocOutputInfos()
-{
-   t_io_infos *result;
-
-   /* Allocate memory for an instance of `t_output_infos' */
-   result = (t_io_infos *)
-         malloc(sizeof(t_io_infos));
-
-   /* test if malloc returned a null pointer */
-   if (result == NULL)
-      return NULL;
-      
-   /* initialize the instance internal data */
-   result->output_file_name = NULL;
-   result->input_file = stdin;
-#ifndef NDEBUG
-   result->frontend_output = stdout;
-   result->cfg_1 = stdout;
-   result->cfg_2 = stdout;
-   result->reg_alloc_output = stdout;
-#endif
-
-   /* return the result */
    return result;
 }
 

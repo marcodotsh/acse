@@ -15,6 +15,10 @@
 #include "axe_cflow_graph.h"
 #include "axe_reg_alloc.h"
 
+/* In debug builds (NDEBUG not defined), prints a message on the standard
+ * output like `printf'. Otherwise, does nothing and returns zero. */
+extern int debugPrintf(const char *fmt, ...);
+
 /* print debug information about the program */
 extern void printProgramInfos(t_program_infos *program, FILE *fout);
 
@@ -25,6 +29,6 @@ extern void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose);
 extern void printRegAllocInfos(t_reg_allocator *RA, FILE *fout);
 
 /* returns a string that represent the codedType given as input */
-extern char * dataTypeToString(int codedType);
+extern char *dataTypeToString(int codedType);
 
 #endif
