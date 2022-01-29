@@ -12,6 +12,7 @@
 #include "axe_target_asm_print.h"
 #include "axe_target_info.h"
 #include "axe_target_transform.h"
+#include "axe_labels.h"
 #include "axe_debug.h"
 
 #define BUF_LENGTH 256
@@ -224,19 +225,21 @@ int registerToString(char *buf, int bufsz, t_axe_register *reg, int machineRegID
 
 int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
 {
+   char *labelName;
+   int res;
+
    if (!label)
       return -1;
-   
-   if (label->name) {
-      if (finalColon)
-         return snprintf(buf, bufsz, "%s:", label->name);
-      else
-         return snprintf(buf, bufsz, "%s", label->name);
-   }
+
+   labelName = getLabelName(label);
    
    if (finalColon)
-      return snprintf(buf, bufsz, "L%u:", label->labelID);
-   return snprintf(buf, bufsz, "L%u", label->labelID);
+      res = snprintf(buf, bufsz, "%s:", labelName);
+   else
+      res = snprintf(buf, bufsz, "%s", labelName);
+   
+   free(labelName);
+   return res;
 }
 
 int addressToString(char *buf, int bufsz, t_axe_address *addr)
@@ -342,6 +345,39 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
 
    free(address);
    return res;
+}
+
+int translateForwardDeclarations(t_program_infos *program, FILE *fp)
+{
+   void *enumState;
+   t_axe_label *nextLabel;
+
+   /* preconditions */
+   if (fp == NULL)
+      fatalError(AXE_INVALID_INPUT_FILE);
+   if (program == NULL)
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+
+   /* print declarations for all global labels */
+   enumState = NULL;
+   nextLabel = enumLabels(program->lmanager, &enumState);
+   while (nextLabel) {
+      if (nextLabel->global) {
+         char *labelName;
+         int res;
+
+         labelName = getLabelName(nextLabel);
+         res = fprintf(fp, "%-6s.global %s\n", "", labelName);
+         free(labelName);
+
+         if (res < 0)
+            return -1;
+      }
+
+      nextLabel = enumLabels(program->lmanager, &enumState);
+   }
+
+   return 0;
 }
 
 /* translate each instruction in its assembler symbolic representation */
@@ -511,6 +547,9 @@ void writeAssembly(t_program_infos *program, char *output_file)
    fp = fopen(output_file, "w");
    if (fp == NULL)
       fatalError(AXE_FOPEN_ERROR);
+
+   if (translateForwardDeclarations(program, fp) < 0)
+      fatalError(AXE_FWRITE_ERROR);
 
    /* print the data segment */
    if (translateDataSegment(program, fp) < 0)

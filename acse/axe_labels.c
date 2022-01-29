@@ -21,21 +21,21 @@ struct t_axe_label_manager
    t_axe_label *label_to_assign;
 };
 
-/* Set a name to a label without resolving duplicates */
 void setRawLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
       const char *finalName);
 
-t_axe_label * initializeLabel(int value)
+t_axe_label * initializeLabel(int value, int global)
 {
    t_axe_label *result;
 
    /* create an instance of t_axe_label */
-   result = (t_axe_label *)
-         malloc(sizeof(t_axe_label));
+   result = (t_axe_label *)malloc(sizeof(t_axe_label));
 
    /* initialize the internal value of `result' */
    result->labelID = value;
    result->name = NULL;
+   result->global = global;
+   result->isAlias = 0;
 
    /* return the just initialized new instance of `t_axe_label' */
    return result;
@@ -73,7 +73,7 @@ int compareLabels(t_axe_label *labelA, t_axe_label *labelB)
 }
 
 /* reserve a new label identifier and return the identifier to the caller */
-t_axe_label * newLabelID(t_axe_label_manager *lmanager)
+t_axe_label * newLabelID(t_axe_label_manager *lmanager, int global)
 {
    t_axe_label *result;
 
@@ -81,7 +81,7 @@ t_axe_label * newLabelID(t_axe_label_manager *lmanager)
    assert(lmanager != NULL);
    
    /* initialize a new label */
-   result = initializeLabel(lmanager->current_label_ID);
+   result = initializeLabel(lmanager->current_label_ID, global);
 
    /* update the value of `current_label_ID' */
    lmanager->current_label_ID++;
@@ -95,52 +95,6 @@ t_axe_label * newLabelID(t_axe_label_manager *lmanager)
 
    /* return the new label */
    return result;
-}
-
-/* assign the given label identifier to the next instruction. Returns
- * NULL if an error occurred; otherwise the assigned label */
-t_axe_label * assignLabelID(t_axe_label_manager *lmanager, t_axe_label *label)
-{
-   /* precondition: lmanager must be different from NULL */
-   assert(lmanager != NULL);
-
-   /* precondition: label must be different from NULL and
-    * must always carry a valid identifier */
-   if (  (label == NULL)
-         || (label->labelID >= lmanager->current_label_ID))
-   {
-      fatalError(AXE_INVALID_LABEL);
-   }
-
-   /* test if the next instruction has already a label */
-   if (lmanager->label_to_assign != NULL)
-   {
-      /* It does: transform the label being assigned into an alias of the
-       * label of the next instruction's label
-       * All label aliases have the same ID and name. */
-
-      /* Decide the name of the alias. If only one label has a name, that name
-       * wins. Otherwise the name of the label with the lowest ID wins */
-      char *name = lmanager->label_to_assign->name;
-      if (!name || 
-            (label->labelID && 
-            label->labelID < lmanager->label_to_assign->labelID))
-         name = label->name;
-      /* copy the name because setting it will deallocate it */
-      if (name)
-         name = strdup(name);
-      
-      /* Change ID and name */
-      label->labelID = (lmanager->label_to_assign)->labelID;
-      setRawLabelName(lmanager, label, name);
-
-      free(name);
-   }
-   else
-      lmanager->label_to_assign = label;
-
-   /* all went good */
-   return label;
 }
 
 /* initialize the memory structures for the label manager */
@@ -196,6 +150,61 @@ void finalizeLabelManager(t_axe_label_manager *lmanager)
    free(lmanager);
 }
 
+/* assign the given label identifier to the next instruction. Returns
+ * NULL if an error occurred; otherwise the assigned label */
+t_axe_label * assignLabelID(t_axe_label_manager *lmanager, t_axe_label *label)
+{
+   /* precondition: lmanager must be different from NULL */
+   assert(lmanager != NULL);
+
+   /* precondition: label must be different from NULL and
+    * must always carry a valid identifier */
+   if (  (label == NULL)
+         || (label->labelID >= lmanager->current_label_ID))
+   {
+      fatalError(AXE_INVALID_LABEL);
+   }
+
+   /* test if the next instruction already has a label */
+   if (lmanager->label_to_assign != NULL)
+   {
+      /* It does: transform the label being assigned into an alias of the
+       * label of the next instruction's label
+       * All label aliases have the same ID and name. */
+
+      /* Decide the name of the alias. If only one label has a name, that name
+       * wins. Otherwise the name of the label with the lowest ID wins */
+      char *name = lmanager->label_to_assign->name;
+      if (!name || 
+            (label->labelID && 
+            label->labelID < lmanager->label_to_assign->labelID))
+         name = label->name;
+      /* copy the name */
+      if (name)
+         name = strdup(name);
+      
+      /* Change ID and name */
+      label->labelID = (lmanager->label_to_assign)->labelID;
+      setRawLabelName(lmanager, label, name);
+
+      /* Promote both labels to global if at least one is global */
+      if (label->global)
+         lmanager->label_to_assign->global = 1;
+      else if (lmanager->label_to_assign->global)
+         label->global = 1;
+
+      /* mark the label as an alias */
+      label->isAlias = 1;
+
+      free(name);
+   }
+   else
+      lmanager->label_to_assign = label;
+
+   /* all went good */
+   return label;
+}
+
 t_axe_label * getLastPendingLabel(t_axe_label_manager *lmanager)
 {
    t_axe_label *result;
@@ -226,45 +235,30 @@ int getLabelCount(t_axe_label_manager *lmanager)
    return getLength(lmanager->labels);
 }
 
-void setLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
-      const char *name)
+t_axe_label *enumLabels(t_axe_label_manager *lmanager, void **state)
 {
-   int serial = -1, ok, allocatedSpace;
-   char *sanitizedName, *finalName, *dstp;
-   const char *srcp;
-
-   /* remove all non a-zA-Z0-9_ characters */
-   sanitizedName = calloc(strlen(name)+1, 1);
-   srcp = name;
-   for (dstp = sanitizedName; *srcp; srcp++) {
-      if (*srcp == '_' || isalnum(*srcp))
-         *dstp++ = *srcp;
+   t_list *lastItem, *nextItem;
+   assert(state != NULL);
+   
+   lastItem = (t_list *)(*state);
+   if (lastItem == NULL) {
+      nextItem = lmanager->labels;
+   } else {
+      nextItem = LNEXT(lastItem);
    }
 
-   /* append a sequential number to disambiguate labels with the same name */
-   allocatedSpace = strlen(sanitizedName)+24;
-   finalName = calloc(allocatedSpace, 1);
-   snprintf(finalName, allocatedSpace, "_%s", sanitizedName);
-   do {
-      t_list *i;
-      ok = 1;
-      for (i = lmanager->labels; i != NULL; i = LNEXT(i)) {
-         t_axe_label *thisLab = LDATA(i);
-         if (!thisLab->name || thisLab->labelID == label->labelID)
-            continue;
-         if (strcmp(finalName, thisLab->name) == 0) {
-            ok = 0;
-            snprintf(finalName, allocatedSpace, "_%s_%d", sanitizedName, ++serial);
-            break;
-         }
-      }
-   } while (!ok);
+   /* Skip aliased labels */
+   while (nextItem != NULL && ((t_axe_label *)LDATA(nextItem))->isAlias) {
+      nextItem = LNEXT(nextItem);
+   }
 
-   free(sanitizedName);
-   setRawLabelName(lmanager, label, finalName);
-   free(finalName);
+   *state = (void *)nextItem;
+   if (nextItem == NULL)
+      return NULL;
+   return (t_axe_label *)LDATA(nextItem);
 }
 
+/* Set a name to a label without resolving duplicates */
 void setRawLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
       const char *finalName)
 {
@@ -285,4 +279,65 @@ void setRawLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
             thisLab->name = NULL;
       }
    }
+}
+
+void setLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
+      const char *name)
+{
+   int serial = -1, ok, allocatedSpace;
+   char *sanitizedName, *finalName, *dstp;
+   const char *srcp;
+
+   /* remove all non a-zA-Z0-9_ characters */
+   sanitizedName = calloc(strlen(name)+1, sizeof(char));
+   srcp = name;
+   for (dstp = sanitizedName; *srcp; srcp++) {
+      if (*srcp == '_' || isalnum(*srcp))
+         *dstp++ = *srcp;
+   }
+
+   /* append a sequential number to disambiguate labels with the same name */
+   allocatedSpace = strlen(sanitizedName)+24;
+   finalName = calloc(allocatedSpace, sizeof(char));
+   snprintf(finalName, allocatedSpace, "%s", sanitizedName);
+   do {
+      t_list *i;
+      ok = 1;
+      for (i = lmanager->labels; i != NULL; i = LNEXT(i)) {
+         t_axe_label *thisLab = LDATA(i);
+         char *thisLabName;
+         int difference;
+
+         if (thisLab->labelID == label->labelID)
+            continue;
+         
+         thisLabName = getLabelName(thisLab);
+         difference = strcmp(finalName, thisLabName);
+         free(thisLabName);
+
+         if (difference == 0) {
+            ok = 0;
+            snprintf(finalName, allocatedSpace, "%s.%d", sanitizedName, ++serial);
+            break;
+         }
+      }
+   } while (!ok);
+
+   free(sanitizedName);
+   setRawLabelName(lmanager, label, finalName);
+   free(finalName);
+}
+
+char *getLabelName(t_axe_label *label)
+{
+   char *buf;
+
+   if (label->name) {
+      buf = strdup(label->name);
+   } else {
+      buf = calloc(24, sizeof(char));
+      snprintf(buf, 24, "l%d", label->labelID);
+   }
+
+   return buf;
 }

@@ -568,7 +568,7 @@ t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
    if (program->lmanager == NULL)
       fatalError(AXE_INVALID_LABEL_MANAGER);
 
-   label = newLabelID(program->lmanager);
+   label = newLabelID(program->lmanager, 0);
    if (name)
       setLabelName(program->lmanager, label, name);
    return label;

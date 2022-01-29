@@ -375,17 +375,15 @@ char * dataTypeToString(int codedType)
 
 void printLabel(t_axe_label *label, int printInline, FILE *fout)
 {
+   char *labelName = getLabelName(label);
+
    if (printInline) {
-      if (!label->name)
-         fprintf(fout, "L%d", label->labelID);
-      else
-         fprintf(fout, "%s", label->name);
+      fprintf(fout, "%s", labelName);
    } else {
-      if (!label->name)
-         fprintf(fout, "L%d", label->labelID);
-      else
-         fprintf(fout, "%s (ID=%d)", label->name, label->labelID);
+      fprintf(fout, "%s (ID=%d)", labelName, label->labelID);
    }
+
+   free(labelName);
 }
 
 off_t printFormPadding(off_t formBegin, int formSize, FILE *fout)
