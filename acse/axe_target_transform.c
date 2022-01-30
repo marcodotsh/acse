@@ -19,6 +19,11 @@
 #define RS2(i) (i->reg_src2->ID)
 #define IMM(i) (i->immediate)
 
+#define SYSCALL_ID_EXIT   93
+#define SYSCALL_ID_PUTINT 2002
+#define SYSCALL_ID_GETINT 2003
+
+
 void genUseOfPhysReg(t_program_infos *program, int physReg)
 {
    int reg = getNewRegister(program);
@@ -278,11 +283,11 @@ void fixSyscalls(t_program_infos *program)
       pushInstrInsertionPoint(program, curi);
       
       if (instr->opcode == OPC_HALT)
-         callid = 93;
+         callid = SYSCALL_ID_EXIT;
       else if (instr->opcode == OPC_AXE_WRITE)
-         callid = 0x10002;
+         callid = SYSCALL_ID_PUTINT;
       else if (instr->opcode == OPC_AXE_READ)
-         callid = 0x10003;
+         callid = SYSCALL_ID_GETINT;
       rcallid = getNewRegister(program);
       i1 = genLIInstruction(program, rcallid, callid);
       setMCRegisterWhitelist(i1->reg_dest, REG_A0, REG_INVALID);
