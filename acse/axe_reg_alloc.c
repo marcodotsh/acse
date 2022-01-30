@@ -57,6 +57,35 @@ typedef struct t_tempLabel
    int regID;
 } t_tempLabel;
 
+/* Structure representing the current state of an instruction argument during
+ * the spill materialization process */
+typedef struct t_spillInstrArgState {
+   /* The register argument structure */
+   t_axe_register *reg;
+   /* If the register is a destination register */
+   int isDestination;
+   /* The spill register index where the argument will be materialized, or
+    * -1 otherwise. */
+   int spillSlot;
+} t_spillInstrRegState;
+
+/* Structure representing the current state of a spill-reserved register */
+typedef struct t_spillRegState {
+   /* virtual register ID associated to this spill register */
+   int assignedVar;
+   /* non-zero if at least one of the instructions wrote something new into
+    * the spill register, and the value has not been written to the spill
+    * memory location yet. */
+   int needsWB;
+} t_spillRegState;
+
+/* spill register slots */
+typedef struct t_spillState {
+   /* each array element corresponds to one of the registers reserved for
+    * the spill, ordered by ascending register number. */
+   t_spillRegState regs[NUM_SPILL_REGS];
+} t_spillState;
+
 
 extern int errorcode;
 extern int cflow_errorcode;
@@ -115,7 +144,7 @@ static void updateTheCodeSegment
 /* update the control flow informations by unsing the result
  * of the register allocation process and a list of bindings
  * between new assembly labels and spilled variables */
-static void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
+static void materializeRegAllocInCFG(t_cflow_Graph *graph
             , t_reg_allocator *RA, t_list *label_bindings);
 
 /* this function returns a list of t_templabel containing binding
@@ -123,11 +152,11 @@ static void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
  * to a memory block in the data segment */
 static t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA);
       
-static int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_register
+static int _insertLoadSpill(int temp_register, int selected_register
             , t_cflow_Graph *graph, t_basic_block *current_block
             , t_cflow_Node *current_node, t_list *labelBindings, int before);
             
-static int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_register
+static int _insertStoreSpill(int temp_register, int selected_register
             , t_cflow_Graph *graph, t_basic_block *current_block
             , t_cflow_Node *current_node, t_list *labelBindings, int before);
 
@@ -1096,7 +1125,7 @@ void materializeRegisterAllocation(t_program_infos *program,
    updateTheDataSegment(program, label_bindings);
 
    /* update the control flow graph with the reg-alloc infos. */
-   updatCflowInfos(program, graph, RA, label_bindings);
+   materializeRegAllocInCFG(graph, RA, label_bindings);
 
    /* finalize the list of tempLabels */
    finalizeListOfTempLabels(label_bindings);
@@ -1147,375 +1176,211 @@ t_list * retrieveLabelBindings(t_program_infos *program, t_reg_allocator *RA)
    return result;
 }
 
-void updatCflowInfos(t_program_infos *program, t_cflow_Graph *graph
-            , t_reg_allocator *RA, t_list *label_bindings)
+void materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
+      t_basic_block *current_block, t_spillState *state,
+      t_cflow_Node *current_node, t_reg_allocator *RA, t_list *label_bindings)
+{
+#define MAX_INSTR_ARGS 3
+   t_axe_instruction *instr;
+   int current_arg, current_row, num_args;
+   /* The elements in this array indicate whether the corresponding spill
+    * register will be used or not by this instruction */
+   int spillSlotInUse[NUM_SPILL_REGS] = {0};
+   /* This array stores whether each argument of the instruction is allocated
+    * to a spill register or not.
+    * For example, if argState[1].spillSlot == 2, the argState[1].reg register
+    * will be materialized to the third spill register. */
+   t_spillInstrRegState argState[MAX_INSTR_ARGS];
+
+   /* fetch the current instruction */
+   instr = current_node->instr;
+
+   /* initialize the array of arguments to the instruction */
+   num_args = 0;
+   if (instr->reg_dest) {
+      argState[num_args].reg = instr->reg_dest;
+      argState[num_args].isDestination = !instr->reg_dest->indirect;
+      argState[num_args].spillSlot = -1;
+      num_args++;
+   }
+   if (instr->reg_src1) {
+      argState[num_args].reg = instr->reg_src1;
+      argState[num_args].isDestination = 0;
+      argState[num_args].spillSlot = -1;
+      num_args++;
+   }
+   if (instr->reg_src2) {
+      argState[num_args].reg = instr->reg_src2;
+      argState[num_args].isDestination = 0;
+      argState[num_args].spillSlot = -1;
+      num_args++;
+   }
+
+   /* Test if a requested variable is already loaded into a register
+    * from a previous instruction. */
+   for (current_arg = 0; current_arg < num_args; current_arg++) {
+      if (RA->bindings[argState[current_arg].reg->ID] != RA_SPILL_REQUIRED)
+         continue;
+
+      for (current_row = 0; current_row < NUM_SPILL_REGS; current_row++) {
+         if (state->regs[current_row].assignedVar !=
+               argState[current_arg].reg->ID)
+            continue;
+
+         /* update the value of used_Register */
+         argState[current_arg].spillSlot = current_row;
+
+         /* update the value of `assignedRegisters` */
+         /* set currently used flag */
+         spillSlotInUse[current_row] = 1;
+
+         /* test if a write back is needed. Writebacks are needed
+          * when an instruction modifies a spilled register. */
+         if (argState[current_arg].isDestination)
+            state->regs[current_row].needsWB = 1;
+
+         /* a slot was found, stop searching */
+         break;
+      }
+   }
+
+   /* Find a slot for all other variables. Write back the variable associated
+    * with the slot if necessary. */
+   for (current_arg = 0; current_arg < num_args; current_arg++) {
+      int other_arg, alreadyFound;
+
+      if (RA->bindings[argState[current_arg].reg->ID] != RA_SPILL_REQUIRED)
+         continue;
+      if (argState[current_arg].spillSlot != -1)
+         continue;
+
+      /* Check if we already have found a slot for this variable */
+      alreadyFound = 0;
+      for (other_arg = 0; other_arg < current_arg && !alreadyFound;
+            other_arg++) {
+         if (argState[current_arg].reg->ID == argState[other_arg].reg->ID) {
+            argState[current_arg].spillSlot = argState[other_arg].spillSlot;
+            alreadyFound = 1;
+         }
+      }
+      /* No need to do anything else in this case, the state of the
+       * spill slot is already up to date */
+      if (alreadyFound)
+         continue;
+
+      /* Otherwise a slot one by iterating through the slots available */
+      for (current_row = 0; current_row < NUM_SPILL_REGS; current_row++) {
+         if (spillSlotInUse[current_row] == 0)
+            break;
+      }
+      /* If we don't find anything, we don't have enough spill registers!
+       * This should never happen, bail out! */
+      if (current_row == NUM_SPILL_REGS)
+         fatalError(AXE_UNKNOWN_ERROR);
+
+      /* If needed, write back the old variable that was assigned to this
+       * slot before reassigning it */
+      if (state->regs[current_row].needsWB == 1) {
+         _insertStoreSpill(state->regs[current_row].assignedVar,
+               getSpillRegister(current_row), graph, current_block,
+               current_node, label_bindings, 1);
+      }
+
+      /* Update the state of this spill slot */
+      spillSlotInUse[current_row] = 1;
+      argState[current_arg].spillSlot = current_row;
+      state->regs[current_row].assignedVar = argState[current_arg].reg->ID;
+      state->regs[current_row].needsWB = argState[current_arg].isDestination;
+
+      /* Load the value of the variable in the spill register if not a
+       * destination of the instruction */
+      if (!argState[current_arg].isDestination) {
+         _insertLoadSpill(argState[current_arg].reg->ID,
+               getSpillRegister(current_row), graph, current_block,
+               current_node, label_bindings, 1);
+      }
+   }
+
+   /* rewrite the register identifiers to use the appropriate
+    * register number instead of the variable number. */
+   for (current_arg = 0; current_arg < num_args; current_arg++) {
+      t_axe_register *curReg = argState[current_arg].reg;
+      if (argState[current_arg].spillSlot == -1) {
+         /* normal case */
+         curReg->ID = RA->bindings[curReg->ID];
+      } else {
+         /* spilled register case */
+         curReg->ID = getSpillRegister(argState[current_arg].spillSlot);
+      }
+   }
+}
+
+void materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
+      t_reg_allocator *RA, t_list *label_bindings)
+{
+   int counter, bbHasTermInstr;
+   t_list *current_nd_element;
+   t_cflow_Node *current_node;
+   t_spillState state;
+
+   assert(current_block != NULL);
+
+   /* initialize the state for this block */
+   for (counter = 0; counter < NUM_SPILL_REGS; counter++) {
+      state.regs[counter].assignedVar = REG_INVALID;
+      state.regs[counter].needsWB = 0;
+   }
+
+   /* iterate through the instructions in the block */
+   current_nd_element = current_block->nodes;
+   while (current_nd_element != NULL) {
+      current_node = (t_cflow_Node *)LDATA(current_nd_element);
+
+      /* Change the register IDs of the argument of the instruction accoring
+       * to the given register allocation. Generate load and stores for spilled
+       * registers */
+      materializeRegAllocInBBForInstructionNode(
+            graph, current_block, &state, current_node, RA, label_bindings);
+
+      current_nd_element = LNEXT(current_nd_element);
+   }
+
+   bbHasTermInstr = current_block->nodes &&
+         (isJumpInstruction(current_node->instr) ||
+               isHaltOrRetInstruction(current_node->instr));
+
+   /* writeback everything at the end of the basic block */
+   for (counter = 0; counter < NUM_SPILL_REGS; counter++) {
+      if (state.regs[counter].needsWB == 0)
+         continue;
+      _insertStoreSpill(state.regs[counter].assignedVar,
+            (getSpillRegister(counter)), graph, current_block, current_node,
+            label_bindings, bbHasTermInstr);
+   }
+}
+
+void materializeRegAllocInCFG(t_cflow_Graph *graph, t_reg_allocator *RA, t_list *label_bindings)
 {
    t_list *current_bb_element;
 
    /* preconditions */
-   assert(program != NULL);
    assert(graph != NULL);
    assert(RA != NULL);
    
    current_bb_element = graph->blocks;
-   while (current_bb_element != NULL)
-   {
-      int counter, bbHasTermInstr;
-      t_list *current_nd_element;
-      t_axe_instruction *current_instr;
-      t_cflow_Node *current_node;
-
-      /* spill register slots
-       * each array element corresponds to one of the registers reserved for
-       * the spill, ordered by ascending register number. */
-      struct {
-         int assignedVar;
-         int needsWB;
-         int inUse;
-      } assignedRegisters[NUM_SPILL_REGS];
-
+   while (current_bb_element != NULL) {
       t_basic_block *current_block = (t_basic_block *)LDATA(current_bb_element);
-      assert(current_block != NULL);
 
-      /* initialize used_Registers */
-      for (counter = 0; counter < NUM_SPILL_REGS; counter ++)
-      {
-         assignedRegisters[counter].assignedVar = REG_INVALID;
-         assignedRegisters[counter].needsWB = 0;
-         assignedRegisters[counter].inUse = 0;
-      }
-
-      /* phase one
-       * retrieve the list of nodes for the current basic block */
-      current_nd_element = current_block->nodes;
-
-      while(current_nd_element != NULL)
-      {
-         /* reordering table which associates the three instruction registers
-          * (in this order: dest, src1, src2) to the spill register slots.
-          * For example, if used_Registers[1] == 2, the src1 register will be
-          * assigned to the third spill register. */
-         int used_Registers[3] = {-1, -1, -1};
-
-         /* retrieve the data associated with the current node of the block */
-         current_node = (t_cflow_Node *)LDATA(current_nd_element);
-
-         /* fetch the current instruction */
-         current_instr = current_node->instr;
-
-         /* Test if a requested variable is already loaded into a register
-          * from a previous instruction. 
-          * Note: in this moment, all inUse flags are set to zero. */
-         if (current_instr->reg_dest  != NULL)
-         {
-            if (RA->bindings[(current_instr->reg_dest)->ID]
-                  == RA_SPILL_REQUIRED)
-            {
-               int current_row = 0;
-               int found = 0;
-               
-               while ((current_row < NUM_SPILL_REGS) && !found)
-               {
-                  if (assignedRegisters[current_row].assignedVar
-                           == (current_instr->reg_dest)->ID)
-                  {
-                     /* update the value of used_Register */
-                     used_Registers[0] = current_row;
-
-                     /* update the value of `assignedRegisters` */
-                     /* set currently used flag */
-                     assignedRegisters[current_row].inUse = 1;
-
-                     /* test if a write back is needed. Writebacks are needed
-                      * when an instruction modifies a spilled register. */
-                     if (! (current_instr->reg_dest)->indirect)
-                     {
-                        assignedRegisters[current_row].needsWB = 1;
-                     }
-
-                     /* notify that the value was found */
-                     found = 1;
-                  }
-
-                  current_row ++;
-               }
-            }
-         }
-         if (current_instr->reg_src1  != NULL)
-         {
-            if (RA->bindings[(current_instr->reg_src1)->ID]
-                  == RA_SPILL_REQUIRED)
-            {
-               int current_row = 0;
-               int found = 0;
-               
-               while ((current_row < NUM_SPILL_REGS) && !found)
-               {
-                  if (assignedRegisters[current_row].assignedVar
-                           == (current_instr->reg_src1)->ID)
-                  {
-                     /* update the value of used_Register */
-                     used_Registers[1] = current_row;
-
-                     /* update the value of `assignedRegisters` */
-                     /* set currently used flag */
-                     assignedRegisters[current_row].inUse = 1;
-
-                     /* notify that the value was found */
-                     found = 1;
-                  }
-                  
-                  current_row ++;
-               }
-            }
-         }
-         if (current_instr->reg_src2  != NULL)
-         {
-            if (RA->bindings[(current_instr->reg_src2)->ID]
-                  == RA_SPILL_REQUIRED)
-            {
-               int current_row = 0;
-               int found = 0;
-               
-               while ((current_row < NUM_SPILL_REGS) && !found)
-               {
-                  if (assignedRegisters[current_row].assignedVar
-                           == (current_instr->reg_src2)->ID)
-                  {
-                     /* update the value of used_Register */
-                     used_Registers[2] = current_row;
-
-                     /* update the value of `assignedRegisters` */
-                     /* set currently used flag */
-                     assignedRegisters[current_row].inUse = 1;
-
-                     /* notify that the value was found */
-                     found = 1;
-                  }
-                  
-                  current_row ++;
-               }
-            }
-         }
-         /* phase two
-          * free space for the new values in the registers by writing back the
-          * variables we don't need for this instruction, and then loading
-          * the variables we need instead. */
-         if (current_instr->reg_src1  != NULL)
-         {
-            if ((RA->bindings[(current_instr->reg_src1)->ID]
-                  == RA_SPILL_REQUIRED) && (used_Registers[1] == -1))
-            {
-               int current_row = 0;
-               int found = 0;
-               
-               while ((current_row < NUM_SPILL_REGS) && !found)
-               {
-                  if (assignedRegisters[current_row].inUse == 0)
-                  {
-                     int register_found = getSpillRegister(current_row);
-                     
-                     if (assignedRegisters[current_row].needsWB == 1)
-                     {
-                        /* NEED WRITE BACK */
-                        _insertStoreSpill(program, assignedRegisters[current_row].assignedVar
-                              , register_found, graph, current_block
-                                    , current_node, label_bindings, 1);
-                     }
-
-                     _insertLoadSpill(program, (current_instr->reg_src1)->ID
-                           , register_found, graph, current_block
-                                , current_node, label_bindings, 1);
-
-                     /* update the control informations */
-                     assignedRegisters[current_row].assignedVar = (current_instr->reg_src1)->ID;
-                     assignedRegisters[current_row].needsWB = 0;
-                     assignedRegisters[current_row].inUse = 1;
-                     used_Registers[1] = current_row;
-
-                     found = 1;
-                  }
-                  
-                  current_row ++;
-               }
-               assert(found != 0);
-            }
-         }
-         if (current_instr->reg_src2  != NULL)
-         {
-            if ((RA->bindings[(current_instr->reg_src2)->ID]
-                  == RA_SPILL_REQUIRED) && (used_Registers[2] == -1))
-            {
-               int current_row = 0;
-               int found = 0;
-
-               /* reuse registers allocated in phase 2 of this same instruction
-                * if possible. */
-               if (current_instr->reg_src1 && (current_instr->reg_src2)->ID == (current_instr->reg_src1)->ID)
-               {
-                  used_Registers[2] = used_Registers[1];
-                  found = 1;
-               }
-
-               while ((current_row < NUM_SPILL_REGS) && !found)
-               {
-                  if (assignedRegisters[current_row].inUse == 0)
-                  {
-                     int register_found = getSpillRegister(current_row);
-                     
-                     if (assignedRegisters[current_row].needsWB == 1)
-                     {
-                        /* NEED WRITE BACK */
-                        _insertStoreSpill(program, assignedRegisters[current_row].assignedVar
-                              , register_found, graph, current_block
-                                    , current_node, label_bindings, 1);
-                     }
-
-                     _insertLoadSpill(program, (current_instr->reg_src2)->ID
-                           , register_found, graph, current_block
-                                , current_node, label_bindings, 1);
-
-                     /* update the control informations */
-                     assignedRegisters[current_row].assignedVar = (current_instr->reg_src2)->ID;
-                     assignedRegisters[current_row].needsWB = 0;
-                     assignedRegisters[current_row].inUse = 1;
-                     used_Registers[2] = current_row;
-                     
-                     found = 1;
-                  }
-                  
-                  current_row ++;
-               }
-            }
-         }
-         if (current_instr->reg_dest  != NULL)
-         {
-            if ((RA->bindings[(current_instr->reg_dest)->ID]
-                  == RA_SPILL_REQUIRED) && (used_Registers[0] == -1))
-            {
-               int current_row = 0;
-               int found = 0;
-
-               /* reuse registers allocated in phase 2 if possible */
-               if (current_instr->reg_src2 && (current_instr->reg_src2)->ID == (current_instr->reg_dest)->ID) {
-                  current_row = used_Registers[2];
-                  found = 1;
-               } else if (current_instr->reg_src1 && (current_instr->reg_src1)->ID == (current_instr->reg_dest)->ID) {
-                  current_row = used_Registers[1];
-                  found = 1;
-               }
-               
-               while ((current_row < NUM_SPILL_REGS) && !found)
-               {
-                  if (assignedRegisters[current_row].inUse == 0)
-                  {
-                     int register_found = getSpillRegister(current_row);
-                     
-                     if (assignedRegisters[current_row].needsWB == 1)
-                     {
-                        /* NEED WRITE BACK */
-                        _insertStoreSpill(program, assignedRegisters[current_row].assignedVar
-                              , register_found, graph, current_block
-                                    , current_node, label_bindings, 1);
-                     }
-
-                     /* test if we need to load the value from register */
-                     if ((current_instr->reg_dest)->indirect)
-                     {
-                        _insertLoadSpill(program, (current_instr->reg_dest)->ID
-                              , register_found, graph, current_block
-                                    , current_node, label_bindings, 1);
-                     }
-
-                     /* update the control informations */
-                     assignedRegisters[current_row].assignedVar = (current_instr->reg_dest)->ID;
-                     assignedRegisters[current_row].needsWB = 0;
-                     assignedRegisters[current_row].inUse = 1;
-                     
-                     found = 1;
-                  }
-                  else
-                  {
-                     current_row ++;
-                  }
-               }
-
-               if (! (current_instr->reg_dest)->indirect)
-               {
-                  assignedRegisters[current_row].needsWB = 1;
-               }
-               used_Registers[0] = current_row;
-
-               assert(found != 0);
-            }
-         }
-
-         /* rewrite the register identifiers to use the appropriate spill
-          * register number instead of the variable number. */
-         if (current_instr->reg_dest != NULL)
-         {
-            if (used_Registers[0] != -1)
-            {
-               current_instr->reg_dest->ID = getSpillRegister(used_Registers[0]);
-
-               assignedRegisters[used_Registers[0]].inUse = 0;
-            }
-            else
-               current_instr->reg_dest->ID =
-                     RA->bindings[(current_instr->reg_dest)->ID];
-         }
-         if (current_instr->reg_src1 != NULL)
-         {
-            if (used_Registers[1] != -1)
-            {
-               current_instr->reg_src1->ID = getSpillRegister(used_Registers[1]);
-               assignedRegisters[used_Registers[1]].inUse = 0;
-            }
-            else
-               current_instr->reg_src1->ID =
-                     RA->bindings[(current_instr->reg_src1)->ID];
-         }
-         if (current_instr->reg_src2 != NULL)
-         {
-            if (used_Registers[2] != -1)
-            {
-               current_instr->reg_src2->ID = getSpillRegister(used_Registers[2]);
-               assignedRegisters[used_Registers[2]].inUse = 0;
-            }
-            else
-               current_instr->reg_src2->ID =
-                     RA->bindings[(current_instr->reg_src2)->ID];
-         }
-
-         /* retrieve the previous element */
-         current_nd_element = LNEXT(current_nd_element);
-      }
-
-      bbHasTermInstr = current_block->nodes && 
-            (isJumpInstruction(current_instr) || 
-            isHaltOrRetInstruction(current_instr));
-
-      /* writeback everything at the end of the basic block */
-      for (counter = 0; counter < NUM_SPILL_REGS; counter ++)
-      {
-         if (assignedRegisters[counter].needsWB == 1)
-         {
-            /* NEED WRITE BACK */
-            _insertStoreSpill(program, assignedRegisters[counter].assignedVar
-                     , (getSpillRegister(counter))
-                           , graph, current_block
-                              , current_node, label_bindings, bbHasTermInstr);
-         }
-      }
+      materializeRegAllocInBB(graph, current_block, RA, label_bindings);
       
       /* retrieve the next basic block element */
       current_bb_element = LNEXT(current_bb_element);
    }
 }
 
-int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_register
-            , t_cflow_Graph *graph, t_basic_block *current_block
-            , t_cflow_Node *current_node, t_list *labelBindings, int before)
+int _insertStoreSpill(int temp_register, int selected_register,
+      t_cflow_Graph *graph, t_basic_block *current_block,
+      t_cflow_Node *current_node, t_list *labelBindings, int before)
 {
    t_axe_instruction *storeInstr;
    t_cflow_Node *storeNode = NULL;
@@ -1524,29 +1389,22 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
    t_tempLabel *tlabel;
 
    pattern.regID = temp_register;
-   elementFound = findElementWithCallback (labelBindings
-               , &pattern, compareTempLabels);
+   elementFound =
+         findElementWithCallback(labelBindings, &pattern, compareTempLabels);
 
-   if (elementFound == NULL) {
-      finalizeNode(storeNode);
-      errorcode = AXE_TRANSFORM_ERROR;
-      return -1;
-   }
+   if (elementFound == NULL)
+      fatalError(AXE_TRANSFORM_ERROR);
 
-   tlabel = (t_tempLabel *) LDATA(elementFound);
+   tlabel = (t_tempLabel *)LDATA(elementFound);
    assert(tlabel != NULL);
 
    /* create a store instruction */
    storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label);
 
    /* create a node for the load instruction */
-   storeNode = allocNode (graph, storeInstr);
-   if (cflow_errorcode != CFLOW_OK) {
-      finalizeNode(storeNode);
-      finalizeInstruction(storeInstr);
-      errorcode = AXE_TRANSFORM_ERROR;
-      return -1;
-   }
+   storeNode = allocNode(graph, storeInstr);
+   if (cflow_errorcode != CFLOW_OK)
+      fatalError(AXE_TRANSFORM_ERROR);
 
    /* test if we have to insert the node `storeNode' before `current_node'
     * inside the basic block */
@@ -1554,13 +1412,13 @@ int _insertStoreSpill(t_program_infos *program, int temp_register, int selected_
       insertNodeAfter(current_block, current_node, storeNode);
    else
       insertNodeBefore(current_block, current_node, storeNode);
-   
+
    return 0;
 }
 
-int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_register
-            , t_cflow_Graph *graph, t_basic_block *block
-            , t_cflow_Node *current_node, t_list *labelBindings, int before)
+int _insertLoadSpill(int temp_register, int selected_register,
+      t_cflow_Graph *graph, t_basic_block *block, t_cflow_Node *current_node,
+      t_list *labelBindings, int before)
 {
    t_axe_instruction *loadInstr;
    t_cflow_Node *loadNode = NULL;
@@ -1569,39 +1427,31 @@ int _insertLoadSpill(t_program_infos *program, int temp_register, int selected_r
    t_tempLabel *tlabel;
 
    pattern.regID = temp_register;
-   elementFound = findElementWithCallback (labelBindings
-               , &pattern, compareTempLabels);
+   elementFound =
+         findElementWithCallback(labelBindings, &pattern, compareTempLabels);
 
-   if (elementFound == NULL) {
-      finalizeNode(loadNode);
-      errorcode = AXE_TRANSFORM_ERROR;
-      return -1;
-   }
+   if (elementFound == NULL)
+      fatalError(AXE_TRANSFORM_ERROR);
 
-   tlabel = (t_tempLabel *) LDATA(elementFound);
+   tlabel = (t_tempLabel *)LDATA(elementFound);
    assert(tlabel != NULL);
-   
+
    /* create a load instruction */
    loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->label);
 
    /* create a node for the load instruction */
-   loadNode = allocNode (graph, loadInstr);
+   loadNode = allocNode(graph, loadInstr);
 
    /* test if an error occurred */
-   if (cflow_errorcode != CFLOW_OK) {
-      finalizeNode(loadNode);
-      finalizeInstruction(loadInstr);
-      errorcode = AXE_TRANSFORM_ERROR;
-      return -1;
-   }
+   if (cflow_errorcode != CFLOW_OK)
+      fatalError(AXE_TRANSFORM_ERROR);
 
-   if ((current_node->instr)->label != NULL)
-   {
+   if ((current_node->instr)->label != NULL) {
       /* modify the label informations */
       loadInstr->label = (current_node->instr)->label;
       (current_node->instr)->label = NULL;
    }
-   
+
    if (before == 1)
       /* insert the node `loadNode' before `current_node' */
       insertNodeBefore(block, current_node, loadNode);
