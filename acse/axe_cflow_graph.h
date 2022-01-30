@@ -105,6 +105,7 @@ extern t_list *getLiveOUTVars(t_basic_block *bblock);
 /* working with the control flow graph */
 extern void insertBlock(t_cflow_Graph *graph, t_basic_block *block);
 extern t_cflow_Graph *createFlowGraph(t_list *instructions);
+extern void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph);
 
 /* dataflow analysis */
 extern void performLivenessAnalysis(t_cflow_Graph *graph);

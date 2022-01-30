@@ -1171,6 +1171,44 @@ void updateFlowGraph(t_cflow_Graph *graph)
    }
 }
 
+void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph)
+{
+   t_list *current_bb_element;
+   t_list *current_nd_element;
+   t_basic_block *bblock;
+   t_cflow_Node *node;
+   
+   /* preconditions */
+   if (program == NULL)
+      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+
+   if (graph == NULL)
+      fatalError(AXE_INVALID_CFLOW_GRAPH);
+
+   /* erase the old code segment */
+   freeList(program->instructions);
+   program->instructions = NULL;
+
+   current_bb_element = graph->blocks;
+   while(current_bb_element != NULL)
+   {
+      bblock = (t_basic_block *) LDATA(current_bb_element);
+
+      current_nd_element = bblock->nodes;
+      while(current_nd_element != NULL)
+      {
+         node = (t_cflow_Node *) LDATA(current_nd_element);
+
+         program->instructions =
+               addElement(program->instructions, node->instr, -1);
+         
+         current_nd_element = LNEXT(current_nd_element);
+      }
+
+      current_bb_element = LNEXT(current_bb_element);
+   }
+}
+
 void printCFlowGraphVariable(t_cflow_var *var, FILE *fout)
 {
    if (var->ID == VAR_PSW)
