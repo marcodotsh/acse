@@ -378,7 +378,7 @@ int translateForwardDeclarations(t_program_infos *program, FILE *fp)
          int res;
 
          labelName = getLabelName(nextLabel);
-         res = fprintf(fp, "%-6s.global %s\n", "", labelName);
+         res = fprintf(fp, "%-8s.global %s\n", "", labelName);
          free(labelName);
 
          if (res < 0)
@@ -402,12 +402,12 @@ int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
    } else {
       buf[0] = '\0';
    }
-   if (fprintf(fp, "%-6s", buf) < 0)
+   if (fprintf(fp, "%-8s", buf) < 0)
       return -1;
 
    instructionToString(buf, BUF_LENGTH, instr, machineRegIDs);
    if (instr->user_comment) {
-      res = fprintf(fp, "%-20s /* %s */", buf, instr->user_comment);
+      res = fprintf(fp, "%-24s/* %s */", buf, instr->user_comment);
    } else {
       res = fprintf(fp, "%s", buf);
    }
@@ -475,7 +475,7 @@ int printDirective(t_axe_data *data, FILE *fp)
    } else {
       buf[0] = '\0';
    }
-   if (fprintf(fp, "%-6s", buf) < 0)
+   if (fprintf(fp, "%-8s", buf) < 0)
       return -1;
 
    /* print the directive */
