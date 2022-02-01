@@ -199,8 +199,9 @@ static int opcodeToFormat(int opcode)
    return -1;
 }
 
-int registerToString(char *buf, int bufsz, t_axe_register *reg, int machineRegIDs)
+char *registerIDToString(int regID, int machineRegIDs)
 {
+   char *buf;
    static const char *mcRegIds[] = {
       "zero", "ra", "sp", "gp", "tp",
       "t0", "t1", "t2",
@@ -209,19 +210,25 @@ int registerToString(char *buf, int bufsz, t_axe_register *reg, int machineRegID
       "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
       "t3", "t4", "t5", "t6"
    };
-
-   if (!reg)
-      return -1;
    
    if (machineRegIDs) {
-      if (reg->ID < 0 || reg->ID >= 32)
-         return -1;
-      return snprintf(buf, bufsz, "%s", mcRegIds[reg->ID]);
+      if (regID < 0 || regID >= 32)
+         return NULL;
+      return strdup(mcRegIds[regID]);
    }
 
-   if (reg->ID < 0) 
-      return snprintf(buf, bufsz, "%s", "invalid_reg");
-   return snprintf(buf, bufsz, "x%d", reg->ID);
+   if (regID < 0) 
+      return strdup("invalid_reg");
+   buf = calloc(24, sizeof(char));
+   snprintf(buf, 24, "x%d", regID);
+   return buf;
+}
+
+char *registerToString(t_axe_register *reg, int machineRegIDs)
+{
+   if (!reg)
+      return NULL;
+   return registerIDToString(reg->ID, machineRegIDs);
 }
 
 int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
@@ -260,14 +267,14 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
    int format, res;
    const char *fmtstring;
    const char *opc;
-   char rd[16], rs1[16], rs2[16];
+   char *rd, *rs1, *rs2;
    int32_t imm;
    char *address = NULL;
 
    opc = opcodeToString(instr->opcode);
-   registerToString(rd, sizeof(rd), instr->reg_dest, machineRegIDs);
-   registerToString(rs1, sizeof(rs1), instr->reg_src1, machineRegIDs);
-   registerToString(rs2, sizeof(rs2), instr->reg_src2, machineRegIDs);
+   rd = registerToString(instr->reg_dest, machineRegIDs);
+   rs1 = registerToString(instr->reg_src1, machineRegIDs);
+   rs2 = registerToString(instr->reg_src2, machineRegIDs);
    if (instr->address) {
       int n = addressToString(NULL, 0, instr->address);
       address = calloc(n+1, sizeof(char));
@@ -345,6 +352,9 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
    }
 
    free(address);
+   free(rd);
+   free(rs1);
+   free(rs2);
    return res;
 }
 

@@ -18,11 +18,6 @@
 /* Number of bytes for each memory address */
 #define TARGET_PTR_GRANULARITY 1
 
-/* Number of registers for this target (excluding REG_0) */
-#define NUM_REGISTERS 31
-/* Number of registers to reserve for spilled temporaries. Shall be equal to
- * the maximum number of unique register operands in a single instruction. */
-#define NUM_SPILL_REGS 3
 
 /* Register names */
 enum {
@@ -33,8 +28,16 @@ enum {
    REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7, 
    REG_S2, REG_S3, REG_S4, REG_S5, REG_S6,
    REG_S7, REG_S8, REG_S9, REG_S10, REG_S11,
-   REG_T3, REG_T4, REG_T5, REG_T6
+   REG_T3, REG_T4, REG_T5, REG_T6,
+   NUM_REGISTERS
 };
+
+/* Number of general-purpose registers for this target usable by the register
+ * allocator. */
+#define NUM_GP_REGS    (REG_S11-REG_T0+1)
+/* Number of registers available for spilled temporaries. Should be equal to
+ * the maximum number of unique register operands in a single instruction. */
+#define NUM_SPILL_REGS (REG_T5-REG_T3+1)
 
 /*
  * TARGET OPCODES
@@ -143,12 +146,12 @@ extern int isHaltOrRetInstruction(t_axe_instruction *instr);
 extern int instructionUsesPSW(t_axe_instruction *instr);
 extern int instructionDefinesPSW(t_axe_instruction *instr);
 
-/* Returns 1 if the register can be used by the register allocator.
- * Must return 0 for all registers that are reserved for spills. */
-extern int isSpecialRegister(int regId);
 /* Returns a register ID suitable for spill operations. The maximum index
  * is always bounded by NUM_SPILL_REGS. */
 extern int getSpillRegister(int i);
+/* Returns the list of register IDs available for the register allocator,
+ * sorted in order of priority. */
+extern t_list *getListOfGenPurposeRegisters(void);
 
 #endif
 

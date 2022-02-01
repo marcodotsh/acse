@@ -17,6 +17,7 @@
 #include "collections.h"
 #include "axe_cflow_graph.h"
 #include "axe_io_manager.h"
+#include "axe_target_asm_print.h"
 
 extern int errorcode;
 extern int cflow_errorcode;
@@ -48,7 +49,6 @@ typedef struct t_live_interval {
 
 typedef struct t_reg_allocator {
    t_list *live_intervals; /* an ordered list of live intervals */
-   int regNum;             /* the number of registers of the machine */
    int varNum;             /* number of variables */
    int *bindings;          /* an array of bindings of kind : varID-->register.
                             * If a certain variable X need to be spilled
@@ -318,10 +318,8 @@ int insertLiveInterval(t_reg_allocator *RA, t_live_interval *interval)
    return RA_OK;
 }
 
-/*
- * Insert all elements of the intervals list into
- * the register allocator data structure
- */
+/* Insert all elements of the intervals list into
+ * the register allocator data structure */
 int insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
 {
    t_list *current_element;
@@ -353,76 +351,6 @@ int insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
    return RA_OK;
 }
 
-/* Return register regID to the free list in the given position */
-t_list *addFreeRegister(t_list *registers, int regID, int position)
-{
-   int *element;
-
-   /* Allocate memory space for the reg id */
-   element = (int *)malloc(sizeof(int));
-   if (element == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
-
-   /* initialize element */
-   (*element) = regID;
-
-   /* update the list of registers */
-   registers = addElement(registers, element, position);
-
-   /* return the list of free registers */
-   return registers;
-}
-
-/* Allocate and initialize the free registers list,
- * assuming regNum general purpose registers */
-t_list *allocFreeRegisters(int regNum)
-{
-   int count;
-   t_list *result;
-
-   /* initialize the local variables */
-   count = 1;
-   result = NULL;
-
-   while (count <= regNum) {
-      /* add a new register to the list of free registers */
-      result = addFreeRegister(result, count, -1);
-
-      /* update the `count' variable */
-      count++;
-   }
-
-   /* return the list of free registers */
-   return result;
-}
-
-int compareFreeRegLI(void *freeReg, void *constraintReg)
-{
-   return *(int *)constraintReg == *(int *)freeReg;
-}
-
-/* Get a new register from the free list */
-int assignRegister(t_reg_allocator *RA, t_list *constraints)
-{
-   int regID;
-
-   t_list *i = constraints;
-   for (; i; i = LNEXT(i)) {
-      t_list *freeReg;
-
-      regID = LINTDATA(i);
-      freeReg = findElementWithCallback(
-            RA->freeRegisters, &regID, compareFreeRegLI);
-      if (freeReg) {
-         free(LDATA(freeReg));
-         RA->freeRegisters = removeElementLink(RA->freeRegisters, freeReg);
-         return regID;
-      }
-   }
-
-   return RA_SPILL_REQUIRED;
-}
-
 t_list *subtractRegisterSets(t_list *a, t_list *b)
 {
    for (; b; b = LNEXT(b)) {
@@ -447,16 +375,7 @@ t_list *optimizeRegisterSet(t_list *a, t_list *b)
 
 void initializeRegisterConstraints(t_reg_allocator *ra)
 {
-   t_list *i, *j, *allregs, *allregs2;
-
-   /* Create a list of all free registers we are allowed to use */
-   allregs = NULL;
-   allregs2 = ra->freeRegisters;
-   for (; allregs2; allregs2 = LNEXT(allregs2)) {
-      int reg = *(int *)LDATA(allregs2);
-      if (!isSpecialRegister(reg))
-         allregs = addElement(allregs, INTDATA(reg), -1);
-   }
+   t_list *i, *j;
 
    /* Initialize the register constraint set on all variables that don't have
     * one. */
@@ -465,7 +384,7 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
       t_live_interval *interval = LDATA(i);
       if (interval->mcRegConstraints)
          continue;
-      interval->mcRegConstraints = cloneList(allregs);
+      interval->mcRegConstraints = getListOfGenPurposeRegisters();
 
       /* Scan the variables that are alive together with this variable */
       j = LNEXT(i);
@@ -493,10 +412,36 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
                         overlappingIval->mcRegConstraints);
          }
       }
-      assert(interval->mcRegConstraints);
+   }
+}
+
+int compareFreeRegLI(void *freeReg, void *constraintReg)
+{
+   return INTDATA(constraintReg) == INTDATA(freeReg);
+}
+
+/* Get a new register from the free list */
+int assignRegister(t_reg_allocator *RA, t_list *constraints)
+{
+   int regID;
+   t_list *i;
+
+   if (constraints == NULL)
+      return RA_SPILL_REQUIRED;
+
+   for (i = constraints; i; i = LNEXT(i)) {
+      t_list *freeReg;
+
+      regID = LINTDATA(i);
+      freeReg = findElementWithCallback(
+            RA->freeRegisters, INTDATA(regID), compareFreeRegLI);
+      if (freeReg) {
+         RA->freeRegisters = removeElementLink(RA->freeRegisters, freeReg);
+         return regID;
+      }
    }
 
-   freeList(allregs);
+   return RA_SPILL_REQUIRED;
 }
 
 /* Perform a spill that allows the allocation of the given
@@ -590,8 +535,8 @@ t_list *expireOldIntervals(
       active_intervals = removeElement(active_intervals, current_interval);
 
       /* Free all the registers associated with the removed interval */
-      RA->freeRegisters = addFreeRegister(
-            RA->freeRegisters, RA->bindings[current_interval->varID], 0);
+      RA->freeRegisters = addElement(RA->freeRegisters,
+            INTDATA(RA->bindings[current_interval->varID]), 0);
 
       /* Step to the next interval */
       current_element = next_element;
@@ -621,8 +566,6 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
       fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the register allocator informations */
-   /* Reserve a few registers (NUM_SPILL_REGS) to handle spills */
-   result->regNum = NUM_REGISTERS;
 
    /* retrieve the max identifier from each live interval */
    max_var_ID = 0;
@@ -670,10 +613,7 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
    }
 
    /* create a list of freeRegisters */
-   if (result->regNum > 0)
-      result->freeRegisters = allocFreeRegisters(result->regNum);
-   else
-      result->freeRegisters = NULL;
+   result->freeRegisters = getListOfGenPurposeRegisters();
 
    initializeRegisterConstraints(result);
 
@@ -681,9 +621,7 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
    return result;
 }
 
-/*
- * Main register allocation function
- */
+/* Main register allocation function */
 int executeLinearScan(t_reg_allocator *RA)
 {
    t_list *current_element;
@@ -718,8 +656,8 @@ int executeLinearScan(t_reg_allocator *RA)
          /* perform a spill */
          active_intervals =
                spillAtInterval(RA, active_intervals, current_interval);
-      } else /* Otherwise, assign a new register to the current live interval */
-      {
+      } else {
+         /* Otherwise, assign a new register to the current live interval */
          RA->bindings[current_interval->varID] = reg;
 
          /* Add the current interval to the list of active intervals, in
@@ -769,17 +707,8 @@ void finalizeRegAlloc(t_reg_allocator *RA)
    /* Free memory used for the variable/register bindings */
    if (RA->bindings != NULL)
       free(RA->bindings);
-   if (RA->freeRegisters != NULL) {
-      t_list *current_element;
-
-      current_element = RA->freeRegisters;
-      while (current_element != NULL) {
-         free(LDATA(current_element));
-         current_element = LNEXT(current_element);
-      }
-
+   if (RA->freeRegisters != NULL)
       freeList(RA->freeRegisters);
-   }
 
    free(RA);
 }
@@ -1216,13 +1145,17 @@ void printBindings(int *bindings, int numVars, FILE *fout)
    if (fout == NULL)
       return;
 
-   fprintf(fout, "BINDINGS : \n");
-   for (counter = 0; counter < numVars; counter++) {
-      if (bindings[counter] != RA_SPILL_REQUIRED) {
-         fprintf(fout, "VAR T%d will be assigned to register R%d \n", counter,
-               bindings[counter]);
+   for (counter = 1; counter < numVars; counter++) {
+      if (bindings[counter] == RA_SPILL_REQUIRED) {
+         fprintf(fout, "Variable T%-3d will be spilled\n", counter);
+      } else if (bindings[counter] == RA_REGISTER_INVALID) {
+         fprintf(fout, "Variable T%-3d has not been assigned to any register\n",
+               counter);
       } else {
-         fprintf(fout, "VAR T%d will be spilled \n", counter);
+         char *reg = registerIDToString(bindings[counter], 1);
+         fprintf(fout, "Variable T%-3d is assigned to register %s\n", counter,
+               reg);
+         free(reg);
       }
    }
 
@@ -1233,31 +1166,32 @@ void printLiveIntervals(t_list *intervals, FILE *fout)
 {
    t_list *current_element;
    t_live_interval *interval;
+   t_list *i;
 
    /* precondition */
    if (fout == NULL)
       return;
-
-   fprintf(fout, "LIVE_INTERVALS:\n");
 
    /* retireve the first element of the list */
    current_element = intervals;
    while (current_element != NULL) {
       interval = (t_live_interval *)LDATA(current_element);
 
-      fprintf(fout, "\tLIVE_INTERVAL of T%d : [%d, %d]", interval->varID,
+      fprintf(fout, "[T%-3d] Live interval: [%3d, %3d]\n", interval->varID,
             interval->startPoint, interval->endPoint);
+      fprintf(fout, "       Constraint set: {");
 
-      if (interval->mcRegConstraints) {
-         t_list *i = interval->mcRegConstraints;
-         fprintf(fout, " CONSTRAINED TO R%d", LINTDATA(i));
-         i = LNEXT(i);
-         for (; i; i = LNEXT(i)) {
-            fprintf(fout, ", R%d", LINTDATA(i));
-         }
+      for (i=interval->mcRegConstraints; i!=NULL; i=LNEXT(i)) {
+         char *reg;
+         
+         reg = registerIDToString(LINTDATA(i), 1);
+         fprintf(fout, "%s", reg);
+         free(reg);
+
+         if (LNEXT(i) != NULL)
+            fprintf(fout, ", ");
       }
-
-      fprintf(fout, "\n");
+      fprintf(fout, "}\n");
 
       /* retrieve the next element in the list of intervals */
       current_element = LNEXT(current_element);
@@ -1271,16 +1205,28 @@ void printRegAllocInfos(t_reg_allocator *RA, FILE *fout)
       return;
    if (fout == NULL)
       return;
-   fprintf(fout, "\n\n*************************\n");
-   fprintf(fout, "REGISTER ALLOCATION INFOS\n");
+   
    fprintf(fout, "*************************\n");
-   fprintf(fout, "AVAILABLE REGISTERS : %d \n", RA->regNum + 3);
-   fprintf(fout, "USED VARIABLES : %d \n", RA->varNum);
-   fprintf(fout, "-------------------------\n");
-   printLiveIntervals(RA->live_intervals, fout);
-   fprintf(fout, "-------------------------\n");
-   printBindings(RA->bindings, RA->varNum, fout);
+   fprintf(fout, "   REGISTER ALLOCATION   \n");
    fprintf(fout, "*************************\n\n");
+
+   fprintf(fout, "------------\n");
+   fprintf(fout, " STATISTICS \n");
+   fprintf(fout, "------------\n");
+   fprintf(fout, "Number of available registers: %d\n", NUM_GP_REGS);
+   fprintf(fout, "Number of used variables: %d\n\n", RA->varNum);
+
+   fprintf(fout, "----------------\n");
+   fprintf(fout, " LIVE INTERVALS \n");
+   fprintf(fout, "----------------\n");
+   printLiveIntervals(RA->live_intervals, fout);
+   fprintf(fout, "\n");
+
+   fprintf(fout, "----------------------------\n");
+   fprintf(fout, " VARIABLE/REGISTER BINDINGS \n");
+   fprintf(fout, "----------------------------\n");
+   printBindings(RA->bindings, RA->varNum, fout);
+
    fflush(fout);
 }
 

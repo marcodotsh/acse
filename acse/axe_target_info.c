@@ -64,26 +64,26 @@ extern int instructionDefinesPSW(t_axe_instruction *instr)
    return 0;
 }
 
-extern int isSpecialRegister(int regId)
-{
-   switch (regId) {
-      case REG_0:
-      case REG_RA:
-      case REG_SP:
-      case REG_GP:
-      case REG_TP:
-      case REG_T3:
-      case REG_T4:
-      case REG_T5:
-      case REG_T6:
-         return 1;
-   }
-   return 0;
-}
-
-extern int getSpillRegister(int i)
+int getSpillRegister(int i)
 {
    assert(i < NUM_SPILL_REGS);
    return i + REG_T3;
+}
+
+t_list *getListOfGenPurposeRegisters(void)
+{
+   static const int regs[NUM_GP_REGS] = {
+      REG_S0, REG_S1, REG_S2, REG_S3, REG_S4, REG_S5,
+      REG_S6, REG_S7, REG_S8, REG_S9, REG_S10, REG_S11,
+      REG_T0, REG_T1, REG_T2,
+      REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7
+   };
+   int i;
+   t_list *res = NULL;
+   
+   for (i = NUM_GP_REGS-1; i >= 0; i--) {
+      res = addFirst(res, INTDATA(regs[i]));
+   }
+   return res;
 }
 
