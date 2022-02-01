@@ -434,7 +434,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
       return 0;
 
    /* write the .text directive */
-   if (fprintf(fp, ".text\n") < 0)
+   if (fprintf(fp, "%-8s.text\n", "") < 0)
       return -1;
 
    /* iterate through the instruction list */
@@ -511,7 +511,7 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
       return 0;
 
    /* write the .data directive */
-   if (fprintf(fp, ".data\n") < 0)
+   if (fprintf(fp, "%-8s.data\n", "") < 0)
       return -1;
 
    /* iterate over all data directives */
