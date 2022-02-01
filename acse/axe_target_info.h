@@ -34,10 +34,10 @@ enum {
 
 /* Number of general-purpose registers for this target usable by the register
  * allocator. */
-#define NUM_GP_REGS    (REG_S11-REG_T0+1)
+#define NUM_GP_REGS    23
 /* Number of registers available for spilled temporaries. Should be equal to
  * the maximum number of unique register operands in a single instruction. */
-#define NUM_SPILL_REGS (REG_T5-REG_T3+1)
+#define NUM_SPILL_REGS 3
 
 /*
  * TARGET OPCODES
