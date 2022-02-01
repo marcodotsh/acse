@@ -484,13 +484,11 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
 
    /* update the list of instructions */
    ip = LDATA(program->instrInsPtrStack);
-   if (!ip) {
-      program->instructions = addElement(program->instructions, instr, 0);
+   program->instructions = addAfter(program->instructions, ip, instr);
+   if (ip)
+      SET_DATA(program->instrInsPtrStack, LNEXT(ip));
+   else
       SET_DATA(program->instrInsPtrStack, program->instructions);
-   } else {
-      ip = addAfter(ip, instr);
-      SET_DATA(program->instrInsPtrStack, ip);
-   }
 }
 
 t_axe_instruction *genInstruction(t_program_infos *program,

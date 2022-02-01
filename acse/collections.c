@@ -136,30 +136,51 @@ t_list * addLast(t_list *list, void * data)
    return addElement(list, data, -1);
 }
 
-t_list *addBefore(t_list *listPos, void *data)
+t_list *addBefore(t_list *list, t_list *listPos, void *data)
 {
-   t_list *elem = newElement(data);
-   if (!listPos)
-      return elem;
-   SET_NEXT(elem, listPos);
-   SET_PREV(elem, LPREV(listPos));
-   SET_PREV(listPos, elem);
-   if (LPREV(elem))
-      SET_NEXT(LPREV(elem), elem);
-   return elem;
+   t_list *newElem;
+
+   if (!listPos) {
+      /* add at the end of the list */
+      return addElement(list, data, -1);
+   }
+
+   newElem = newElement(data);
+   assert(newElem);
+
+   SET_NEXT(newElem, listPos);
+   SET_PREV(newElem, LPREV(listPos));
+   SET_PREV(listPos, newElem);
+   if (LPREV(newElem)) {
+      SET_NEXT(LPREV(newElem), newElem);
+   } else {
+      /* we are adding at the head of the list */
+      assert(list == listPos);
+      list = newElem;
+   }
+
+   return list;
 }
 
-t_list *addAfter(t_list *listPos, void *data)
+t_list *addAfter(t_list *list, t_list *listPos, void *data)
 {
-   t_list *elem = newElement(data);
-   if (!listPos)
-      return elem;
-   SET_NEXT(elem, LNEXT(listPos));
-   SET_PREV(elem, listPos);
-   SET_NEXT(listPos, elem);
-   if (LNEXT(elem))
-      SET_PREV(LNEXT(elem), elem);
-   return elem;
+   t_list *newElem;
+
+   if (listPos == NULL) {
+      /* add at the beginning of the list */
+      return addElement(list, data, 0);
+   }
+
+   newElem = newElement(data);
+   assert(newElem);
+
+   SET_NEXT(newElem, LNEXT(listPos));
+   SET_PREV(newElem, listPos);
+   SET_NEXT(listPos, newElem);
+   if (LNEXT(newElem))
+      SET_PREV(LNEXT(newElem), newElem);
+
+   return list;
 }
 
 /* remove an element from the list */

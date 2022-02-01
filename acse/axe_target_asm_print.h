@@ -19,7 +19,7 @@ extern const char *opcodeToString(int opcode);
 
 /* Convert a register to a string. The result string is dynamically allocated
  * and must be freed. Returns NULL on error. */
-char *registerIDToString(int regID, int machineRegIDs);
+extern char *registerIDToString(int regID, int machineRegIDs);
 
 /* print the specified instruction to the file */
 extern int printInstruction(t_axe_instruction *inst, FILE *fp, int machineRegIDs);
