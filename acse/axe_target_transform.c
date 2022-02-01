@@ -279,9 +279,7 @@ void fixSyscalls(t_program_infos *program)
    while (curi) {
       t_axe_instruction *instr = LDATA(curi);
       t_list *nexti = LNEXT(curi);
-      int callid, rcallid, rarg;
-      t_axe_instruction *i1 = NULL, *i2 = NULL, *i3 = NULL;
-      t_list *afterCall;
+      t_axe_instruction *ecall;
 
       if (instr->opcode != OPC_HALT && 
             instr->opcode != OPC_AXE_READ && 
@@ -291,35 +289,43 @@ void fixSyscalls(t_program_infos *program)
       }
 
       pushInstrInsertionPoint(program, curi);
-      
-      if (instr->opcode == OPC_HALT)
-         callid = SYSCALL_ID_EXIT;
-      else if (instr->opcode == OPC_AXE_WRITE)
-         callid = SYSCALL_ID_PUTINT;
-      else if (instr->opcode == OPC_AXE_READ)
-         callid = SYSCALL_ID_GETINT;
-      rcallid = getNewRegister(program);
-      i1 = genLIInstruction(program, rcallid, callid);
-      setMCRegisterWhitelist(i1->reg_dest, REG_A0, REG_INVALID);
 
-      rarg = getNewRegister(program);
       if (instr->opcode == OPC_HALT) {
-         i2 = genLIInstruction(program, rarg, 0);
+         int r_func = genLoadImmediate(program, SYSCALL_ID_EXIT);
+         int r_arg = genLoadImmediate(program, 0);
+         ecall = genInstruction(program, OPC_ECALL,
+               NULL,
+               initializeRegister(r_func, 0),
+               initializeRegister(r_arg, 0),
+               NULL, 0);
+         
       } else if (instr->opcode == OPC_AXE_WRITE) {
-         i2 = genADDIInstruction(program, rarg, RS1(instr), 0);
-      }
-      if (i2)
-         setMCRegisterWhitelist(i2->reg_dest, REG_A1, REG_INVALID);
+         int r_func = genLoadImmediate(program, SYSCALL_ID_PUTINT);
+         int r_arg = getNewRegister(program);
+         genADDIInstruction(program, r_arg, RS1(instr), 0);
+         ecall = genInstruction(program, OPC_ECALL,
+               NULL,
+               initializeRegister(r_func, 0),
+               initializeRegister(r_arg, 0),
+               NULL, 0);
 
-      genECALLInstruction(program);
-
-      if (instr->opcode == OPC_AXE_READ) {
-         markRegistersTouchedByCall(program, 1);
-         rarg = genDefOfPhysReg(program, REG_A0);
-         genADDIInstruction(program, RD(instr), rarg, 0);
-      } else {
-         markRegistersTouchedByCall(program, 0);
+      } else if (instr->opcode == OPC_AXE_READ) {
+         int r_func = genLoadImmediate(program, SYSCALL_ID_GETINT);
+         int r_res = getNewRegister(program);
+         ecall = genInstruction(program, OPC_ECALL,
+               initializeRegister(r_res, 0),
+               initializeRegister(r_func, 0),
+               NULL,
+               NULL, 0);
+         genADDIInstruction(program, RD(instr), r_res, 0);
       }
+
+      if (ecall->reg_dest)
+         setMCRegisterWhitelist(ecall->reg_dest, REG_A0, -1);
+      if (ecall->reg_src1)
+         setMCRegisterWhitelist(ecall->reg_src1, REG_A0, -1);
+      if (ecall->reg_src2)
+         setMCRegisterWhitelist(ecall->reg_src2, REG_A1, -1);
 
       removeInstructionLink(program, curi);
       popInstrInsertionPoint(program);
