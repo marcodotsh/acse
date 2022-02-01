@@ -1209,6 +1209,42 @@ void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph)
    }
 }
 
+void iterateCFGNodes(t_cflow_Graph *graph, void *context,
+      void (*callback)(t_basic_block *block, t_cflow_Node *node, int nodeIndex,
+            void *context))
+{
+   t_list *current_bb_element;
+   t_list *current_nd_element;
+   t_basic_block *current_block;
+   t_cflow_Node *current_node;
+   int counter;
+
+   /* intialize the instruction counter */
+   counter = 0;
+
+   /* fetch the first basic block */
+   current_bb_element = graph->blocks;
+   while (current_bb_element != NULL) {
+      current_block = (t_basic_block *)LDATA(current_bb_element);
+
+      /* fetch the first node of the basic block */
+      current_nd_element = current_block->nodes;
+      while (current_nd_element != NULL) {
+         current_node = (t_cflow_Node *)LDATA(current_nd_element);
+
+         /* invoke the callback */
+         callback(current_block, current_node, counter, context);
+
+         /* fetch the next node in the basic block */
+         counter++;
+         current_nd_element = LNEXT(current_nd_element);
+      }
+
+      /* fetch the next element in the list of basic blocks */
+      current_bb_element = LNEXT(current_bb_element);
+   }
+}
+
 void printCFlowGraphVariable(t_cflow_var *var, FILE *fout)
 {
    if (var->ID == VAR_PSW)

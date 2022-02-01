@@ -54,12 +54,17 @@ int isJumpInstruction(t_axe_instruction *instr)
    }
 }
 
-extern int instructionUsesPSW(t_axe_instruction *instr)
+int isCallInstruction(t_axe_instruction *instr)
+{
+   return instr->opcode == OPC_ECALL;
+}
+
+int instructionUsesPSW(t_axe_instruction *instr)
 {
    return 0;
 }
 
-extern int instructionDefinesPSW(t_axe_instruction *instr)
+int instructionDefinesPSW(t_axe_instruction *instr)
 {
    return 0;
 }
@@ -82,6 +87,22 @@ t_list *getListOfGenPurposeRegisters(void)
    t_list *res = NULL;
    
    for (i = NUM_GP_REGS-1; i >= 0; i--) {
+      res = addFirst(res, INTDATA(regs[i]));
+   }
+   return res;
+}
+
+t_list *getListOfCallerSaveRegisters(void)
+{
+   static const int regs[] = {
+      REG_T0, REG_T1, REG_T2,
+      REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7,
+      REG_INVALID
+   };
+   int i;
+   t_list *res = NULL;
+
+   for (i = 0; regs[i] != REG_INVALID; i++) {
       res = addFirst(res, INTDATA(regs[i]));
    }
    return res;

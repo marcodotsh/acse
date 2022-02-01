@@ -132,13 +132,13 @@ enum {
 
 /* Returns 1 if `instr` is a jump (branch) instruction. */
 extern int isJumpInstruction(t_axe_instruction *instr);
-
 /* Returns 1 if `instr` is a unconditional jump instruction (BT, BF) */
 extern int isUnconditionalJump(t_axe_instruction *instr);
-
 /* Returns 1 if `instr` is either the HALT instruction or the RET
  * instruction. */
 extern int isHaltOrRetInstruction(t_axe_instruction *instr);
+/* Returns 1 if `instr` is a function call instruction. */
+extern int isCallInstruction(t_axe_instruction *instr);
 
 /* Returns 1 if the instruction uses/defines the PSW (flags) register, 0
  * otherwise. Always returns zero on architectures that do not have a
@@ -152,6 +152,9 @@ extern int getSpillRegister(int i);
 /* Returns the list of register IDs available for the register allocator,
  * sorted in order of priority. */
 extern t_list *getListOfGenPurposeRegisters(void);
+/* Returns the list of register IDs that can be modified by a given function
+ * call instruction, except for input and output parameters. */
+extern t_list *getListOfCallerSaveRegisters(void);
 
 #endif
 

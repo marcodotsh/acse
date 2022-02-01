@@ -246,50 +246,20 @@ t_list *updateListOfIntervals(
    return result;
 }
 
+void getLiveIntervalsNodeCallback(
+      t_basic_block *block, t_cflow_Node *node, int nodeIndex, void *context)
+{
+   t_list **list = (t_list **)context;
+   *list = updateListOfIntervals(*list, node, nodeIndex);
+}
+
 /* Perform live intervals computation */
 t_list *getLiveIntervals(t_cflow_Graph *graph)
 {
-   t_list *current_bb_element;
-   t_list *current_nd_element;
-   t_basic_block *current_block;
-   t_cflow_Node *current_node;
-   t_list *result;
-   int counter;
+   t_list *result = NULL;
 
-   /* preconditions */
-   if (graph == NULL)
-      return NULL;
-
-   if (graph->blocks == NULL)
-      return NULL;
-
-   /* initialize the local variable `result' */
-   result = NULL;
-
-   /* intialize the instruction counter */
-   counter = 0;
-
-   /* fetch the first basic block */
-   current_bb_element = graph->blocks;
-   while (current_bb_element != NULL) {
-      current_block = (t_basic_block *)LDATA(current_bb_element);
-
-      /* fetch the first node of the basic block */
-      current_nd_element = current_block->nodes;
-      while (current_nd_element != NULL) {
-         current_node = (t_cflow_Node *)LDATA(current_nd_element);
-
-         /* update the live intervals with the liveness informations */
-         result = updateListOfIntervals(result, current_node, counter);
-
-         /* fetch the next node in the basic block */
-         counter++;
-         current_nd_element = LNEXT(current_nd_element);
-      }
-
-      /* fetch the next element in the list of basic blocks */
-      current_bb_element = LNEXT(current_bb_element);
-   }
+   /* build the list of intervals one instruction at a time */
+   iterateCFGNodes(graph, (void *)&result, getLiveIntervalsNodeCallback);
 
    return result;
 }
@@ -413,6 +383,49 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
          }
       }
    }
+}
+
+void handleCallerSaveRegistersNodeCallback(
+      t_basic_block *block, t_cflow_Node *node, int nodeIndex, void *context)
+{
+   t_reg_allocator *ra = (t_reg_allocator *)context;
+   t_list *li_ival;
+   t_list *clobbered_regs;
+   int i;
+
+   if (!isCallInstruction(node->instr))
+      return;
+
+   clobbered_regs = getListOfCallerSaveRegisters();
+   for (i = 0; i < CFLOW_MAX_DEFS; i++) {
+      if (node->defs[i] != NULL)
+         clobbered_regs = subtractRegisterSets(
+               clobbered_regs, node->defs[i]->mcRegWhitelist);
+   }
+   for (i = 0; i < CFLOW_MAX_USES; i++) {
+      if (node->uses[i] != NULL)
+         clobbered_regs = subtractRegisterSets(
+               clobbered_regs, node->uses[i]->mcRegWhitelist);
+   }
+
+   li_ival = ra->live_intervals;
+   while (li_ival) {
+      t_live_interval *ival = LDATA(li_ival);
+
+      if (ival->startPoint <= nodeIndex && nodeIndex <= ival->endPoint) {
+         ival->mcRegConstraints =
+               subtractRegisterSets(ival->mcRegConstraints, clobbered_regs);
+      }
+
+      li_ival = LNEXT(li_ival);
+   }
+}
+
+/* Restrict register constraints in order to avoid register corrupted by
+ * function calls. */
+void handleCallerSaveRegisters(t_reg_allocator *ra, t_cflow_Graph *cfg)
+{
+   iterateCFGNodes(cfg, (void *)ra, handleCallerSaveRegistersNodeCallback);
 }
 
 int compareFreeRegLI(void *freeReg, void *constraintReg)
@@ -615,7 +628,9 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
    /* create a list of freeRegisters */
    result->freeRegisters = getListOfGenPurposeRegisters();
 
+   /* Initialize register constraints */
    initializeRegisterConstraints(result);
+   handleCallerSaveRegisters(result, graph);
 
    /* return the new register allocator */
    return result;

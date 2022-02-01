@@ -92,9 +92,6 @@ const char *opcodeToString(int opcode)
       case OPC_HALT:      return "HALT";
       case OPC_AXE_READ:  return "READ";
       case OPC_AXE_WRITE: return "WRITE";
-      /*   Fake use/define */
-      case CFLOW_OPC_DEFINE: return "[def]";
-      case CFLOW_OPC_USE:    return "[use]";
    }
    return "<unknown>";
 }
@@ -190,10 +187,8 @@ static int opcodeToFormat(int opcode)
       case OPC_HALT:
          return FORMAT_SYSTEM;
       case OPC_AXE_READ:
-      case CFLOW_OPC_DEFINE:
          return FORMAT_DEFINE;
       case OPC_AXE_WRITE:
-      case CFLOW_OPC_USE:
          return FORMAT_USE;
    }
    return -1;
@@ -444,13 +439,6 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
       current_instr = (t_axe_instruction *)LDATA(current_element);
       if (current_instr == NULL || current_instr->opcode == OPC_INVALID)
          fatalError(AXE_INVALID_INSTRUCTION);
-
-      /* skip internal placeholder instructions */
-      if (current_instr->opcode == CFLOW_OPC_DEFINE ||
-            current_instr->opcode == CFLOW_OPC_USE) {
-         current_element = LNEXT(current_element);
-         continue;
-      }
 
       /* print label, instruction and comment */
       if (printInstruction(current_instr, fp, 1) < 0)

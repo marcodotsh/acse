@@ -24,25 +24,6 @@
 #define SYSCALL_ID_GETINT 2003
 
 
-void genUseOfPhysReg(t_program_infos *program, int physReg)
-{
-   int reg = getNewRegister(program);
-   t_axe_register *rstruct = initializeRegister(reg, 0);
-   t_axe_instruction *instr = genInstruction(program, CFLOW_OPC_USE,
-         NULL, rstruct, NULL, NULL, 0);
-   setMCRegisterWhitelist(rstruct, physReg, REG_INVALID);
-}
-
-int genDefOfPhysReg(t_program_infos *program, int physReg)
-{
-   int reg = getNewRegister(program);
-   t_axe_register *rstruct = initializeRegister(reg, 0);
-   t_axe_instruction *instr = genInstruction(program, CFLOW_OPC_DEFINE,
-         rstruct, NULL, NULL, NULL, 0);
-   setMCRegisterWhitelist(rstruct, physReg, REG_INVALID);
-   return reg;
-}
-
 void moveLabel(t_axe_instruction *dest, t_axe_instruction *src)
 {
    assert(dest->label == NULL && "moveLabel failed: destination already is labeled");
@@ -254,21 +235,6 @@ void fixPseudoInstructions(t_program_infos *program)
       }
       
       curi = nexti;
-   }
-}
-
-void markRegistersTouchedByCall(t_program_infos *program, int numRet)
-{
-   int i;
-   /* list of registers potentially affected by a function call */
-   static const int regList[] = {
-      REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7,
-      REG_T0, REG_T1, REG_T2
-   };
-
-   for (i = numRet; i<sizeof(regList)/sizeof(int); i++) {
-      int reg = regList[i];
-      genDefOfPhysReg(program, reg);
    }
 }
 
