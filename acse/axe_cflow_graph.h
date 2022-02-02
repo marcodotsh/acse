@@ -15,8 +15,8 @@
 #include "axe_engine.h"
 #include "collections.h"
 
-/* if this macro is defined, the control flow analysis will consider
- * R0 always as a LIVE IN temporary register (i.e. variable) */
+/* If this macro is defined, the control flow analysis will always consider
+ * x0 as a LIVE IN temporary register (i.e. variable) */
 #define CFLOW_ALWAYS_LIVEIN_R0
 
 /* Max number of defs and uses for each cfg node */
@@ -33,42 +33,45 @@ enum {
    CFLOW_OUT_OF_MEMORY
 };
 
-
+/* Special variables */
 #define VAR_PSW       -2
 #define VAR_UNDEFINED -1
 
-/* a variable of the intermediate code */
-typedef struct t_cflow_var
-{
-   int ID;   /* Variable identifier. Negative IDs are reserved for artificial
-              * variables which are not part of the code */
+
+/* A variable of the intermediate code */
+typedef struct t_cflow_var {
+   /* Variable identifier. Negative IDs are reserved for artificial
+    * variables which are not part of the code */
+   int ID;
+   /* Physical register whitelist */
    t_list *mcRegWhitelist;
 } t_cflow_var;
 
 /* A Node exists only in a basic block. It defines a list of
  * def-uses and it is associated with a specific instruction
  * inside the code */
-typedef struct t_cflow_Node
-{
-   t_cflow_var *defs[CFLOW_MAX_DEFS];  /* set of variables defined by this node */
-   t_cflow_var *uses[CFLOW_MAX_USES];  /* set of variables that will be used by this node */
-   t_axe_instruction *instr;  /* a pointer to the instruction associated
-                               * with this node */
-   t_list *in;             /* variables that are live-in the current node */
-   t_list *out;            /* variables that are live-out the current node */
+typedef struct t_cflow_Node {
+   /* set of variables defined by this node */
+   t_cflow_var *defs[CFLOW_MAX_DEFS];
+   /* set of variables that will be used by this node */
+   t_cflow_var *uses[CFLOW_MAX_USES];
+   /* a pointer to the instruction associated with this node */
+   t_axe_instruction *instr;
+   /* variables that are live-in the current node */
+   t_list *in;
+   /* variables that are live-out the current node */
+   t_list *out;
 } t_cflow_Node;
 
 /* an ordered list of nodes with only one predecessor and one successor */
-typedef struct t_basic_block
-{
+typedef struct t_basic_block {
    t_list *pred;  /* predecessors : a list of basic blocks */
    t_list *succ;  /* successors : a list of basic blocks */
    t_list *nodes; /* an ordered list of instructions */
 } t_basic_block;
 
 /* a control flow graph */
-typedef struct t_cflow_Graph
-{
+typedef struct t_cflow_Graph {
    t_basic_block *startingBlock; /* the starting basic block of code */
    t_basic_block *endingBlock;   /* the last block of the graph */
    t_list *blocks;               /* an ordered list of all the basic blocks */
