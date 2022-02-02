@@ -46,7 +46,6 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
    char *basename;
    int lastDot, i, max_fn;
    char *frontend_out_fn;
-   char *symbol_table_out_fn;
    char *cfg_out_fn;
    char *data_flow_out_fn;
    char *regalloc_out_fn;
@@ -127,7 +126,6 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
 
    free(basename);
    free(frontend_out_fn);
-   free(symbol_table_out_fn);
    free(cfg_out_fn);
    free(data_flow_out_fn);
    free(regalloc_out_fn);
