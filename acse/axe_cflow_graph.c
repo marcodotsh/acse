@@ -45,7 +45,7 @@ t_cflow_var *allocVariable(
    result = malloc(sizeof(t_cflow_var));
    if (result == NULL) {
       if (error)
-         *error = CFLOW_OUT_OF_MEMORY;
+         *error = AXE_OUT_OF_MEMORY;
       return NULL;
    }
 
@@ -149,7 +149,7 @@ int setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
    if (instructionUsesPSW(instr))
       node->uses[use_i++] = varPSW;
 
-   return CFLOW_OK;
+   return AXE_OK;
 }
 
 t_cflow_Node *allocNode(
@@ -166,7 +166,7 @@ t_cflow_Node *allocNode(
    result = malloc(sizeof(t_cflow_Node));
    if (result == NULL) {
       if (error)
-         *error = CFLOW_OUT_OF_MEMORY;
+         *error = AXE_OUT_OF_MEMORY;
       return NULL;
    }
 
@@ -179,7 +179,7 @@ t_cflow_Node *allocNode(
 
    /* set the def-uses for the current node */
    error2 = setDefUses(graph, result);
-   if (error2 != CFLOW_OK) {
+   if (error2 != AXE_OK) {
       if (error)
          *error = error2;
       free(result);
@@ -217,7 +217,7 @@ t_basic_block *allocBasicBlock(int *error)
    result = malloc(sizeof(t_basic_block));
    if (result == NULL) {
       if (error)
-         *error = CFLOW_OUT_OF_MEMORY;
+         *error = AXE_OUT_OF_MEMORY;
       return NULL;
    }
 
@@ -298,7 +298,7 @@ int insertNode(t_basic_block *block, t_cflow_Node *node)
 
    /* add the current node to the basic block */
    block->nodes = addElement(block->nodes, node, -1);
-   return CFLOW_OK;
+   return AXE_OK;
 }
 
 int insertNodeBefore(
@@ -320,7 +320,7 @@ int insertNodeBefore(
 
    /* add the current node to the basic block */
    block->nodes = addBefore(block->nodes, before_node_elem, new_node);
-   return CFLOW_OK;
+   return AXE_OK;
 }
 
 /* insert a new node without updating the dataflow informations */
@@ -343,7 +343,7 @@ int insertNodeAfter(
 
    /* add the current node to the basic block */
    block->nodes = addAfter(block->nodes, after_node_elem, new_node);
-   return CFLOW_OK;
+   return AXE_OK;
 }
 
 /* allocate memory for a control flow graph */
@@ -354,7 +354,7 @@ t_cflow_Graph *allocGraph(int *error)
    result = malloc(sizeof(t_cflow_Graph));
    if (result == NULL) {
       if (error)
-         *error = CFLOW_OUT_OF_MEMORY;
+         *error = AXE_OUT_OF_MEMORY;
       return NULL;
    }
 
@@ -494,7 +494,7 @@ int insertBlock(t_cflow_Graph *graph, t_basic_block *block)
    /* test if this is the first basic block for the program */
    if (graph->startingBlock == NULL)
       graph->startingBlock = block;
-   return CFLOW_OK;
+   return AXE_OK;
 }
 
 int updateFlowGraph(t_cflow_Graph *graph)
@@ -570,7 +570,7 @@ int updateFlowGraph(t_cflow_Graph *graph)
       current_element = LNEXT(current_element);
    }
 
-   return CFLOW_OK;
+   return AXE_OK;
 }
 
 t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
@@ -628,7 +628,7 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
          /* add the current instruction to the newly created
           * basic block */
          error2 = insertNode(bblock, current_node);
-         if (error2 != CFLOW_OK) {
+         if (error2 != AXE_OK) {
             if (error)
                *error = error2;
             finalizeGraph(result);
@@ -639,7 +639,7 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
 
          /* add the new basic block to the control flow graph */
          error2 = insertBlock(result, bblock);
-         if (error2 != CFLOW_OK) {
+         if (error2 != AXE_OK) {
             if (error)
                *error = error2;
             finalizeGraph(result);
@@ -651,7 +651,7 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
          /* add the current instruction to the current
           * basic block */
          error2 = insertNode(bblock, current_node);
-         if (error2 != CFLOW_OK) {
+         if (error2 != AXE_OK) {
             if (error)
                *error = error2;
             finalizeGraph(result);
@@ -669,7 +669,7 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
 
    /* update the basic blocks chain */
    error2 = updateFlowGraph(result);
-   if (error2 != CFLOW_OK) {
+   if (error2 != AXE_OK) {
       if (error)
          *error = error2;
       finalizeGraph(result);

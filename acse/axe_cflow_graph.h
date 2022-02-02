@@ -25,12 +25,10 @@
 
 /* Error codes */
 enum {
-   CFLOW_OK = 0,
-   CFLOW_INVALID_NODE,
+   CFLOW_INVALID_NODE = 1000,
    CFLOW_INVALID_LABEL_FOUND,
    CFLOW_NODE_ALREADY_INSERTED,
-   CFLOW_BBLOCK_ALREADY_INSERTED,
-   CFLOW_OUT_OF_MEMORY
+   CFLOW_BBLOCK_ALREADY_INSERTED
 };
 
 /* Special variables */
@@ -117,20 +115,20 @@ extern void setSucc(t_basic_block *block, t_basic_block *succ);
 /** Inserts a new node at the end of a block.
  *  @param block The block where to insert the node.
  *  @param node The node to insert.
- *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+ *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
 extern int insertNode(t_basic_block *block, t_cflow_Node *node);
 /** Inserts a new node before another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
- *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+ *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
 extern int insertNodeBefore(
       t_basic_block *block, t_cflow_Node *before_node, t_cflow_Node *new_node);
 /** Inserts a new node after another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
- *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+ *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
 extern int insertNodeAfter(
       t_basic_block *block, t_cflow_Node *after_node, t_cflow_Node *new_node);
 
@@ -152,7 +150,7 @@ extern void finalizeGraph(t_cflow_Graph *graph);
  *  setSucc.
  *  @param graph The graph where the block must be added.
  *  @param block The block to add.
- *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+ *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
 extern int insertBlock(t_cflow_Graph *graph, t_basic_block *block);
 
 /** Iterates through the nodes in a control flow graph.
