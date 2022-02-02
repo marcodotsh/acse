@@ -124,13 +124,13 @@ int setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
    if (instr->reg_src1 != NULL) {
       varSource1 = allocVariable(graph, (instr->reg_src1)->ID,
             instr->reg_src1->mcRegWhitelist, &error);
-      if (varDest == NULL)
+      if (varSource1 == NULL)
          return error;
    }
    if (instr->reg_src2 != NULL) {
       varSource2 = allocVariable(graph, (instr->reg_src2)->ID,
             instr->reg_src2->mcRegWhitelist, &error);
-      if (varDest == NULL)
+      if (varSource2 == NULL)
          return error;
    }
 
