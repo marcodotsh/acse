@@ -1048,7 +1048,7 @@ void printCFlowGraphVariable(t_cflow_var *var, FILE *fout)
    else if (var->ID == VAR_UNDEFINED)
       fprintf(fout, "<!UNDEF!>");
    else
-      fprintf(fout, "R%d", var->ID);
+      fprintf(fout, "x%d", var->ID);
 }
 
 void printArrayOfVariables(t_cflow_var **array, int size, FILE *fout)
@@ -1095,50 +1095,51 @@ void printListOfVariables(t_list *variables, FILE *fout)
 
 void printBBlockInfos(t_basic_block *block, FILE *fout, int verbose)
 {
-   t_list *current_element;
+   t_list *elem;
    t_cflow_Node *current_node;
    int count;
-   
+
    /* preconditions */
    if (block == NULL)
       return;
    if (fout == NULL)
       return;
 
-   fprintf(fout,"NUMBER OF PREDECESSORS : %d\n", getLength(block->pred) );
-   fprintf(fout,"NUMBER OF SUCCESSORS : %d\n", getLength(block->succ) );
-   fprintf(fout,"NUMBER OF INSTRUCTIONS : %d\n", getLength(block->nodes) );
+   fprintf(fout, "Number of predecessors: %d\n", getLength(block->pred));
+   fprintf(fout, "Number of successors:   %d\n", getLength(block->succ));
+   fprintf(fout, "Number of instructions: %d\n", getLength(block->nodes));
 
    count = 1;
-   current_element = block->nodes;
-   while(current_element != NULL)
-   {
-      current_node = (t_cflow_Node *) LDATA(current_element);
-      fprintf(fout,"\t%d.  ", count);
+   elem = block->nodes;
+   while (elem != NULL) {
+      current_node = (t_cflow_Node *)LDATA(elem);
+
+      fprintf(fout, "%3d. ", count);
       if (current_node->instr == NULL)
          fprintf(fout, "(null)");
       else
          printInstruction(current_node->instr, fout, 0);
-      if (verbose != 0)
-      {
-         fprintf(fout, "\n\t\t\tDEFS = [");
-         printArrayOfVariables(current_node->defs, CFLOW_MAX_DEFS, fout);
-         fprintf(fout, "]");
-         fprintf(fout, "\n\t\t\tUSES = [");
-         printArrayOfVariables(current_node->uses, CFLOW_MAX_USES, fout);
-         fprintf(fout, "]");
-
-         fprintf(fout, "\n\t\t\tLIVE IN = [");
-         printListOfVariables(current_node->in, fout);
-         fprintf(fout, "]");
-         fprintf(fout, "\n\t\t\tLIVE OUT = [");
-         printListOfVariables(current_node->out, fout);
-         fprintf(fout, "]");
-      }
-      
       fprintf(fout, "\n");
+
+      if (verbose != 0) {
+         fprintf(fout, "     DEFS = [");
+         printArrayOfVariables(current_node->defs, CFLOW_MAX_DEFS, fout);
+         fprintf(fout, "]\n");
+
+         fprintf(fout, "     USES = [");
+         printArrayOfVariables(current_node->uses, CFLOW_MAX_USES, fout);
+         fprintf(fout, "]\n");
+
+         fprintf(fout, "     LIVE IN = [");
+         printListOfVariables(current_node->in, fout);
+         fprintf(fout, "]\n");
+         fprintf(fout, "     LIVE OUT = [");
+         printListOfVariables(current_node->out, fout);
+         fprintf(fout, "]\n");
+      }
+
       count++;
-      current_element = LNEXT(current_element);
+      elem = LNEXT(elem);
    }
    fflush(fout);
 }
@@ -1148,59 +1149,53 @@ void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose)
    int counter;
    t_list *current_element;
    t_basic_block *current_bblock;
-   
+
    /* preconditions */
    if (graph == NULL)
       return;
    if (fout == NULL)
       return;
 
-   /* initialization of the local variables */
-   counter = 1;
-   
-   fprintf(fout,"NOTE : Temporary registers are considered as\n"
-                "       variables of the intermediate language. \n");
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
-   fprintf(fout,"       Variable \'R0\' (that refers to the \n"
-                "       physical register \'zero\') is always \n"
-                "       considered LIVE-IN for each node of \n"
-                "       a basic block. \n"
-                "       Thus, in the following control flow graph, \n"
-                "       \'R0\' will never appear as LIVE-IN or LIVE-OUT\n"
-                "       variable for a statement.\n\n"
-                "       If you want to consider \'R0\' as\n"
-                "       a normal variable, you have to set\n"
-                "       to 0 the value of the macro CFLOW_ALWAYS_LIVEIN_R0\n"
-                "       defined in \"cflow_constants.h\".\n\n");
-#endif
-   fprintf(fout,"\n");
-   fprintf(fout,"**************************\n");
-   fprintf(fout,"     CONTROL FLOW GRAPH   \n");
-   fprintf(fout,"**************************\n");
-   fprintf(fout,"NUMBER OF BASIC BLOCKS : %d \n"
-         , getLength(graph->blocks));
-   fprintf(fout,"NUMBER OF USED VARIABLES : %d \n"
-         , getLength(graph->cflow_variables));
-   fprintf(fout,"--------------------------\n");
-   fprintf(fout,"START BASIC BLOCK INFOS.  \n");
-   fprintf(fout,"--------------------------\n");
+   fprintf(fout, "*************************\n");
+   fprintf(fout, "    CONTROL FLOW GRAPH   \n");
+   fprintf(fout, "*************************\n\n");
 
-   /* initialize `current_block' */
+   fprintf(fout, "%s",
+         "NOTE: Temporary registers are considered as variables of the\n"
+         "intermediate language.\n");
+#ifdef CFLOW_ALWAYS_LIVEIN_R0
+   fprintf(fout, "%s",
+         "  Variable \'x0\' (which refers to the physical register \'zero\') is\n"
+         "always considered LIVE-IN for each node of a basic block.\n"
+         "Thus, in the following control flow graph, \'x0\' will never appear\n"
+         "as LIVE-IN or LIVE-OUT variable for a statement.\n"
+         "  If you want to consider \'x0\' as a normal variable, you have to\n"
+         "un-define the macro CFLOW_ALWAYS_LIVEIN_R0 in \"axe_cflow_graph.h\"."
+         "\n\n");
+#endif
+
+   fprintf(fout, "--------------\n");
+   fprintf(fout, "  STATISTICS\n");
+   fprintf(fout, "--------------\n\n");
+
+   fprintf(fout, "Number of basic blocks:   %d\n", getLength(graph->blocks));
+   fprintf(fout, "Number of used variables: %d\n\n",
+         getLength(graph->cflow_variables));
+
+   fprintf(fout, "----------------\n");
+   fprintf(fout, "  BASIC BLOCKS\n");
+   fprintf(fout, "----------------\n\n");
+
+   counter = 1;
    current_element = graph->blocks;
-   while(current_element != NULL)
-   {
-      current_bblock = (t_basic_block *) LDATA(current_element);
-      fprintf(fout,"[BLOCK %d] \n", counter);
+   while (current_element != NULL) {
+      current_bblock = (t_basic_block *)LDATA(current_element);
+      fprintf(fout, "[BLOCK %d]\n", counter);
       printBBlockInfos(current_bblock, fout, verbose);
-      if (LNEXT(current_element) != NULL)
-         fprintf(fout,"--------------------------\n");
-      else
-         fprintf(fout,"**************************\n");
+      fprintf(fout, "\n");
 
       counter++;
       current_element = LNEXT(current_element);
    }
-   
-   fprintf(fout,"\n\n");
    fflush(fout);
 }
