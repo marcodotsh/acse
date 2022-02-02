@@ -514,6 +514,8 @@ exp: NUMBER      { $$ = getImmediateExpression($1); }
 =========================================================================*/
 int main (int argc, char **argv)
 {
+   int error;
+
    /* initialize all the compiler data structures and global variables */
    initializeCompiler(argc, argv);
    
@@ -525,7 +527,7 @@ int main (int argc, char **argv)
     * transformations that follow. */
    line_num = -1;
    
-   debugPrintf("Parsing process completed. \n");
+   debugPrintf("Parsing process completed.\n");
    
 #ifndef NDEBUG
    printProgramInfos(program, file_infos->frontend_output);
@@ -533,9 +535,13 @@ int main (int argc, char **argv)
    /* test if the parsing process completed succesfully */
    checkConsistency();
 
+   debugPrintf("Lowering of pseudo-instructions to machine instructions.\n");
    doTargetSpecificTransformations(program);
 
-   doRegisterAllocation(program);
+   debugPrintf("Performing register allocation using the linear scan algorithm.\n");
+   error = doRegisterAllocation(program);
+   if (error)
+      fatalError(error);
 
    debugPrintf("Writing the assembly file...\n");
    writeAssembly(program, file_infos->output_file_name);

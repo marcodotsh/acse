@@ -14,7 +14,8 @@
 #include "axe_engine.h"
 
 /* Convert temporary register identifiers to real register identifiers,
- * analyzing the live interval of each temporary register. */
-extern void doRegisterAllocation(t_program_infos *program);
+ * analyzing the live interval of each temporary register.
+ * Returns AXE_OK if successful, an error code otherwise. */
+extern int doRegisterAllocation(t_program_infos *program);
 
 #endif

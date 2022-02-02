@@ -680,15 +680,15 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
    return result;
 }
 
-void iterateCFGNodes(t_cflow_Graph *graph, void *context,
-      void (*callback)(t_basic_block *block, t_cflow_Node *node, int nodeIndex,
+int iterateCFGNodes(t_cflow_Graph *graph, void *context,
+      int (*callback)(t_basic_block *block, t_cflow_Node *node, int nodeIndex,
             void *context))
 {
    t_list *current_bb_element;
    t_list *current_nd_element;
    t_basic_block *current_block;
    t_cflow_Node *current_node;
-   int counter;
+   int counter, exitcode;
 
    /* intialize the instruction counter */
    counter = 0;
@@ -704,7 +704,9 @@ void iterateCFGNodes(t_cflow_Graph *graph, void *context,
          current_node = (t_cflow_Node *)LDATA(current_nd_element);
 
          /* invoke the callback */
-         callback(current_block, current_node, counter, context);
+         exitcode = callback(current_block, current_node, counter, context);
+         if (exitcode != 0)
+            return exitcode;
 
          /* fetch the next node in the basic block */
          counter++;
@@ -714,6 +716,8 @@ void iterateCFGNodes(t_cflow_Graph *graph, void *context,
       /* fetch the next element in the list of basic blocks */
       current_bb_element = LNEXT(current_bb_element);
    }
+
+   return exitcode;
 }
 
 void updateProgramFromCFG(t_program_infos *program, t_cflow_Graph *graph)

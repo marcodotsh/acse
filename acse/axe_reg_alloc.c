@@ -19,22 +19,15 @@
 #include "axe_io_manager.h"
 #include "axe_target_asm_print.h"
 
-extern int errorcode;
 extern t_io_infos *file_infos;
 
 #define MAX_INSTR_ARGS 3
-
-/* errorcodes */
-#define RA_OK 0
-#define RA_INVALID_ALLOCATOR 1
-#define RA_INVALID_INTERVAL 2
-#define RA_INTERVAL_ALREADY_INSERTED 3
-#define RA_INVALID_NUMBER_OF_REGISTERS 4
 
 /* constants */
 #define RA_SPILL_REQUIRED -1
 #define RA_REGISTER_INVALID 0
 #define RA_EXCLUDED_VARIABLE 0
+
 
 typedef struct t_live_interval {
    int varID;                /* a variable identifier */
@@ -98,14 +91,16 @@ typedef struct t_spillState {
 /* Allocate and initialize a live interval data structure with a given varID,
  * starting and ending points */
 t_live_interval *allocLiveInterval(
-      int varID, t_list *mcRegs, int startPoint, int endPoint)
+      int varID, t_list *mcRegs, int startPoint, int endPoint, int *error)
 {
    t_live_interval *result;
 
    /* create a new instance of `t_live_interval' */
    result = malloc(sizeof(t_live_interval));
-   if (result == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
+   if (result == NULL) {
+      *error = AXE_OUT_OF_MEMORY;
+      return NULL;
+   }
 
    /* initialize the new instance */
    result->varID = varID;
@@ -173,20 +168,21 @@ int compareIntervalIDs(void *varA, void *varB)
 }
 
 /* Update the liveness interval for the variable 'id', used or defined
- * at position 'counter'. */
-t_list *updateVarInterval(t_cflow_var *var, int counter, t_list *intervals)
+ * at position 'counter'. Returns an error code. */
+int updateVarInterval(t_cflow_var *var, int counter, t_list **intervals)
 {
    t_list *element_found;
    t_live_interval *interval_found;
    t_live_interval pattern;
+   int error;
 
    if (var->ID == RA_EXCLUDED_VARIABLE || var->ID == VAR_PSW)
-      return intervals;
+      return AXE_OK;
 
    pattern.varID = var->ID;
    /* search for the current live interval */
    element_found =
-         findElementWithCallback(intervals, &pattern, compareIntervalIDs);
+         findElementWithCallback(*intervals, &pattern, compareIntervalIDs);
    if (element_found != NULL) {
       interval_found = (t_live_interval *)LDATA(element_found);
       /* update the interval informations */
@@ -197,31 +193,34 @@ t_list *updateVarInterval(t_cflow_var *var, int counter, t_list *intervals)
    } else {
       /* we have to add a new live interval */
       interval_found =
-            allocLiveInterval(var->ID, var->mcRegWhitelist, counter, counter);
+            allocLiveInterval(var->ID, var->mcRegWhitelist, counter, counter, &error);
       if (interval_found == NULL)
-         fatalError(AXE_OUT_OF_MEMORY);
-      intervals = addElement(intervals, interval_found, -1);
+         return error;
+      *intervals = addElement(*intervals, interval_found, -1);
    }
 
-   return intervals;
+   return AXE_OK;
 }
 
-/* Use liveness information to update the list of live intervals */
-t_list *updateListOfIntervals(
-      t_list *result, t_cflow_Node *current_node, int counter)
+/* Use liveness information to update the list of live intervals. Returns an
+ * error code. */
+int updateListOfIntervals(
+      t_list **result, t_cflow_Node *current_node, int counter)
 {
    t_list *current_element;
    t_cflow_var *current_var;
-   int i;
+   int i, error;
 
    if (current_node == NULL)
-      return result;
+      return AXE_OK;
 
    current_element = current_node->in;
    while (current_element != NULL) {
       current_var = (t_cflow_var *)LDATA(current_element);
 
-      result = updateVarInterval(current_var, counter, result);
+      error = updateVarInterval(current_var, counter, result);
+      if (error != AXE_OK)
+         return error;
 
       /* fetch the next element in the list of live variables */
       current_element = LNEXT(current_element);
@@ -231,52 +230,88 @@ t_list *updateListOfIntervals(
    while (current_element != NULL) {
       current_var = (t_cflow_var *)LDATA(current_element);
 
-      result = updateVarInterval(current_var, counter, result);
+      error = updateVarInterval(current_var, counter, result);
+      if (error != AXE_OK)
+         return error;
 
       /* fetch the next element in the list of live variables */
       current_element = LNEXT(current_element);
    }
 
    for (i = 0; i < CFLOW_MAX_DEFS; i++) {
-      if (current_node->defs[i])
-         result = updateVarInterval(current_node->defs[i], counter, result);
+      if (current_node->defs[i]) {
+         error = updateVarInterval(current_node->defs[i], counter, result);
+         if (error != AXE_OK)
+            return error;
+      }
    }
 
-   return result;
+   return AXE_OK;
 }
 
-void getLiveIntervalsNodeCallback(
+int getLiveIntervalsNodeCallback(
       t_basic_block *block, t_cflow_Node *node, int nodeIndex, void *context)
 {
    t_list **list = (t_list **)context;
-   *list = updateListOfIntervals(*list, node, nodeIndex);
+   return updateListOfIntervals(list, node, nodeIndex);
 }
 
-/* Perform live intervals computation */
-t_list *getLiveIntervals(t_cflow_Graph *graph)
+void deleteLiveIntervals(t_list *intervals)
 {
-   t_list *result = NULL;
+   t_list *current_element;
+   t_live_interval *current_interval;
+
+   if (intervals == NULL)
+      return;
+
+   /* finalize the memory blocks associated with all
+    * the live intervals */
+   for (current_element = intervals; current_element != NULL;
+         current_element = LNEXT(current_element)) {
+      /* fetch the current interval */
+      current_interval = (t_live_interval *)LDATA(current_element);
+      if (current_interval != NULL) {
+         /* finalize the memory block associated with
+          * the current interval */
+         finalizeLiveInterval(current_interval);
+      }
+   }
+
+   /* deallocate the list of intervals */
+   freeList(intervals);
+}
+
+/* Perform live intervals computation. Returns an error code. */
+int getLiveIntervals(t_cflow_Graph *graph, t_list **result)
+{
+   int error;
+
+   /* initialize the result list */
+   *result = NULL;
 
    /* build the list of intervals one instruction at a time */
-   iterateCFGNodes(graph, (void *)&result, getLiveIntervalsNodeCallback);
+   error = iterateCFGNodes(graph, (void *)result, getLiveIntervalsNodeCallback);
+   if (error != AXE_OK) {
+      deleteLiveIntervals(*result);
+      *result = NULL;
+      return error;
+   }
 
-   return result;
+   return AXE_OK;
 }
 
-/* Insert a live interval in the register allocator */
+/* Insert a live interval in the register allocator. Returns 0 on success,
+ * -1 if the interval was already inserted in the list. */
 int insertLiveInterval(t_reg_allocator *RA, t_live_interval *interval)
 {
    /* test the preconditions */
-   if (RA == NULL)
-      return RA_INVALID_ALLOCATOR;
-
-   if (interval == NULL)
-      return RA_INVALID_INTERVAL;
+   assert(RA != NULL);
+   assert(interval != NULL);
 
    /* test if an interval for the requested variable is already inserted */
    if (findElementWithCallback(
              RA->live_intervals, interval, compareIntervalIDs) != NULL) {
-      return RA_INTERVAL_ALREADY_INSERTED;
+      return -1;
    }
 
    /* add the given interval to the list of intervals,
@@ -284,40 +319,31 @@ int insertLiveInterval(t_reg_allocator *RA, t_live_interval *interval)
    RA->live_intervals =
          addSorted(RA->live_intervals, interval, compareStartPoints);
 
-   return RA_OK;
+   return 0;
 }
 
 /* Insert all elements of the intervals list into
- * the register allocator data structure */
-int insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
+ * the register allocator data structure. */
+void insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
 {
    t_list *current_element;
    t_live_interval *interval;
    int ra_errorcode;
 
    /* preconditions */
-   if (RA == NULL)
-      return RA_INVALID_ALLOCATOR;
-   if (intervals == NULL)
-      return RA_OK;
+   assert(RA != NULL);
+   assert(intervals != NULL);
 
    for (current_element = intervals; current_element != NULL;
          current_element = LNEXT(current_element)) {
       /* Get the current live interval */
       interval = (t_live_interval *)LDATA(current_element);
-
-      if (interval == NULL)
-         return RA_INVALID_INTERVAL;
+      assert(interval != NULL);
 
       /* insert a new live interval */
       ra_errorcode = insertLiveInterval(RA, interval);
-
-      /* test if an error occurred */
-      if (ra_errorcode != RA_OK)
-         return ra_errorcode;
+      assert(ra_errorcode == 0 && "bug: at least one duplicate live interval");
    }
-
-   return RA_OK;
 }
 
 t_list *subtractRegisterSets(t_list *a, t_list *b)
@@ -384,7 +410,7 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
    }
 }
 
-void handleCallerSaveRegistersNodeCallback(
+int handleCallerSaveRegistersNodeCallback(
       t_basic_block *block, t_cflow_Node *node, int nodeIndex, void *context)
 {
    t_reg_allocator *ra = (t_reg_allocator *)context;
@@ -393,7 +419,7 @@ void handleCallerSaveRegistersNodeCallback(
    int i;
 
    if (!isCallInstruction(node->instr))
-      return;
+      return 0;
 
    clobbered_regs = getListOfCallerSaveRegisters();
    for (i = 0; i < CFLOW_MAX_DEFS; i++) {
@@ -418,6 +444,8 @@ void handleCallerSaveRegistersNodeCallback(
 
       li_ival = LNEXT(li_ival);
    }
+
+   return 0;
 }
 
 /* Restrict register constraints in order to avoid register corrupted by
@@ -505,13 +533,12 @@ t_list *expireOldIntervals(
    t_list *next_element;
    t_live_interval *current_interval;
 
-   /* Check for valid register allocator and set of active intervals */
+   assert(RA != NULL);
+   assert(interval != NULL);
+
+   /* No active intervals, bail out! */
    if (active_intervals == NULL)
       return NULL;
-   if (RA == NULL)
-      return NULL;
-   if (interval == NULL)
-      return active_intervals;
 
    /* Iterate over the set of active intervals */
    current_element = active_intervals;
@@ -558,8 +585,24 @@ t_list *expireOldIntervals(
    return active_intervals;
 }
 
+/* Deallocate the register allocator data structures */
+void finalizeRegAlloc(t_reg_allocator *RA)
+{
+   if (RA == NULL)
+      return;
+
+   /* Free the live intervals */
+   deleteLiveIntervals(RA->live_intervals);
+
+   /* Free memory used for the variable/register bindings */
+   free(RA->bindings);
+   freeList(RA->freeRegisters);
+
+   free(RA);
+}
+
 /* Allocate and initialize the register allocator */
-t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
+t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph, int *error)
 {
    t_reg_allocator *result; /* the register allocator */
    t_list *intervals;
@@ -567,15 +610,18 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
    t_cflow_var *cflow_var;
    int max_var_ID;
    int counter;
+   int error2;
 
    /* Check preconditions: the cfg must exist */
-   if (graph == NULL)
-      fatalError(AXE_INVALID_CFLOW_GRAPH);
+   assert(graph != NULL);
 
    /* allocate memory for a new instance of `t_reg_allocator' */
-   result = (t_reg_allocator *)malloc(sizeof(t_reg_allocator));
-   if (result == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
+   result = (t_reg_allocator *)calloc(1, sizeof(t_reg_allocator));
+   if (result == NULL) {
+      if (error)
+         *error = AXE_OUT_OF_MEMORY;
+      return NULL;
+   }
 
    /* initialize the register allocator informations */
 
@@ -600,28 +646,35 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
 
    /*alloc memory for the array of bindings */
    result->bindings = (int *)malloc(sizeof(int) * result->varNum);
-
-   /* test if an error occurred */
-   if (result->bindings == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
+   if (result->bindings == NULL) {
+      finalizeRegAlloc(result);
+      if (error)
+         *error = AXE_OUT_OF_MEMORY;
+      return NULL;
+   }
 
    /* initialize the array of bindings */
    for (counter = 0; counter < result->varNum; counter++)
       result->bindings[counter] = RA_REGISTER_INVALID;
 
    /* Liveness analysis: compute the list of live intervals */
-   result->live_intervals = NULL;
-   intervals = getLiveIntervals(graph);
+   error2 = getLiveIntervals(graph, &intervals);
+   if (error2 != AXE_OK) {
+      finalizeRegAlloc(result);
+      if (error)
+         *error = error2;
+      return NULL;
+   }
 
-   /* Copy the liveness info into the register allocator */
+   /* Copy the liveness info into the register allocator, sorting it in the
+    * process. */
    if (intervals != NULL) {
-      if (insertListOfIntervals(result, intervals) != RA_OK) {
-         fatalError(AXE_REG_ALLOC_ERROR);
-      }
-
+      insertListOfIntervals(result, intervals);
       /* deallocate memory used to hold the results of the
        * liveness analysis */
       freeList(intervals);
+   } else {
+      result->live_intervals = NULL;
    }
 
    /* create a list of freeRegisters */
@@ -636,7 +689,7 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph)
 }
 
 /* Main register allocation function */
-int executeLinearScan(t_reg_allocator *RA)
+void executeLinearScan(t_reg_allocator *RA)
 {
    t_list *current_element;
    t_live_interval *current_interval;
@@ -644,10 +697,10 @@ int executeLinearScan(t_reg_allocator *RA)
    int reg;
 
    /* test the preconditions */
-   if (RA == NULL) /* Register allocator created? */
-      return RA_INVALID_ALLOCATOR;
-   if (RA->live_intervals == NULL) /* Liveness analysis ready? */
-      return RA_OK;
+   assert(RA != NULL);
+   /* Liveness analysis ready? */
+   if (RA->live_intervals == NULL)
+      return;
 
    /* initialize the list of active intervals */
    active_intervals = NULL;
@@ -683,48 +736,6 @@ int executeLinearScan(t_reg_allocator *RA)
 
    /* free the list of active intervals */
    freeList(active_intervals);
-
-   return RA_OK;
-}
-
-/*
- * Deallocate the register allocator data structures
- */
-void finalizeRegAlloc(t_reg_allocator *RA)
-{
-   if (RA == NULL)
-      return;
-
-   /* If the list of live intervals is not empty,
-    * deallocate its content */
-   if (RA->live_intervals != NULL) {
-      t_list *current_element;
-      t_live_interval *current_interval;
-
-      /* finalize the memory blocks associated with all
-       * the live intervals */
-      for (current_element = RA->live_intervals; current_element != NULL;
-            current_element = LNEXT(current_element)) {
-         /* fetch the current interval */
-         current_interval = (t_live_interval *)LDATA(current_element);
-         if (current_interval != NULL) {
-            /* finalize the memory block associated with
-             * the current interval */
-            finalizeLiveInterval(current_interval);
-         }
-      }
-
-      /* deallocate the list of intervals */
-      freeList(RA->live_intervals);
-   }
-
-   /* Free memory used for the variable/register bindings */
-   if (RA->bindings != NULL)
-      free(RA->bindings);
-   if (RA->freeRegisters != NULL)
-      freeList(RA->freeRegisters);
-
-   free(RA);
 }
 
 
@@ -745,14 +756,17 @@ int compareTempLabels(void *valA, void *valB)
    return tlA->regID == tlB->regID;
 }
 
-t_tempLabel *allocTempLabel(t_axe_label *label, int regID)
+t_tempLabel *allocTempLabel(t_axe_label *label, int regID, int *error)
 {
    t_tempLabel *result;
 
    /* create a new temp-label */
    result = malloc(sizeof(t_tempLabel));
-   if (result == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
+   if (result == NULL) {
+      if (error)
+         *error = AXE_OUT_OF_MEMORY;
+      return NULL;
+   }
 
    /* initialize the temp label */
    result->label = label;
@@ -784,20 +798,19 @@ void finalizeListOfTempLabels(t_list *tempLabels)
 
 /* For each spilled variable, this function statically allocates memory for
  * that variable, returns a list of t_templabel structures mapping the
- * spilled variables and the label that points to the allocated memory block. */
-t_list *materializeSpillMemory(t_program_infos *program, t_reg_allocator *RA)
+ * spilled variables and the label that points to the allocated memory block.
+ * Returns an error code. */
+int materializeSpillMemory(t_program_infos *program, t_reg_allocator *RA, t_list **out)
 {
-   int counter;
+   int counter, error;
    t_list *result;
    t_tempLabel *tlabel;
    t_axe_label *axe_label;
    t_axe_data *new_data_info;
 
    /* preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-   if (RA == NULL)
-      fatalError(AXE_INVALID_REG_ALLOC);
+   assert(program != NULL);
+   assert(RA != NULL);
 
    /* initialize the local variable `result' */
    result = NULL;
@@ -810,17 +823,25 @@ t_list *materializeSpillMemory(t_program_infos *program, t_reg_allocator *RA)
 
       /* retrieve a new label */
       axe_label = newLabel(program);
-      if (axe_label == NULL)
-         fatalError(AXE_INVALID_LABEL);
+      if (axe_label == NULL) {
+         finalizeListOfTempLabels(result);
+         return AXE_OUT_OF_MEMORY;
+      }
 
       /* create a new tempLabel */
-      tlabel = allocTempLabel(axe_label, counter);
+      tlabel = allocTempLabel(axe_label, counter, &error);
+      if (tlabel == NULL) {
+         finalizeListOfTempLabels(result);
+         return error;
+      }
 
       /* statically allocate some room for the spilled variable by
        * creating a new .WORD directive and making the label point to it. */
       new_data_info = initializeData(DIR_WORD, 0, axe_label);
-      if (!new_data_info)
-         fatalError(AXE_OUT_OF_MEMORY);
+      if (new_data_info == NULL) {
+         finalizeListOfTempLabels(result);
+         return error;
+      }
 
       /* update the list of directives */
       program->data = addElement(program->data, new_data_info, -1);
@@ -830,7 +851,8 @@ t_list *materializeSpillMemory(t_program_infos *program, t_reg_allocator *RA)
    }
 
    /* postcondition: return the list of bindings */
-   return result;
+   *out = result;
+   return AXE_OK;
 }
 
 int genStoreSpillVariable(int temp_register, int selected_register,
@@ -842,24 +864,27 @@ int genStoreSpillVariable(int temp_register, int selected_register,
    t_list *elementFound;
    t_tempLabel pattern;
    t_tempLabel *tlabel;
+   int error;
 
    pattern.regID = temp_register;
    elementFound =
          findElementWithCallback(labelBindings, &pattern, compareTempLabels);
 
    if (elementFound == NULL)
-      fatalError(AXE_TRANSFORM_ERROR);
+      return AXE_INVALID_CFLOW_GRAPH;
 
    tlabel = (t_tempLabel *)LDATA(elementFound);
    assert(tlabel != NULL);
 
    /* create a store instruction */
    storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label);
+   if (storeInstr == NULL)
+      return AXE_OUT_OF_MEMORY;
 
    /* create a node for the load instruction */
-   storeNode = allocNode(graph, storeInstr, NULL);
+   storeNode = allocNode(graph, storeInstr, &error);
    if (storeNode == NULL)
-      fatalError(AXE_TRANSFORM_ERROR);
+      return error;
 
    /* test if we have to insert the node `storeNode' before `current_node'
     * inside the basic block */
@@ -868,7 +893,8 @@ int genStoreSpillVariable(int temp_register, int selected_register,
    } else {
       insertNodeAfter(current_block, current_node, storeNode);
    }
-   return 0;
+
+   return AXE_OK;
 }
 
 int genLoadSpillVariable(int temp_register, int selected_register,
@@ -880,24 +906,27 @@ int genLoadSpillVariable(int temp_register, int selected_register,
    t_list *elementFound;
    t_tempLabel pattern;
    t_tempLabel *tlabel;
+   int error;
 
    pattern.regID = temp_register;
    elementFound =
          findElementWithCallback(labelBindings, &pattern, compareTempLabels);
 
    if (elementFound == NULL)
-      fatalError(AXE_TRANSFORM_ERROR);
+      return AXE_INVALID_CFLOW_GRAPH;
 
    tlabel = (t_tempLabel *)LDATA(elementFound);
    assert(tlabel != NULL);
 
    /* create a load instruction */
    loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->label);
+   if (loadInstr == NULL)
+      return AXE_OUT_OF_MEMORY;
 
    /* create a node for the load instruction */
-   loadNode = allocNode(graph, loadInstr, NULL);
+   loadNode = allocNode(graph, loadInstr, &error);
    if (loadNode == NULL)
-      fatalError(AXE_TRANSFORM_ERROR);
+      return error;
 
    if (before) {
       /* insert the node `loadNode' before `current_node' */
@@ -911,13 +940,15 @@ int genLoadSpillVariable(int temp_register, int selected_register,
    } else {
       insertNodeAfter(block, current_node, loadNode);
    }
-   return 0;
+
+   return AXE_OK;
 }
 
-void materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
+int materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
       t_basic_block *current_block, t_spillState *state,
       t_cflow_Node *current_node, t_reg_allocator *RA, t_list *label_bindings)
 {
+   int error;
    t_axe_instruction *instr;
    int current_arg, current_row, num_args;
    /* The elements in this array indicate whether the corresponding spill
@@ -1013,14 +1044,16 @@ void materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
       /* If we don't find anything, we don't have enough spill registers!
        * This should never happen, bail out! */
       if (current_row == NUM_SPILL_REGS)
-         fatalError(AXE_UNKNOWN_ERROR);
+         return AXE_REG_ALLOC_ERROR;
 
       /* If needed, write back the old variable that was assigned to this
        * slot before reassigning it */
       if (state->regs[current_row].needsWB == 1) {
-         genStoreSpillVariable(state->regs[current_row].assignedVar,
+         error = genStoreSpillVariable(state->regs[current_row].assignedVar,
                getSpillRegister(current_row), graph, current_block,
                current_node, label_bindings, 1);
+         if (error != AXE_OK)
+            return error;
       }
 
       /* Update the state of this spill slot */
@@ -1032,9 +1065,11 @@ void materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
       /* Load the value of the variable in the spill register if not a
        * destination of the instruction */
       if (!argState[current_arg].isDestination) {
-         genLoadSpillVariable(argState[current_arg].reg->ID,
+         error = genLoadSpillVariable(argState[current_arg].reg->ID,
                getSpillRegister(current_row), graph, current_block,
                current_node, label_bindings, 1);
+         if (error != AXE_OK)
+            return error;
       }
    }
 
@@ -1050,12 +1085,14 @@ void materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
          curReg->ID = getSpillRegister(argState[current_arg].spillSlot);
       }
    }
+
+   return AXE_OK;
 }
 
-void materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
+int materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
       t_reg_allocator *RA, t_list *label_bindings)
 {
-   int counter, bbHasTermInstr;
+   int error, counter, bbHasTermInstr;
    t_list *current_nd_element;
    t_cflow_Node *current_node;
    t_spillState state;
@@ -1076,8 +1113,10 @@ void materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
       /* Change the register IDs of the argument of the instruction accoring
        * to the given register allocation. Generate load and stores for spilled
        * registers */
-      materializeRegAllocInBBForInstructionNode(
+      error = materializeRegAllocInBBForInstructionNode(
             graph, current_block, &state, current_node, RA, label_bindings);
+      if (error)
+         return error;
 
       current_nd_element = LNEXT(current_nd_element);
    }
@@ -1090,18 +1129,23 @@ void materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
    for (counter = 0; counter < NUM_SPILL_REGS; counter++) {
       if (state.regs[counter].needsWB == 0)
          continue;
-      genStoreSpillVariable(state.regs[counter].assignedVar,
+      error = genStoreSpillVariable(state.regs[counter].assignedVar,
             getSpillRegister(counter), graph, current_block, current_node,
             label_bindings, bbHasTermInstr);
+      if (error)
+         return error;
    }
+
+   return AXE_OK;
 }
 
 /* update the control flow informations by unsing the result
  * of the register allocation process and a list of bindings
  * between new assembly labels and spilled variables */
-void materializeRegAllocInCFG(
+int materializeRegAllocInCFG(
       t_cflow_Graph *graph, t_reg_allocator *RA, t_list *label_bindings)
 {
+   int error;
    t_list *current_bb_element;
 
    /* preconditions */
@@ -1112,11 +1156,15 @@ void materializeRegAllocInCFG(
    while (current_bb_element != NULL) {
       t_basic_block *current_block = (t_basic_block *)LDATA(current_bb_element);
 
-      materializeRegAllocInBB(graph, current_block, RA, label_bindings);
+      error = materializeRegAllocInBB(graph, current_block, RA, label_bindings);
+      if (error)
+         return error;
 
       /* retrieve the next basic block element */
       current_bb_element = LNEXT(current_bb_element);
    }
+
+   return AXE_OK;
 }
 
 /* Replace the variable identifiers in the instructions of the CFG with the
@@ -1124,23 +1172,28 @@ void materializeRegAllocInCFG(
  * variables to the scratch registers. All new instructions are inserted
  * in the CFG. Synchronize the list of instructions with the newly
  * modified program. */
-void materializeRegisterAllocation(
+int materializeRegisterAllocation(
       t_program_infos *program, t_cflow_Graph *graph, t_reg_allocator *RA)
 {
    t_list *label_bindings;
+   int error;
 
    /* retrieve a list of t_templabels for the given RA infos and
     * update the content of the data segment. */
-   label_bindings = materializeSpillMemory(program, RA);
+   error = materializeSpillMemory(program, RA, &label_bindings);
+   if (error != AXE_OK)
+      return error;
 
    /* update the control flow graph with the reg-alloc infos. */
-   materializeRegAllocInCFG(graph, RA, label_bindings);
-
-   /* finalize the list of tempLabels */
+   error = materializeRegAllocInCFG(graph, RA, label_bindings);
    finalizeListOfTempLabels(label_bindings);
+   if (error != AXE_OK)
+      return error;
 
    /* update the code segment informations */
    updateProgramFromCFG(program, graph);
+
+   return AXE_OK;
 }
 
 
@@ -1247,50 +1300,44 @@ void printRegAllocInfos(t_reg_allocator *RA, FILE *fout)
  * Wrapper function
  */
 
-void doRegisterAllocation(t_program_infos *program)
+int doRegisterAllocation(t_program_infos *program)
 {
-   t_cflow_Graph *graph;
-   t_reg_allocator *RA;
+   t_cflow_Graph *graph = NULL;
+   t_reg_allocator *RA = NULL;
+   int error = AXE_OK;
 
-   /* create the control flow graph */
-   debugPrintf("Creating a control flow graph.\n");
-   graph = createFlowGraph(program, NULL);
-   if (graph == NULL)
-      fatalError(AXE_INVALID_CFLOW_GRAPH);
-
-#ifndef NDEBUG
    assert(program != NULL);
    assert(file_infos != NULL);
+
+   /* create the control flow graph */
+   graph = createFlowGraph(program, &error);
+   if (graph == NULL)
+      goto fail;
+#ifndef NDEBUG
    printGraphInfos(graph, file_infos->cfg_1, 0);
 #endif
 
-   debugPrintf("Executing a liveness analysis on the intermediate code\n");
    performLivenessAnalysis(graph);
-   checkConsistency();
-
 #ifndef NDEBUG
    printGraphInfos(graph, file_infos->cfg_2, 1);
 #endif
 
-   debugPrintf(
-         "Performing register allocation using the linear scan algorithm.\n");
-
-   /* initialize the register allocator by using the control flow
-    * informations stored into the control flow graph */
-   RA = initializeRegAlloc(graph);
-
    /* execute the linear scan algorithm */
+   RA = initializeRegAlloc(graph, &error);
+   if (RA == NULL)
+      goto fail;
+   
    executeLinearScan(RA);
-
 #ifndef NDEBUG
    printRegAllocInfos(RA, file_infos->reg_alloc_output);
 #endif
 
    /* apply changes to the program informations by using the informations
     * of the register allocation process */
-   debugPrintf("Updating the control flow informations.\n");
-   materializeRegisterAllocation(program, graph, RA);
+   error = materializeRegisterAllocation(program, graph, RA);
 
+fail:
    finalizeRegAlloc(RA);
    finalizeGraph(graph);
+   return error;
 }

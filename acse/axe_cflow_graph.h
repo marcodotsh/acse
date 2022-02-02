@@ -158,9 +158,10 @@ extern int insertBlock(t_cflow_Graph *graph, t_basic_block *block);
  *  @param context The context pointer that will be passed to the callback
  *         function.
  *  @param callback The callback function that will be called at each node
- *         found. */
-extern void iterateCFGNodes(t_cflow_Graph *graph, void *context,
-      void (*callback)(t_basic_block *block, t_cflow_Node *node, int nodeIndex,
+ *         found. The callback can return 1 to stop the iteration process.
+ *  @returns The value returned by the last callback invocation. */
+extern int iterateCFGNodes(t_cflow_Graph *graph, void *context,
+      int (*callback)(t_basic_block *block, t_cflow_Node *node, int nodeIndex,
             void *context));
 
 /** Rebuilds a program from the given CFG.
