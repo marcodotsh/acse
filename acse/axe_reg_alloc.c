@@ -20,7 +20,6 @@
 #include "axe_target_asm_print.h"
 
 extern int errorcode;
-extern int cflow_errorcode;
 extern t_io_infos *file_infos;
 
 #define MAX_INSTR_ARGS 3
@@ -858,8 +857,8 @@ int genStoreSpillVariable(int temp_register, int selected_register,
    storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label);
 
    /* create a node for the load instruction */
-   storeNode = allocNode(graph, storeInstr);
-   if (cflow_errorcode != CFLOW_OK)
+   storeNode = allocNode(graph, storeInstr, NULL);
+   if (storeNode == NULL)
       fatalError(AXE_TRANSFORM_ERROR);
 
    /* test if we have to insert the node `storeNode' before `current_node'
@@ -896,10 +895,8 @@ int genLoadSpillVariable(int temp_register, int selected_register,
    loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->label);
 
    /* create a node for the load instruction */
-   loadNode = allocNode(graph, loadInstr);
-
-   /* test if an error occurred */
-   if (cflow_errorcode != CFLOW_OK)
+   loadNode = allocNode(graph, loadInstr, NULL);
+   if (loadNode == NULL)
       fatalError(AXE_TRANSFORM_ERROR);
 
    if (before) {
@@ -1143,7 +1140,7 @@ void materializeRegisterAllocation(
    finalizeListOfTempLabels(label_bindings);
 
    /* update the code segment informations */
-   updateTheCodeSegment(program, graph);
+   updateProgramFromCFG(program, graph);
 }
 
 
@@ -1257,8 +1254,9 @@ void doRegisterAllocation(t_program_infos *program)
 
    /* create the control flow graph */
    debugPrintf("Creating a control flow graph.\n");
-   graph = createFlowGraph(program->instructions);
-   checkConsistency();
+   graph = createFlowGraph(program, NULL);
+   if (graph == NULL)
+      fatalError(AXE_INVALID_CFLOW_GRAPH);
 
 #ifndef NDEBUG
    assert(program != NULL);

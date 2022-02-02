@@ -15,30 +15,24 @@
 #include "axe_engine.h"
 #include "collections.h"
 
-/* if this macro is set to 1, the control flow analysis will consider
+/* if this macro is defined, the control flow analysis will consider
  * R0 always as a LIVE IN temporary register (i.e. variable) */
-#define CFLOW_ALWAYS_LIVEIN_R0 1
+#define CFLOW_ALWAYS_LIVEIN_R0
 
-/* max number of defs and uses for each cfg node */
+/* Max number of defs and uses for each cfg node */
 #define CFLOW_MAX_DEFS 2
 #define CFLOW_MAX_USES 3
 
-extern int cflow_errorcode;
+/* Error codes */
+enum {
+   CFLOW_OK = 0,
+   CFLOW_INVALID_NODE,
+   CFLOW_INVALID_LABEL_FOUND,
+   CFLOW_NODE_ALREADY_INSERTED,
+   CFLOW_BBLOCK_ALREADY_INSERTED,
+   CFLOW_OUT_OF_MEMORY
+};
 
-/* errorcodes */
-#define CFLOW_OK 0
-#define CFLOW_GRAPH_UNDEFINED 1
-#define CFLOW_INVALID_INSTRUCTION 2
-#define CFLOW_INVALID_NODE 3
-#define CFLOW_BBLOCK_UNDEFINED 4
-#define CFLOW_INVALID_BBLOCK 5
-#define CFLOW_INVALID_LABEL_FOUND 6
-#define CFLOW_NODE_UNDEFINED 7
-#define CFLOW_NODE_ALREADY_INSERTED 8
-#define CFLOW_BBLOCK_ALREADY_INSERTED 9
-#define CFLOW_INVALID_OPERATION 10
-#define CFLOW_INVALID_PROGRAM_INFO 11
-#define CFLOW_OUT_OF_MEMORY 12
 
 #define VAR_PSW       -2
 #define VAR_UNDEFINED -1
@@ -82,38 +76,127 @@ typedef struct t_cflow_Graph
 } t_cflow_Graph;
 
 
-/* functions that are used in order to allocate/deallocate instances
- * of basic blocks, instruction nodes and flow graphs */
-extern t_cflow_Node *allocNode(t_cflow_Graph *graph, t_axe_instruction *instr);
+/* Nodes */
+
+/** Allocate a new node for a given Control Flow Graph.
+ *  @param graph The Control Flow Graph where the node will be put.
+ *  @param instr The instruction which will be represented by the node.
+ *  @param error Points to a variable that will be set to an error
+ *               code if an error occurs.
+ *  @returns The new node, or NULL if an error occurred. */
+extern t_cflow_Node *allocNode(
+      t_cflow_Graph *graph, t_axe_instruction *instr, int *error);
+/** Free a given Control Flow Graph node.
+ *  @param node The node to be freed. */
 extern void finalizeNode(t_cflow_Node *node);
-extern t_basic_block *allocBasicBlock();
+
+
+/* Basic Blocks */
+
+/** Allocate a new empty basic block
+ *  @param error Points to a variable that will be set to an error
+ *               code if an error occurs.
+ *  @returns The new block, or NULL if an error occurred. */
+extern t_basic_block *allocBasicBlock(int *error);
+/** Frees the memory associated with a given basic block
+ *  @param block The block to be freed. */
 extern void finalizeBasicBlock(t_basic_block *block);
-extern t_cflow_Graph *allocGraph();
+
+/** Adds a predecessor to a basic block.
+ *  @param block The successor block.
+ *  @param pred The predecessor block. */
+extern void setPred(t_basic_block *block, t_basic_block *pred);
+/** Adds a successor to a basic block.
+ *  @param block The predecessor block.
+ *  @param pred The successor block. */
+extern void setSucc(t_basic_block *block, t_basic_block *succ);
+
+/** Inserts a new node at the end of a block.
+ *  @param block The block where to insert the node.
+ *  @param node The node to insert.
+ *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+extern int insertNode(t_basic_block *block, t_cflow_Node *node);
+/** Inserts a new node before another inside a basic block.
+ *  @param block The block where to insert the node.
+ *  @param before_node The node at the insertion point. Must not be NULL.
+ *  @param new_node The node to insert.
+ *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+extern int insertNodeBefore(
+      t_basic_block *block, t_cflow_Node *before_node, t_cflow_Node *new_node);
+/** Inserts a new node after another inside a basic block.
+ *  @param block The block where to insert the node.
+ *  @param before_node The node at the insertion point. Must not be NULL.
+ *  @param new_node The node to insert.
+ *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+extern int insertNodeAfter(
+      t_basic_block *block, t_cflow_Node *after_node, t_cflow_Node *new_node);
+
+
+/* Control Flow Graph */
+
+/** Creates a new control flow graph (CFG) from a program.
+ *  @param program The program to be analyzed and converted into a CFG.
+ *  @param error Points to a variable that will be set to an error
+ *               code if an error occurs.
+ *  @returns The new control flow graph, or NULL in case of error. */
+extern t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error);
+/** Frees a control flow graph.
+ *  @param graph The graph to be freed. */
 extern void finalizeGraph(t_cflow_Graph *graph);
 
-/* working with basic blocks */
-extern void setPred(t_basic_block *block, t_basic_block *pred);
-extern void setSucc(t_basic_block *block, t_basic_block *succ);
-extern void insertNode(t_basic_block *block, t_cflow_Node *node);
-extern void insertNodeBefore(
-      t_basic_block *block, t_cflow_Node *before_node, t_cflow_Node *new_node);
-extern void insertNodeAfter(
-      t_basic_block *block, t_cflow_Node *after_node, t_cflow_Node *new_node);
-extern t_list *getLiveINVars(t_basic_block *bblock);
-extern t_list *getLiveOUTVars(t_basic_block *bblock);
+/** Inserts a new block in a control flow graph. Before invoking this function,
+ *  the block must be linked to the others in the graph with setPred and
+ *  setSucc.
+ *  @param graph The graph where the block must be added.
+ *  @param block The block to add.
+ *  @returns CFLOW_OK if the operation succeeded, otherwise an error code. */
+extern int insertBlock(t_cflow_Graph *graph, t_basic_block *block);
 
-/* working with the control flow graph */
-extern void insertBlock(t_cflow_Graph *graph, t_basic_block *block);
-extern t_cflow_Graph *createFlowGraph(t_list *instructions);
+/** Iterates through the nodes in a control flow graph.
+ *  @param graph The graph that must be iterated over.
+ *  @param context The context pointer that will be passed to the callback
+ *         function.
+ *  @param callback The callback function that will be called at each node
+ *         found. */
 extern void iterateCFGNodes(t_cflow_Graph *graph, void *context,
       void (*callback)(t_basic_block *block, t_cflow_Node *node, int nodeIndex,
             void *context));
-extern void updateTheCodeSegment(t_program_infos *program, t_cflow_Graph *graph);
 
-/* dataflow analysis */
+/** Rebuilds a program from the given CFG.
+ *  @param program The program to be modified
+ *  @param graph The control flow graph to be linearized and transformed into a
+ *         new program. */
+extern void updateProgramFromCFG(
+      t_program_infos *program, t_cflow_Graph *graph);
+
+
+/* Data Flow Analysis */
+
+/** Computes graph-level liveness information of the variables.
+ *  @param graph The control flow graph. */
 extern void performLivenessAnalysis(t_cflow_Graph *graph);
 
-/* print debug informations about the control flow graph */
+/** Retrieve the list of live variables entering the given block. Only valid
+ *  after calling performLivenessAnalysis() on the graph.
+ *  @param bblock The basic block.
+ *  @return The list of variables. The list is dynamically allocated and must be
+ *          freed. */
+extern t_list *getLiveINVars(t_basic_block *bblock);
+/** Retrieve the list of live variables when exiting the given block. Only valid
+ *  after calling performLivenessAnalysis() on the graph.
+ *  @param bblock The basic block.
+ *  @return The list of variables. The list is dynamically allocated and must be
+ *          freed. */
+extern t_list *getLiveOUTVars(t_basic_block *bblock);
+
+
+/* Utilities */
+
+/** Print debug information about the control flow graph.
+ * @param graph The graph to log information about.
+ * @param fout The output file.
+ * @param verbose Pass a non-zero value to also print additional information
+ *        about the liveness of the variables. */
 extern void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose);
 
 #endif

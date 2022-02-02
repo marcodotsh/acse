@@ -18,7 +18,6 @@ extern int num_error;
 extern int line_num;
 extern int errorcode;
 extern const char *errormsg;
-extern int cflow_errorcode;
 
 
 static void printErrorMessage(int errorcode);
@@ -138,16 +137,6 @@ void checkConsistency()
    /* test if an error occurred */
    if (errorcode != AXE_OK) {
       printErrorMessage(errorcode);
-      abortProgram();
-   }
-
-   if (cflow_errorcode != CFLOW_OK)
-   {
-      fprintf(stderr, "An error occurred while working with the "
-                 "cflow graph. cflow_errorcode = %d"
-                 "\n(see axe_cflow_graph.[ch])\n", cflow_errorcode);
-      
-      printErrorMessage(AXE_UNKNOWN_ERROR);
       abortProgram();
    }
 }
