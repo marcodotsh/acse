@@ -248,7 +248,7 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                if ($3.type == IMMEDIATE)
                   genMoveImmediate(program, location, $3.immediate);
                else
-                  genADDInstruction(program, location, REG_0, $3.registerId);
+                  genADDIInstruction(program, location, $3.registerId, 0);
 
                /* free the memory associated with the IDENTIFIER */
                free($1);
