@@ -70,7 +70,7 @@ int genLoadArrayAddress(t_program_infos *program
    /* retrieve the label associated with the given
    * identifier */
    label = getMemLocationOfArray(program, ID);
-                     
+   
    /* test if an error occurred */
    if (label == NULL)
       return REG_INVALID;

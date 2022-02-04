@@ -45,7 +45,8 @@
 #define AXE_REG_ALLOC_ERROR 25
 #define AXE_TRANSFORM_ERROR 26
 #define AXE_SYNTAX_ERROR 27
-#define AXE_UNKNOWN_ERROR 28
+#define AXE_VARIABLE_TYPE_MISMATCH 28
+#define AXE_VARIABLE_NOT_DECLARED 29
 
 /** Prints a warning message depending on the given code.
  * @param warningcode The code of the warning. */

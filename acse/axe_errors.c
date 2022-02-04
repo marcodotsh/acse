@@ -58,7 +58,8 @@ static const char *errorToString(int errorcode)
          msg = "Invalid operation while modifying the instructions";
          break;
       case AXE_SYNTAX_ERROR: msg = "Syntax error found"; break;
-      case AXE_UNKNOWN_ERROR:
+      case AXE_VARIABLE_TYPE_MISMATCH: msg = "type of the variable does not match"; break;
+      case AXE_VARIABLE_NOT_DECLARED: msg = "variable not declared"; break;
       default: msg = "Unknown error"; break;
    }
 

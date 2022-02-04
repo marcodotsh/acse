@@ -338,9 +338,14 @@ int getRegLocationOfScalar(t_program_infos *program, char *ID)
    
    /* get the location of the variable with the given ID */
    var = getVariable(program, ID);
-   
-   if (var->isArray)
+   if (var == NULL) {
+      emitError(AXE_VARIABLE_NOT_DECLARED);
       return REG_INVALID;
+   }
+   if (var->isArray) {
+      emitError(AXE_VARIABLE_TYPE_MISMATCH);
+      return REG_INVALID;
+   }
 
    location = var->reg_location;
    return location;
@@ -475,14 +480,8 @@ t_axe_instruction *genInstruction(t_program_infos *program,
 
    /* initialize the instruction's registers */
    instr->reg_dest = r_dest;
-   if (r_dest && r_dest->ID < 0)
-      fatalError(AXE_INVALID_REGISTER_INFO);
    instr->reg_src1 = r_src1;
-   if (r_src1 && r_src1->ID < 0)
-      fatalError(AXE_INVALID_REGISTER_INFO);
    instr->reg_src2 = r_src2;
-   if (r_src2 && r_src2->ID < 0)
-      fatalError(AXE_INVALID_REGISTER_INFO);
 
    /* attach an address if needed */
    if (label)
@@ -684,11 +683,19 @@ t_axe_label * getMemLocationOfArray(t_program_infos *program, char *ID)
 {
    t_axe_variable *var;
    
-   var = getVariable(program, ID);
-   if (var == NULL)
-      return NULL;
+   assert(ID != NULL);
+   assert(program != NULL);
 
-   /* test the postconditions */
+   var = getVariable(program, ID);
+
+   if (var == NULL) {
+      emitError(AXE_VARIABLE_NOT_DECLARED);
+      return NULL;
+   }
+   if (!var->isArray) {
+      emitError(AXE_VARIABLE_TYPE_MISMATCH);
+      return NULL;
+   }
    assert(var->label != NULL);
    
    return var->label;
