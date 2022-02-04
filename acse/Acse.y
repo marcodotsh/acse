@@ -398,15 +398,14 @@ write_statement : WRITE LPAR exp RPAR
 
 exp: NUMBER      { $$ = getImmediateExpression($1); }
    | IDENTIFIER  {
-                     int variableReg, expValReg;
+                     int variableReg;
+
                      /* get the location of the symbol with the given ID */
                      variableReg = getRegLocationOfScalar(program, $1);
-                     /* generate code that copies the value of the variable in
-                      * a new register to freeze the expression's value */
-                     expValReg = getNewRegister(program);
-                     genADDIInstruction(program, expValReg, variableReg, 0);
+                     
                      /* return that register as the expression value */
-                     $$ = getRegisterExpression(expValReg);
+                     $$ = getRegisterExpression(variableReg);
+
                      /* free the memory associated with the IDENTIFIER */
                      free($1);
    }
