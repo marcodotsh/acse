@@ -18,6 +18,7 @@
 #include "axe_cflow_graph.h"
 #include "axe_io_manager.h"
 #include "axe_target_asm_print.h"
+#include "axe_errors.h"
 
 extern t_io_infos *file_infos;
 
@@ -1300,7 +1301,7 @@ void printRegAllocInfos(t_reg_allocator *RA, FILE *fout)
  * Wrapper function
  */
 
-int doRegisterAllocation(t_program_infos *program)
+void doRegisterAllocation(t_program_infos *program)
 {
    t_cflow_Graph *graph = NULL;
    t_reg_allocator *RA = NULL;
@@ -1312,7 +1313,7 @@ int doRegisterAllocation(t_program_infos *program)
    /* create the control flow graph */
    graph = createFlowGraph(program, &error);
    if (graph == NULL)
-      goto fail;
+      fatalError(error);
 #ifndef NDEBUG
    printGraphInfos(graph, file_infos->cfg_1, 0);
 #endif
@@ -1325,7 +1326,7 @@ int doRegisterAllocation(t_program_infos *program)
    /* execute the linear scan algorithm */
    RA = initializeRegAlloc(graph, &error);
    if (RA == NULL)
-      goto fail;
+      fatalError(error);
    
    executeLinearScan(RA);
 #ifndef NDEBUG
@@ -1335,9 +1336,9 @@ int doRegisterAllocation(t_program_infos *program)
    /* apply changes to the program informations by using the informations
     * of the register allocation process */
    error = materializeRegisterAllocation(program, graph, RA);
+   if (error != AXE_OK)
+      fatalError(error);
 
-fail:
    finalizeRegAlloc(RA);
    finalizeGraph(graph);
-   return error;
 }

@@ -11,12 +11,12 @@
 #ifndef _AXE_ERRORS_H
 #define _AXE_ERRORS_H
 
-/* WARNINGS */
+/* Warnings */
 #define WARN_DIVISION_BY_ZERO 1
 #define WARN_INVALID_SHIFT_AMOUNT 2
 #define WARN_OVERFLOW 3
 
-/* errorcodes */
+/* Errors */
 #define AXE_OK 0
 #define AXE_OUT_OF_MEMORY 1
 #define AXE_PROGRAM_NOT_INITIALIZED 2
@@ -47,8 +47,21 @@
 #define AXE_SYNTAX_ERROR 27
 #define AXE_UNKNOWN_ERROR 28
 
-extern void printWarningMessage(int warningcode);
-extern void fatalError(int axe_errorcode);
-extern void checkConsistency();
+/** Prints a warning message depending on the given code.
+ * @param warningcode The code of the warning. */
+extern void emitWarning(int warningcode);
+
+/** Prints an error message depending on the given code.
+ * Does not terminate the program.
+ * @param errorcode The error code. */
+extern void emitError(int errorcode);
+
+/** Prints the given syntax error message.
+ * @param message A description of the specific syntax error. */
+extern void emitSyntaxError(const char *message);
+
+/** Prints the specified error message and terminates the program.
+ * @param errorcode The error code. */
+extern void fatalError(int errorcode);
 
 #endif

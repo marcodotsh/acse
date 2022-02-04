@@ -20,7 +20,6 @@
 #include "axe_errors.h"
 #include "axe_target_info.h"
 
-extern int errorcode;
 extern int line_num;
 extern int num_error;
 extern int num_warning;
@@ -182,7 +181,7 @@ void setProgramEnd(t_program_infos *program)
    return;
 }
 
-void shutdownCompiler(int exitStatus)
+void shutdownCompiler(void)
 {
    debugPrintf("Finalizing the compiler data structures.\n");
 
@@ -192,18 +191,16 @@ void shutdownCompiler(int exitStatus)
    finalizeOutputInfos(file_infos);
 
    debugPrintf("Done.\n");
-
-   exit(exitStatus);
 }
 
 void initializeCompiler(int argc, char **argv)
 {
    t_axe_label *l_start;
+   int error;
 
    debugPrintf("ACSE compiler, version %s, targeting %s\n\n", axe_version, TARGET_NAME);
 
    /* initialize all the global variables */
-   errorcode = AXE_OK;
    line_num = -1;
    num_error = 0;
    num_warning = 0;
@@ -215,15 +212,13 @@ void initializeCompiler(int argc, char **argv)
    /* initialize all the files used by the compiler */
    file_infos = initializeOutputInfos(argc, argv);
    if (file_infos == NULL)
-      errorcode = AXE_OUT_OF_MEMORY;
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the translation infos */
-   program = allocProgramInfos(&errorcode);
+   program = allocProgramInfos();
 
    /* Create the start label */
    l_start = newLabelID(program->lmanager, 1);
    setLabelName(program->lmanager, l_start, "_start");
    assignLabelID(program->lmanager, l_start);
-
-   checkConsistency();
 }

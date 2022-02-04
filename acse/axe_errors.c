@@ -1,10 +1,10 @@
 /*
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
- * 
+ *
  * axe_errors.c
  * Formal Languages & Compilers Machine, 2007/2008
- * 
+ *
  */
 
 #include <assert.h>
@@ -16,127 +16,122 @@
 extern int num_warning;
 extern int num_error;
 extern int line_num;
-extern int errorcode;
-extern const char *errormsg;
 
 
-static void printErrorMessage(int errorcode);
-
-
-void printMessage(const char *msg)
+static const char *errorToString(int errorcode)
 {
-   if (line_num >= 0)
-      fprintf(stderr, "At line %d, %s.\n", line_num, msg);
-   else
-      fprintf(stderr, "%s.\n", msg);
+   const char *msg;
+
+   switch (errorcode) {
+      case AXE_OUT_OF_MEMORY: msg = "Out of memory"; break;
+      case AXE_PROGRAM_NOT_INITIALIZED: msg = "Program not initialized"; break;
+      case AXE_INVALID_INSTRUCTION: msg = "Invalid instruction"; break;
+      case AXE_VARIABLE_ID_UNSPECIFIED: msg = "Variable ID unspecified"; break;
+      case AXE_VARIABLE_ALREADY_DECLARED:
+         msg = "Variable already declared";
+         break;
+      case AXE_INVALID_TYPE: msg = "Invalid type"; break;
+      case AXE_FOPEN_ERROR: msg = "fopen failed"; break;
+      case AXE_FCLOSE_ERROR: msg = "fclose failed"; break;
+      case AXE_INVALID_INPUT_FILE: msg = "Wrong file pointer"; break;
+      case AXE_FWRITE_ERROR: msg = "Error while writing on file"; break;
+      case AXE_INVALID_DATA_FORMAT: msg = "Invalid data format"; break;
+      case AXE_INVALID_OPCODE: msg = "Invalid opcode found"; break;
+      case AXE_INVALID_REGISTER_INFO: msg = "Invalid register infos"; break;
+      case AXE_INVALID_LABEL: msg = "Invalid label found"; break;
+      case AXE_INVALID_LABEL_MANAGER: msg = "Invalid label manager"; break;
+      case AXE_INVALID_ARRAY_SIZE: msg = "Invalid array size"; break;
+      case AXE_INVALID_VARIABLE: msg = "Invalid variable found"; break;
+      case AXE_INVALID_ADDRESS: msg = "Invalid address"; break;
+      case AXE_INVALID_EXPRESSION: msg = "Invalid expression found"; break;
+      case AXE_UNKNOWN_VARIABLE: msg = "Unknown variable found"; break;
+      case AXE_NULL_DECLARATION: msg = "NULL declaration found"; break;
+      case AXE_LABEL_ALREADY_ASSIGNED: msg = "label already assigned"; break;
+      case AXE_INVALID_CFLOW_GRAPH:
+         msg = "Invalid control-dataflow graph informations";
+         break;
+      case AXE_INVALID_REG_ALLOC:
+         msg = "Invalid register allocator instance found";
+         break;
+      case AXE_REG_ALLOC_ERROR: msg = "register allocation failed"; break;
+      case AXE_TRANSFORM_ERROR:
+         msg = "Invalid operation while modifying the instructions";
+         break;
+      case AXE_SYNTAX_ERROR: msg = "Syntax error found"; break;
+      case AXE_UNKNOWN_ERROR:
+      default: msg = "Unknown error"; break;
+   }
+
+   return msg;
 }
 
-static void printErrorMessage(int errorcode)
+static const char *warningToString(int warningcode)
 {
-   char *msg;
-  
-   switch(errorcode)
-   {
-      case AXE_OUT_OF_MEMORY : msg = "error: Out of memory"; break;
-      case AXE_PROGRAM_NOT_INITIALIZED :
-                  msg = "error: Program not initialized"; break;
-      case AXE_INVALID_INSTRUCTION :
-                  msg = "error: Invalid instruction"; break;
-      case AXE_VARIABLE_ID_UNSPECIFIED :
-                  msg = "error: Variable ID unspecified"; break;
-      case AXE_VARIABLE_ALREADY_DECLARED :
-                  msg = "error: Variable already declared"; break;
-      case AXE_INVALID_TYPE : msg = "error: Invalid type"; break;
-      case AXE_FOPEN_ERROR : msg = "error: fopen failed"; break;
-      case AXE_FCLOSE_ERROR : msg = "error: fclose failed"; break;
-      case AXE_INVALID_INPUT_FILE : msg = "error: Wrong file pointer"; break;
-      case AXE_FWRITE_ERROR : msg = "error: Error while writing on file"; break;
-      case AXE_INVALID_DATA_FORMAT : msg = "error: Invalid data format"; break;
-      case AXE_INVALID_OPCODE : msg = "error: Invalid opcode found"; break;
-      case AXE_INVALID_REGISTER_INFO :
-                  msg = "error: Invalid register infos"; break;
-      case AXE_INVALID_LABEL : msg = "error: Invalid label found"; break;
-      case AXE_INVALID_LABEL_MANAGER :
-                  msg = "error: Invalid label manager"; break;
-      case AXE_INVALID_ARRAY_SIZE : msg = "error: Invalid array size"; break;
-      case AXE_INVALID_VARIABLE : msg = "error: Invalid variable found"; break;
-      case AXE_INVALID_ADDRESS : msg = "error: Invalid address"; break;
-      case AXE_INVALID_EXPRESSION :
-                  msg = "error: Invalid expression found"; break;
-      case AXE_UNKNOWN_VARIABLE : msg = "error: Unknown variable found"; break;
-      case AXE_NULL_DECLARATION : msg = "error: NULL declaration found"; break;
-      case AXE_LABEL_ALREADY_ASSIGNED :
-                  msg = "error: label already assigned"; break;
-      case AXE_INVALID_CFLOW_GRAPH : msg = "error: Invalid "
-                  "control-dataflow graph informations"; break;
-      case AXE_INVALID_REG_ALLOC : msg = "error: Invalid "
-                  "register allocator instance found"; break;
-      case AXE_REG_ALLOC_ERROR : msg = "error: "
-                  "register allocation failed"; break;
-      case AXE_TRANSFORM_ERROR : msg = "error: "
-                  "Invalid operation while modifying the instructions"; break;
-      case AXE_SYNTAX_ERROR : msg = "error: "
-                  "Syntax error found"; break;
-      case AXE_UNKNOWN_ERROR : msg = "error: Unknown error"; break;
-      default : msg = "<invalid errorcode>"; break;
+   const char *msg;
+
+   switch (warningcode) {
+      case WARN_DIVISION_BY_ZERO: msg = "division by zero"; break;
+      case WARN_INVALID_SHIFT_AMOUNT:
+         msg = "shift amount is less than 0 or greater than 31";
+         break;
+      case WARN_OVERFLOW: msg = "overflow"; break;
+      default: msg = "<invalid warning>"; break;
    }
-   
-   /* print out to the standard error the error message */
-   printMessage(msg);
-   /* print the custom error message if it exists */
-   if (errormsg)
-      fprintf(stderr, "%s\n", errormsg);
+
+   return msg;
+}
+
+static void printMessage(const char *msg, const char *category)
+{
+   if (line_num >= 0)
+      fprintf(stderr, "At line %d, %s: %s.\n", line_num, category, msg);
+   else
+      fprintf(stderr, "%s: %s.\n", category, msg);
+}
+
+void emitError(int errorcode)
+{
+   const char *msg;
+
+   /* Convert the error code to a string */
+   msg = errorToString(errorcode);
+   /* print out the error message to the standard error */
+   printMessage(msg, "error");
 
    /* update the value of num_error */
    num_error++;
 }
 
-void abortProgram()
+void emitWarning(int warningcode)
 {
-   if (num_error > 0)
-   {
-      fprintf(stderr,   "Input file contains some errors. "
-                        "No assembly file written\n");
-      fprintf(stderr, "**%d error(s) found \n\n", num_error);
-   }
+   const char *msg;
 
-   /* finalize all the data structures */
-   shutdownCompiler(-1);
-}
-
-void printWarningMessage(int warningcode)
-{
-   char *msg;
-
-   switch (warningcode) {
-      case WARN_DIVISION_BY_ZERO: msg = "warning: division by zero"; break;
-      case WARN_INVALID_SHIFT_AMOUNT:
-         msg = "warning: shift amount is less than 0 or greater than 31";
-         break;
-      case WARN_OVERFLOW: msg = "warning: overflow"; break;
-      default: msg = "<invalid warning>"; break;
-   }
-
-   /* print out to the standard error the warning message */
-   printMessage(msg);
+   /* Convert the warning code to a string */
+   msg = warningToString(warningcode);
+   /* print out the warning message to the standard error */
+   printMessage(msg, "warning");
 
    /* update the value of num_warning */
    num_warning++;
 }
 
-void fatalError(int axe_errorcode)
+void emitSyntaxError(const char *message)
 {
-   assert(axe_errorcode != AXE_OK);
-   errorcode = axe_errorcode;
-   printErrorMessage(errorcode);
-   abortProgram();
+   /* print out the error message to the standard error */
+   printMessage(message, "error");
+
+   /* update the value of num_error */
+   num_error++;
 }
 
-void checkConsistency()
+void fatalError(int errorcode)
 {
-   /* test if an error occurred */
-   if (errorcode != AXE_OK) {
-      printErrorMessage(errorcode);
-      abortProgram();
-   }
+   const char *msg;
+
+   /* Convert the error code to a string */
+   msg = errorToString(errorcode);
+   /* print out the error message to the standard error */
+   printMessage(msg, "fatal error");
+
+   exit(1);
 }

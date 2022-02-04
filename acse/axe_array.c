@@ -64,11 +64,8 @@ int genLoadArrayAddress(t_program_infos *program
    t_axe_label *label;
 
    /* preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-
-   if (ID == NULL)
-      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
+   assert(program != NULL);
+   assert(ID != NULL);
    
    /* retrieve the label associated with the given
    * identifier */

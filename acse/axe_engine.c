@@ -17,8 +17,7 @@
 #include "axe_target_info.h"
 #include "axe_target_asm_print.h"
 
-/* global variable errorcode */
-int errorcode;
+/* global variable errormsg */
 const char *errormsg = NULL;
 /* global line number (defined in Acse.y) */
 extern int line_num;
@@ -360,7 +359,7 @@ int getRegLocationOfScalar(t_program_infos *program, char *ID)
 }
 
 /* initialize an instance of `t_program_infos' */
-t_program_infos * allocProgramInfos()
+t_program_infos * allocProgramInfos(void)
 {
    t_program_infos *result;
 

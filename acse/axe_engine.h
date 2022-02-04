@@ -121,7 +121,7 @@ typedef struct t_program_infos
  * is called once: its only purpouse is to initialize an instance of the struct
  * `t_program_infos' that will contain all the informations about the program
  * that will be compiled */
-extern t_program_infos *allocProgramInfos();
+extern t_program_infos *allocProgramInfos(void);
 
 /* finalize all the data structures associated with `program' */
 extern void finalizeProgramInfos(t_program_infos *program);
