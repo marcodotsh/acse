@@ -169,28 +169,16 @@ declaration : IDENTIFIER ASSIGN NUMBER
             {
                /* create a new instance of t_axe_declaration */
                $$ = initializeDeclaration($1, 0, 0, $3);
-
-               /* test if an `out of memory' occurred */
-               if ($$ == NULL)
-                  fatalError(AXE_OUT_OF_MEMORY);
             }
             | IDENTIFIER LSQUARE NUMBER RSQUARE
             {
                /* create a new instance of t_axe_declaration */
                $$ = initializeDeclaration($1, 1, $3, 0);
-
-                  /* test if an `out of memory' occurred */
-               if ($$ == NULL)
-                  fatalError(AXE_OUT_OF_MEMORY);
             }
             | IDENTIFIER
             {
                /* create a new instance of t_axe_declaration */
                $$ = initializeDeclaration($1, 0, 0, 0);
-               
-               /* test if an `out of memory' occurred */
-               if ($$ == NULL)
-                  fatalError(AXE_OUT_OF_MEMORY);
             }
 ;
 

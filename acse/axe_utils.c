@@ -44,18 +44,15 @@ int debugPrintf(const char *fmt, ...)
 #endif
 }
 
-t_axe_declaration * initializeDeclaration
-      (char *ID, int isArray, int arraySize, int init_val)
+t_axe_declaration *initializeDeclaration(
+      char *ID, int isArray, int arraySize, int init_val)
 {
    t_axe_declaration *result;
 
    /* allocate memory for the new declaration */
-   result = (t_axe_declaration *)
-         malloc(sizeof(t_axe_declaration));
-
-   /* check the postconditions */
+   result = (t_axe_declaration *)malloc(sizeof(t_axe_declaration));
    if (result == NULL)
-      return NULL;
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the content of `result' */
    result->isArray = isArray;
@@ -96,11 +93,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
    t_axe_declaration *current_decl;
 
    /* preconditions */
-   if (program == NULL)
-   {
-      free_new_variables(variables);
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-   }
+   assert(program != NULL);
 
    /* initialize `current_element' */
    current_element = variables;
@@ -109,11 +102,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
    {
       /* retrieve the current declaration infos */
       current_decl = (t_axe_declaration *)LDATA(current_element);
-      if (current_decl == NULL)
-      {
-         free_new_variables(variables);
-         fatalError(AXE_NULL_DECLARATION);
-      }
+      assert(current_decl != NULL);
 
       /* create and assign a new variable to program */
       createVariable(program, current_decl->ID, varType, current_decl->isArray, current_decl->arraySize, current_decl->init_val);
@@ -151,8 +140,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
 
 void setProgramEnd(t_program_infos *program)
 {
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(program != NULL);
 
    if (isAssigningLabel(program->lmanager))
    {
@@ -211,8 +199,6 @@ void initializeCompiler(int argc, char **argv)
 
    /* initialize all the files used by the compiler */
    file_infos = initializeOutputInfos(argc, argv);
-   if (file_infos == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the translation infos */
    program = allocProgramInfos();

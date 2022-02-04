@@ -36,9 +36,6 @@ static void finalizeDataSegment(t_list *dataDirectives);
 /* finalize the informations associated with all the variables */
 static void finalizeVariables(t_list *variables);
 
-/* add a variable to the program */
-static void addVariable(t_program_infos *program, t_axe_variable *variable);
-
 /* create and initialize an instance of `t_axe_register' */
 t_axe_register * initializeRegister(int ID, int indirect)
 {
@@ -46,8 +43,6 @@ t_axe_register * initializeRegister(int ID, int indirect)
 
    /* create an instance of `t_axe_register' */
    result = (t_axe_register *)malloc(sizeof(t_axe_register));
-   
-   /* check the postconditions */
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -67,8 +62,6 @@ t_axe_instruction * initializeInstruction(int opcode)
 
    /* create an instance of `t_axe_data' */
    result = (t_axe_instruction *)malloc(sizeof(t_axe_instruction));
-   
-   /* check the postconditions */
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -94,10 +87,8 @@ t_axe_data * initializeData(int directiveType, int value, t_axe_label *label)
 
    /* create an instance of `t_axe_data' */
    result = (t_axe_data *) malloc(sizeof(t_axe_data));
-   
-   /* check the postconditions */
    if (result == NULL)
-      return NULL;
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the new directive */
    result->directiveType = directiveType;
@@ -115,18 +106,15 @@ void finalizeVariable (t_axe_variable *variable)
 }
 
 /* create and initialize an instance of `t_axe_variable' */
-t_axe_variable * initializeVariable
-      (char *ID, int type, int isArray, int arraySize, int init_val)
+t_axe_variable *initializeVariable(
+      char *ID, int type, int isArray, int arraySize, int init_val)
 {
    t_axe_variable *result;
 
    /* allocate memory for the new variable */
-   result = (t_axe_variable *)
-         malloc(sizeof(t_axe_variable));
-
-   /* check the postconditions */
+   result = (t_axe_variable *)malloc(sizeof(t_axe_variable));
    if (result == NULL)
-      return NULL;
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the content of `result' */
    result->type = type;
@@ -183,7 +171,6 @@ t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
    t_axe_address *result;
 
    result = (t_axe_address *)malloc(sizeof(t_axe_address));
-
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -200,36 +187,43 @@ t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
 void createVariable(t_program_infos *program, char *ID
       , int type, int isArray, int arraySize, int init_val)
 {
-   t_axe_variable *var;
+   t_axe_variable *var, *variableFound;
    int sizeofElem;
    t_axe_data *new_data_info;
    int sy_error;
          
    /* test the preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(program != NULL);
+   assert(ID != NULL);
 
    if (type != INTEGER_TYPE)
       fatalError(AXE_INVALID_TYPE);
 
+   /* check if another variable already exists with the same ID */
+   variableFound = getVariable(program, ID);
+   if (variableFound != NULL) {
+      emitError(AXE_VARIABLE_ALREADY_DECLARED);
+      return;
+   }
+
+   /* check if the array size is valid */
+   if (isArray && arraySize <= 0) {
+      emitError(AXE_INVALID_ARRAY_SIZE);
+      return;
+   }
+
    /* initialize a new variable */
    var = initializeVariable(ID, type, isArray, arraySize, init_val);
-   if (var == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
    
    if (isArray) {
       /* arrays are stored in memory and need a variable location */
       var->label = newLabel(program);
-      if (var->label == NULL)
-         fatalError(AXE_OUT_OF_MEMORY);
       setLabelName(program->lmanager, var->label, ID);
 
       /* create an instance of `t_axe_data' */   
       sizeofElem = 4 / TARGET_PTR_GRANULARITY;
       new_data_info = initializeData(DIR_SPACE, var->arraySize * sizeofElem,
             var->label);
-      if (new_data_info == NULL)
-         fatalError(AXE_OUT_OF_MEMORY);
 
       /* update the list of directives */
       program->data = addElement(program->data, new_data_info, -1);
@@ -238,8 +232,8 @@ void createVariable(t_program_infos *program, char *ID
       var->reg_location = genLoadImmediate(program, init_val);
    }
 
-   /* add the new variable to program */
-   addVariable(program, var);
+   /* now we can add the new variable to the program */
+   program->variables = addElement(program->variables, var, -1);
 }
 
 void finalizeDataSegment(t_list *dataDirectives)
@@ -315,11 +309,8 @@ t_axe_variable * getVariable
    t_list *elementFound;
    
    /* preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-
-   if (ID == NULL)
-      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
+   assert(program != NULL);
+   assert(ID != NULL);
 
    /* initialize the pattern */
    search_pattern.ID = ID;
@@ -342,11 +333,8 @@ int getRegLocationOfScalar(t_program_infos *program, char *ID)
    t_axe_variable *var;
 
    /* preconditions: ID and program shouldn't be NULL pointer */
-   if (ID == NULL)
-      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
-
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(ID != NULL);
+   assert(program != NULL);
    
    /* get the location of the variable with the given ID */
    var = getVariable(program, ID);
@@ -366,9 +354,6 @@ t_program_infos * allocProgramInfos(void)
    /* initialize the local variable `result' */
    result = (t_program_infos *)
          malloc(sizeof(t_program_infos));
-
-   /* verify if an error occurred during the memory allocation
-    * process */
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -379,12 +364,6 @@ t_program_infos * allocProgramInfos(void)
    result->data = NULL;
    result->current_register = 1; /* we are excluding the register R0 */
    result->lmanager = initializeLabelManager();
-
-   if (result->lmanager == NULL)
-   {
-      finalizeProgramInfos(result);
-      fatalError(AXE_OUT_OF_MEMORY);
-   }
    
    /* postcondition: return an instance of `t_program_infos' */
    return result;
@@ -462,14 +441,9 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    t_list *ip;
 
    /* test the preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-   
-   if (instr == NULL)
-      fatalError(AXE_INVALID_INSTRUCTION);
-
-   if (program->lmanager == NULL)
-      fatalError(AXE_INVALID_LABEL_MANAGER);
+   assert(program != NULL);
+   assert(instr != NULL);
+   assert(program->lmanager != NULL);
 
    instr->label = getLastPendingLabel(program->lmanager);
 
@@ -626,11 +600,8 @@ t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
    t_axe_label *label;
 
    /* test the preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-
-   if (program->lmanager == NULL)
-      fatalError(AXE_INVALID_LABEL_MANAGER);
+   assert(program != NULL);
+   assert(program->lmanager != NULL);
 
    label = newLabelID(program->lmanager, 0);
    if (name)
@@ -649,11 +620,8 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
    t_list *li;
 
    /* test the preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-
-   if (program->lmanager == NULL)
-      fatalError(AXE_INVALID_LABEL_MANAGER);
+   assert(program != NULL);
+   assert(program->lmanager != NULL);
    
    for (li = program->instructions; li != NULL; li = LNEXT(li)) {
       t_axe_instruction *instr = LDATA(li);
@@ -672,8 +640,6 @@ t_axe_label *assignNewNamedLabel(t_program_infos *program, const char *name)
 
    /* reserve a new label */
    reserved_label = newNamedLabel(program, name);
-   if (reserved_label == NULL)
-      return NULL;
 
    /* fix the label */
    return assignLabel(program, reserved_label);
@@ -684,84 +650,12 @@ t_axe_label * assignNewLabel(t_program_infos *program)
    return assignNewNamedLabel(program, NULL);
 }
 
-void addVariable(t_program_infos *program, t_axe_variable *variable)
-{
-   t_axe_variable *variableFound;
-   
-   /* test the preconditions */
-   if (variable == NULL)
-   {
-      fatalError(AXE_INVALID_VARIABLE);
-      return;
-   }
-
-   if (program == NULL)
-   {
-      finalizeVariable(variable);
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
-      return;
-   }
-
-   if (variable->ID == NULL)
-   {
-      finalizeVariable(variable);
-      fatalError(AXE_VARIABLE_ID_UNSPECIFIED);
-      return;
-   }
-
-   if (variable->type == UNKNOWN_TYPE)
-   {
-      finalizeVariable(variable);
-      fatalError(AXE_INVALID_TYPE);
-      return;
-   }
-
-   if (variable->isArray)
-   {
-      if (variable->arraySize <= 0)
-      {
-         finalizeVariable(variable);
-         fatalError(AXE_INVALID_ARRAY_SIZE);
-         return;
-      }
-      if (variable->label == NULL)
-      {
-         finalizeVariable(variable);
-         fatalError(AXE_INVALID_LABEL);
-         return;
-      }
-   }
-   else
-   {
-      if (variable->reg_location == REG_INVALID)
-      {
-         finalizeVariable(variable);
-         fatalError(AXE_INVALID_VARIABLE);
-         return;
-      }
-   }
-   
-   /* we have to test if already exists a variable with the same ID */
-   variableFound = getVariable(program, variable->ID);
-
-   if (variableFound != NULL)
-   {
-      finalizeVariable(variable);
-      fatalError(AXE_VARIABLE_ALREADY_DECLARED);
-      return;
-   }
-
-   /* now we can add the new variable to the program */
-   program->variables = addElement(program->variables, variable, -1);
-}
-
 int getNewRegister(t_program_infos *program)
 {
    int result;
    
    /* test the preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(program != NULL);
 
    result = program->current_register;
    program->current_register++;

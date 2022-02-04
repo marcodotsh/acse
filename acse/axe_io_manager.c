@@ -11,6 +11,7 @@
 #include <string.h>
 #include "axe_utils.h"
 #include "axe_io_manager.h"
+#include "axe_errors.h"
 
 
 t_io_infos * allocOutputInfos()
@@ -20,10 +21,8 @@ t_io_infos * allocOutputInfos()
    /* Allocate memory for an instance of `t_output_infos' */
    result = (t_io_infos *)
          malloc(sizeof(t_io_infos));
-
-   /* test if malloc returned a null pointer */
    if (result == NULL)
-      return NULL;
+      fatalError(AXE_OUT_OF_MEMORY);
       
    /* initialize the instance internal data */
    result->output_file_name = NULL;
@@ -53,8 +52,6 @@ t_io_infos * initializeOutputInfos(int argc, char **argv)
 
    /* create a new instance of `t_io_infos' */
    result = allocOutputInfos();
-   if (result == NULL)
-      return NULL;
    
    argc--;
    argv++;

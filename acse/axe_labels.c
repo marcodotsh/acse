@@ -30,6 +30,8 @@ t_axe_label * initializeLabel(int value, int global)
 
    /* create an instance of t_axe_label */
    result = (t_axe_label *)malloc(sizeof(t_axe_label));
+   if (result == NULL)
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* initialize the internal value of `result' */
    result->labelID = value;
@@ -51,8 +53,7 @@ void finalizeLabel(t_axe_label *lab)
 int isAssigningLabel(t_axe_label_manager *lmanager)
 {
    /* preconditions: lmanager must be different from NULL */
-   if (lmanager == NULL)
-      fatalError(AXE_INVALID_LABEL_MANAGER);
+   assert(lmanager != NULL);
 
    if (lmanager->label_to_assign != NULL)
    {
@@ -105,7 +106,6 @@ t_axe_label_manager * initializeLabelManager()
    /* create an instance of `t_axe_label_manager' */
    result = (t_axe_label_manager *)
          malloc (sizeof(t_axe_label_manager));
-
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -156,14 +156,8 @@ t_axe_label * assignLabelID(t_axe_label_manager *lmanager, t_axe_label *label)
 {
    /* precondition: lmanager must be different from NULL */
    assert(lmanager != NULL);
-
-   /* precondition: label must be different from NULL and
-    * must always carry a valid identifier */
-   if (  (label == NULL)
-         || (label->labelID >= lmanager->current_label_ID))
-   {
-      fatalError(AXE_INVALID_LABEL);
-   }
+   assert(label != NULL);
+   assert(label->labelID < lmanager->current_label_ID);
 
    /* test if the next instruction already has a label */
    if (lmanager->label_to_assign != NULL)
