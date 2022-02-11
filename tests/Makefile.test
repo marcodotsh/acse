@@ -1,4 +1,5 @@
-ASM:=riscv-none-embed-gcc -ffreestanding -nostdlib -march=rv32im -mno-relax
+#ASM:=riscv-none-embed-gcc -ffreestanding -nostdlib -march=rv32im -mno-relax
+ASM:=../../bin/asrv32im
 ACSE:=../../bin/acse
 acse_file=$(ACSE)
 # add .exe at the end on Windows
