@@ -16,7 +16,7 @@
 #include <string.h>
 #include "expressions.h"
 #include "utils.h"
-#include "collections.h"
+#include "list.h"
 #include "parser.tab.h"
 
 /* Variables declared in the lexer for error tracking */

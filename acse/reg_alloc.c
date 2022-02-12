@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "gencode.h"
 #include "engine.h"
-#include "collections.h"
+#include "list.h"
 #include "cflow_graph.h"
 #include "io_manager.h"
 #include "target_asm_print.h"

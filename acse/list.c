@@ -2,14 +2,14 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * collections.c
+ * list.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
 #include <stdlib.h>
 #include <assert.h>
-#include "collections.h"
+#include "list.h"
 
 /* function prototypes */
 static t_list * newElement(void *data);

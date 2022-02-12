@@ -2,15 +2,15 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * collections.h
+ * list.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * A double-linked list. `prev' pointer of first element and `next' pointer of
  * last element are NULL.
  */
 
-#ifndef COLLECTIONS_H
-#define COLLECTIONS_H
+#ifndef LIST_H
+#define LIST_H
 
 #include <stdint.h>
 #include <stdlib.h>

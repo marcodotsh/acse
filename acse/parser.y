@@ -20,7 +20,7 @@
 #include "target_asm_print.h"
 #include "target_transform.h"
 #include "errors.h"
-#include "collections.h"
+#include "list.h"
 #include "expressions.h"
 #include "gencode.h"
 #include "utils.h"

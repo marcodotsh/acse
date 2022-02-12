@@ -11,7 +11,7 @@
 #include <ctype.h>
 #include "errors.h"
 #include "labels.h"
-#include "collections.h"
+#include "list.h"
 
 
 struct t_axe_label_manager

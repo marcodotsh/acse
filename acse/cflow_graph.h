@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include "engine.h"
-#include "collections.h"
+#include "list.h"
 
 /* If this macro is defined, the control flow analysis will always consider
  * x0 as a LIVE IN temporary register (i.e. variable) */

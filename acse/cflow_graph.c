@@ -10,7 +10,7 @@
 #include <assert.h>
 #include "labels.h"
 #include "cflow_graph.h"
-#include "collections.h"
+#include "list.h"
 #include "utils.h"
 #include "utils.h"
 #include "target_info.h"
