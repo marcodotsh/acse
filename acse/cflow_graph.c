@@ -2,19 +2,19 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_cflow_graph.c
+ * cflow_graph.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
 #include <assert.h>
-#include "axe_labels.h"
-#include "axe_cflow_graph.h"
+#include "labels.h"
+#include "cflow_graph.h"
 #include "collections.h"
-#include "axe_utils.h"
-#include "axe_utils.h"
-#include "axe_target_info.h"
-#include "axe_target_asm_print.h"
+#include "utils.h"
+#include "utils.h"
+#include "target_info.h"
+#include "target_asm_print.h"
 
 
 int compareCFGVariables(void *a, void *b)
@@ -1174,7 +1174,7 @@ void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose)
          "Thus, in the following control flow graph, \'x0\' will never appear\n"
          "as LIVE-IN or LIVE-OUT variable for a statement.\n"
          "  If you want to consider \'x0\' as a normal variable, you have to\n"
-         "un-define the macro CFLOW_ALWAYS_LIVEIN_R0 in \"axe_cflow_graph.h\"."
+         "un-define the macro CFLOW_ALWAYS_LIVEIN_R0 in \"cflow_graph.h\"."
          "\n\n");
 #endif
 

@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_utils.h
+ * utils.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * Contains important functions to access the list of symbols and other
@@ -12,7 +12,7 @@
 #ifndef _AXE_UTILS_H
 #define _AXE_UTILS_H
 
-#include "axe_engine.h"
+#include "engine.h"
 #include "collections.h"
 
 

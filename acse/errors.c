@@ -2,15 +2,15 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  *
- * axe_errors.c
+ * errors.c
  * Formal Languages & Compilers Machine, 2007/2008
  *
  */
 
 #include <assert.h>
-#include "axe_errors.h"
-#include "axe_utils.h"
-#include "axe_cflow_graph.h"
+#include "errors.h"
+#include "utils.h"
+#include "cflow_graph.h"
 
 /* @see Acse.y for these declarations */
 extern int num_warning;

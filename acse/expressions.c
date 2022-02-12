@@ -2,16 +2,16 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_expressions.c
+ * expressions.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
 #include <limits.h>
-#include "axe_expressions.h"
-#include "axe_gencode.h"
-#include "axe_errors.h"
-#include "axe_utils.h"
+#include "expressions.h"
+#include "gencode.h"
+#include "errors.h"
+#include "utils.h"
 
 
 t_axe_expression getImmediateExpression(int value)

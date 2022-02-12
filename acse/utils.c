@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_utils.c
+ * utils.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
@@ -11,14 +11,14 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdarg.h>
-#include "axe_utils.h"
-#include "axe_gencode.h"
-#include "axe_labels.h"
-#include "axe_cflow_graph.h"
-#include "axe_reg_alloc.h"
-#include "axe_io_manager.h"
-#include "axe_errors.h"
-#include "axe_target_info.h"
+#include "utils.h"
+#include "gencode.h"
+#include "labels.h"
+#include "cflow_graph.h"
+#include "reg_alloc.h"
+#include "io_manager.h"
+#include "errors.h"
+#include "target_info.h"
 
 extern int line_num;
 extern int num_error;

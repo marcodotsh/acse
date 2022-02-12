@@ -2,17 +2,17 @@
  * Daniele Cattaneo
  * Politecnico di Milano, 2020
  * 
- * axe_mace_transform.h
+ * mace_transform.h
  * Formal Languages & Compilers Machine, 2007-2020
  */
 
 #include <assert.h>
-#include "axe_target_transform.h"
-#include "axe_gencode.h"
-#include "axe_utils.h"
+#include "target_transform.h"
+#include "gencode.h"
+#include "utils.h"
 #include "collections.h"
-#include "axe_target_info.h"
-#include "axe_target_asm_print.h"
+#include "target_info.h"
+#include "target_asm_print.h"
 
 #define RD(i)  (i->reg_dest->ID)
 #define RS1(i) (i->reg_src1->ID)

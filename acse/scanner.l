@@ -9,15 +9,15 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * Acse.lex
+ * scanner.l
  * Formal Languages & Compilers Machine, 2007/2008
  */
 
 #include <string.h>
-#include "axe_expressions.h"
-#include "axe_utils.h"
+#include "expressions.h"
+#include "utils.h"
 #include "collections.h"
-#include "Acse.tab.h"
+#include "parser.tab.h"
 
 /* Variables declared in the lexer for error tracking */
 extern int line_num;

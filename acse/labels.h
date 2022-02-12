@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_labels.h
+ * labels.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * Internal functions for label management.

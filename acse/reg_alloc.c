@@ -2,23 +2,23 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  *
- * axe_reg_alloc.c
+ * reg_alloc.c
  * Formal Languages & Compilers Machine, 2007/2008
  *
  */
 
 #include <assert.h>
-#include "axe_reg_alloc.h"
-#include "axe_target_info.h"
-#include "axe_errors.h"
-#include "axe_utils.h"
-#include "axe_gencode.h"
-#include "axe_engine.h"
+#include "reg_alloc.h"
+#include "target_info.h"
+#include "errors.h"
+#include "utils.h"
+#include "gencode.h"
+#include "engine.h"
 #include "collections.h"
-#include "axe_cflow_graph.h"
-#include "axe_io_manager.h"
-#include "axe_target_asm_print.h"
-#include "axe_errors.h"
+#include "cflow_graph.h"
+#include "io_manager.h"
+#include "target_asm_print.h"
+#include "errors.h"
 
 extern t_io_infos *file_infos;
 

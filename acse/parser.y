@@ -3,7 +3,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * Acse.y
+ * parser.y
  * Formal Languages & Compilers Machine, 2007/2008
  */
 
@@ -16,18 +16,18 @@
 #include <stdio.h>       
 #include <stdlib.h>
 #include <assert.h>
-#include "axe_engine.h"
-#include "axe_target_asm_print.h"
-#include "axe_target_transform.h"
-#include "axe_errors.h"
+#include "engine.h"
+#include "target_asm_print.h"
+#include "target_transform.h"
+#include "errors.h"
 #include "collections.h"
-#include "axe_expressions.h"
-#include "axe_gencode.h"
-#include "axe_utils.h"
-#include "axe_array.h"
-#include "axe_cflow_graph.h"
-#include "axe_reg_alloc.h"
-#include "axe_io_manager.h"
+#include "expressions.h"
+#include "gencode.h"
+#include "utils.h"
+#include "array.h"
+#include "cflow_graph.h"
+#include "reg_alloc.h"
+#include "io_manager.h"
 
 /* global variables */
 int line_num;        /* this variable will keep track of the
@@ -49,7 +49,7 @@ t_program_infos *program;  /* The singleton instance of `program'.
                             * internal structure, all the useful informations
                             * about a program. For example: the assembly
                             * (code and directives);
-                            * the label manager (see axe_labels.h) etc. */
+                            * the label manager (see labels.h) etc. */
 
 t_io_infos *file_infos;    /* input and output files used by the compiler */
 

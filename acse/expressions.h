@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_expressions.h
+ * expressions.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * Support functions for t_axe_expressions.
@@ -11,7 +11,7 @@
 #ifndef _AXE_EXPRESSIONS_H
 #define _AXE_EXPRESSIONS_H
 
-#include "axe_engine.h"
+#include "engine.h"
 
 /* EXPRESSION TYPES */
 #define IMMEDIATE 0

@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_engine.c
+ * engine.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
@@ -11,11 +11,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "axe_engine.h"
-#include "axe_errors.h"
-#include "axe_gencode.h"
-#include "axe_target_info.h"
-#include "axe_target_asm_print.h"
+#include "engine.h"
+#include "errors.h"
+#include "gencode.h"
+#include "target_info.h"
+#include "target_asm_print.h"
 
 /* global variable errormsg */
 const char *errormsg = NULL;

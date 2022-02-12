@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_array.h
+ * array.h
  * Formal Languages & Compilers Machine, 2007/2008
  *
  * Code generation for array management (load/store)
@@ -11,8 +11,8 @@
 #ifndef _AXE_ARRAY_H
 #define _AXE_ARRAY_H
 
-#include "axe_engine.h"
-#include "axe_expressions.h"
+#include "engine.h"
+#include "expressions.h"
 
 /* This function generates instructions that load the content of
  * an element of an array in a register.  This function takes as

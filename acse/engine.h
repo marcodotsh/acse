@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_engine.h
+ * engine.h
  * Formal Languages & Compilers Machine, 2007/2008
  *
  * Contains t_program_infos and some functions for label management
@@ -12,7 +12,7 @@
 #ifndef _AXE_ENGINE_H
 #define _AXE_ENGINE_H
 
-#include "axe_labels.h"
+#include "labels.h"
 #include "collections.h"
 
 /* registers */
@@ -154,7 +154,7 @@ extern void finalizeInstruction(t_axe_instruction *inst);
 extern void setMCRegisterWhitelist(t_axe_register *regObj, ...);
 
 /* add a new instruction to the current program. This function is directly
- * called by all the functions defined in `axe_gencode.h' */
+ * called by all the functions defined in `gencode.h' */
 extern void addInstruction(t_program_infos *program, t_axe_instruction *instr);
 
 extern t_axe_instruction *genInstruction(t_program_infos *program,

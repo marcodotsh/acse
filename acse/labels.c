@@ -2,15 +2,15 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_labels.c
+ * labels.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
 #include <assert.h>
 #include <ctype.h>
-#include "axe_errors.h"
-#include "axe_labels.h"
+#include "errors.h"
+#include "labels.h"
 #include "collections.h"
 
 

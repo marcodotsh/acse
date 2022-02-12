@@ -2,14 +2,14 @@
  * Daniele Cattaneo
  * Politecnico di Milano, 2022
  * 
- * axe_target_info.h
+ * target_info.h
  * Formal Languages & Compilers Machine, 2007-2022
  * 
  * Properties of the target machine
  */
 
 #include <assert.h>
-#include "axe_target_info.h"
+#include "target_info.h"
 
 int isHaltOrRetInstruction(t_axe_instruction *instr)
 {

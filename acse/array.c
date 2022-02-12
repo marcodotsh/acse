@@ -2,18 +2,18 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_array.c
+ * array.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
 #include <assert.h>
-#include "axe_array.h"
-#include "axe_gencode.h"
-#include "axe_utils.h"
-#include "axe_errors.h"
-#include "axe_target_info.h"
-#include "axe_expressions.h"
+#include "array.h"
+#include "gencode.h"
+#include "utils.h"
+#include "errors.h"
+#include "target_info.h"
+#include "expressions.h"
 
 void genStoreArrayElement(t_program_infos *program, char *ID
             , t_axe_expression index, t_axe_expression data)

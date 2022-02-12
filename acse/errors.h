@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_errors.h
+ * errors.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * Error handling

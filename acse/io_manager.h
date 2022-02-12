@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_io_manager.h
+ * io_manager.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * File stream management

@@ -2,14 +2,14 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_gencode.c
+ * gencode.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
-#include "axe_gencode.h"
-#include "axe_errors.h"
-#include "axe_target_info.h"
+#include "gencode.h"
+#include "errors.h"
+#include "target_info.h"
 
 
 void genMoveImmediate(t_program_infos *program, int dest, int immediate)

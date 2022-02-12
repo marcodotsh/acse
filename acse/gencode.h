@@ -2,17 +2,17 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_gencode.h
+ * gencode.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
- * Code generation functions. See also axe_utils.h for genLoadImmediate()
+ * Code generation functions. See also utils.h for genLoadImmediate()
  * and genMoveImmediate().
  */
 
 #ifndef _AXE_GENCODE_H
 #define _AXE_GENCODE_H
 
-#include "axe_engine.h"
+#include "engine.h"
 
 
 /*----------------------------------------------------

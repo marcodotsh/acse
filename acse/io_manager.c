@@ -2,16 +2,16 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_io_manager.c
+ * io_manager.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
 
 #include <stdlib.h>
 #include <string.h>
-#include "axe_utils.h"
-#include "axe_io_manager.h"
-#include "axe_errors.h"
+#include "utils.h"
+#include "io_manager.h"
+#include "errors.h"
 
 
 t_io_infos * allocOutputInfos()

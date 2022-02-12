@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * axe_cflow_graph.h
+ * cflow_graph.h
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  * Control-Flow-Graph generation and related analyses
@@ -12,7 +12,7 @@
 #define _AXE_CFLOW_GRAPH_H
 
 #include <stdio.h>
-#include "axe_engine.h"
+#include "engine.h"
 #include "collections.h"
 
 /* If this macro is defined, the control flow analysis will always consider

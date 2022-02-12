@@ -2,7 +2,7 @@
  * Daniele Cattaneo
  * Politecnico di Milano, 2020
  * 
- * axe_target_info.h
+ * target_info.h
  * Formal Languages & Compilers Machine, 2007-2020
  * 
  * Properties of the target machine
@@ -11,7 +11,7 @@
 #ifndef _AXE_TARGET_INFO_H
 #define _AXE_TARGET_INFO_H
 
-#include "axe_engine.h"
+#include "engine.h"
 
 #define TARGET_NAME "RISC-V_RV32IM"
 

@@ -4,16 +4,16 @@
  * Daniele Cattaneo
  * Politecnico di Milano, 2020-2022
  * 
- * axe_target_asm_print.c
+ * target_asm_print.c
  * Formal Languages & Compilers Machine, 2007-2022
  */
 
 #include <assert.h>
-#include "axe_labels.h"
-#include "axe_utils.h"
-#include "axe_target_asm_print.h"
-#include "axe_target_info.h"
-#include "axe_target_transform.h"
+#include "labels.h"
+#include "utils.h"
+#include "target_asm_print.h"
+#include "target_info.h"
+#include "target_transform.h"
 
 #define BUF_LENGTH 256
 
