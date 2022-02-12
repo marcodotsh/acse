@@ -8,8 +8,8 @@
  * Generation of the output assembly program.
  */
 
-#ifndef _AXE_TARGET_ASM_PRINT_H
-#define _AXE_TARGET_ASM_PRINT_H
+#ifndef TARGET_ASM_PRINT_H
+#define TARGET_ASM_PRINT_H
 
 #include "engine.h"
 #include "errors.h"

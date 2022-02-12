@@ -9,8 +9,8 @@
  * (reserve, fix, assign) 
  */
 
-#ifndef _AXE_ENGINE_H
-#define _AXE_ENGINE_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #include "labels.h"
 #include "collections.h"

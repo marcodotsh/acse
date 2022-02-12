@@ -8,8 +8,8 @@
  * Support functions for t_axe_expressions.
  */
 
-#ifndef _AXE_EXPRESSIONS_H
-#define _AXE_EXPRESSIONS_H
+#ifndef EXPRESSIONS_H
+#define EXPRESSIONS_H
 
 #include "engine.h"
 

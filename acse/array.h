@@ -8,8 +8,8 @@
  * Code generation for array management (load/store)
  */
 
-#ifndef _AXE_ARRAY_H
-#define _AXE_ARRAY_H
+#ifndef ARRAY_H
+#define ARRAY_H
 
 #include "engine.h"
 #include "expressions.h"

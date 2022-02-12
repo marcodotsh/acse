@@ -9,8 +9,8 @@
  * utility functions and macros.
  */
 
-#ifndef _AXE_UTILS_H
-#define _AXE_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "engine.h"
 #include "collections.h"

@@ -8,8 +8,8 @@
  * Control-Flow-Graph generation and related analyses
  */
 
-#ifndef _AXE_CFLOW_GRAPH_H
-#define _AXE_CFLOW_GRAPH_H
+#ifndef CFLOW_GRAPH_H
+#define CFLOW_GRAPH_H
 
 #include <stdio.h>
 #include "engine.h"

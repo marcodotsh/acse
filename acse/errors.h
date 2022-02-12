@@ -8,8 +8,8 @@
  * Error handling
  */
 
-#ifndef _AXE_ERRORS_H
-#define _AXE_ERRORS_H
+#ifndef ERRORS_H
+#define ERRORS_H
 
 /* Warnings */
 #define WARN_DIVISION_BY_ZERO 1

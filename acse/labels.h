@@ -8,8 +8,8 @@
  * Internal functions for label management.
  */
 
-#ifndef _AXE_LABELS_H
-#define _AXE_LABELS_H
+#ifndef LABELS_H
+#define LABELS_H
 
 typedef struct t_axe_label {
    unsigned int labelID; /* Unique identifier for the label */

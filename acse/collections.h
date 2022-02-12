@@ -9,8 +9,8 @@
  * last element are NULL.
  */
 
-#ifndef _COLLECTIONS_H
-#define _COLLECTIONS_H
+#ifndef COLLECTIONS_H
+#define COLLECTIONS_H
 
 #include <stdint.h>
 #include <stdlib.h>

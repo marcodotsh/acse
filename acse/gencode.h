@@ -9,8 +9,8 @@
  * and genMoveImmediate().
  */
 
-#ifndef _AXE_GENCODE_H
-#define _AXE_GENCODE_H
+#ifndef GENCODE_H
+#define GENCODE_H
 
 #include "engine.h"
 

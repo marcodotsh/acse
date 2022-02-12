@@ -9,8 +9,8 @@
  * intermediate representation
  */
 
-#ifndef _AXE_TARGET_TRANSFORM_H
-#define _AXE_TARGET_TRANSFORM_H
+#ifndef TARGET_TRANSFORM_H
+#define TARGET_TRANSFORM_H
 
 #include "engine.h"
 

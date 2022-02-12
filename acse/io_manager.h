@@ -8,8 +8,8 @@
  * File stream management
  */
 
-#ifndef _AXE_IO_MANAGER_H
-#define _AXE_IO_MANAGER_H
+#ifndef IO_MANAGER_H
+#define IO_MANAGER_H
 
 #include <stdio.h>
 

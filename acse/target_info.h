@@ -8,8 +8,8 @@
  * Properties of the target machine
  */
 
-#ifndef _AXE_TARGET_INFO_H
-#define _AXE_TARGET_INFO_H
+#ifndef TARGET_INFO_H
+#define TARGET_INFO_H
 
 #include "engine.h"
 

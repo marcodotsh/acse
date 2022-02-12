@@ -8,8 +8,8 @@
  * Register allocation pass
  */
 
-#ifndef _AXE_REG_ALLOC_H
-#define _AXE_REG_ALLOC_H
+#ifndef REG_ALLOC_H
+#define REG_ALLOC_H
 
 #include "engine.h"
 
