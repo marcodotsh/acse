@@ -3,7 +3,6 @@
                                     Scanner 
 
 ***************************************************************************/
-%option noyywrap
 %{
 /*
  * Andrea Di Biagio
@@ -27,21 +26,19 @@ extern int num_error;
 extern void yyerror(const char*);
 
 %}
-/*=========================================================================
-                          TOKEN DEFINITIONS
-=========================================================================*/
+
+%option noyywrap
+%x comment
+
+/******************************************************************************
+ * DEFINITIONS
+ ******************************************************************************/
 DIGIT    [0-9]
 ID       [a-zA-Z_][a-zA-Z0-9_]*
 
-
-/*=========================================================================
-      TOKENS
-=========================================================================*/
-
-%option noyywrap
-
-%x comment
-
+/******************************************************************************
+ * RULES
+ ******************************************************************************/
 %%
 
 "\r\n"            { ++line_num; }
@@ -88,17 +85,17 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "do"              { return DO; }
 "else"            { return ELSE; }
 "if"              { return IF; }
-"int"             { yylval.intval = INTEGER_TYPE; return TYPE; }
+"int"             { yylval.integer = INTEGER_TYPE; return TYPE; }
 "while"           { return WHILE; }
 "return"          { return RETURN; }
 "read"            { return READ; }
 "write"           { return WRITE; }
 
-{ID}              { yylval.svalue=strdup(yytext); return IDENTIFIER; }
-{DIGIT}+          { yylval.intval = atoi( yytext );
-                    return(NUMBER); }
+{ID}              { yylval.string = strdup(yytext); return IDENTIFIER; }
+{DIGIT}+          { yylval.integer = atoi(yytext);
+                    return NUMBER; }
 
-.                 { yyerror("Error: unexpected token");
+.                 { yyerror("unexpected token");
                     num_error++;
-                    return (-1); /* invalid token */ }
+                    return -1; /* invalid token */ }
 <INITIAL><<EOF>>  { return EOF_TOK; }
