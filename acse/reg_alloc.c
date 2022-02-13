@@ -16,7 +16,7 @@
 #include "engine.h"
 #include "list.h"
 #include "cflow_graph.h"
-#include "io_manager.h"
+#include "options.h"
 #include "target_asm_print.h"
 #include "errors.h"
 
@@ -1304,21 +1304,32 @@ void doRegisterAllocation(t_program_infos *program)
    t_cflow_Graph *graph = NULL;
    t_reg_allocator *RA = NULL;
    int error = AXE_OK;
+   char *logFileName;
+   FILE *logFile;
 
    assert(program != NULL);
-   assert(file_infos != NULL);
 
    /* create the control flow graph */
    graph = createFlowGraph(program, &error);
    if (graph == NULL)
       fatalError(error);
 #ifndef NDEBUG
-   printGraphInfos(graph, file_infos->cfg_1, 0);
+   logFileName = getLogFileName("controlFlow");
+   debugPrintf(" -> Writing the control flow graph to \"%s\"\n", logFileName);
+   logFile = fopen(logFileName, "w");
+   printGraphInfos(graph, logFile, 0);
+   fclose(logFile);
+   free(logFileName);
 #endif
 
    performLivenessAnalysis(graph);
 #ifndef NDEBUG
-   printGraphInfos(graph, file_infos->cfg_2, 1);
+   logFileName = getLogFileName("dataFlow");
+   debugPrintf(" -> Writing the liveness information to \"%s\"\n", logFileName);
+   logFile = fopen(logFileName, "w");
+   printGraphInfos(graph, logFile, 1);
+   fclose(logFile);
+   free(logFileName);
 #endif
 
    /* execute the linear scan algorithm */
@@ -1328,7 +1339,12 @@ void doRegisterAllocation(t_program_infos *program)
    
    executeLinearScan(RA);
 #ifndef NDEBUG
-   printRegAllocInfos(RA, file_infos->reg_alloc_output);
+   logFileName = getLogFileName("regAlloc");
+   debugPrintf(" -> Writing the register bindings to \"%s\"\n", logFileName);
+   logFile = fopen(logFileName, "w");
+   printRegAllocInfos(RA, logFile);
+   fclose(logFile);
+   free(logFileName);
 #endif
 
    /* apply changes to the program informations by using the informations

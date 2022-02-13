@@ -24,7 +24,7 @@ extern char *registerIDToString(int regID, int machineRegIDs);
 /* print the specified instruction to the file */
 extern int printInstruction(t_axe_instruction *inst, FILE *fp, int machineRegIDs);
 
-/* write the corresponding assembly for the given program */
-extern void writeAssembly(t_program_infos *program, char *output_file);
+/* write the assembly for the given program */
+extern void writeAssembly(t_program_infos *program);
 
 #endif

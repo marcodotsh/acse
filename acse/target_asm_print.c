@@ -14,6 +14,7 @@
 #include "target_asm_print.h"
 #include "target_info.h"
 #include "target_transform.h"
+#include "options.h"
 
 #define BUF_LENGTH 256
 
@@ -525,8 +526,9 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
    return 0;
 }
 
-void writeAssembly(t_program_infos *program, char *output_file)
+void writeAssembly(t_program_infos *program)
 {
+   char *output_file;
    FILE *fp;
    int error;
 
@@ -534,13 +536,12 @@ void writeAssembly(t_program_infos *program, char *output_file)
    if (program == NULL)
       fatalError(AXE_PROGRAM_NOT_INITIALIZED);
 
-   /* If necessary, set the value of `output_file' to "output.asm" */
-   if (output_file == NULL)
-      output_file = "output.asm";
+   output_file = compilerOptions.outputFileName;
 
-   debugPrintf("  Code segment size: %d instructions\n", getLength(program->instructions));
-   debugPrintf("  Data segment size: %d elements\n", getLength(program->data));
-   debugPrintf("  Number of labels: %d\n", getLabelCount(program->lmanager));
+   debugPrintf(" -> Output file name: \"%s\"\n", output_file);
+   debugPrintf(" -> Code segment size: %d instructions\n", getLength(program->instructions));
+   debugPrintf(" -> Data segment size: %d elements\n", getLength(program->data));
+   debugPrintf(" -> Number of labels: %d\n", getLabelCount(program->lmanager));
    
    /* open a new file */
    fp = fopen(output_file, "w");

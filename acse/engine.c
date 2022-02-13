@@ -16,6 +16,7 @@
 #include "gencode.h"
 #include "target_info.h"
 #include "target_asm_print.h"
+#include "options.h"
 
 /* global variable errormsg */
 const char *errormsg = NULL;
@@ -355,10 +356,10 @@ int getRegLocationOfScalar(t_program_infos *program, char *ID)
 t_program_infos * allocProgramInfos(void)
 {
    t_program_infos *result;
+   t_axe_label *l_start;
 
    /* initialize the local variable `result' */
-   result = (t_program_infos *)
-         malloc(sizeof(t_program_infos));
+   result = (t_program_infos *)malloc(sizeof(t_program_infos));
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -369,6 +370,11 @@ t_program_infos * allocProgramInfos(void)
    result->data = NULL;
    result->current_register = 1; /* we are excluding the register R0 */
    result->lmanager = initializeLabelManager();
+
+   /* Create the start label */
+   l_start = newLabelID(result->lmanager, 1);
+   setLabelName(result->lmanager, l_start, "_start");
+   assignLabelID(result->lmanager, l_start);
    
    /* postcondition: return an instance of `t_program_infos' */
    return result;

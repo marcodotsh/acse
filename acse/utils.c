@@ -16,7 +16,7 @@
 #include "labels.h"
 #include "cflow_graph.h"
 #include "reg_alloc.h"
-#include "io_manager.h"
+#include "options.h"
 #include "errors.h"
 #include "target_info.h"
 
