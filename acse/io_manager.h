@@ -27,9 +27,10 @@ typedef struct t_io_infos
 #endif
 }t_io_infos;
 
+extern t_io_infos *file_infos;
 
-extern void finalizeOutputInfos(t_io_infos *infos);
+
 extern t_io_infos * initializeOutputInfos(int argc, char **argv);
-
+extern void finalizeOutputInfos(t_io_infos *infos);
 
 #endif

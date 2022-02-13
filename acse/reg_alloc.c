@@ -20,8 +20,6 @@
 #include "target_asm_print.h"
 #include "errors.h"
 
-extern t_io_infos *file_infos;
-
 #define MAX_INSTR_ARGS 3
 
 /* constants */

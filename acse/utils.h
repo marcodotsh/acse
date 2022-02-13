@@ -58,17 +58,4 @@ extern void addVariablesFromDecls(
  * from the parser when the parsing process is ended */
 extern void setProgramEnd(t_program_infos *program);
 
-/* Once called, this function initialize all the data structures
- * associated with the compiler (program, RA etc..) and all the
- * global variables in the system. This function
- * is typically automatically called at the beginning of the main
- * and should NEVER be called from the user code */
-extern void initializeCompiler(int argc, char **argv);
-
-/* Once called, this function destroys all the data structures
- * associated with the compiler (program, RA, etc.). This function
- * is typically automatically called before exiting from the main
- * or when the compiler encounters some error. */
-extern void shutdownCompiler(void);
-
 #endif

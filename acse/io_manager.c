@@ -13,6 +13,8 @@
 #include "io_manager.h"
 #include "errors.h"
 
+t_io_infos *file_infos;
+
 
 t_io_infos * allocOutputInfos()
 {
