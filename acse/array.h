@@ -11,7 +11,7 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include "engine.h"
+#include "program.h"
 #include "expressions.h"
 
 /* This function generates instructions that load the content of

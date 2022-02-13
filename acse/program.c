@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "engine.h"
+#include "program.h"
 #include "errors.h"
 #include "gencode.h"
 #include "target_info.h"

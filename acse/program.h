@@ -2,15 +2,15 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * engine.h
+ * program.h
  * Formal Languages & Compilers Machine, 2007/2008
  *
  * Contains t_program_infos and some functions for label management
  * (reserve, fix, assign) 
  */
 
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef PROGRAM_H
+#define PROGRAM_H
 
 #include "labels.h"
 #include "list.h"

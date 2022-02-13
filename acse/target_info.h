@@ -11,7 +11,7 @@
 #ifndef TARGET_INFO_H
 #define TARGET_INFO_H
 
-#include "engine.h"
+#include "program.h"
 
 #define TARGET_NAME "RISC-V_RV32IM"
 

@@ -12,7 +12,7 @@
 #ifndef GENCODE_H
 #define GENCODE_H
 
-#include "engine.h"
+#include "program.h"
 
 
 /*----------------------------------------------------

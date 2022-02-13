@@ -13,7 +13,7 @@
 #include "errors.h"
 #include "utils.h"
 #include "gencode.h"
-#include "engine.h"
+#include "program.h"
 #include "list.h"
 #include "cflow_graph.h"
 #include "options.h"

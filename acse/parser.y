@@ -16,7 +16,7 @@
 #include <stdio.h>       
 #include <stdlib.h>
 #include <assert.h>
-#include "engine.h"
+#include "program.h"
 #include "target_asm_print.h"
 #include "target_transform.h"
 #include "target_info.h"

@@ -11,7 +11,7 @@
 #ifndef TARGET_ASM_PRINT_H
 #define TARGET_ASM_PRINT_H
 
-#include "engine.h"
+#include "program.h"
 #include "errors.h"
 
 /* Convert an opcode ID to a string. */

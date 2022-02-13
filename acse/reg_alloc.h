@@ -11,7 +11,7 @@
 #ifndef REG_ALLOC_H
 #define REG_ALLOC_H
 
-#include "engine.h"
+#include "program.h"
 
 /* Convert temporary register identifiers to real register identifiers,
  * analyzing the live interval of each temporary register. */

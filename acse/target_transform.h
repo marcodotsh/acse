@@ -12,7 +12,7 @@
 #ifndef TARGET_TRANSFORM_H
 #define TARGET_TRANSFORM_H
 
-#include "engine.h"
+#include "program.h"
 
 /* Perform lowering of the program to a subset of the IR which can be
  * represented as instructions of the target architecture. */

@@ -11,7 +11,7 @@
 #ifndef EXPRESSIONS_H
 #define EXPRESSIONS_H
 
-#include "engine.h"
+#include "program.h"
 
 /* EXPRESSION TYPES */
 #define IMMEDIATE 0

@@ -12,7 +12,7 @@
 #define CFLOW_GRAPH_H
 
 #include <stdio.h>
-#include "engine.h"
+#include "program.h"
 #include "list.h"
 
 /* If this macro is defined, the control flow analysis will always consider
