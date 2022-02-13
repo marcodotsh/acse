@@ -24,7 +24,7 @@ endif
 
 .PRECIOUS: %.s
 %.s: %.src $(acse_file)
-	$(ACSE) $< $@
+	$(ACSE) $< -o $@
 
 .PHONY: clean 
 clean :
