@@ -17,7 +17,6 @@
 
 /* Data types */
 #define INTEGER_TYPE 0    /* int */
-#define UNKNOWN_TYPE -1
 
 /** A structure that defines the internal data of an `Acse variable' */
 typedef struct t_axe_variable {
