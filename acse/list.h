@@ -18,35 +18,18 @@
 #include <string.h>
 
 
-/* create a list data item from an integer value */
-#define INTDATA(data)               ((void *)((intptr_t)(data)))
-
-/* get the next list item. NULL if item is the last item in the list. */
-#define LNEXT(item)                 ((item)->next)
-/* get the previous list item. NULL if item is the first item in the list. */
-#define LPREV(item)                 ((item)->prev)
-/* get the data associated to this list item. */
-#define LDATA(item)                 ((item)->data)
-/* get the integer value data associated to this list item. */
-#define LINTDATA(item)              ((int)((intptr_t)LDATA(item)))
-
-/* set the next list item. */
-#define SET_NEXT(item, _next)       ((item)->next = (_next))
-/* set the previous list item. */
-#define SET_PREV(item, _prev)       ((item)->prev = (_prev))
-/* set the data associated to this list item. */
-#define SET_DATA(item, _data)       ((item)->data = (_data))
-/* set an integer value as the data associated to this list item. */
-#define SET_INTDATA(item, _data)    ((item)->data = INTDATA(_data))
+/* convert an integer from a list data pointer */
+#define INT_TO_LIST_DATA(data) ((void *)((intptr_t)(data)))
+/* convert a data item pointer created by INT_TO_LIST_DATA() to an integer */
+#define LIST_DATA_TO_INT(data) ((int)((intptr_t)(data)))
 
 
 /* a list element */
-typedef struct t_list
-{
-   void  *data;
+typedef struct t_list {
+   void *data;
    struct t_list *next;
    struct t_list *prev;
-}t_list;
+} t_list;
 
 
 /* add an element `data' to the list `list' at position `pos'. If pos is

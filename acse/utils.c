@@ -68,11 +68,11 @@ static void free_new_variables(t_list *variables)
    current_element = variables;
    while (current_element != NULL)
    {
-      current_decl = (t_axe_declaration *)LDATA(current_element);
+      current_decl = (t_axe_declaration *)current_element->data;
       if (current_decl != NULL)
          free(current_decl);
 
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the memory associated with the list `variables' */
@@ -93,14 +93,14 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
    while (current_element != NULL)
    {
       /* retrieve the current declaration infos */
-      current_decl = (t_axe_declaration *)LDATA(current_element);
+      current_decl = (t_axe_declaration *)current_element->data;
       assert(current_decl != NULL);
 
       /* create and assign a new variable to program */
       createVariable(program, current_decl->ID, varType, current_decl->isArray, current_decl->arraySize, current_decl->init_val);
 
       /* update the value of `current_element' */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the linked list */
@@ -110,7 +110,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
    while (current_element != NULL)
    {
       /* retrieve the current declaration infos */
-      current_decl = (t_axe_declaration *)LDATA(current_element);
+      current_decl = (t_axe_declaration *)current_element->data;
 
       /* assertion -- must always be verified */
       assert(current_decl != NULL);
@@ -124,7 +124,7 @@ void addVariablesFromDecls(t_program_infos *program, int varType, t_list *variab
       free(current_decl);
 
       /* update the value of `current_element' */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    freeList(variables);
@@ -150,7 +150,7 @@ void setProgramEnd(t_program_infos *program)
       assert(last_element != NULL);
 
       /* retrieve the last instruction */
-      last_instr = (t_axe_instruction *)LDATA(last_element);
+      last_instr = (t_axe_instruction *)last_element->data;
       assert(last_instr != NULL);
 
       if (last_instr->opcode == OPC_HALT)

@@ -183,7 +183,7 @@ int updateVarInterval(t_cflow_var *var, int counter, t_list **intervals)
    element_found =
          findElementWithCallback(*intervals, &pattern, compareIntervalIDs);
    if (element_found != NULL) {
-      interval_found = (t_live_interval *)LDATA(element_found);
+      interval_found = (t_live_interval *)element_found->data;
       /* update the interval informations */
       if (interval_found->startPoint > counter)
          interval_found->startPoint = counter;
@@ -215,26 +215,26 @@ int updateListOfIntervals(
 
    current_element = current_node->in;
    while (current_element != NULL) {
-      current_var = (t_cflow_var *)LDATA(current_element);
+      current_var = (t_cflow_var *)current_element->data;
 
       error = updateVarInterval(current_var, counter, result);
       if (error != AXE_OK)
          return error;
 
       /* fetch the next element in the list of live variables */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    current_element = current_node->out;
    while (current_element != NULL) {
-      current_var = (t_cflow_var *)LDATA(current_element);
+      current_var = (t_cflow_var *)current_element->data;
 
       error = updateVarInterval(current_var, counter, result);
       if (error != AXE_OK)
          return error;
 
       /* fetch the next element in the list of live variables */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    for (i = 0; i < CFLOW_MAX_DEFS; i++) {
@@ -266,9 +266,9 @@ void deleteLiveIntervals(t_list *intervals)
    /* finalize the memory blocks associated with all
     * the live intervals */
    for (current_element = intervals; current_element != NULL;
-         current_element = LNEXT(current_element)) {
+         current_element = current_element->next) {
       /* fetch the current interval */
-      current_interval = (t_live_interval *)LDATA(current_element);
+      current_interval = (t_live_interval *)current_element->data;
       if (current_interval != NULL) {
          /* finalize the memory block associated with
           * the current interval */
@@ -334,9 +334,9 @@ void insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
    assert(intervals != NULL);
 
    for (current_element = intervals; current_element != NULL;
-         current_element = LNEXT(current_element)) {
+         current_element = current_element->next) {
       /* Get the current live interval */
-      interval = (t_live_interval *)LDATA(current_element);
+      interval = (t_live_interval *)current_element->data;
       assert(interval != NULL);
 
       /* insert a new live interval */
@@ -347,8 +347,8 @@ void insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
 
 t_list *subtractRegisterSets(t_list *a, t_list *b)
 {
-   for (; b; b = LNEXT(b)) {
-      a = removeElement(a, LDATA(b));
+   for (; b; b = b->next) {
+      a = removeElement(a, b->data);
    }
    return a;
 }
@@ -357,11 +357,11 @@ t_list *subtractRegisterSets(t_list *a, t_list *b)
  * front of the list. */
 t_list *optimizeRegisterSet(t_list *a, t_list *b)
 {
-   for (; b; b = LNEXT(b)) {
+   for (; b; b = b->next) {
       t_list *old;
-      if ((old = findElement(a, LDATA(b)))) {
+      if ((old = findElement(a, b->data))) {
          a = removeElementLink(a, old);
-         a = addElement(a, LDATA(b), 0);
+         a = addElement(a, b->data, 0);
       }
    }
    return a;
@@ -374,16 +374,16 @@ void initializeRegisterConstraints(t_reg_allocator *ra)
    /* Initialize the register constraint set on all variables that don't have
     * one. */
    i = ra->live_intervals;
-   for (; i; i = LNEXT(i)) {
-      t_live_interval *interval = LDATA(i);
+   for (; i; i = i->next) {
+      t_live_interval *interval = i->data;
       if (interval->mcRegConstraints)
          continue;
       interval->mcRegConstraints = getListOfGenPurposeRegisters();
 
       /* Scan the variables that are alive together with this variable */
-      j = LNEXT(i);
-      for (; j; j = LNEXT(j)) {
-         t_live_interval *overlappingIval = LDATA(j);
+      j = i->next;
+      for (; j; j = j->next) {
+         t_live_interval *overlappingIval = j->data;
          if (overlappingIval->startPoint > interval->endPoint)
             break;
          if (!overlappingIval->mcRegConstraints)
@@ -434,14 +434,14 @@ int handleCallerSaveRegistersNodeCallback(
 
    li_ival = ra->live_intervals;
    while (li_ival) {
-      t_live_interval *ival = LDATA(li_ival);
+      t_live_interval *ival = li_ival->data;
 
       if (ival->startPoint <= nodeIndex && nodeIndex <= ival->endPoint) {
          ival->mcRegConstraints =
                subtractRegisterSets(ival->mcRegConstraints, clobbered_regs);
       }
 
-      li_ival = LNEXT(li_ival);
+      li_ival = li_ival->next;
    }
 
    return 0;
@@ -456,7 +456,7 @@ void handleCallerSaveRegisters(t_reg_allocator *ra, t_cflow_Graph *cfg)
 
 int compareFreeRegLI(void *freeReg, void *constraintReg)
 {
-   return INTDATA(constraintReg) == INTDATA(freeReg);
+   return INT_TO_LIST_DATA(constraintReg) == INT_TO_LIST_DATA(freeReg);
 }
 
 /* Get a new register from the free list */
@@ -468,12 +468,12 @@ int assignRegister(t_reg_allocator *RA, t_list *constraints)
    if (constraints == NULL)
       return RA_SPILL_REQUIRED;
 
-   for (i = constraints; i; i = LNEXT(i)) {
+   for (i = constraints; i; i = i->next) {
       t_list *freeReg;
 
-      regID = LINTDATA(i);
+      regID = LIST_DATA_TO_INT(i->data);
       freeReg = findElementWithCallback(
-            RA->freeRegisters, INTDATA(regID), compareFreeRegLI);
+            RA->freeRegisters, INT_TO_LIST_DATA(regID), compareFreeRegLI);
       if (freeReg) {
          RA->freeRegisters = removeElementLink(RA->freeRegisters, freeReg);
          return regID;
@@ -501,13 +501,13 @@ t_list *spillAtInterval(
    }
 
    last_element = getLastElement(active_intervals);
-   last_interval = (t_live_interval *)LDATA(last_element);
+   last_interval = (t_live_interval *)last_element->data;
 
    /* If the current interval ends before the last one, spill
     * the last one, otherwise spill the current interval. */
    if (last_interval->endPoint > interval->endPoint) {
       int attempt = RA->bindings[last_interval->varID];
-      if (findElement(interval->mcRegConstraints, INTDATA(attempt))) {
+      if (findElement(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
          RA->bindings[interval->varID] = RA->bindings[last_interval->varID];
          RA->bindings[last_interval->varID] = RA_SPILL_REQUIRED;
 
@@ -543,7 +543,7 @@ t_list *expireOldIntervals(
    current_element = active_intervals;
    while (current_element != NULL) {
       /* Get the live interval */
-      current_interval = (t_live_interval *)LDATA(current_element);
+      current_interval = (t_live_interval *)current_element->data;
 
       /* If the considered interval ends before the beginning of
        * the current live interval, we don't need to keep track of
@@ -559,7 +559,7 @@ t_list *expireOldIntervals(
       if (current_interval->endPoint == interval->startPoint) {
          int curIntReg = RA->bindings[current_interval->varID];
          if (curIntReg >= 0) {
-            t_list *allocated = addElement(NULL, INTDATA(curIntReg), 0);
+            t_list *allocated = addElement(NULL, INT_TO_LIST_DATA(curIntReg), 0);
             interval->mcRegConstraints =
                   optimizeRegisterSet(interval->mcRegConstraints, allocated);
             freeList(allocated);
@@ -567,14 +567,14 @@ t_list *expireOldIntervals(
       }
 
       /* Get the next live interval */
-      next_element = LNEXT(current_element);
+      next_element = current_element->next;
 
       /* Remove the current element from the list */
       active_intervals = removeElement(active_intervals, current_interval);
 
       /* Free all the registers associated with the removed interval */
       RA->freeRegisters = addElement(RA->freeRegisters,
-            INTDATA(RA->bindings[current_interval->varID]), 0);
+            INT_TO_LIST_DATA(RA->bindings[current_interval->varID]), 0);
 
       /* Step to the next interval */
       current_element = next_element;
@@ -629,14 +629,14 @@ t_reg_allocator *initializeRegAlloc(t_cflow_Graph *graph, int *error)
    current_cflow_var = graph->cflow_variables;
    while (current_cflow_var != NULL) {
       /* fetch the data informations about a variable */
-      cflow_var = (t_cflow_var *)LDATA(current_cflow_var);
+      cflow_var = (t_cflow_var *)current_cflow_var->data;
       assert(cflow_var != NULL);
 
       /* update the value of max_var_ID */
       max_var_ID = MAX(max_var_ID, cflow_var->ID);
 
       /* retrieve the next variable */
-      current_cflow_var = LNEXT(current_cflow_var);
+      current_cflow_var = current_cflow_var->next;
    }
    result->varNum = max_var_ID + 1; /* +1 to count R0 */
 
@@ -706,9 +706,9 @@ void executeLinearScan(t_reg_allocator *RA)
 
    /* Iterate over the list of live intervals */
    for (current_element = RA->live_intervals; current_element != NULL;
-         current_element = LNEXT(current_element)) {
+         current_element = current_element->next) {
       /* Get the live interval */
-      current_interval = (t_live_interval *)LDATA(current_element);
+      current_interval = (t_live_interval *)current_element->data;
 
       /* Check which intervals are ended and remove
        * them from the active set, thus freeing registers */
@@ -785,10 +785,10 @@ void finalizeListOfTempLabels(t_list *tempLabels)
    /* free all the list data elements */
    current_element = tempLabels;
    while (current_element != NULL) {
-      tempLabel = (t_tempLabel *)LDATA(current_element);
+      tempLabel = (t_tempLabel *)current_element->data;
       free(tempLabel);
 
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the list links */
@@ -872,7 +872,7 @@ int genStoreSpillVariable(int temp_register, int selected_register,
    if (elementFound == NULL)
       return AXE_INVALID_CFLOW_GRAPH;
 
-   tlabel = (t_tempLabel *)LDATA(elementFound);
+   tlabel = (t_tempLabel *)elementFound->data;
    assert(tlabel != NULL);
 
    /* create a store instruction */
@@ -914,7 +914,7 @@ int genLoadSpillVariable(int temp_register, int selected_register,
    if (elementFound == NULL)
       return AXE_INVALID_CFLOW_GRAPH;
 
-   tlabel = (t_tempLabel *)LDATA(elementFound);
+   tlabel = (t_tempLabel *)elementFound->data;
    assert(tlabel != NULL);
 
    /* create a load instruction */
@@ -1107,7 +1107,7 @@ int materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
    /* iterate through the instructions in the block */
    current_nd_element = current_block->nodes;
    while (current_nd_element != NULL) {
-      current_node = (t_cflow_Node *)LDATA(current_nd_element);
+      current_node = (t_cflow_Node *)current_nd_element->data;
 
       /* Change the register IDs of the argument of the instruction accoring
        * to the given register allocation. Generate load and stores for spilled
@@ -1117,7 +1117,7 @@ int materializeRegAllocInBB(t_cflow_Graph *graph, t_basic_block *current_block,
       if (error)
          return error;
 
-      current_nd_element = LNEXT(current_nd_element);
+      current_nd_element = current_nd_element->next;
    }
 
    bbHasTermInstr = current_block->nodes &&
@@ -1153,14 +1153,14 @@ int materializeRegAllocInCFG(
 
    current_bb_element = graph->blocks;
    while (current_bb_element != NULL) {
-      t_basic_block *current_block = (t_basic_block *)LDATA(current_bb_element);
+      t_basic_block *current_block = (t_basic_block *)current_bb_element->data;
 
       error = materializeRegAllocInBB(graph, current_block, RA, label_bindings);
       if (error)
          return error;
 
       /* retrieve the next basic block element */
-      current_bb_element = LNEXT(current_bb_element);
+      current_bb_element = current_bb_element->next;
    }
 
    return AXE_OK;
@@ -1239,26 +1239,26 @@ void printLiveIntervals(t_list *intervals, FILE *fout)
    /* retireve the first element of the list */
    current_element = intervals;
    while (current_element != NULL) {
-      interval = (t_live_interval *)LDATA(current_element);
+      interval = (t_live_interval *)current_element->data;
 
       fprintf(fout, "[T%-3d] Live interval: [%3d, %3d]\n", interval->varID,
             interval->startPoint, interval->endPoint);
       fprintf(fout, "       Constraint set: {");
 
-      for (i=interval->mcRegConstraints; i!=NULL; i=LNEXT(i)) {
+      for (i=interval->mcRegConstraints; i!=NULL; i=i->next) {
          char *reg;
          
-         reg = registerIDToString(LINTDATA(i), 1);
+         reg = registerIDToString(LIST_DATA_TO_INT(i->data), 1);
          fprintf(fout, "%s", reg);
          free(reg);
 
-         if (LNEXT(i) != NULL)
+         if (i->next != NULL)
             fprintf(fout, ", ");
       }
       fprintf(fout, "}\n");
 
       /* retrieve the next element in the list of intervals */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
    fflush(fout);
 }

@@ -134,14 +134,14 @@ void finalizeLabelManager(t_axe_label_manager *lmanager)
    while (current_element != NULL)
    {
       /* retrieve the current label */
-      current_label = (t_axe_label *) LDATA(current_element);
+      current_label = (t_axe_label *) current_element->data;
       assert(current_label != NULL);
 
       /* free the memory associated with the current label */
       finalizeLabel(current_label);
 
       /* fetch the next label */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the memory associated to the list of labels */
@@ -237,18 +237,18 @@ t_axe_label *enumLabels(t_axe_label_manager *lmanager, void **state)
    if (lastItem == NULL) {
       nextItem = lmanager->labels;
    } else {
-      nextItem = LNEXT(lastItem);
+      nextItem = lastItem->next;
    }
 
    /* Skip aliased labels */
-   while (nextItem != NULL && ((t_axe_label *)LDATA(nextItem))->isAlias) {
-      nextItem = LNEXT(nextItem);
+   while (nextItem != NULL && ((t_axe_label *)nextItem->data)->isAlias) {
+      nextItem = nextItem->next;
    }
 
    *state = (void *)nextItem;
    if (nextItem == NULL)
       return NULL;
-   return (t_axe_label *)LDATA(nextItem);
+   return (t_axe_label *)nextItem->data;
 }
 
 /* Set a name to a label without resolving duplicates */
@@ -259,8 +259,8 @@ void setRawLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
 
    /* check the entire list of labels because there might be two
     * label objects with the same ID and they need to be kept in sync */
-   for (i = lmanager->labels; i != NULL; i = LNEXT(i)) {
-      t_axe_label *thisLab = LDATA(i);
+   for (i = lmanager->labels; i != NULL; i = i->next) {
+      t_axe_label *thisLab = i->data;
 
       if (thisLab->labelID == label->labelID) {
          /* found! remove old name */
@@ -296,8 +296,8 @@ void setLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
    do {
       t_list *i;
       ok = 1;
-      for (i = lmanager->labels; i != NULL; i = LNEXT(i)) {
-         t_axe_label *thisLab = LDATA(i);
+      for (i = lmanager->labels; i != NULL; i = i->next) {
+         t_axe_label *thisLab = i->data;
          char *thisLabName;
          int difference;
 

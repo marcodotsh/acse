@@ -62,7 +62,7 @@ t_cflow_var *allocVariable(
       graph->cflow_variables = addElement(graph->cflow_variables, result, -1);
    } else {
       free(result);
-      result = (t_cflow_var *)LDATA(elementFound);
+      result = (t_cflow_var *)elementFound->data;
       assert(result != NULL);
       assert(result->ID == identifier);
    }
@@ -75,8 +75,8 @@ t_cflow_var *allocVariable(
       } else {
          t_list *thisReg = result->mcRegWhitelist;
          while (thisReg) {
-            t_list *nextReg = LNEXT(thisReg);
-            if (!findElement(mcRegs, LDATA(thisReg))) {
+            t_list *nextReg = thisReg->next;
+            if (!findElement(mcRegs, thisReg->data)) {
                result->mcRegWhitelist =
                      removeElementLink(result->mcRegWhitelist, thisReg);
             }
@@ -247,13 +247,13 @@ void finalizeBasicBlock(t_basic_block *block)
 
    while (current_element != NULL) {
       /* retrieve the current node */
-      current_node = (t_cflow_Node *)LDATA(current_element);
+      current_node = (t_cflow_Node *)current_element->data;
 
       /* free the memory associated with the current node */
       finalizeNode(current_node);
 
       /* retrieve the next node in the list */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    freeList(block->nodes);
@@ -384,12 +384,12 @@ void finalizeGraph(t_cflow_Graph *graph)
    current_element = graph->blocks;
    while (current_element != NULL) {
       /* retrieve the current node */
-      current_block = (t_basic_block *)LDATA(current_element);
+      current_block = (t_basic_block *)current_element->data;
       assert(current_block != NULL);
 
       finalizeBasicBlock(current_block);
 
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    if (graph->blocks != NULL)
@@ -402,7 +402,7 @@ void finalizeGraph(t_cflow_Graph *graph)
 
       current_element = graph->cflow_variables;
       while (current_element != NULL) {
-         current_variable = (t_cflow_var *)LDATA(current_element);
+         current_variable = (t_cflow_var *)current_element->data;
 
          if (current_variable != NULL) {
             freeList(current_variable->mcRegWhitelist);
@@ -410,7 +410,7 @@ void finalizeGraph(t_cflow_Graph *graph)
          }
 
          /* retrieve the next variable in the list */
-         current_element = LNEXT(current_element);
+         current_element = current_element->next;
       }
 
       freeList(graph->cflow_variables);
@@ -438,12 +438,12 @@ t_basic_block *searchLabel(t_cflow_Graph *graph, t_axe_label *label)
 
    current_element = graph->blocks;
    while (current_element != NULL) {
-      bblock = (t_basic_block *)LDATA(current_element);
+      bblock = (t_basic_block *)current_element->data;
       assert(bblock != NULL);
       assert(bblock->nodes != NULL);
 
       /* retrieve the first node of the basic block */
-      current_node = (t_cflow_Node *)LDATA(bblock->nodes);
+      current_node = (t_cflow_Node *)bblock->nodes->data;
       assert(current_node != NULL);
 
       /* if the first node holds a label information, we
@@ -455,7 +455,7 @@ t_basic_block *searchLabel(t_cflow_Graph *graph, t_axe_label *label)
       }
 
       /* retrieve the next element */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    return bblock;
@@ -513,7 +513,7 @@ int updateFlowGraph(t_cflow_Graph *graph)
       t_basic_block *jumpBlock;
 
       /* retrieve the current block */
-      current_block = (t_basic_block *)LDATA(current_element);
+      current_block = (t_basic_block *)current_element->data;
       assert(current_block != NULL);
       assert(current_block->nodes != NULL);
 
@@ -521,7 +521,7 @@ int updateFlowGraph(t_cflow_Graph *graph)
       last_element = getLastElement(current_block->nodes);
       assert(last_element != NULL);
 
-      last_node = (t_cflow_Node *)LDATA(last_element);
+      last_node = (t_cflow_Node *)last_element->data;
       assert(last_node != NULL);
 
       last_instruction = last_node->instr;
@@ -552,9 +552,9 @@ int updateFlowGraph(t_cflow_Graph *graph)
             t_basic_block *nextBlock;
             t_list *next_element;
 
-            next_element = LNEXT(current_element);
+            next_element = current_element->next;
             if (next_element != NULL) {
-               nextBlock = LDATA(next_element);
+               nextBlock = next_element->data;
                assert(nextBlock != NULL);
 
                setSucc(current_block, nextBlock);
@@ -567,7 +567,7 @@ int updateFlowGraph(t_cflow_Graph *graph)
       }
 
       /* update the value of `current_element' */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    return AXE_OK;
@@ -602,7 +602,7 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
    current_element = instructions;
    while (current_element != NULL) {
       /* retrieve the current instruction */
-      current_instr = (t_axe_instruction *)LDATA(current_element);
+      current_instr = (t_axe_instruction *)current_element->data;
       assert(current_instr != NULL);
 
       /* create a new node for the current basic block */
@@ -664,7 +664,7 @@ t_cflow_Graph *createFlowGraph(t_program_infos *program, int *error)
          bblock = NULL;
 
       /* retrieve the next element */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* update the basic blocks chain */
@@ -696,12 +696,12 @@ int iterateCFGNodes(t_cflow_Graph *graph, void *context,
    /* fetch the first basic block */
    current_bb_element = graph->blocks;
    while (current_bb_element != NULL) {
-      current_block = (t_basic_block *)LDATA(current_bb_element);
+      current_block = (t_basic_block *)current_bb_element->data;
 
       /* fetch the first node of the basic block */
       current_nd_element = current_block->nodes;
       while (current_nd_element != NULL) {
-         current_node = (t_cflow_Node *)LDATA(current_nd_element);
+         current_node = (t_cflow_Node *)current_nd_element->data;
 
          /* invoke the callback */
          exitcode = callback(current_block, current_node, counter, context);
@@ -710,11 +710,11 @@ int iterateCFGNodes(t_cflow_Graph *graph, void *context,
 
          /* fetch the next node in the basic block */
          counter++;
-         current_nd_element = LNEXT(current_nd_element);
+         current_nd_element = current_nd_element->next;
       }
 
       /* fetch the next element in the list of basic blocks */
-      current_bb_element = LNEXT(current_bb_element);
+      current_bb_element = current_bb_element->next;
    }
 
    return exitcode;
@@ -737,19 +737,19 @@ void updateProgramFromCFG(t_program_infos *program, t_cflow_Graph *graph)
 
    current_bb_element = graph->blocks;
    while (current_bb_element != NULL) {
-      bblock = (t_basic_block *)LDATA(current_bb_element);
+      bblock = (t_basic_block *)current_bb_element->data;
 
       current_nd_element = bblock->nodes;
       while (current_nd_element != NULL) {
-         node = (t_cflow_Node *)LDATA(current_nd_element);
+         node = (t_cflow_Node *)current_nd_element->data;
 
          program->instructions =
                addElement(program->instructions, node->instr, -1);
 
-         current_nd_element = LNEXT(current_nd_element);
+         current_nd_element = current_nd_element->next;
       }
 
-      current_bb_element = LNEXT(current_bb_element);
+      current_bb_element = current_bb_element->next;
    }
 }
 
@@ -764,7 +764,7 @@ t_list *getLiveOUTVars(t_basic_block *bblock)
       return NULL;
 
    last_Element = getLastElement(bblock->nodes);
-   lastNode = (t_cflow_Node *)LDATA(last_Element);
+   lastNode = (t_cflow_Node *)last_Element->data;
    assert(lastNode != NULL);
 
    /* return a copy of the list of variables live in
@@ -781,7 +781,7 @@ t_list *getLiveINVars(t_basic_block *bblock)
    if (bblock->nodes == NULL)
       return NULL;
 
-   firstNode = (t_cflow_Node *)LDATA(bblock->nodes);
+   firstNode = (t_cflow_Node *)bblock->nodes->data;
    assert(firstNode != NULL);
 
    /* return a copy of the list of variables live in
@@ -833,7 +833,7 @@ int performLivenessOnBlock(t_basic_block *bblock, t_list *out)
    assert(bblock != NULL && bblock->nodes != NULL);
 
    current_element = getLastElement(bblock->nodes);
-   current_node = (t_cflow_Node *)LDATA(current_element);
+   current_node = (t_cflow_Node *)current_element->data;
    assert(current_node != NULL);
 
    /* update the out set */
@@ -886,10 +886,10 @@ int performLivenessOnBlock(t_basic_block *bblock, t_list *out)
 
    /* set the new value of next_node */
    next_node = current_node;
-   current_element = LPREV(current_element);
+   current_element = current_element->prev;
    while (current_element != NULL) {
       /* take a new node */
-      current_node = (t_cflow_Node *)LDATA(current_element);
+      current_node = (t_cflow_Node *)current_element->data;
       assert(current_node != NULL);
 
       /* clone the `in' list of the next_node */
@@ -949,7 +949,7 @@ int performLivenessOnBlock(t_basic_block *bblock, t_list *out)
       freeList(cloned_list);
 
       /* update the loop control informations */
-      current_element = LPREV(current_element);
+      current_element = current_element->prev;
       next_node = current_node;
    }
 
@@ -974,7 +974,7 @@ t_list *computeLiveOutVars(t_cflow_Graph *graph, t_basic_block *block)
    /* initialize `result' */
    result = NULL;
    while (current_elem != NULL) {
-      current_succ = (t_basic_block *)LDATA(current_elem);
+      current_succ = (t_basic_block *)current_elem->data;
       assert(current_succ != NULL);
 
       if (current_succ != graph->endingBlock) {
@@ -987,7 +987,7 @@ t_list *computeLiveOutVars(t_cflow_Graph *graph, t_basic_block *block)
          freeList(liveINVars);
       }
 
-      current_elem = LNEXT(current_elem);
+      current_elem = current_elem->next;
    }
 
    /* postconditions */
@@ -1015,7 +1015,7 @@ int performLivenessIteration(t_cflow_Graph *graph)
    while (current_element != NULL) {
       t_list *live_out_vars;
 
-      current_bblock = (t_basic_block *)LDATA(current_element);
+      current_bblock = (t_basic_block *)current_element->data;
       assert(current_bblock != NULL);
 
       /* retrieve the variables that will be live out from this block */
@@ -1029,7 +1029,7 @@ int performLivenessIteration(t_cflow_Graph *graph)
       freeList(live_out_vars);
 
       /* retrieve the previous element in the list */
-      current_element = LPREV(current_element);
+      current_element = current_element->prev;
    }
 
    /* return 1 if another liveness iteration is required */
@@ -1087,12 +1087,12 @@ void printListOfVariables(t_list *variables, FILE *fout)
    current_element = variables;
    while(current_element != NULL)
    {
-      current_variable = (t_cflow_var *) LDATA(current_element);
+      current_variable = (t_cflow_var *) current_element->data;
       printCFlowGraphVariable(current_variable, fout);
-      if (LNEXT(current_element) != NULL)
+      if (current_element->next != NULL)
          fprintf(fout, ", ");
       
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
    fflush(fout);
 }
@@ -1116,7 +1116,7 @@ void printBBlockInfos(t_basic_block *block, FILE *fout, int verbose)
    count = 1;
    elem = block->nodes;
    while (elem != NULL) {
-      current_node = (t_cflow_Node *)LDATA(elem);
+      current_node = (t_cflow_Node *)elem->data;
 
       fprintf(fout, "%3d. ", count);
       if (current_node->instr == NULL)
@@ -1143,7 +1143,7 @@ void printBBlockInfos(t_basic_block *block, FILE *fout, int verbose)
       }
 
       count++;
-      elem = LNEXT(elem);
+      elem = elem->next;
    }
    fflush(fout);
 }
@@ -1193,13 +1193,13 @@ void printGraphInfos(t_cflow_Graph *graph, FILE *fout, int verbose)
    counter = 1;
    current_element = graph->blocks;
    while (current_element != NULL) {
-      current_bblock = (t_basic_block *)LDATA(current_element);
+      current_bblock = (t_basic_block *)current_element->data;
       fprintf(fout, "[BLOCK %d]\n", counter);
       printBBlockInfos(current_bblock, fout, verbose);
       fprintf(fout, "\n");
 
       counter++;
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
    fflush(fout);
 }

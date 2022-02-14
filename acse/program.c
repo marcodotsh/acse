@@ -248,11 +248,11 @@ void finalizeDataSegment(t_list *dataDirectives)
    while(current_element != NULL)
    {
       /* retrieve the current instruction */
-      current_data = (t_axe_data *) LDATA(current_element);
+      current_data = (t_axe_data *) current_element->data;
       if (current_data != NULL)
          finalizeData(current_data);
 
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the list of instructions */
@@ -272,11 +272,11 @@ void finalizeInstructions(t_list *instructions)
    while(current_element != NULL)
    {
       /* retrieve the current instruction */
-      current_instr = (t_axe_instruction *) LDATA(current_element);
+      current_instr = (t_axe_instruction *) current_element->data;
       if (current_instr != NULL)
          finalizeInstruction(current_instr);
 
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the list of instructions */
@@ -320,7 +320,7 @@ t_axe_variable * getVariable
 
    /* if the element is found return it to the caller. Otherwise return NULL. */
    if (elementFound != NULL)
-      return (t_axe_variable *) LDATA(elementFound);
+      return (t_axe_variable *) elementFound->data;
 
    return NULL;
 }
@@ -393,7 +393,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
    while (cur_var) {
       int reg;
 
-      t_axe_variable *var = LDATA(cur_var);
+      t_axe_variable *var = cur_var->data;
       fprintf(fout, "[%s]\n", var->ID);
 
       fprintf(fout, "   type = ");
@@ -424,7 +424,7 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
          fprintf(fout, "R%d", reg);
       fprintf(fout, "\n");
 
-      cur_var = LNEXT(cur_var);
+      cur_var = cur_var->next;
    }
 
    fprintf(fout,"\n--------------\n");
@@ -432,13 +432,13 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
    fprintf(fout,"--------------\n");
    cur_inst = program->instructions;
    while (cur_inst) {
-      t_axe_instruction *instr = LDATA(cur_inst);
+      t_axe_instruction *instr = cur_inst->data;
       if (instr == NULL)
          fprintf(fout, "(null)");
       else
          printInstruction(instr, fout, 0);
       fprintf(fout, "\n");
-      cur_inst = LNEXT(cur_inst);
+      cur_inst = cur_inst->next;
    }
 
    fflush(fout);
@@ -465,12 +465,12 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    prev_line_num = line_num;
 
    /* update the list of instructions */
-   ip = LDATA(program->instrInsPtrStack);
+   ip = program->instrInsPtrStack->data;
    program->instructions = addAfter(program->instructions, ip, instr);
    if (ip)
-      SET_DATA(program->instrInsPtrStack, LNEXT(ip));
+      program->instrInsPtrStack->data = ip->next;
    else
-      SET_DATA(program->instrInsPtrStack, program->instructions);
+      program->instrInsPtrStack->data = program->instructions;
 }
 
 t_axe_instruction *genInstruction(t_program_infos *program,
@@ -511,7 +511,7 @@ void setMCRegisterWhitelist(t_axe_register *regObj, ...)
    va_start(args, regObj);
    cur = va_arg(args, int);
    while (cur != REG_INVALID) {
-      res = addElement(res, INTDATA(cur), -1);
+      res = addElement(res, INT_TO_LIST_DATA(cur), -1);
       cur = va_arg(args, int);
    }
    va_end(args);
@@ -524,15 +524,15 @@ void setMCRegisterWhitelist(t_axe_register *regObj, ...)
 void removeInstructionLink(t_program_infos *program, t_list *instrLi)
 {
    t_list *ipi;
-   t_axe_instruction *instrToRemove = (t_axe_instruction *)LDATA(instrLi);
+   t_axe_instruction *instrToRemove = (t_axe_instruction *)instrLi->data;
 
    /* move the label and/or the comment to the next instruction */
    if (instrToRemove->label || instrToRemove->user_comment) {
       /* find the next instruction, if it exists */
-      t_list *nextPos = LNEXT(instrLi);
+      t_list *nextPos = instrLi->next;
       t_axe_instruction *nextInst = NULL;
       if (nextPos)
-         nextInst = LDATA(nextPos);
+         nextInst = nextPos->data;
          
       /* move the label */
       if (instrToRemove->label) {
@@ -557,9 +557,9 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
    /* fixup the insertion pointer stack */
    ipi = program->instrInsPtrStack;
    while (ipi) {
-      if (LDATA(ipi) && LDATA(ipi) == instrLi)
-         SET_DATA(ipi, LPREV(instrLi));
-      ipi = LNEXT(ipi);
+      if (ipi->data && ipi->data == instrLi)
+         ipi->data = instrLi->prev;
+      ipi = ipi->next;
    }
 
    /* remove the instruction */
@@ -579,17 +579,17 @@ t_list *popInstrInsertionPoint(t_program_infos *p)
    t_axe_label *label;
 
    prev_line_num = -1;
-   ip = LDATA(p->instrInsPtrStack);
+   ip = p->instrInsPtrStack->data;
 
    /* affix the currently pending label, if needed */
    label = getLastPendingLabel(p->lmanager);
    if (label) {
-      t_list *labelPos = ip ? LNEXT(ip) : NULL;
+      t_list *labelPos = ip ? ip->next : NULL;
       t_axe_instruction *instrToLabel;
       if (!labelPos)
          instrToLabel = genNOPInstruction(p);
       else
-         instrToLabel = LDATA(labelPos);
+         instrToLabel = labelPos->data;
       instrToLabel->label = label;
    }
 
@@ -626,8 +626,8 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
    assert(program != NULL);
    assert(program->lmanager != NULL);
    
-   for (li = program->instructions; li != NULL; li = LNEXT(li)) {
-      t_axe_instruction *instr = LDATA(li);
+   for (li = program->instructions; li != NULL; li = li->next) {
+      t_axe_instruction *instr = li->data;
       if (instr->label && compareLabels(instr->label, label))
          fatalError(AXE_LABEL_ALREADY_ASSIGNED);
    }
@@ -717,7 +717,7 @@ void finalizeVariables(t_list *variables)
    current_element = variables;
    while(current_element != NULL)
    {
-      current_var = (t_axe_variable *) LDATA(current_element);
+      current_var = (t_axe_variable *) current_element->data;
       if (current_var != NULL)
       {
          if (current_var->ID != NULL)
@@ -726,7 +726,7 @@ void finalizeVariables(t_list *variables)
          free(current_var);
       }
       
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* free the list of variables */

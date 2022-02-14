@@ -100,11 +100,11 @@ void fixUnsupportedImmediates(t_program_infos *program)
    t_list *curi = program->instructions;
 
    while (curi) {
-      t_axe_instruction *instr = LDATA(curi);
-      t_list *nexti = LNEXT(curi);
+      t_axe_instruction *instr = curi->data;
+      t_list *nexti = curi->next;
 
       if (!isImmediateArgumentInstrOpcode(instr->opcode)) {
-         curi = LNEXT(curi);
+         curi = curi->next;
          continue;
       }
 
@@ -139,8 +139,8 @@ void fixPseudoInstructions(t_program_infos *program)
    t_list *curi = program->instructions;
    
    while (curi) {
-      t_axe_instruction *instr = LDATA(curi);
-      t_list *nexti = LNEXT(curi);
+      t_axe_instruction *instr = curi->data;
+      t_list *nexti = curi->next;
       
       if (instr->opcode == OPC_SUBI) {
          instr->opcode = OPC_ADDI;
@@ -243,8 +243,8 @@ void fixSyscalls(t_program_infos *program)
    t_list *curi = program->instructions;
 
    while (curi) {
-      t_axe_instruction *instr = LDATA(curi);
-      t_list *nexti = LNEXT(curi);
+      t_axe_instruction *instr = curi->data;
+      t_list *nexti = curi->next;
       t_axe_instruction *ecall;
 
       if (instr->opcode != OPC_HALT && 

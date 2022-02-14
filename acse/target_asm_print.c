@@ -433,7 +433,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
    current_element = program->instructions;
    while (current_element != NULL) {
       /* retrieve the current instruction */
-      current_instr = (t_axe_instruction *)LDATA(current_element);
+      current_instr = (t_axe_instruction *)current_element->data;
       if (current_instr == NULL || current_instr->opcode == OPC_INVALID)
          fatalError(AXE_INVALID_INSTRUCTION);
 
@@ -444,7 +444,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
          return -1;
 
       /* advance to the next instruction */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    return 0;
@@ -501,7 +501,7 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
    current_element = program->data;
    while (current_element != NULL) {
       /* retrieve the current data element */
-      current_data = (t_axe_data *)LDATA(current_element);
+      current_data = (t_axe_data *)current_element->data;
 
       /* assertions */
       if (current_data == NULL)
@@ -514,7 +514,7 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
          return -1;
 
       /* advance to the next element */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    return 0;

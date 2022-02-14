@@ -25,9 +25,9 @@ t_list * removeFirst(t_list *list)
       return NULL;
 
    first_elem = list;
-   list = LNEXT(list);
+   list = list->next;
    if (list != NULL)
-      SET_PREV(list, NULL);
+      list->prev = NULL;
    
    free(first_elem);
 
@@ -55,8 +55,8 @@ t_list * addElement(t_list *list, void * data, int pos)
    if (pos == 0)
    {
       /* update the control informations */
-      SET_NEXT(result, list);
-      SET_PREV(list, result);
+      result->next = list;
+      list->prev = result;
       
       /* return the new head of the list */
       return result;
@@ -69,8 +69,8 @@ t_list * addElement(t_list *list, void * data, int pos)
    if (pos < 0)
    {
       /* update the control informations */
-      SET_NEXT(last_elem, result);
-      SET_PREV(result, last_elem);
+      last_elem->next = result;
+      result->prev = last_elem;
       
       /* update the value of result */
       return list;
@@ -85,15 +85,15 @@ t_list * addElement(t_list *list, void * data, int pos)
       if (current_elem == last_elem)
       {
          /* update the control informations */
-         SET_NEXT(last_elem, result);
-         SET_PREV(result, last_elem);
+         last_elem->next = result;
+         result->prev = last_elem;
          
          /* update the value of result */
          return list;
       }
       
       /* update the loop informations */
-      current_elem = LNEXT(current_elem);
+      current_elem = current_elem->next;
       current_pos++;
    }
 
@@ -101,10 +101,10 @@ t_list * addElement(t_list *list, void * data, int pos)
    assert(current_elem != NULL);
    
    /* update the control informations */
-   SET_NEXT(result, current_elem);
-   SET_PREV(result, LPREV(current_elem));
-   SET_NEXT(LPREV(current_elem), result);
-   SET_PREV(current_elem, result);
+   result->next = current_elem;
+   result->prev = current_elem->prev;
+   current_elem->prev->next = result;
+   current_elem->prev = result;
    
    /* return the new head of the list */
    return list;
@@ -122,8 +122,8 @@ t_list * addFirst(t_list *list, void * data)
       return result;
    
    /* postconditions */
-   SET_PREV(list, result);
-   SET_NEXT(result, list);
+   list->prev = result;
+   result->next = list;
    
    /* return the new head of the list */
    return result;
@@ -148,11 +148,11 @@ t_list *addBefore(t_list *list, t_list *listPos, void *data)
    newElem = newElement(data);
    assert(newElem);
 
-   SET_NEXT(newElem, listPos);
-   SET_PREV(newElem, LPREV(listPos));
-   SET_PREV(listPos, newElem);
-   if (LPREV(newElem)) {
-      SET_NEXT(LPREV(newElem), newElem);
+   newElem->next = listPos;
+   newElem->prev = listPos->prev;
+   listPos->prev = newElem;
+   if (newElem->prev) {
+      newElem->prev->next = newElem;
    } else {
       /* we are adding at the head of the list */
       assert(list == listPos);
@@ -174,11 +174,11 @@ t_list *addAfter(t_list *list, t_list *listPos, void *data)
    newElem = newElement(data);
    assert(newElem);
 
-   SET_NEXT(newElem, LNEXT(listPos));
-   SET_PREV(newElem, listPos);
-   SET_NEXT(listPos, newElem);
-   if (LNEXT(newElem))
-      SET_PREV(LNEXT(newElem), newElem);
+   newElem->next = listPos->next;
+   newElem->prev = listPos;
+   listPos->next = newElem;
+   if (newElem->next)
+      newElem->next->prev = newElem;
 
    return list;
 }
@@ -195,9 +195,9 @@ t_list * removeElement(t_list *list, void * data)
    /* intialize the value of `current_elem' */
    current_elem = list;
    while (  (current_elem != NULL)
-            && (LDATA(current_elem) != data))
+            && (current_elem->data != data))
    {
-      current_elem = LNEXT(current_elem);
+      current_elem = current_elem->next;
    }
    
    return removeElementLink(list, current_elem);
@@ -211,7 +211,7 @@ void freeList(t_list *list)
       return;
 
    /* recursively call the freeList */
-   freeList(LNEXT(list));
+   freeList(list->next);
    
    /* deallocate memory for the current element of the list */
    free(list);
@@ -232,9 +232,9 @@ t_list * newElement(void *data)
    }
 
    /* set the internal value of the just created t_list element */
-   SET_DATA(result, data);
-   SET_PREV(result, NULL);
-   SET_NEXT(result, NULL);
+   result->data = data;
+   result->prev = NULL;
+   result->next = NULL;
    
    /* postconditions : return the element */
    return result;
@@ -247,11 +247,11 @@ t_list * getLastElement(t_list *list)
       return NULL;
    
    /* test if the current element is the last element of the list */
-   if (LNEXT(list) == NULL)
+   if (list->next == NULL)
       return list;
    
    /* recursively call the getLastElement on the next item of the list */
-   return getLastElement(LNEXT(list));
+   return getLastElement(list->next);
 }
 
 /* remove a link from the list `list' */
@@ -260,16 +260,16 @@ extern t_list * removeElementLink(t_list *list, t_list *element)
    /* preconditions */
    if (list == NULL || element == NULL)
       return list;
-   assert(LPREV(list) == NULL && "prev link of head of list not NULL");
-   if ((LPREV(element) == NULL) && (element != list))
+   assert(list->prev == NULL && "prev link of head of list not NULL");
+   if ((element->prev == NULL) && (element != list))
       return list;
 
    /* the value is found */
-   if (LPREV(element) != NULL)
+   if (element->prev != NULL)
    {
-      SET_NEXT(LPREV(element), LNEXT(element));
-      if (LNEXT(element) != NULL)
-         SET_PREV(LNEXT(element), LPREV(element));
+      element->prev->next = element->next;
+      if (element->next != NULL)
+         element->next->prev = element->prev;
       
       free(element);
    }
@@ -278,12 +278,12 @@ extern t_list * removeElementLink(t_list *list, t_list *element)
       /* check the preconditions */
       assert(list == element);
       
-      if (LNEXT(element) != NULL)
+      if (element->next != NULL)
       {
-         SET_PREV(LNEXT(element), NULL);
+         element->next->prev = NULL;
          
          /* update the new head of the list */
-         list = LNEXT(element);
+         list = element->next;
       }
       else
          list = NULL;
@@ -308,9 +308,9 @@ t_list * findElement(t_list *list, void *data)
    /* intialize the value of `current_elem' */
    current_elem = list;
    while (  (current_elem != NULL)
-         && (  LDATA(current_elem) != data) )
+         && (  current_elem->data != data) )
    {
-      current_elem = LNEXT(current_elem);
+      current_elem = current_elem->next;
    }
    
    /* postconditions */
@@ -336,12 +336,12 @@ t_list * findElementWithCallback(t_list *list, void *data
    {
       void *other_Data;
 
-      other_Data = LDATA(current_elem);
+      other_Data = current_elem->data;
 
       if (compareFunc(other_Data, data))
          break;
       
-      current_elem = LNEXT(current_elem);
+      current_elem = current_elem->next;
    }  
 
    /* postconditions */
@@ -364,7 +364,7 @@ int getPosition(t_list *list, t_list *element)
    
    /* update values */
    counter++;
-   list = LNEXT(list);
+   list = list->next;
    
    while (list != NULL)
    {
@@ -372,7 +372,7 @@ int getPosition(t_list *list, t_list *element)
          return counter;
       
       counter++;
-      list = LNEXT(list);
+      list = list->next;
    }
    
    return -1;
@@ -392,7 +392,7 @@ int getLength(t_list *list)
    while (list != NULL)
    {
       counter++;
-      list = LNEXT(list);
+      list = list->next;
    }
    
    /* postconditions: return the length of the list */
@@ -415,10 +415,10 @@ t_list * cloneList(t_list *list)
    while(current_element != NULL)
    {
       /* add an element to the new list */
-      result = addElement(result, LDATA(current_element), -1);
+      result = addElement(result, current_element->data, -1);
 
       /* retrieve the next element of the list */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* return the new list */
@@ -438,7 +438,7 @@ t_list * getElementAt(t_list *list, unsigned int position)
    current_pos = 0;
    while((current_element != NULL) && (current_pos < position))
    {
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
       current_pos++;
    }
 
@@ -461,11 +461,11 @@ t_list * addList(t_list *list, t_list *elements)
    while (current_element != NULL)
    {
       /* retrieve the data associated with the current element */
-      current_data = LDATA(current_element);
+      current_data = current_element->data;
       list = addElement(list, current_data, -1);
 
       /* retrieve the next element in the list */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* return the new list */
@@ -487,7 +487,7 @@ t_list * addListToSet(t_list *list, t_list *elements
    while (current_element != NULL)
    {
       /* retrieve the data associated with the current element */
-      current_data = LDATA(current_element);
+      current_data = current_element->data;
 
       /* Test if the element was already inserted. */
       if (findElementWithCallback(list, current_data, compareFunc) == NULL)
@@ -498,7 +498,7 @@ t_list * addListToSet(t_list *list, t_list *elements
       }
 
       /* retrieve the next element in the list */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
    }
 
    /* return the new list */
@@ -522,7 +522,7 @@ t_list * addSorted(t_list *list, void * data
    while(current_element != NULL)
    {
       /* get the current interval informations */
-      current_data = LDATA(current_element);
+      current_data = current_element->data;
       assert(current_data != NULL);
 
       if (compareFunc(current_data, data) >= 0)
@@ -532,7 +532,7 @@ t_list * addSorted(t_list *list, void * data
       }
          
       /* retrieve the next element */
-      current_element = LNEXT(current_element);
+      current_element = current_element->next;
 
       /* update the value of counter */
       counter++;
