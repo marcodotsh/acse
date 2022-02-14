@@ -15,6 +15,7 @@
 #include "labels.h"
 #include "list.h"
 
+
 /* registers */
 #define REG_INVALID -1
 #define REG_0 0
@@ -38,30 +39,6 @@ typedef struct t_axe_address
    t_axe_label *labelID;   /* a label identifier */
    int type;               /* one of ADDRESS_TYPE or LABEL_TYPE */
 }t_axe_address;
-
-/* data types */
-#define INTEGER_TYPE 0
-#define UNKNOWN_TYPE -1
-
-/* A structure that defines the internal data of a `Acse variable' */
-typedef struct t_axe_variable
-{
-   int type;      /* a valid data type */
-   int isArray;   /* must be TRUE if the current variable is an array */
-   int arraySize; /* the size of the array. This information is useful only
-                   * if the field `isArray' is TRUE */
-   int init_val;  /* initial value of the current variable. Actually it is
-                   * implemented as a integer value. `int' is
-                   * the only supported type at the moment,
-                   * future developments could consist of a modification of
-                   * the supported type system. Thus, maybe init_val will be
-                   * modified in future. */
-   char *ID;               /* variable identifier (should never be a NULL
-                            * pointer or an empty string "") */
-   t_axe_label *label;     /* a label that refers to the location
-                            * of the variable inside the data segment */
-   int reg_location;       /* the register ID associated to the variable */
-} t_axe_variable;
 
 /* MACE opcodes */
 #define OPC_INVALID -1
@@ -194,25 +171,6 @@ extern t_axe_label *newNamedLabel(t_program_infos *program, const char *name);
 extern t_axe_label *assignNewNamedLabel(
       t_program_infos *program, const char *name);
 
-/*  VARIABLES  */
-
-/* add a variable to the program */
-extern void createVariable(t_program_infos *program, char *ID, int type,
-      int isArray, int arraySize, int init_val);
-
-/* get a previously allocated variable */
-extern t_axe_variable *getVariable(t_program_infos *program, char *ID);
-
-/* Given a variable identifier (ID) this function
- * returns a register location where the value is stored
- * (the value of the variable identified by `ID'). If an error occurs,
- * getRegLocationOfScalar returns REG_INVALID */
-extern int getRegLocationOfScalar(t_program_infos *program, char *ID);
-
-/* get the label that marks the starting address of the array variable
- * with name "ID" */
-extern t_axe_label *getMemLocationOfArray(t_program_infos *program, char *ID);
-
 /*  DATA DIRECTIVES  */
 
 /* create an instance of `t_axe_data' */
@@ -221,5 +179,6 @@ extern t_axe_data *initializeData(int directiveType, int value,
 
 /* finalize a data info. */
 extern void finalizeData(t_axe_data *data);
+
 
 #endif

@@ -19,6 +19,7 @@
 #include "options.h"
 #include "errors.h"
 #include "target_info.h"
+#include "variables.h"
 
 
 int debugPrintf(const char *fmt, ...)

@@ -25,7 +25,7 @@
 #include "expressions.h"
 #include "gencode.h"
 #include "utils.h"
-#include "array.h"
+#include "variables.h"
 #include "cflow_graph.h"
 #include "reg_alloc.h"
 #include "options.h"
