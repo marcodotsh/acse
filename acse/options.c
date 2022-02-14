@@ -2,7 +2,7 @@
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
  * 
- * io_manager.c
+ * options.c
  * Formal Languages & Compilers Machine, 2007/2008
  * 
  */
@@ -93,7 +93,7 @@ char *getLogFileName(const char *logType)
    if (lastDot >= 0)
       basename[lastDot] = '\0';
    
-   nameLen = strlen(basename) + 24;
+   nameLen = strlen(basename) + strlen(logType) + 8;
    outfn = calloc(nameLen, sizeof(char));
    if (!outfn)
       fatalError(AXE_OUT_OF_MEMORY);
