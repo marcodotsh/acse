@@ -204,8 +204,7 @@ t_axe_label * getLastPendingLabel(t_axe_label_manager *lmanager)
    t_axe_label *result;
    
    /* precondition: lmanager must be different from NULL */
-   if (lmanager == NULL)
-      fatalError(AXE_INVALID_LABEL_MANAGER);
+   assert(lmanager != NULL);
 
    /* the label that must be returned (can be a NULL pointer) */
    result = lmanager->label_to_assign;

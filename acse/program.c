@@ -18,8 +18,6 @@
 #include "target_asm_print.h"
 #include "options.h"
 
-/* global variable errormsg */
-const char *errormsg = NULL;
 /* global line number (defined in Acse.y) */
 extern int line_num;
 /* last line number inserted in an instruction as a comment */

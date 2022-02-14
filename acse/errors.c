@@ -24,28 +24,18 @@ static const char *errorToString(int errorcode)
 
    switch (errorcode) {
       case AXE_OUT_OF_MEMORY: msg = "Out of memory"; break;
-      case AXE_PROGRAM_NOT_INITIALIZED: msg = "Program not initialized"; break;
       case AXE_INVALID_INSTRUCTION: msg = "Invalid instruction"; break;
-      case AXE_VARIABLE_ID_UNSPECIFIED: msg = "Variable ID unspecified"; break;
       case AXE_VARIABLE_ALREADY_DECLARED:
          msg = "Variable already declared";
          break;
       case AXE_INVALID_TYPE: msg = "Invalid type"; break;
       case AXE_FOPEN_ERROR: msg = "fopen failed"; break;
       case AXE_FCLOSE_ERROR: msg = "fclose failed"; break;
-      case AXE_INVALID_INPUT_FILE: msg = "Wrong file pointer"; break;
       case AXE_FWRITE_ERROR: msg = "Error while writing on file"; break;
       case AXE_INVALID_DATA_FORMAT: msg = "Invalid data format"; break;
       case AXE_INVALID_OPCODE: msg = "Invalid opcode found"; break;
-      case AXE_INVALID_REGISTER_INFO: msg = "Invalid register infos"; break;
-      case AXE_INVALID_LABEL: msg = "Invalid label found"; break;
-      case AXE_INVALID_LABEL_MANAGER: msg = "Invalid label manager"; break;
       case AXE_INVALID_ARRAY_SIZE: msg = "Invalid array size"; break;
-      case AXE_INVALID_VARIABLE: msg = "Invalid variable found"; break;
-      case AXE_INVALID_ADDRESS: msg = "Invalid address"; break;
       case AXE_INVALID_EXPRESSION: msg = "Invalid expression found"; break;
-      case AXE_UNKNOWN_VARIABLE: msg = "Unknown variable found"; break;
-      case AXE_NULL_DECLARATION: msg = "NULL declaration found"; break;
       case AXE_LABEL_ALREADY_ASSIGNED: msg = "label already assigned"; break;
       case AXE_INVALID_CFLOW_GRAPH:
          msg = "Invalid control-dataflow graph informations";
@@ -54,10 +44,6 @@ static const char *errorToString(int errorcode)
          msg = "Invalid register allocator instance found";
          break;
       case AXE_REG_ALLOC_ERROR: msg = "register allocation failed"; break;
-      case AXE_TRANSFORM_ERROR:
-         msg = "Invalid operation while modifying the instructions";
-         break;
-      case AXE_SYNTAX_ERROR: msg = "Syntax error found"; break;
       case AXE_VARIABLE_TYPE_MISMATCH: msg = "type of the variable does not match"; break;
       case AXE_VARIABLE_NOT_DECLARED: msg = "variable not declared"; break;
       default: msg = "Unknown error"; break;

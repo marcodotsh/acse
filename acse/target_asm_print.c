@@ -360,10 +360,8 @@ int translateForwardDeclarations(t_program_infos *program, FILE *fp)
    t_axe_label *nextLabel;
 
    /* preconditions */
-   if (fp == NULL)
-      fatalError(AXE_INVALID_INPUT_FILE);
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(fp != NULL);
+   assert(program != NULL);
 
    /* print declarations for all global labels */
    enumState = NULL;
@@ -420,10 +418,8 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
    t_axe_instruction *current_instr;
    
    /* preconditions */
-   if (fp == NULL)
-      fatalError(AXE_INVALID_INPUT_FILE);
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(fp != NULL);
+   assert(program != NULL);
 
    /* if the instruction list is empty, there is nothing to print, exit */
    if (!program->instructions)
@@ -490,10 +486,8 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
    t_axe_data *current_data;
    
    /* preconditions */
-   if (fp == NULL)
-      fatalError(AXE_INVALID_INPUT_FILE);
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(fp != NULL);
+   assert(program != NULL);
 
    /* if the list of directives is empty, there is nothing to print */
    if (program->data == NULL)
@@ -533,8 +527,7 @@ void writeAssembly(t_program_infos *program)
    int error;
 
    /* test the preconditions */
-   if (program == NULL)
-      fatalError(AXE_PROGRAM_NOT_INITIALIZED);
+   assert(program != NULL);
 
    output_file = compilerOptions.outputFileName;
 
