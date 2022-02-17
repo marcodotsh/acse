@@ -15,6 +15,7 @@ AllowShortIfStatementsOnASingleLine: Never
 IndentCaseLabels: true
 AlignConsecutiveMacros: true
 AlignEscapedNewlines: true
+AlignTrailingComments: true
 MaxEmptyLinesToKeep: 2
 PenaltyBreakComment: 0
 SortIncludes: false

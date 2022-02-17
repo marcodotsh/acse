@@ -22,7 +22,6 @@
 
 typedef struct t_axe_register {
    int ID;       /* an identifier of the register */
-   int indirect; /* a boolean value: 1 if the register value is a pointer */
    t_list *mcRegWhitelist; /* the list of machine registers where this
                             * variable can be allocated. NULL if any register
                             * is allowed. */
@@ -123,7 +122,7 @@ extern t_axe_label *assignNewNamedLabel(
 extern int getNewRegister(t_program_infos *program);
 
 /* create an instance of `t_axe_register' */
-extern t_axe_register *initializeRegister(int ID, int indirect);
+extern t_axe_register *initializeRegister(int ID);
 
 /* create an instance of `t_axe_instruction' */
 extern t_axe_instruction *initializeInstruction(int opcode);
@@ -145,7 +144,7 @@ extern void setMCRegisterWhitelist(t_axe_register *regObj, ...);
 extern void addInstruction(t_program_infos *program, t_axe_instruction *instr);
 
 extern t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
-      t_axe_register *r_dest, t_axe_register *r_src1, t_axe_register *r_src2,
+      int r_dest, int r_src1, int r_src2,
       t_axe_label *label, int immediate);
 
 /* remove an instruction from the program, given its link in the instruction

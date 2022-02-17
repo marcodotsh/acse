@@ -966,7 +966,7 @@ int materializeRegAllocInBBForInstructionNode(t_cflow_Graph *graph,
    num_args = 0;
    if (instr->reg_dest) {
       argState[num_args].reg = instr->reg_dest;
-      argState[num_args].isDestination = !instr->reg_dest->indirect;
+      argState[num_args].isDestination = 1;
       argState[num_args].spillSlot = -1;
       num_args++;
    }

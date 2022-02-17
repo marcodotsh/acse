@@ -122,7 +122,7 @@ void fixUnsupportedImmediates(t_program_infos *program)
          pushInstrInsertionPoint(program, curi->prev);
          moveLabel(genLIInstruction(program, reg, IMM(instr)), instr);
          instr->immediate = 0;
-         instr->reg_src2 = initializeRegister(reg, 0);
+         instr->reg_src2 = initializeRegister(reg);
          instr->opcode = switchOpcodeImmediateForm(instr->opcode);
          popInstrInsertionPoint(program);
 
@@ -259,30 +259,21 @@ void fixSyscalls(t_program_infos *program)
       if (instr->opcode == OPC_HALT) {
          int r_func = genLoadImmediate(program, SYSCALL_ID_EXIT);
          int r_arg = genLoadImmediate(program, 0);
-         ecall = genInstruction(program, OPC_ECALL,
-               NULL,
-               initializeRegister(r_func, 0),
-               initializeRegister(r_arg, 0),
-               NULL, 0);
-         
+         ecall = genInstruction(
+               program, OPC_ECALL, REG_INVALID, r_func, r_arg, NULL, 0);
+
       } else if (instr->opcode == OPC_AXE_WRITE) {
          int r_func = genLoadImmediate(program, SYSCALL_ID_PUTINT);
          int r_arg = getNewRegister(program);
          genADDIInstruction(program, r_arg, RS1(instr), 0);
-         ecall = genInstruction(program, OPC_ECALL,
-               NULL,
-               initializeRegister(r_func, 0),
-               initializeRegister(r_arg, 0),
-               NULL, 0);
+         ecall = genInstruction(
+               program, OPC_ECALL, REG_INVALID, r_func, r_arg, NULL, 0);
 
       } else if (instr->opcode == OPC_AXE_READ) {
          int r_func = genLoadImmediate(program, SYSCALL_ID_GETINT);
          int r_res = getNewRegister(program);
-         ecall = genInstruction(program, OPC_ECALL,
-               initializeRegister(r_res, 0),
-               initializeRegister(r_func, 0),
-               NULL,
-               NULL, 0);
+         ecall = genInstruction(
+               program, OPC_ECALL, r_res, r_func, REG_INVALID, NULL, 0);
          genADDIInstruction(program, RD(instr), r_res, 0);
       }
 

@@ -31,7 +31,7 @@ static void finalizeInstructions(t_list *instructions);
 static void finalizeDataSegment(t_list *dataDirectives);
 
 /* create and initialize an instance of `t_axe_register' */
-t_axe_register * initializeRegister(int ID, int indirect)
+t_axe_register * initializeRegister(int ID)
 {
    t_axe_register *result;
 
@@ -43,7 +43,6 @@ t_axe_register * initializeRegister(int ID, int indirect)
    /* initialize the new label */
    result->ID = ID;
    result->mcRegWhitelist = NULL;
-   result->indirect = indirect;
 
    /* return the label */
    return result;
@@ -318,9 +317,8 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
       program->instrInsPtrStack->data = program->instructions;
 }
 
-t_axe_instruction *genInstruction(t_program_infos *program,
-      int opcode, t_axe_register *r_dest, t_axe_register *r_src1,
-      t_axe_register *r_src2, t_axe_label *label, int immediate)
+t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
+      int r_dest, int r_src1, int r_src2, t_axe_label *label, int immediate)
 {
    t_axe_instruction *instr;
 
@@ -328,9 +326,12 @@ t_axe_instruction *genInstruction(t_program_infos *program,
    instr = initializeInstruction(opcode);
 
    /* initialize the instruction's registers */
-   instr->reg_dest = r_dest;
-   instr->reg_src1 = r_src1;
-   instr->reg_src2 = r_src2;
+   if (r_dest != REG_INVALID)
+      instr->reg_dest = initializeRegister(r_dest);
+   if (r_src1 != REG_INVALID)
+      instr->reg_src1 = initializeRegister(r_src1);
+   if (r_src2 != REG_INVALID)
+      instr->reg_src2 = initializeRegister(r_src2);
 
    /* attach an address if needed */
    if (label)
