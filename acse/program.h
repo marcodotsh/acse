@@ -27,30 +27,20 @@ typedef struct t_axe_register {
                             * is allowed. */
 } t_axe_register;
 
-/* ADDRESS TYPES */
-#define ADDRESS_TYPE 0
-#define LABEL_TYPE 1
-
-typedef struct t_axe_address {
-   int type;             /* one of ADDRESS_TYPE or LABEL_TYPE */
-   int addr;             /* a Program Counter */
-   t_axe_label *labelID; /* a label identifier */
-} t_axe_address;
-
 /* a symbolic assembly instruction */
 typedef struct t_axe_instruction {
-   int opcode;               /* instruction opcode (for example: ADD) */
-   t_axe_register *reg_dest; /* destination register */
-   t_axe_register *reg_src1; /* first source register */
-   t_axe_register *reg_src2; /* second source register */
-   int immediate;            /* immediate value */
-   t_axe_address *address;   /* an address operand */
-   char *user_comment;       /* if defined it is set to the source code
-                              * instruction that generated the current
-                              * assembly. This string will be written
-                              * into the output code as a comment */
-   t_axe_label *label;       /* a label associated with the current
-                              * instruction */
+   t_axe_label *label;        /* a label associated with the current
+                               * instruction */
+   int opcode;                /* instruction opcode (for example: ADD) */
+   t_axe_register *reg_dest;  /* destination register */
+   t_axe_register *reg_src1;  /* first source register */
+   t_axe_register *reg_src2;  /* second source register */
+   int immediate;             /* immediate value */
+   t_axe_label *addressParam; /* an address operand */
+   char *user_comment;        /* if defined it is set to the source code
+                               * instruction that generated the current
+                               * assembly. This string will be written
+                               * into the output code as a comment */
 } t_axe_instruction;
 
 /* DIRECTIVE TYPES */
@@ -125,10 +115,6 @@ extern t_axe_register *initializeRegister(int ID);
 
 /* create an instance of `t_axe_instruction' */
 extern t_axe_instruction *initializeInstruction(int opcode);
-
-/* create an instance of `t_axe_address' */
-extern t_axe_address *initializeAddress(
-      int type, int address, t_axe_label *label);
 
 /* finalize an instruction info. */
 extern void finalizeInstruction(t_axe_instruction *inst);

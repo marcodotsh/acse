@@ -65,7 +65,7 @@ t_axe_instruction * initializeInstruction(int opcode)
    result->reg_src2 = NULL;
    result->immediate = 0;
    result->label = NULL;
-   result->address = NULL;
+   result->addressParam = NULL;
    result->user_comment = NULL;
 
    /* return `result' */
@@ -111,9 +111,6 @@ void finalizeInstruction(t_axe_instruction *inst)
       freeList(inst->reg_src2->mcRegWhitelist);
       free(inst->reg_src2);
    }
-   if (inst->address != NULL) {
-      free(inst->address);
-   }
    if (inst->user_comment != NULL) {
       free(inst->user_comment);
    }
@@ -126,23 +123,6 @@ void finalizeData(t_axe_data *data)
 {
    if (data != NULL)
       free(data);
-}
-
-t_axe_address * initializeAddress(int type, int address, t_axe_label *label)
-{
-   t_axe_address *result;
-
-   result = (t_axe_address *)malloc(sizeof(t_axe_address));
-   if (result == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
-
-   /* initialize the new instance of `t_axe_address' */
-   result->type = type;
-   result->addr = address;
-   result->labelID = label;
-
-   /* return the new address */
-   return result;
 }
 
 void finalizeDataSegment(t_list *dataDirectives)
@@ -334,7 +314,7 @@ t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
 
    /* attach an address if needed */
    if (label)
-      instr->address = initializeAddress(LABEL_TYPE, 0, label);
+      instr->addressParam = label;
 
    /* initialize the immediate field */
    instr->immediate = immediate;

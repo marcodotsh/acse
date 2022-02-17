@@ -531,12 +531,10 @@ int updateFlowGraph(t_cflow_Graph *graph)
          setPred(graph->endingBlock, current_block);
       } else {
          if (isJumpInstruction(last_instruction)) {
-            if ((last_instruction->address == NULL) ||
-                  ((last_instruction->address)->labelID == NULL))
+            if (last_instruction->addressParam == NULL)
                return CFLOW_INVALID_LABEL_FOUND;
 
-            jumpBlock =
-                  searchLabel(graph, (last_instruction->address)->labelID);
+            jumpBlock = searchLabel(graph, last_instruction->addressParam);
             if (jumpBlock == NULL)
                return CFLOW_INVALID_LABEL_FOUND;
 

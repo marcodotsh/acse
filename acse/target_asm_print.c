@@ -246,18 +246,6 @@ int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
    return res;
 }
 
-int addressToString(char *buf, int bufsz, t_axe_address *addr)
-{
-   if (!addr)
-      return -1;
-   
-   if (addr->type == ADDRESS_TYPE) {
-      return snprintf(buf, bufsz, "%d", addr->addr);
-   }
-   assert(addr->type == LABEL_TYPE);
-   return labelToString(buf, bufsz, addr->labelID, 0);
-}
-
 int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int machineRegIDs)
 {
    int format, res;
@@ -271,12 +259,12 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
    rd = registerToString(instr->reg_dest, machineRegIDs);
    rs1 = registerToString(instr->reg_src1, machineRegIDs);
    rs2 = registerToString(instr->reg_src2, machineRegIDs);
-   if (instr->address) {
-      int n = addressToString(NULL, 0, instr->address);
+   if (instr->addressParam) {
+      int n = labelToString(NULL, 0, instr->addressParam, 0);
       address = calloc(n+1, sizeof(char));
       if (!address)
          fatalError(AXE_OUT_OF_MEMORY);
-      addressToString(address, n+1, instr->address);
+      labelToString(address, n+1, instr->addressParam, 0);
    }
    imm = instr->immediate;
 
@@ -298,7 +286,7 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
          res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rd, imm, rs1);
          break;
       case FORMAT_LOAD_GL:
-         if (!instr->reg_dest || !instr->address)
+         if (!instr->reg_dest || !instr->addressParam)
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
          break;
@@ -308,17 +296,17 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
          res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
          break;
       case FORMAT_STORE_GL:
-         if (!instr->reg_src1 || !instr->reg_src2 || !instr->address)
+         if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs2, address, rs1);
          break;
       case FORMAT_BRANCH:
-         if (!instr->reg_src1 || !instr->reg_src2 || !instr->address)
+         if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, rs2, address);
          break;
       case FORMAT_JUMP:
-         if (!instr->address)
+         if (!instr->addressParam)
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s", opc, address);
          break;
@@ -328,7 +316,7 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
          res = snprintf(buf, bufsz, "%-6s %s, %d", opc, rd, imm);
          break;
       case FORMAT_LA:
-         if (!instr->reg_dest || !instr->address)
+         if (!instr->reg_dest || !instr->addressParam)
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
          break;
