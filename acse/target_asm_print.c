@@ -434,7 +434,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
    while (current_element != NULL) {
       /* retrieve the current instruction */
       current_instr = (t_axe_instruction *)current_element->data;
-      if (current_instr == NULL || current_instr->opcode == OPC_INVALID)
+      if (current_instr == NULL)
          fatalError(AXE_INVALID_INSTRUCTION);
 
       /* print label, instruction and comment */

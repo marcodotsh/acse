@@ -101,7 +101,6 @@ int setDefUses(t_cflow_Graph *graph, t_cflow_Node *node)
    assert(graph != NULL);
    assert(node != NULL);
    assert(node->instr != NULL);
-   assert((node->instr)->opcode != OPC_INVALID);
 
    /* update the value of `instr' */
    instr = node->instr;
@@ -465,7 +464,7 @@ t_basic_block *searchLabel(t_cflow_Graph *graph, t_axe_label *label)
 int isStartingNode(t_axe_instruction *instr)
 {
    /* preconditions */
-   assert(instr != NULL && instr->opcode != OPC_INVALID);
+   assert(instr != NULL);
 
    /* test if the instruction holds a label identifier */
    return instr->label != NULL;
@@ -475,7 +474,7 @@ int isStartingNode(t_axe_instruction *instr)
 int isEndingNode(t_axe_instruction *instr)
 {
    /* preconditions */
-   assert(instr != NULL && instr->opcode != OPC_INVALID);
+   assert(instr != NULL);
    return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
 }
 
