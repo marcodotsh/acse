@@ -45,7 +45,6 @@ typedef struct t_axe_instruction {
    t_axe_register *reg_src2; /* second source register */
    int immediate;            /* immediate value */
    t_axe_address *address;   /* an address operand */
-   int mcFlags;              /* flags; used only by the backend */
    char *user_comment;       /* if defined it is set to the source code
                               * instruction that generated the current
                               * assembly. This string will be written
