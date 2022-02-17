@@ -13,7 +13,7 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 IndentCaseLabels: true
-AlignConsecutiveMacros: false
+AlignConsecutiveMacros: true
 AlignEscapedNewlines: true
 MaxEmptyLinesToKeep: 2
 PenaltyBreakComment: 0
