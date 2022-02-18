@@ -124,21 +124,14 @@ extern int compareLabels(t_axe_label *labelA, t_axe_label *labelB);
  * the ID of the register found*/
 extern int getNewRegister(t_program_infos *program);
 
-/* Set the list of allowed machine registers for a specific register object
- * to the specified list of register identifiers. The list must be terminated
- * by REG_INVALID or -1. */
-extern void setMCRegisterWhitelist(t_axe_register *regObj, ...);
-
 /* add a new instruction to the current program. This function is directly
  * called by all the functions defined in `gencode.h' */
-extern void addInstruction(t_program_infos *program, t_axe_instruction *instr);
-
 extern t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
       int r_dest, int r_src1, int r_src2, t_axe_label *label, int immediate);
 
 /* remove an instruction from the program, given its link in the instruction
  * list. */
-extern void removeInstructionLink(t_program_infos *program, t_list *instrLi);
+extern void removeInstructionAt(t_program_infos *program, t_list *instrLi);
 
 
 /* Directives */

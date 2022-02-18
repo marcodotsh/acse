@@ -7,6 +7,7 @@
  */
 
 #include <assert.h>
+#include <stdarg.h>
 #include "target_transform.h"
 #include "gencode.h"
 #include "utils.h"
@@ -30,6 +31,25 @@ t_list *addInstrAfter(t_program_infos *program, t_list *prev, t_axe_instruction 
    if (prev == NULL)
       return program->instructions;
    return prev->next;
+}
+
+void setMCRegisterWhitelist(t_axe_register *regObj, ...)
+{
+   t_list *res = NULL;
+   va_list args;
+   int cur;
+
+   va_start(args, regObj);
+   cur = va_arg(args, int);
+   while (cur != REG_INVALID) {
+      res = addElement(res, INT_TO_LIST_DATA(cur), -1);
+      cur = va_arg(args, int);
+   }
+   va_end(args);
+
+   if (regObj->mcRegWhitelist)
+      freeList(regObj->mcRegWhitelist);
+   regObj->mcRegWhitelist = res;
 }
 
 int isImmediateArgumentInstrOpcode(int opcode)
@@ -107,7 +127,7 @@ void fixUnsupportedImmediates(t_program_infos *program)
       if (instr->opcode == OPC_ADDI && instr->reg_src1->ID == REG_0) {
          if (!isInt12(instr->immediate)) {
             curi = addInstrAfter(program, curi, genLIInstruction(NULL, RD(instr), IMM(instr)));
-            removeInstructionLink(program, transformedInstrLnk);
+            removeInstructionAt(program, transformedInstrLnk);
          }
 
       } else if (instr->opcode == OPC_MULI || instr->opcode == OPC_DIVI ||
@@ -118,7 +138,7 @@ void fixUnsupportedImmediates(t_program_infos *program)
             curi = addInstrAfter(program, curi, genMULInstruction(NULL, RD(instr), RS1(instr), reg));
          else if (instr->opcode == OPC_DIVI)
             curi = addInstrAfter(program, curi, genDIVInstruction(NULL, RD(instr), RS1(instr), reg));
-         removeInstructionLink(program, transformedInstrLnk);
+         removeInstructionAt(program, transformedInstrLnk);
 
       } else if (instr->opcode == OPC_SLLI || instr->opcode == OPC_SRLI || instr->opcode == OPC_SRAI) {
          instr->immediate = (unsigned)(instr->immediate) & 0x1F;
@@ -150,12 +170,12 @@ void fixPseudoInstructions(t_program_infos *program)
             curi = addInstrAfter(program, curi, genSLTIUInstruction(NULL, RD(instr), RD(instr), 1));
          else
             curi = addInstrAfter(program, curi, genSLTUInstruction(NULL, RD(instr), REG_0, RD(instr)));
-         removeInstructionLink(program, transformedInstrLnk);
+         removeInstructionAt(program, transformedInstrLnk);
 
       } else if ((instr->opcode == OPC_SGTI && IMM(instr) == INT32_MAX) ||
             instr->opcode == OPC_SGTIU && (uint32_t)IMM(instr) == UINT32_MAX) {
          curi = addInstrAfter(program, curi, genLIInstruction(NULL, RD(instr), 0));
-         removeInstructionLink(program, transformedInstrLnk);
+         removeInstructionAt(program, transformedInstrLnk);
 
       } else if (instr->opcode == OPC_SGE || instr->opcode == OPC_SGEU ||
             instr->opcode == OPC_SGEI || instr->opcode == OPC_SGEIU ||
@@ -189,7 +209,7 @@ void fixPseudoInstructions(t_program_infos *program)
       } else if ((instr->opcode == OPC_SLEI && IMM(instr) == INT32_MAX)
             || (instr->opcode == OPC_SLEIU && (uint32_t)IMM(instr) == UINT32_MAX)) {
          curi = addInstrAfter(program, curi, genLIInstruction(NULL, RD(instr), 1));
-         removeInstructionLink(program, transformedInstrLnk);
+         removeInstructionAt(program, transformedInstrLnk);
 
       } else if (instr->opcode == OPC_SLEI) {
          instr->opcode = OPC_SLTI;
@@ -276,7 +296,7 @@ void fixSyscalls(t_program_infos *program)
       if (ecall->reg_src2)
          setMCRegisterWhitelist(ecall->reg_src2, REG_A1, -1);
 
-      removeInstructionLink(program, transformedInstrLnk);
+      removeInstructionAt(program, transformedInstrLnk);
 
       curi = curi->next;
    }

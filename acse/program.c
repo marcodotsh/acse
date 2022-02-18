@@ -507,26 +507,7 @@ t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
    return instr;
 }
 
-void setMCRegisterWhitelist(t_axe_register *regObj, ...)
-{
-   t_list *res = NULL;
-   va_list args;
-   int cur;
-
-   va_start(args, regObj);
-   cur = va_arg(args, int);
-   while (cur != REG_INVALID) {
-      res = addElement(res, INT_TO_LIST_DATA(cur), -1);
-      cur = va_arg(args, int);
-   }
-   va_end(args);
-
-   if (regObj->mcRegWhitelist)
-      freeList(regObj->mcRegWhitelist);
-   regObj->mcRegWhitelist = res;
-}
-
-void removeInstructionLink(t_program_infos *program, t_list *instrLi)
+void removeInstructionAt(t_program_infos *program, t_list *instrLi)
 {
    t_list *ipi;
    t_axe_instruction *instrToRemove = (t_axe_instruction *)instrLi->data;
