@@ -688,6 +688,8 @@ int iterateCFGNodes(t_cflow_Graph *graph, void *context,
 
    /* intialize the instruction counter */
    counter = 0;
+   /* initialize the exit code */
+   exitcode = AXE_OK;
 
    /* fetch the first basic block */
    current_bb_element = graph->blocks;

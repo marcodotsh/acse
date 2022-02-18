@@ -51,6 +51,6 @@ extern void emitSyntaxError(const char *message);
 
 /** Prints the specified error message and terminates the program.
  * @param errorcode The error code. */
-extern void fatalError(int errorcode);
+extern __attribute__((noreturn)) void fatalError(int errorcode);
 
 #endif
