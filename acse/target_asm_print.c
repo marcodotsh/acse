@@ -9,7 +9,6 @@
  */
 
 #include <assert.h>
-#include "labels.h"
 #include "utils.h"
 #include "target_asm_print.h"
 #include "target_info.h"
@@ -344,7 +343,7 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
 
 int translateForwardDeclarations(t_program_infos *program, FILE *fp)
 {
-   void *enumState;
+   t_list *li;
    t_axe_label *nextLabel;
 
    /* preconditions */
@@ -352,9 +351,12 @@ int translateForwardDeclarations(t_program_infos *program, FILE *fp)
    assert(program != NULL);
 
    /* print declarations for all global labels */
-   enumState = NULL;
-   nextLabel = enumLabels(program->lmanager, &enumState);
-   while (nextLabel) {
+   for (li = program->labels; li != NULL; li = li->next) {
+      nextLabel = li->data;
+
+      if (nextLabel->isAlias)
+         continue;
+
       if (nextLabel->global) {
          char *labelName;
          int res;
@@ -366,8 +368,6 @@ int translateForwardDeclarations(t_program_infos *program, FILE *fp)
          if (res < 0)
             return -1;
       }
-
-      nextLabel = enumLabels(program->lmanager, &enumState);
    }
 
    return 0;
@@ -522,7 +522,7 @@ void writeAssembly(t_program_infos *program)
    debugPrintf(" -> Output file name: \"%s\"\n", output_file);
    debugPrintf(" -> Code segment size: %d instructions\n", getLength(program->instructions));
    debugPrintf(" -> Data segment size: %d elements\n", getLength(program->data));
-   debugPrintf(" -> Number of labels: %d\n", getLabelCount(program->lmanager));
+   debugPrintf(" -> Number of labels: %d\n", getLength(program->labels));
    
    /* open a new file */
    fp = fopen(output_file, "w");

@@ -12,9 +12,16 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include "labels.h"
 #include "list.h"
 
+
+typedef struct t_axe_label {
+   unsigned int labelID; /* Unique identifier for the label */
+   char *name;           /* Name of the label. If NULL, the name will be 
+                          * automatically generated in the form L<ID>. */
+   int global;           /* zero for local labels, non-zero for global labels.*/
+   int isAlias;
+} t_axe_label;
 
 /* registers */
 #define REG_INVALID -1
@@ -61,11 +68,13 @@ typedef struct t_axe_data {
 } t_axe_data;
 
 typedef struct t_program_infos {
-   t_list *variables;
+   t_list *labels;
    t_list *instructions;
    t_list *data;
-   t_axe_label_manager *lmanager;
+   t_list *variables;
    int current_register;
+   unsigned int current_label_ID;
+   t_axe_label *label_to_assign;
 } t_program_infos;
 
 
@@ -101,6 +110,13 @@ extern t_axe_label *assignNewLabel(t_program_infos *program);
 extern t_axe_label *newNamedLabel(t_program_infos *program, const char *name);
 extern t_axe_label *assignNewNamedLabel(
       t_program_infos *program, const char *name);
+
+/* return TRUE if the two labels hold the same identifier */
+extern int compareLabels(t_axe_label *labelA, t_axe_label *labelB);
+
+/* Returns a dynamically allocated string that contains the name of the given
+ * label. */
+extern char *getLabelName(t_axe_label *label);
 
 
 /* Instructions */

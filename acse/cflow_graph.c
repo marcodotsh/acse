@@ -8,7 +8,6 @@
  */
 
 #include <assert.h>
-#include "labels.h"
 #include "cflow_graph.h"
 #include "list.h"
 #include "utils.h"

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 #include "program.h"
 #include "errors.h"
 #include "gencode.h"
@@ -24,6 +25,37 @@ extern int line_num;
 /* last line number inserted in an instruction as a comment */
 int prev_line_num = -1;
 
+
+t_axe_label * newLabelID(t_program_infos *program, int global);
+void setLabelName(t_program_infos *program, t_axe_label *label,
+      const char *name);
+
+
+t_axe_label * initializeLabel(int value, int global)
+{
+   t_axe_label *result;
+
+   /* create an instance of t_axe_label */
+   result = (t_axe_label *)malloc(sizeof(t_axe_label));
+   if (result == NULL)
+      fatalError(AXE_OUT_OF_MEMORY);
+
+   /* initialize the internal value of `result' */
+   result->labelID = value;
+   result->name = NULL;
+   result->global = global;
+   result->isAlias = 0;
+
+   /* return the just initialized new instance of `t_axe_label' */
+   return result;
+}
+
+void finalizeLabel(t_axe_label *lab)
+{
+   if (lab->name)
+      free(lab->name);
+   free(lab);
+}
 
 /* create and initialize an instance of `t_axe_register' */
 t_axe_register * initializeRegister(int ID)
@@ -168,6 +200,29 @@ void finalizeInstructions(t_list *instructions)
    freeList(instructions);
 }
 
+void finalizeLabels(t_list *labels)
+{
+   t_list *current_element;
+   t_axe_label *current_label;
+
+   current_element = labels;
+
+   while (current_element != NULL)
+   {
+      /* retrieve the current label */
+      current_label = (t_axe_label *) current_element->data;
+      assert(current_label != NULL);
+
+      /* free the memory associated with the current label */
+      finalizeLabel(current_label);
+
+      /* fetch the next label */
+      current_element = current_element->next;
+   }
+
+   freeList(labels);
+}
+
 /* initialize an instance of `t_program_infos' */
 t_program_infos * allocProgramInfos(void)
 {
@@ -184,12 +239,14 @@ t_program_infos * allocProgramInfos(void)
    result->instructions = NULL;
    result->data = NULL;
    result->current_register = 1; /* we are excluding the register R0 */
-   result->lmanager = initializeLabelManager();
+   result->labels = NULL;
+   result->current_label_ID = 0;
+   result->label_to_assign = NULL;
 
    /* Create the start label */
-   l_start = newLabelID(result->lmanager, 1);
-   setLabelName(result->lmanager, l_start, "_start");
-   assignLabelID(result->lmanager, l_start);
+   l_start = newLabelID(result, 1);
+   setLabelName(result, l_start, "_start");
+   assignLabel(result, l_start);
    
    /* postcondition: return an instance of `t_program_infos' */
    return result;
@@ -205,76 +262,262 @@ void finalizeProgramInfos(t_program_infos *program)
       finalizeInstructions(program->instructions);
    if (program->data != NULL)
       finalizeDataSegment(program->data);
-   if (program->lmanager != NULL)
-      finalizeLabelManager(program->lmanager);
+   if (program->labels != NULL)
+      finalizeLabels(program->labels);
 
    free(program);
 }
 
-void printProgramInfos(t_program_infos *program, FILE *fout)
+int isAssigningLabel(t_program_infos *program)
 {
-   t_list *cur_var, *cur_inst;
+   /* preconditions: program must be different from NULL */
+   assert(program != NULL);
 
-   fprintf(fout,"**************************\n");
-   fprintf(fout,"          PROGRAM         \n");
-   fprintf(fout,"**************************\n\n");
+   if (program->label_to_assign != NULL)
+   {
+      return 1;
+   }
 
-   fprintf(fout,"-----------\n");
-   fprintf(fout," VARIABLES\n");
-   fprintf(fout,"-----------\n");
-   cur_var = program->variables;
-   while (cur_var) {
-      int reg;
+   return 0;
+}
 
-      t_axe_variable *var = cur_var->data;
-      fprintf(fout, "[%s]\n", var->ID);
+int compareLabels(t_axe_label *labelA, t_axe_label *labelB)
+{
+   if ( (labelA == NULL) || (labelB == NULL) )
+      return 0;
 
-      fprintf(fout, "   type = ");
-      if (var->type == INTEGER_TYPE)
-         fprintf(fout, "int");
-      else
-         fprintf(fout, "(invalid)");
+   if (labelA->labelID == labelB->labelID)
+      return 1;
+   return 0;
+}
+
+/* reserve a new label identifier and return the identifier to the caller */
+t_axe_label * newLabelID(t_program_infos *program, int global)
+{
+   t_axe_label *result;
+
+   /* preconditions: program must be different from NULL */
+   assert(program != NULL);
+   
+   /* initialize a new label */
+   result = initializeLabel(program->current_label_ID, global);
+
+   /* update the value of `current_label_ID' */
+   program->current_label_ID++;
+   
+   /* tests if an out of memory occurred */
+   if (result == NULL)
+      return NULL;
+
+   /* add the new label to the list of labels */
+   program->labels = addElement(program->labels, result, -1);
+
+   /* return the new label */
+   return result;
+}
+
+/* Set a name to a label without resolving duplicates */
+void setRawLabelName(t_program_infos *program, t_axe_label *label,
+      const char *finalName)
+{
+   t_list *i;
+
+   /* check the entire list of labels because there might be two
+    * label objects with the same ID and they need to be kept in sync */
+   for (i = program->labels; i != NULL; i = i->next) {
+      t_axe_label *thisLab = i->data;
+
+      if (thisLab->labelID == label->labelID) {
+         /* found! remove old name */
+         free(thisLab->name);
+         /* change to new name */
+         if (finalName)
+            thisLab->name = strdup(finalName);
+         else
+            thisLab->name = NULL;
+      }
+   }
+}
+
+/* assign the given label identifier to the next instruction. Returns
+ * NULL if an error occurred; otherwise the assigned label */
+t_axe_label * assignLabelID(t_program_infos *program, t_axe_label *label)
+{
+   /* precondition: program must be different from NULL */
+   assert(program != NULL);
+   assert(label != NULL);
+   assert(label->labelID < program->current_label_ID);
+
+   /* test if the next instruction already has a label */
+   if (program->label_to_assign != NULL)
+   {
+      /* It does: transform the label being assigned into an alias of the
+       * label of the next instruction's label
+       * All label aliases have the same ID and name. */
+
+      /* Decide the name of the alias. If only one label has a name, that name
+       * wins. Otherwise the name of the label with the lowest ID wins */
+      char *name = program->label_to_assign->name;
+      if (!name || 
+            (label->labelID && 
+            label->labelID < program->label_to_assign->labelID))
+         name = label->name;
+      /* copy the name */
+      if (name)
+         name = strdup(name);
       
-      if (var->isArray) {
-         fprintf(fout, ", array size = %d", var->arraySize);
-      } else {
-         fprintf(fout, ", scalar initial value = %d", var->init_val);
-      }
-      fprintf(fout, "\n");
+      /* Change ID and name */
+      label->labelID = (program->label_to_assign)->labelID;
+      setRawLabelName(program, label, name);
 
-      if (var->isArray) {
-         char *labelName = getLabelName(var->label);
-         fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
-         free(labelName);
-      }
+      /* Promote both labels to global if at least one is global */
+      if (label->global)
+         program->label_to_assign->global = 1;
+      else if (program->label_to_assign->global)
+         label->global = 1;
 
-      fprintf(fout, "   location = ");
+      /* mark the label as an alias */
+      label->isAlias = 1;
 
-      reg = getRegLocationOfScalar(program, var->ID);
-      if (reg == REG_INVALID)
-         fprintf(fout, "N/A");
-      else
-         fprintf(fout, "R%d", reg);
-      fprintf(fout, "\n");
+      free(name);
+   }
+   else
+      program->label_to_assign = label;
 
-      cur_var = cur_var->next;
+   /* all went good */
+   return label;
+}
+
+t_axe_label * popLastPendingLabel(t_program_infos *program)
+{
+   t_axe_label *result;
+   
+   /* precondition: program must be different from NULL */
+   assert(program != NULL);
+
+   /* the label that must be returned (can be a NULL pointer) */
+   result = program->label_to_assign;
+
+   /* update the value of `program->label_to_assign' */
+   program->label_to_assign = NULL;
+
+   /* return the label */
+   return result;
+}
+
+char *getLabelName(t_axe_label *label)
+{
+   char *buf;
+
+   if (label->name) {
+      buf = strdup(label->name);
+   } else {
+      buf = calloc(24, sizeof(char));
+      snprintf(buf, 24, "l_%d", label->labelID);
    }
 
-   fprintf(fout,"\n--------------\n");
-   fprintf(fout," INSTRUCTIONS\n");
-   fprintf(fout,"--------------\n");
-   cur_inst = program->instructions;
-   while (cur_inst) {
-      t_axe_instruction *instr = cur_inst->data;
-      if (instr == NULL)
-         fprintf(fout, "(null)");
-      else
-         printInstruction(instr, fout, 0);
-      fprintf(fout, "\n");
-      cur_inst = cur_inst->next;
+   return buf;
+}
+
+void setLabelName(t_program_infos *program, t_axe_label *label,
+      const char *name)
+{
+   int serial = -1, ok, allocatedSpace;
+   char *sanitizedName, *finalName, *dstp;
+   const char *srcp;
+
+   /* remove all non a-zA-Z0-9_ characters */
+   sanitizedName = calloc(strlen(name)+1, sizeof(char));
+   srcp = name;
+   for (dstp = sanitizedName; *srcp; srcp++) {
+      if (*srcp == '_' || isalnum(*srcp))
+         *dstp++ = *srcp;
    }
 
-   fflush(fout);
+   /* append a sequential number to disambiguate labels with the same name */
+   allocatedSpace = strlen(sanitizedName)+24;
+   finalName = calloc(allocatedSpace, sizeof(char));
+   snprintf(finalName, allocatedSpace, "%s", sanitizedName);
+   do {
+      t_list *i;
+      ok = 1;
+      for (i = program->labels; i != NULL; i = i->next) {
+         t_axe_label *thisLab = i->data;
+         char *thisLabName;
+         int difference;
+
+         if (thisLab->labelID == label->labelID)
+            continue;
+         
+         thisLabName = getLabelName(thisLab);
+         difference = strcmp(finalName, thisLabName);
+         free(thisLabName);
+
+         if (difference == 0) {
+            ok = 0;
+            snprintf(finalName, allocatedSpace, "%s_%d", sanitizedName, ++serial);
+            break;
+         }
+      }
+   } while (!ok);
+
+   free(sanitizedName);
+   setRawLabelName(program, label, finalName);
+   free(finalName);
+}
+
+/* reserve a new label identifier for future uses */
+t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
+{
+   t_axe_label *label;
+
+   /* test the preconditions */
+   assert(program != NULL);
+
+   label = newLabelID(program, 0);
+   if (name)
+      setLabelName(program, label, name);
+   return label;
+}
+
+t_axe_label * newLabel(t_program_infos *program)
+{
+   return newNamedLabel(program, NULL);
+}
+
+/* assign a new label identifier to the next instruction */
+t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
+{
+   t_list *li;
+
+   /* test the preconditions */
+   assert(program != NULL);
+   
+   for (li = program->instructions; li != NULL; li = li->next) {
+      t_axe_instruction *instr = li->data;
+      if (instr->label && compareLabels(instr->label, label))
+         fatalError(AXE_LABEL_ALREADY_ASSIGNED);
+   }
+
+   /* fix the label */
+   return assignLabelID(program, label);
+}
+
+/* reserve a new label identifier */
+t_axe_label *assignNewNamedLabel(t_program_infos *program, const char *name)
+{
+   t_axe_label *reserved_label;
+
+   /* reserve a new label */
+   reserved_label = newNamedLabel(program, name);
+
+   /* fix the label */
+   return assignLabel(program, reserved_label);
+}
+
+t_axe_label * assignNewLabel(t_program_infos *program)
+{
+   return assignNewNamedLabel(program, NULL);
 }
 
 /* add an instruction at the tail of the list `program->instructions'. */
@@ -285,9 +528,8 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    /* test the preconditions */
    assert(program != NULL);
    assert(instr != NULL);
-   assert(program->lmanager != NULL);
 
-   instr->label = getLastPendingLabel(program->lmanager);
+   instr->label = popLastPendingLabel(program);
 
    if (line_num >= 0 && line_num != prev_line_num) {
       instr->user_comment = calloc(20, sizeof(char));
@@ -388,62 +630,6 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
    finalizeInstruction(instrToRemove);
 }
 
-/* reserve a new label identifier for future uses */
-t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
-{
-   t_axe_label *label;
-
-   /* test the preconditions */
-   assert(program != NULL);
-   assert(program->lmanager != NULL);
-
-   label = newLabelID(program->lmanager, 0);
-   if (name)
-      setLabelName(program->lmanager, label, name);
-   return label;
-}
-
-t_axe_label * newLabel(t_program_infos *program)
-{
-   return newNamedLabel(program, NULL);
-}
-
-/* assign a new label identifier to the next instruction */
-t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
-{
-   t_list *li;
-
-   /* test the preconditions */
-   assert(program != NULL);
-   assert(program->lmanager != NULL);
-   
-   for (li = program->instructions; li != NULL; li = li->next) {
-      t_axe_instruction *instr = li->data;
-      if (instr->label && compareLabels(instr->label, label))
-         fatalError(AXE_LABEL_ALREADY_ASSIGNED);
-   }
-
-   /* fix the label */
-   return assignLabelID(program->lmanager, label);
-}
-
-/* reserve a new label identifier */
-t_axe_label *assignNewNamedLabel(t_program_infos *program, const char *name)
-{
-   t_axe_label *reserved_label;
-
-   /* reserve a new label */
-   reserved_label = newNamedLabel(program, name);
-
-   /* fix the label */
-   return assignLabel(program, reserved_label);
-}
-
-t_axe_label * assignNewLabel(t_program_infos *program)
-{
-   return assignNewNamedLabel(program, NULL);
-}
-
 int getNewRegister(t_program_infos *program)
 {
    int result;
@@ -474,7 +660,7 @@ void setProgramEnd(t_program_infos *program)
 {
    assert(program != NULL);
 
-   if (isAssigningLabel(program->lmanager))
+   if (isAssigningLabel(program))
    {
       genHALTInstruction(program);
       return;
@@ -501,3 +687,68 @@ void setProgramEnd(t_program_infos *program)
    return;
 }
 
+void printProgramInfos(t_program_infos *program, FILE *fout)
+{
+   t_list *cur_var, *cur_inst;
+
+   fprintf(fout,"**************************\n");
+   fprintf(fout,"          PROGRAM         \n");
+   fprintf(fout,"**************************\n\n");
+
+   fprintf(fout,"-----------\n");
+   fprintf(fout," VARIABLES\n");
+   fprintf(fout,"-----------\n");
+   cur_var = program->variables;
+   while (cur_var) {
+      int reg;
+
+      t_axe_variable *var = cur_var->data;
+      fprintf(fout, "[%s]\n", var->ID);
+
+      fprintf(fout, "   type = ");
+      if (var->type == INTEGER_TYPE)
+         fprintf(fout, "int");
+      else
+         fprintf(fout, "(invalid)");
+      
+      if (var->isArray) {
+         fprintf(fout, ", array size = %d", var->arraySize);
+      } else {
+         fprintf(fout, ", scalar initial value = %d", var->init_val);
+      }
+      fprintf(fout, "\n");
+
+      if (var->isArray) {
+         char *labelName = getLabelName(var->label);
+         fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
+         free(labelName);
+      }
+
+      fprintf(fout, "   location = ");
+
+      reg = getRegLocationOfScalar(program, var->ID);
+      if (reg == REG_INVALID)
+         fprintf(fout, "N/A");
+      else
+         fprintf(fout, "R%d", reg);
+      fprintf(fout, "\n");
+
+      cur_var = cur_var->next;
+   }
+
+   fprintf(fout,"\n--------------\n");
+   fprintf(fout," INSTRUCTIONS\n");
+   fprintf(fout,"--------------\n");
+   cur_inst = program->instructions;
+   while (cur_inst) {
+      t_axe_instruction *instr = cur_inst->data;
+      if (instr == NULL)
+         fprintf(fout, "(null)");
+      else
+         printInstruction(instr, fout, 0);
+      fprintf(fout, "\n");
+      cur_inst = cur_inst->next;
+   }
+
+   fflush(fout);
+}

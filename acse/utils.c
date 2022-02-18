@@ -13,7 +13,6 @@
 #include <stdarg.h>
 #include "utils.h"
 #include "gencode.h"
-#include "labels.h"
 #include "cflow_graph.h"
 #include "reg_alloc.h"
 #include "options.h"
