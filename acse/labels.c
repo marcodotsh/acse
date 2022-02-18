@@ -310,7 +310,7 @@ void setLabelName(t_axe_label_manager *lmanager, t_axe_label *label,
 
          if (difference == 0) {
             ok = 0;
-            snprintf(finalName, allocatedSpace, "%s.%d", sanitizedName, ++serial);
+            snprintf(finalName, allocatedSpace, "%s_%d", sanitizedName, ++serial);
             break;
          }
       }
@@ -329,7 +329,7 @@ char *getLabelName(t_axe_label *label)
       buf = strdup(label->name);
    } else {
       buf = calloc(24, sizeof(char));
-      snprintf(buf, 24, "l%d", label->labelID);
+      snprintf(buf, 24, "l_%d", label->labelID);
    }
 
    return buf;

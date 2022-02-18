@@ -53,6 +53,7 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
    t_axe_variable *var, *variableFound;
    int sizeofElem;
    int sy_error;
+   char *lblName;
 
    /* test the preconditions */
    assert(program != NULL);
@@ -79,8 +80,12 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
 
    if (isArray) {
       /* arrays are stored in memory and need a variable location */
-      var->label = newLabel(program);
-      setLabelName(program->lmanager, var->label, ID);
+      lblName = calloc(strlen(ID)+8, sizeof(char));
+      if (!lblName)
+         fatalError(AXE_OUT_OF_MEMORY);
+      sprintf(lblName, "l_%s", ID);
+      var->label = newNamedLabel(program, lblName);
+      free(lblName);
 
       /* statically declare the memory for the array */
       sizeofElem = 4 / TARGET_PTR_GRANULARITY;
