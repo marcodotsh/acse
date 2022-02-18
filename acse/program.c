@@ -26,12 +26,7 @@ extern int line_num;
 int prev_line_num = -1;
 
 
-t_axe_label * newLabelID(t_program_infos *program, int global);
-void setLabelName(t_program_infos *program, t_axe_label *label,
-      const char *name);
-
-
-t_axe_label * initializeLabel(int value, int global)
+t_axe_label * initializeLabel(int value)
 {
    t_axe_label *result;
 
@@ -43,7 +38,7 @@ t_axe_label * initializeLabel(int value, int global)
    /* initialize the internal value of `result' */
    result->labelID = value;
    result->name = NULL;
-   result->global = global;
+   result->global = 0;
    result->isAlias = 0;
 
    /* return the just initialized new instance of `t_axe_label' */
@@ -244,7 +239,8 @@ t_program_infos * allocProgramInfos(void)
    result->label_to_assign = NULL;
 
    /* Create the start label */
-   l_start = newLabelID(result, 1);
+   l_start = newLabel(result);
+   l_start->global = 1;
    setLabelName(result, l_start, "_start");
    assignLabel(result, l_start);
    
@@ -268,19 +264,6 @@ void finalizeProgramInfos(t_program_infos *program)
    free(program);
 }
 
-int isAssigningLabel(t_program_infos *program)
-{
-   /* preconditions: program must be different from NULL */
-   assert(program != NULL);
-
-   if (program->label_to_assign != NULL)
-   {
-      return 1;
-   }
-
-   return 0;
-}
-
 int compareLabels(t_axe_label *labelA, t_axe_label *labelB)
 {
    if ( (labelA == NULL) || (labelB == NULL) )
@@ -291,8 +274,7 @@ int compareLabels(t_axe_label *labelA, t_axe_label *labelB)
    return 0;
 }
 
-/* reserve a new label identifier and return the identifier to the caller */
-t_axe_label * newLabelID(t_program_infos *program, int global)
+t_axe_label * newLabel(t_program_infos *program)
 {
    t_axe_label *result;
 
@@ -300,14 +282,12 @@ t_axe_label * newLabelID(t_program_infos *program, int global)
    assert(program != NULL);
    
    /* initialize a new label */
-   result = initializeLabel(program->current_label_ID, global);
+   result = initializeLabel(program->current_label_ID);
+   if (result == NULL)
+      fatalError(AXE_OUT_OF_MEMORY);
 
    /* update the value of `current_label_ID' */
    program->current_label_ID++;
-   
-   /* tests if an out of memory occurred */
-   if (result == NULL)
-      return NULL;
 
    /* add the new label to the list of labels */
    program->labels = addElement(program->labels, result, -1);
@@ -315,6 +295,7 @@ t_axe_label * newLabelID(t_program_infos *program, int global)
    /* return the new label */
    return result;
 }
+
 
 /* Set a name to a label without resolving duplicates */
 void setRawLabelName(t_program_infos *program, t_axe_label *label,
@@ -337,86 +318,6 @@ void setRawLabelName(t_program_infos *program, t_axe_label *label,
             thisLab->name = NULL;
       }
    }
-}
-
-/* assign the given label identifier to the next instruction. Returns
- * NULL if an error occurred; otherwise the assigned label */
-t_axe_label * assignLabelID(t_program_infos *program, t_axe_label *label)
-{
-   /* precondition: program must be different from NULL */
-   assert(program != NULL);
-   assert(label != NULL);
-   assert(label->labelID < program->current_label_ID);
-
-   /* test if the next instruction already has a label */
-   if (program->label_to_assign != NULL)
-   {
-      /* It does: transform the label being assigned into an alias of the
-       * label of the next instruction's label
-       * All label aliases have the same ID and name. */
-
-      /* Decide the name of the alias. If only one label has a name, that name
-       * wins. Otherwise the name of the label with the lowest ID wins */
-      char *name = program->label_to_assign->name;
-      if (!name || 
-            (label->labelID && 
-            label->labelID < program->label_to_assign->labelID))
-         name = label->name;
-      /* copy the name */
-      if (name)
-         name = strdup(name);
-      
-      /* Change ID and name */
-      label->labelID = (program->label_to_assign)->labelID;
-      setRawLabelName(program, label, name);
-
-      /* Promote both labels to global if at least one is global */
-      if (label->global)
-         program->label_to_assign->global = 1;
-      else if (program->label_to_assign->global)
-         label->global = 1;
-
-      /* mark the label as an alias */
-      label->isAlias = 1;
-
-      free(name);
-   }
-   else
-      program->label_to_assign = label;
-
-   /* all went good */
-   return label;
-}
-
-t_axe_label * popLastPendingLabel(t_program_infos *program)
-{
-   t_axe_label *result;
-   
-   /* precondition: program must be different from NULL */
-   assert(program != NULL);
-
-   /* the label that must be returned (can be a NULL pointer) */
-   result = program->label_to_assign;
-
-   /* update the value of `program->label_to_assign' */
-   program->label_to_assign = NULL;
-
-   /* return the label */
-   return result;
-}
-
-char *getLabelName(t_axe_label *label)
-{
-   char *buf;
-
-   if (label->name) {
-      buf = strdup(label->name);
-   } else {
-      buf = calloc(24, sizeof(char));
-      snprintf(buf, 24, "l_%d", label->labelID);
-   }
-
-   return buf;
 }
 
 void setLabelName(t_program_infos *program, t_axe_label *label,
@@ -466,25 +367,6 @@ void setLabelName(t_program_infos *program, t_axe_label *label,
    free(finalName);
 }
 
-/* reserve a new label identifier for future uses */
-t_axe_label *newNamedLabel(t_program_infos *program, const char *name)
-{
-   t_axe_label *label;
-
-   /* test the preconditions */
-   assert(program != NULL);
-
-   label = newLabelID(program, 0);
-   if (name)
-      setLabelName(program, label, name);
-   return label;
-}
-
-t_axe_label * newLabel(t_program_infos *program)
-{
-   return newNamedLabel(program, NULL);
-}
-
 /* assign a new label identifier to the next instruction */
 t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
 {
@@ -492,32 +374,80 @@ t_axe_label * assignLabel(t_program_infos *program, t_axe_label *label)
 
    /* test the preconditions */
    assert(program != NULL);
+   assert(label != NULL);
+   assert(label->labelID < program->current_label_ID);
    
+   /* check if this label has already been assigned */
    for (li = program->instructions; li != NULL; li = li->next) {
       t_axe_instruction *instr = li->data;
       if (instr->label && compareLabels(instr->label, label))
          fatalError(AXE_LABEL_ALREADY_ASSIGNED);
    }
 
-   /* fix the label */
-   return assignLabelID(program, label);
+   /* test if the next instruction already has a label */
+   if (program->label_to_assign != NULL)
+   {
+      /* It does: transform the label being assigned into an alias of the
+       * label of the next instruction's label
+       * All label aliases have the same ID and name. */
+
+      /* Decide the name of the alias. If only one label has a name, that name
+       * wins. Otherwise the name of the label with the lowest ID wins */
+      char *name = program->label_to_assign->name;
+      if (!name || 
+            (label->labelID && 
+            label->labelID < program->label_to_assign->labelID))
+         name = label->name;
+      /* copy the name */
+      if (name)
+         name = strdup(name);
+      
+      /* Change ID and name */
+      label->labelID = (program->label_to_assign)->labelID;
+      setRawLabelName(program, label, name);
+
+      /* Promote both labels to global if at least one is global */
+      if (label->global)
+         program->label_to_assign->global = 1;
+      else if (program->label_to_assign->global)
+         label->global = 1;
+
+      /* mark the label as an alias */
+      label->isAlias = 1;
+
+      free(name);
+   }
+   else
+      program->label_to_assign = label;
+
+   /* all went good */
+   return label;
 }
 
 /* reserve a new label identifier */
-t_axe_label *assignNewNamedLabel(t_program_infos *program, const char *name)
+t_axe_label *assignNewLabel(t_program_infos *program)
 {
    t_axe_label *reserved_label;
 
    /* reserve a new label */
-   reserved_label = newNamedLabel(program, name);
+   reserved_label = newLabel(program);
 
    /* fix the label */
    return assignLabel(program, reserved_label);
 }
 
-t_axe_label * assignNewLabel(t_program_infos *program)
+char *getLabelName(t_axe_label *label)
 {
-   return assignNewNamedLabel(program, NULL);
+   char *buf;
+
+   if (label->name) {
+      buf = strdup(label->name);
+   } else {
+      buf = calloc(24, sizeof(char));
+      snprintf(buf, 24, "l_%d", label->labelID);
+   }
+
+   return buf;
 }
 
 /* add an instruction at the tail of the list `program->instructions'. */
@@ -529,8 +459,11 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    assert(program != NULL);
    assert(instr != NULL);
 
-   instr->label = popLastPendingLabel(program);
+   /* assign the currently pending label if there is one */
+   instr->label = program->label_to_assign;
+   program->label_to_assign = NULL;
 
+   /* add a comment with the line number */
    if (line_num >= 0 && line_num != prev_line_num) {
       instr->user_comment = calloc(20, sizeof(char));
       if (instr->user_comment) {
@@ -660,7 +593,7 @@ void setProgramEnd(t_program_infos *program)
 {
    assert(program != NULL);
 
-   if (isAssigningLabel(program))
+   if (program->label_to_assign != NULL)
    {
       genHALTInstruction(program);
       return;

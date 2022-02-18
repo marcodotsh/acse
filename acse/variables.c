@@ -84,7 +84,8 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
       if (!lblName)
          fatalError(AXE_OUT_OF_MEMORY);
       sprintf(lblName, "l_%s", ID);
-      var->label = newNamedLabel(program, lblName);
+      var->label = newLabel(program);
+      setLabelName(program, var->label, lblName);
       free(lblName);
 
       /* statically declare the memory for the array */

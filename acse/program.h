@@ -104,19 +104,18 @@ extern t_axe_label *assignLabel(t_program_infos *program, t_axe_label *label);
  * NULL if an error occurred */
 extern t_axe_label *assignNewLabel(t_program_infos *program);
 
-/* Like the above functions, but with the ability to give a name to the label.
- * If another label with the same name already exists, the name assigned to
- * the new label will be modified to remove any ambiguity. */
-extern t_axe_label *newNamedLabel(t_program_infos *program, const char *name);
-extern t_axe_label *assignNewNamedLabel(
-      t_program_infos *program, const char *name);
-
-/* return TRUE if the two labels hold the same identifier */
-extern int compareLabels(t_axe_label *labelA, t_axe_label *labelB);
+/* Sets the name of a label to the specified string. Note: if another label
+ * with the same name already exists, the name assigned to this label will be
+ * modified to remove any ambiguity. */
+extern void setLabelName(t_program_infos *program, t_axe_label *label,
+      const char *name);
 
 /* Returns a dynamically allocated string that contains the name of the given
  * label. */
 extern char *getLabelName(t_axe_label *label);
+
+/* return TRUE if the two labels hold the same identifier */
+extern int compareLabels(t_axe_label *labelA, t_axe_label *labelB);
 
 
 /* Instructions */
