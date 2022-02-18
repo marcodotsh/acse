@@ -469,3 +469,35 @@ extern t_axe_data *genDataDirective(t_program_infos *program, int type,
    program->data = addLast(program->data, res);
    return res;
 }
+
+void setProgramEnd(t_program_infos *program)
+{
+   assert(program != NULL);
+
+   if (isAssigningLabel(program->lmanager))
+   {
+      genHALTInstruction(program);
+      return;
+   }
+
+   if (program->instructions != NULL)
+   {
+      t_axe_instruction *last_instr;
+      t_list *last_element;
+
+      /* get the last element of the list */
+      last_element = getLastElement(program->instructions);
+      assert(last_element != NULL);
+
+      /* retrieve the last instruction */
+      last_instr = (t_axe_instruction *)last_element->data;
+      assert(last_instr != NULL);
+
+      if (last_instr->opcode == OPC_HALT)
+         return;
+   }
+
+   genHALTInstruction(program);
+   return;
+}
+

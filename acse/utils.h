@@ -54,8 +54,4 @@ extern t_axe_declaration *initializeDeclaration(
 extern void addVariablesFromDecls(
       t_program_infos *program, int varType, t_list *variables);
 
-/* Notify the end of the program. This function is directly called
- * from the parser when the parsing process is ended */
-extern void setProgramEnd(t_program_infos *program);
-
 #endif

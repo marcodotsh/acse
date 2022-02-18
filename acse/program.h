@@ -134,6 +134,10 @@ extern t_axe_data *genDataDirective(t_program_infos *program, int type,
 
 /* Utility */
 
+/* Notify the end of the program. This function is directly called
+ * from the parser when the parsing process is ended */
+extern void setProgramEnd(t_program_infos *program);
+
 /* print information about the program in the specified file */
 extern void printProgramInfos(t_program_infos *program, FILE *fout);
 
