@@ -805,7 +805,6 @@ int materializeSpillMemory(t_program_infos *program, t_reg_allocator *RA, t_list
    t_list *result;
    t_tempLabel *tlabel;
    t_axe_label *axe_label;
-   t_axe_data *new_data_info;
 
    /* preconditions */
    assert(program != NULL);
@@ -836,14 +835,7 @@ int materializeSpillMemory(t_program_infos *program, t_reg_allocator *RA, t_list
 
       /* statically allocate some room for the spilled variable by
        * creating a new .WORD directive and making the label point to it. */
-      new_data_info = initializeData(DIR_WORD, 0, axe_label);
-      if (new_data_info == NULL) {
-         finalizeListOfTempLabels(result);
-         return error;
-      }
-
-      /* update the list of directives */
-      program->data = addElement(program->data, new_data_info, -1);
+      genDataDirective(program, DIR_WORD, 0, axe_label);
 
       /* add the current tlabel to the list of labelbindings */
       result = addElement(result, tlabel, -1);

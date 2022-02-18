@@ -52,7 +52,6 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
 {
    t_axe_variable *var, *variableFound;
    int sizeofElem;
-   t_axe_data *new_data_info;
    int sy_error;
 
    /* test the preconditions */
@@ -83,13 +82,10 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
       var->label = newLabel(program);
       setLabelName(program->lmanager, var->label, ID);
 
-      /* create an instance of `t_axe_data' */
+      /* statically declare the memory for the array */
       sizeofElem = 4 / TARGET_PTR_GRANULARITY;
-      new_data_info =
-            initializeData(DIR_SPACE, var->arraySize * sizeofElem, var->label);
-
-      /* update the list of directives */
-      program->data = addElement(program->data, new_data_info, -1);
+      genDataDirective(
+            program, DIR_SPACE, var->arraySize * sizeofElem, var->label);
    } else {
       /* scalars are stored in registers */
       var->reg_location = genLoadImmediate(program, init_val);

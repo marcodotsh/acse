@@ -24,11 +24,6 @@ extern int line_num;
 /* last line number inserted in an instruction as a comment */
 int prev_line_num = -1;
 
-/* Finalize the memory associated with an instruction */
-static void finalizeInstructions(t_list *instructions);
-
-/* Finalize the data segment */
-static void finalizeDataSegment(t_list *dataDirectives);
 
 /* create and initialize an instance of `t_axe_register' */
 t_axe_register * initializeRegister(int ID)
@@ -198,6 +193,22 @@ t_program_infos * allocProgramInfos(void)
    
    /* postcondition: return an instance of `t_program_infos' */
    return result;
+}
+
+void finalizeProgramInfos(t_program_infos *program)
+{
+   if (program == NULL)
+      return;
+   if (program->variables != NULL)
+      finalizeVariables(program->variables);
+   if (program->instructions != NULL)
+      finalizeInstructions(program->instructions);
+   if (program->data != NULL)
+      finalizeDataSegment(program->data);
+   if (program->lmanager != NULL)
+      finalizeLabelManager(program->lmanager);
+
+   free(program);
 }
 
 void printProgramInfos(t_program_infos *program, FILE *fout)
@@ -447,18 +458,14 @@ int getNewRegister(t_program_infos *program)
    return result;
 }
 
-void finalizeProgramInfos(t_program_infos *program)
+extern t_axe_data *genDataDirective(t_program_infos *program, int type,
+      int value, t_axe_label *label)
 {
-   if (program == NULL)
-      return;
-   if (program->variables != NULL)
-      finalizeVariables(program->variables);
-   if (program->instructions != NULL)
-      finalizeInstructions(program->instructions);
-   if (program->data != NULL)
-      finalizeDataSegment(program->data);
-   if (program->lmanager != NULL)
-      finalizeLabelManager(program->lmanager);
+   t_axe_data *res;
 
-   free(program);
+   assert(program);
+
+   res = initializeData(type, value, label);
+   program->data = addLast(program->data, res);
+   return res;
 }

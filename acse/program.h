@@ -109,15 +109,6 @@ extern t_axe_label *assignNewNamedLabel(
  * the ID of the register found*/
 extern int getNewRegister(t_program_infos *program);
 
-/* create an instance of `t_axe_register' */
-extern t_axe_register *initializeRegister(int ID);
-
-/* create an instance of `t_axe_instruction' */
-extern t_axe_instruction *initializeInstruction(int opcode);
-
-/* finalize an instruction info. */
-extern void finalizeInstruction(t_axe_instruction *inst);
-
 /* Set the list of allowed machine registers for a specific register object
  * to the specified list of register identifiers. The list must be terminated
  * by REG_INVALID or -1. */
@@ -128,8 +119,7 @@ extern void setMCRegisterWhitelist(t_axe_register *regObj, ...);
 extern void addInstruction(t_program_infos *program, t_axe_instruction *instr);
 
 extern t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
-      int r_dest, int r_src1, int r_src2,
-      t_axe_label *label, int immediate);
+      int r_dest, int r_src1, int r_src2, t_axe_label *label, int immediate);
 
 /* remove an instruction from the program, given its link in the instruction
  * list. */
@@ -138,12 +128,8 @@ extern void removeInstructionLink(t_program_infos *program, t_list *instrLi);
 
 /* Directives */
 
-/* create an instance of `t_axe_data' */
-extern t_axe_data *initializeData(
-      int directiveType, int value, t_axe_label *label);
-
-/* finalize a data info. */
-extern void finalizeData(t_axe_data *data);
+extern t_axe_data *genDataDirective(t_program_infos *program, int type, 
+      int value, t_axe_label *label);
 
 
 /* Utility */
