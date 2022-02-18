@@ -40,16 +40,23 @@ t_axe_declaration *initializeDeclaration(
       char *ID, int isArray, int arraySize, int init_val)
 {
    t_axe_declaration *result;
+   char *name;
 
    /* allocate memory for the new declaration */
    result = (t_axe_declaration *)malloc(sizeof(t_axe_declaration));
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
+   name = strdup(ID);
+   if (!name) {
+      free(result);
+      fatalError(AXE_OUT_OF_MEMORY);
+   }
+
    /* initialize the content of `result' */
    result->isArray = isArray;
    result->arraySize = arraySize;
-   result->ID = ID;
+   result->ID = name;
    result->init_val = init_val;
 
    /* return the just created and initialized instance of t_axe_declaration */
