@@ -77,7 +77,7 @@ t_cflow_var *allocVariable(
             t_list *nextReg = thisReg->next;
             if (!findElement(mcRegs, thisReg->data)) {
                result->mcRegWhitelist =
-                     removeElementLink(result->mcRegWhitelist, thisReg);
+                     removeElement(result->mcRegWhitelist, thisReg);
             }
             thisReg = nextReg;
          }
@@ -787,6 +787,37 @@ t_list *getLiveINVars(t_basic_block *bblock)
    return cloneList(firstNode->in);
 }
 
+t_list *addListToSet(t_list *list, t_list *elements,
+      int (*compareFunc)(void *a, void *b), int *modified)
+{
+   t_list *current_element;
+   void *current_data;
+
+   /* if the list of elements is NULL returns the current list */
+   if (elements == NULL)
+      return list;
+
+   /* initialize the value of `current_element' */
+   current_element = elements;
+   while (current_element != NULL) {
+      /* retrieve the data associated with the current element */
+      current_data = current_element->data;
+
+      /* Test if the element was already inserted. */
+      if (findElementWithCallback(list, current_data, compareFunc) == NULL) {
+         list = addElement(list, current_data, -1);
+         if (modified != NULL)
+            (*modified) = 1;
+      }
+
+      /* retrieve the next element in the list */
+      current_element = current_element->next;
+   }
+
+   /* return the new list */
+   return list;
+}
+
 t_list *addVariableToSet(t_list *set, t_cflow_var *element, int *modified)
 {
    /* test the preconditions */
@@ -873,7 +904,7 @@ int performLivenessOnBlock(t_basic_block *bblock, t_list *out)
       }
 
       if (!found)
-         cloned_list = removeElement(cloned_list, current_node->defs[def_i]);
+         cloned_list = removeElementWithData(cloned_list, current_node->defs[def_i]);
    }
 
    current_node->in =
@@ -937,7 +968,7 @@ int performLivenessOnBlock(t_basic_block *bblock, t_list *out)
          }
 
          if (!found)
-            cloned_list = removeElement(cloned_list, current_node->defs[def_i]);
+            cloned_list = removeElementWithData(cloned_list, current_node->defs[def_i]);
       }
 
       current_node->in =

@@ -473,7 +473,7 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    prev_line_num = line_num;
 
    /* update the list of instructions */
-   program->instructions = addLast(program->instructions, instr);
+   program->instructions = addElement(program->instructions, instr, -1);
 }
 
 t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
@@ -540,7 +540,7 @@ void removeInstructionAt(t_program_infos *program, t_list *instrLi)
    }
 
    /* remove the instruction */
-   program->instructions = removeElementLink(program->instructions, instrLi);
+   program->instructions = removeElement(program->instructions, instrLi);
    finalizeInstruction(instrToRemove);
 }
 
@@ -566,7 +566,7 @@ extern t_axe_data *genDataDirective(t_program_infos *program, int type,
    assert(program);
 
    res = initializeData(type, value, label);
-   program->data = addLast(program->data, res);
+   program->data = addElement(program->data, res, -1);
    return res;
 }
 

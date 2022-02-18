@@ -348,7 +348,7 @@ void insertListOfIntervals(t_reg_allocator *RA, t_list *intervals)
 t_list *subtractRegisterSets(t_list *a, t_list *b)
 {
    for (; b; b = b->next) {
-      a = removeElement(a, b->data);
+      a = removeElementWithData(a, b->data);
    }
    return a;
 }
@@ -360,7 +360,7 @@ t_list *optimizeRegisterSet(t_list *a, t_list *b)
    for (; b; b = b->next) {
       t_list *old;
       if ((old = findElement(a, b->data))) {
-         a = removeElementLink(a, old);
+         a = removeElement(a, old);
          a = addElement(a, b->data, 0);
       }
    }
@@ -475,7 +475,7 @@ int assignRegister(t_reg_allocator *RA, t_list *constraints)
       freeReg = findElementWithCallback(
             RA->freeRegisters, INT_TO_LIST_DATA(regID), compareFreeRegLI);
       if (freeReg) {
-         RA->freeRegisters = removeElementLink(RA->freeRegisters, freeReg);
+         RA->freeRegisters = removeElement(RA->freeRegisters, freeReg);
          return regID;
       }
    }
@@ -511,7 +511,7 @@ t_list *spillAtInterval(
          RA->bindings[interval->varID] = RA->bindings[last_interval->varID];
          RA->bindings[last_interval->varID] = RA_SPILL_REQUIRED;
 
-         active_intervals = removeElement(active_intervals, last_interval);
+         active_intervals = removeElementWithData(active_intervals, last_interval);
 
          active_intervals =
                addSorted(active_intervals, interval, compareEndPoints);
@@ -570,7 +570,7 @@ t_list *expireOldIntervals(
       next_element = current_element->next;
 
       /* Remove the current element from the list */
-      active_intervals = removeElement(active_intervals, current_interval);
+      active_intervals = removeElementWithData(active_intervals, current_interval);
 
       /* Free all the registers associated with the removed interval */
       RA->freeRegisters = addElement(RA->freeRegisters,

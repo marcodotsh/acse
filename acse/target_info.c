@@ -87,7 +87,7 @@ t_list *getListOfGenPurposeRegisters(void)
    t_list *res = NULL;
    
    for (i = NUM_GP_REGS-1; i >= 0; i--) {
-      res = addFirst(res, INT_TO_LIST_DATA(regs[i]));
+      res = addElement(res, INT_TO_LIST_DATA(regs[i]), 0);
    }
    return res;
 }
@@ -103,7 +103,7 @@ t_list *getListOfCallerSaveRegisters(void)
    t_list *res = NULL;
 
    for (i = 0; regs[i] != REG_INVALID; i++) {
-      res = addFirst(res, INT_TO_LIST_DATA(regs[i]));
+      res = addElement(res, INT_TO_LIST_DATA(regs[i]), 0);
    }
    return res;
 }
