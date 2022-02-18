@@ -187,7 +187,6 @@ t_program_infos * allocProgramInfos(void)
    /* initialize the new instance of `result' */
    result->variables = NULL;
    result->instructions = NULL;
-   result->instrInsPtrStack = addElement(NULL, NULL, -1);
    result->data = NULL;
    result->current_register = 1; /* we are excluding the register R0 */
    result->lmanager = initializeLabelManager();
@@ -288,12 +287,7 @@ void addInstruction(t_program_infos *program, t_axe_instruction *instr)
    prev_line_num = line_num;
 
    /* update the list of instructions */
-   ip = program->instrInsPtrStack->data;
-   program->instructions = addAfter(program->instructions, ip, instr);
-   if (ip)
-      program->instrInsPtrStack->data = ip->next;
-   else
-      program->instrInsPtrStack->data = program->instructions;
+   program->instructions = addLast(program->instructions, instr);
 }
 
 t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
@@ -364,9 +358,8 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
          /* generate a nop if there was no next instruction or if the next instruction
           * is already labeled */
          if (!nextInst || (nextInst->label)) {
-            pushInstrInsertionPoint(program, instrLi);
-            nextInst = genNOPInstruction(program);
-            popInstrInsertionPoint(program);
+            nextInst = genNOPInstruction(NULL);
+            program->instructions = addAfter(program->instructions, instrLi, nextInst);
          }
          nextInst->label = instrToRemove->label;
          instrToRemove->label = NULL;
@@ -379,47 +372,9 @@ void removeInstructionLink(t_program_infos *program, t_list *instrLi)
       }
    }
 
-   /* fixup the insertion pointer stack */
-   ipi = program->instrInsPtrStack;
-   while (ipi) {
-      if (ipi->data && ipi->data == instrLi)
-         ipi->data = instrLi->prev;
-      ipi = ipi->next;
-   }
-
    /* remove the instruction */
    program->instructions = removeElementLink(program->instructions, instrLi);
    finalizeInstruction(instrToRemove);
-}
-
-void pushInstrInsertionPoint(t_program_infos *p, t_list *ip)
-{
-   prev_line_num = -1;
-   p->instrInsPtrStack = addFirst(p->instrInsPtrStack, ip);
-}
-
-t_list *popInstrInsertionPoint(t_program_infos *p)
-{
-   t_list *ip;
-   t_axe_label *label;
-
-   prev_line_num = -1;
-   ip = p->instrInsPtrStack->data;
-
-   /* affix the currently pending label, if needed */
-   label = getLastPendingLabel(p->lmanager);
-   if (label) {
-      t_list *labelPos = ip ? ip->next : NULL;
-      t_axe_instruction *instrToLabel;
-      if (!labelPos)
-         instrToLabel = genNOPInstruction(p);
-      else
-         instrToLabel = labelPos->data;
-      instrToLabel->label = label;
-   }
-
-   p->instrInsPtrStack = removeFirst(p->instrInsPtrStack);
-   return ip;
 }
 
 /* reserve a new label identifier for future uses */

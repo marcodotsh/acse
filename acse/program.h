@@ -63,7 +63,6 @@ typedef struct t_axe_data {
 typedef struct t_program_infos {
    t_list *variables;
    t_list *instructions;
-   t_list *instrInsPtrStack;
    t_list *data;
    t_axe_label_manager *lmanager;
    int current_register;
@@ -135,15 +134,6 @@ extern t_axe_instruction *genInstruction(t_program_infos *program, int opcode,
 /* remove an instruction from the program, given its link in the instruction
  * list. */
 extern void removeInstructionLink(t_program_infos *program, t_list *instrLi);
-
-/* Save the current insertion point in the instruction list, and replace it
- * with `ip`. New instructions will be inserted after the `ip` instruction.
- * To insert instructions at the beginning of the program, ip shall be NULL. */
-extern void pushInstrInsertionPoint(t_program_infos *p, t_list *ip);
-
-/* Restore the last insertion point in the instruction list. Returns the
- * previous position of the instruction insertion point. */
-extern t_list *popInstrInsertionPoint(t_program_infos *p);
 
 
 /* Directives */
