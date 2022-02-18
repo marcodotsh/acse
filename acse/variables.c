@@ -16,12 +16,6 @@
 #include "expressions.h"
 
 
-/* finalize an instance of `t_axe_variable' */
-void finalizeVariable(t_axe_variable *variable)
-{
-   free(variable);
-}
-
 /* create and initialize an instance of `t_axe_variable' */
 t_axe_variable *initializeVariable(
       char *ID, int type, int isArray, int arraySize, int init_val)
@@ -46,7 +40,14 @@ t_axe_variable *initializeVariable(
    return result;
 }
 
-/* create a new variable */
+
+/* finalize an instance of `t_axe_variable' */
+void finalizeVariable(t_axe_variable *variable)
+{
+   free(variable);
+}
+
+
 void createVariable(t_program_infos *program, char *ID, int type, int isArray,
       int arraySize, int init_val)
 {
@@ -101,6 +102,7 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
    program->variables = addElement(program->variables, var, -1);
 }
 
+
 void finalizeVariables(t_list *variables)
 {
    t_list *current_element;
@@ -127,6 +129,7 @@ void finalizeVariables(t_list *variables)
    freeList(variables);
 }
 
+
 int compareVariables(void *Var_A, void *Var_B)
 {
    t_axe_variable *va;
@@ -144,6 +147,7 @@ int compareVariables(void *Var_A, void *Var_B)
    /* test if the name is the same */
    return (!strcmp(va->ID, vb->ID));
 }
+
 
 t_axe_variable *getVariable(t_program_infos *program, char *ID)
 {
@@ -167,6 +171,7 @@ t_axe_variable *getVariable(t_program_infos *program, char *ID)
 
    return NULL;
 }
+
 
 int getRegLocationOfScalar(t_program_infos *program, char *ID)
 {
@@ -193,6 +198,7 @@ int getRegLocationOfScalar(t_program_infos *program, char *ID)
    return location;
 }
 
+
 t_axe_label *getMemLocationOfArray(t_program_infos *program, char *ID)
 {
    t_axe_variable *var;
@@ -215,6 +221,7 @@ t_axe_label *getMemLocationOfArray(t_program_infos *program, char *ID)
    return var->label;
 }
 
+
 void genStoreArrayElement(t_program_infos *program, char *ID,
       t_axe_expression index, t_axe_expression data)
 {
@@ -235,6 +242,7 @@ void genStoreArrayElement(t_program_infos *program, char *ID,
    }
 }
 
+
 int genLoadArrayElement(
       t_program_infos *program, char *ID, t_axe_expression index)
 {
@@ -253,6 +261,7 @@ int genLoadArrayElement(
    /* return the register ID that holds the required data */
    return load_register;
 }
+
 
 int genLoadArrayAddress(
       t_program_infos *program, char *ID, t_axe_expression index)

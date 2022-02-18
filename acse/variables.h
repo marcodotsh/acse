@@ -64,13 +64,6 @@ extern t_axe_variable *getVariable(t_program_infos *program, char *ID);
  *          REG_INVALID. */
 extern int getRegLocationOfScalar(t_program_infos *program, char *ID);
 
-/** Given an array variable identifier, get the label that marks the starting
- * address in memory of the contents of the array.
- * @param program The program where the array belongs.
- * @param ID      The identifier of the array. 
- * @returns The label associated with the array or, if an error occurs, NULL. */
-extern t_axe_label *getMemLocationOfArray(t_program_infos *program, char *ID);
-
 
 /** Generate instructions that load the address of an element of an array in a
  * register. 
