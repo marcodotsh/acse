@@ -16,6 +16,7 @@ IndentCaseLabels: true
 AlignConsecutiveMacros: true
 AlignEscapedNewlines: true
 AlignTrailingComments: true
+AlignArrayOfStructures: Right
 MaxEmptyLinesToKeep: 2
 PenaltyBreakComment: 0
 SortIncludes: false

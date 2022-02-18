@@ -14,7 +14,7 @@
 
 #include "program.h"
 
-/* Perform lowering of the program to a subset of the IR which can be
+/** Perform lowering of the program to a subset of the IR which can be
  * represented as instructions of the target architecture. */
 void doTargetSpecificTransformations(t_program_infos *program);
 

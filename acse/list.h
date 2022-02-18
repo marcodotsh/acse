@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 /** Convert an integer from a list data pointer */
 #define INT_TO_LIST_DATA(data) ((void *)((intptr_t)(data)))
 

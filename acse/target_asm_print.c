@@ -21,40 +21,40 @@
 const char *opcodeToString(int opcode)
 {
    switch (opcode) {
-      /*   Arithmetic */
-      case OPC_ADD:       return "add";
-      case OPC_SUB:       return "sub";
-      case OPC_AND:       return "and";
-      case OPC_OR:        return "or";
-      case OPC_XOR:       return "xor";
-      case OPC_MUL:       return "mul";
-      case OPC_DIV:       return "div";
-      case OPC_SLL:       return "sll";
-      case OPC_SRL:       return "srl";
-      case OPC_SRA:       return "sra";
-      /*   Arithmetic with immediate */
-      case OPC_ADDI:      return "addi";
-      case OPC_SUBI:      return "subi";
-      case OPC_ANDI:      return "andi";
-      case OPC_ORI:       return "ori";
-      case OPC_XORI:      return "xori";
-      case OPC_MULI:      return "muli";
-      case OPC_DIVI:      return "divi";
-      case OPC_SLLI:      return "slli";
-      case OPC_SRLI:      return "srli";
-      case OPC_SRAI:      return "srai";
-      /*   Comparison */
-      case OPC_SEQ :      return "seq";
-      case OPC_SNE :      return "sne";
-      case OPC_SLT :      return "slt";
-      case OPC_SLTU:      return "sltu";
-      case OPC_SGE :      return "sge";
-      case OPC_SGEU:      return "sgeu";
-      case OPC_SGT :      return "sgt";
-      case OPC_SGTU:      return "sgtu";
-      case OPC_SLE :      return "sle";
-      case OPC_SLEU:      return "sleu";
-      /*   Comparison with immediate */
+      /* Arithmetic */
+      case OPC_ADD:        return "add";
+      case OPC_SUB:        return "sub";
+      case OPC_AND:        return "and";
+      case OPC_OR:         return "or";
+      case OPC_XOR:        return "xor";
+      case OPC_MUL:        return "mul";
+      case OPC_DIV:        return "div";
+      case OPC_SLL:        return "sll";
+      case OPC_SRL:        return "srl";
+      case OPC_SRA:        return "sra";
+      /* Arithmetic with immediate */
+      case OPC_ADDI:       return "addi";
+      case OPC_SUBI:       return "subi";
+      case OPC_ANDI:       return "andi";
+      case OPC_ORI:        return "ori";
+      case OPC_XORI:       return "xori";
+      case OPC_MULI:       return "muli";
+      case OPC_DIVI:       return "divi";
+      case OPC_SLLI:       return "slli";
+      case OPC_SRLI:       return "srli";
+      case OPC_SRAI:       return "srai";
+      /* Comparison */
+      case OPC_SEQ :       return "seq";
+      case OPC_SNE :       return "sne";
+      case OPC_SLT :       return "slt";
+      case OPC_SLTU:       return "sltu";
+      case OPC_SGE :       return "sge";
+      case OPC_SGEU:       return "sgeu";
+      case OPC_SGT :       return "sgt";
+      case OPC_SGTU:       return "sgtu";
+      case OPC_SLE :       return "sle";
+      case OPC_SLEU:       return "sleu";
+      /* Comparison with immediate */
       case OPC_SEQI :      return "seqi";
       case OPC_SNEI :      return "snei";
       case OPC_SLTI :      return "slti";
@@ -65,36 +65,37 @@ const char *opcodeToString(int opcode)
       case OPC_SGTIU:      return "sgtiu";
       case OPC_SLEI :      return "slei";
       case OPC_SLEIU:      return "sleiu";
-      /*   Jump, Branch */
-      case OPC_J :        return "j";
-      case OPC_BEQ :      return "beq";
-      case OPC_BNE :      return "bne";
-      case OPC_BLT :      return "blt";
-      case OPC_BLTU:      return "bltu";
-      case OPC_BGE :      return "bge";
-      case OPC_BGEU:      return "bgeu";
-      case OPC_BGT :      return "bgt";
-      case OPC_BGTU:      return "bgtu";
-      case OPC_BLE :      return "ble";
-      case OPC_BLEU:      return "bleu";
-      /*   Load/Store */
-      case OPC_LW  :      return "lw";
-      case OPC_LW_G:      return "lw";
-      case OPC_SW  :      return "sw";
-      case OPC_SW_G:      return "sw";
-      case OPC_LI  :      return "li";
-      case OPC_LA  :      return "la";
-      /*   Other */
-      case OPC_NOP:       return "nop";
-      case OPC_ECALL:     return "ecall";
-      case OPC_EBREAK:    return "ebreak";
-      /*   Syscall */
-      case OPC_HALT:      return "HALT";
-      case OPC_AXE_READ:  return "READ";
-      case OPC_AXE_WRITE: return "WRITE";
+      /* Jump, Branch */
+      case OPC_J :         return "j";
+      case OPC_BEQ :       return "beq";
+      case OPC_BNE :       return "bne";
+      case OPC_BLT :       return "blt";
+      case OPC_BLTU:       return "bltu";
+      case OPC_BGE :       return "bge";
+      case OPC_BGEU:       return "bgeu";
+      case OPC_BGT :       return "bgt";
+      case OPC_BGTU:       return "bgtu";
+      case OPC_BLE :       return "ble";
+      case OPC_BLEU:       return "bleu";
+      /* Load/Store */  
+      case OPC_LW  :       return "lw";
+      case OPC_LW_G:       return "lw";
+      case OPC_SW  :       return "sw";
+      case OPC_SW_G:       return "sw";
+      case OPC_LI  :       return "li";
+      case OPC_LA  :       return "la";
+      /* Other */ 
+      case OPC_NOP:        return "nop";
+      case OPC_ECALL:      return "ecall";
+      case OPC_EBREAK:     return "ebreak";
+      /* Syscall */
+      case OPC_HALT:       return "HALT";
+      case OPC_READ:       return "READ";
+      case OPC_WRITE:      return "WRITE";
    }
    return "<unknown>";
 }
+
 
 #define FORMAT_AUTO    -1
 #define FORMAT_OP       0   /* mnemonic rd, rs1, rs2    */
@@ -186,13 +187,14 @@ static int opcodeToFormat(int opcode)
       case OPC_EBREAK:
       case OPC_HALT:
          return FORMAT_SYSTEM;
-      case OPC_AXE_READ:
+      case OPC_READ:
          return FORMAT_DEFINE;
-      case OPC_AXE_WRITE:
+      case OPC_WRITE:
          return FORMAT_USE;
    }
    return -1;
 }
+
 
 char *registerIDToString(int regID, int machineRegIDs)
 {
@@ -219,12 +221,14 @@ char *registerIDToString(int regID, int machineRegIDs)
    return buf;
 }
 
+
 char *registerToString(t_axe_register *reg, int machineRegIDs)
 {
    if (!reg)
       return NULL;
    return registerIDToString(reg->ID, machineRegIDs);
 }
+
 
 int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
 {
@@ -245,7 +249,9 @@ int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
    return res;
 }
 
-int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int machineRegIDs)
+
+int instructionToString(
+      char *buf, int bufsz, t_axe_instruction *instr, int machineRegIDs)
 {
    int format, res;
    const char *fmtstring;
@@ -260,10 +266,10 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
    rs2 = registerToString(instr->reg_src2, machineRegIDs);
    if (instr->addressParam) {
       int n = labelToString(NULL, 0, instr->addressParam, 0);
-      address = calloc(n+1, sizeof(char));
+      address = calloc(n + 1, sizeof(char));
       if (!address)
          fatalError(AXE_OUT_OF_MEMORY);
-      labelToString(address, n+1, instr->addressParam, 0);
+      labelToString(address, n + 1, instr->addressParam, 0);
    }
    imm = instr->immediate;
 
@@ -324,14 +330,13 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s", opc, rd);
          break;
-      case FORMAT_USE: 
+      case FORMAT_USE:
          if (!instr->reg_src1)
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s", opc, rs1);
          break;
       case FORMAT_SYSTEM:
-      default:
-         res = snprintf(buf, bufsz, "%-6s", opc);
+      default: res = snprintf(buf, bufsz, "%-6s", opc);
    }
 
    free(address);
@@ -340,6 +345,7 @@ int instructionToString(char *buf, int bufsz, t_axe_instruction *instr, int mach
    free(rs2);
    return res;
 }
+
 
 int translateForwardDeclarations(t_program_infos *program, FILE *fp)
 {
@@ -373,7 +379,7 @@ int translateForwardDeclarations(t_program_infos *program, FILE *fp)
    return 0;
 }
 
-/* translate each instruction in its assembler symbolic representation */
+
 int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
 {
    char buf[BUF_LENGTH];
@@ -399,7 +405,7 @@ int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
    return 0;
 }
 
-/* translate each instruction in its assembler symbolic representation */
+
 int translateCodeSegment(t_program_infos *program, FILE *fp)
 {
    t_list *current_element;
@@ -438,6 +444,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
    return 0;
 }
 
+
 int printDirective(t_axe_data *data, FILE *fp)
 {
    char buf[BUF_LENGTH];
@@ -467,6 +474,7 @@ int printDirective(t_axe_data *data, FILE *fp)
    
    return 0;
 }
+
 
 int translateDataSegment(t_program_infos *program, FILE *fp)
 {
@@ -508,6 +516,7 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
    return 0;
 }
 
+
 void writeAssembly(t_program_infos *program)
 {
    char *output_file;
@@ -520,10 +529,12 @@ void writeAssembly(t_program_infos *program)
    output_file = compilerOptions.outputFileName;
 
    debugPrintf(" -> Output file name: \"%s\"\n", output_file);
-   debugPrintf(" -> Code segment size: %d instructions\n", getLength(program->instructions));
-   debugPrintf(" -> Data segment size: %d elements\n", getLength(program->data));
+   debugPrintf(" -> Code segment size: %d instructions\n",
+         getLength(program->instructions));
+   debugPrintf(
+         " -> Data segment size: %d elements\n", getLength(program->data));
    debugPrintf(" -> Number of labels: %d\n", getLength(program->labels));
-   
+
    /* open a new file */
    fp = fopen(output_file, "w");
    if (fp == NULL)
@@ -544,4 +555,3 @@ void writeAssembly(t_program_infos *program)
    if (fclose(fp) == EOF)
       fatalError(AXE_FCLOSE_ERROR);
 }
-

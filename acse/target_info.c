@@ -11,6 +11,7 @@
 #include <assert.h>
 #include "target_info.h"
 
+
 int isHaltOrRetInstruction(t_axe_instruction *instr)
 {
    if (instr == NULL) {
@@ -20,7 +21,7 @@ int isHaltOrRetInstruction(t_axe_instruction *instr)
    return instr->opcode == OPC_HALT;
 }
 
-/* test if the current instruction `instr' is a BT or a BF */
+
 int isUnconditionalJump(t_axe_instruction *instr)
 {
    if (isJumpInstruction(instr))
@@ -32,7 +33,7 @@ int isUnconditionalJump(t_axe_instruction *instr)
    return 0;
 }
 
-/* test if the current instruction `instr' is a branch instruction */
+
 int isJumpInstruction(t_axe_instruction *instr)
 {
    if (instr == NULL)
@@ -54,26 +55,31 @@ int isJumpInstruction(t_axe_instruction *instr)
    }
 }
 
+
 int isCallInstruction(t_axe_instruction *instr)
 {
    return instr->opcode == OPC_ECALL;
 }
+
 
 int instructionUsesPSW(t_axe_instruction *instr)
 {
    return 0;
 }
 
+
 int instructionDefinesPSW(t_axe_instruction *instr)
 {
    return 0;
 }
+
 
 int getSpillRegister(int i)
 {
    assert(i < NUM_SPILL_REGS);
    return i + REG_S9;
 }
+
 
 t_list *getListOfGenPurposeRegisters(void)
 {
@@ -91,6 +97,7 @@ t_list *getListOfGenPurposeRegisters(void)
    }
    return res;
 }
+
 
 t_list *getListOfCallerSaveRegisters(void)
 {

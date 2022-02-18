@@ -14,7 +14,6 @@
 #include "program.h"
 #include "expressions.h"
 
-
 /* Data types */
 #define INTEGER_TYPE 0    /* int */
 

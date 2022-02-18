@@ -33,6 +33,7 @@ t_list *addInstrAfter(t_program_infos *program, t_list *prev, t_axe_instruction 
    return prev->next;
 }
 
+
 void setMCRegisterWhitelist(t_axe_register *regObj, ...)
 {
    t_list *res = NULL;
@@ -51,6 +52,7 @@ void setMCRegisterWhitelist(t_axe_register *regObj, ...)
       freeList(regObj->mcRegWhitelist);
    regObj->mcRegWhitelist = res;
 }
+
 
 int isImmediateArgumentInstrOpcode(int opcode)
 {
@@ -79,6 +81,7 @@ int isImmediateArgumentInstrOpcode(int opcode)
    return 0;
 }
 
+
 int switchOpcodeImmediateForm(int orig)
 {
    switch (orig) {
@@ -106,10 +109,12 @@ int switchOpcodeImmediateForm(int orig)
    return orig;
 }
 
+
 int isInt12(int immediate)
 {
    return immediate < (1 << 11) && immediate >= -(1 << 11);
 }
+
 
 void fixUnsupportedImmediates(t_program_infos *program)
 {
@@ -147,6 +152,7 @@ void fixUnsupportedImmediates(t_program_infos *program)
       curi = curi->next;
    }
 }
+
 
 void fixPseudoInstructions(t_program_infos *program)
 {
@@ -244,6 +250,7 @@ void fixPseudoInstructions(t_program_infos *program)
    }
 }
 
+
 void fixSyscalls(t_program_infos *program)
 {
    t_list *curi = program->instructions;
@@ -255,17 +262,17 @@ void fixSyscalls(t_program_infos *program)
       int r_func, func;
 
       if (instr->opcode != OPC_HALT && 
-            instr->opcode != OPC_AXE_READ && 
-            instr->opcode != OPC_AXE_WRITE) {
+            instr->opcode != OPC_READ && 
+            instr->opcode != OPC_WRITE) {
          curi = curi->next;
          continue;
       }
 
       if (instr->opcode == OPC_HALT)
          func = SYSCALL_ID_EXIT;
-      else if (instr->opcode == OPC_AXE_WRITE)
+      else if (instr->opcode == OPC_WRITE)
          func = SYSCALL_ID_PUTINT;
-      else if (instr->opcode == OPC_AXE_READ)
+      else if (instr->opcode == OPC_READ)
          func = SYSCALL_ID_GETINT;
       r_func = getNewRegister(program);
       curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_func, func));
@@ -276,13 +283,13 @@ void fixSyscalls(t_program_infos *program)
          ecall = genInstruction(NULL, OPC_ECALL, REG_INVALID, r_func, r_arg, NULL, 0);
          curi = addInstrAfter(program, curi, ecall);
 
-      } else if (instr->opcode == OPC_AXE_WRITE) {
+      } else if (instr->opcode == OPC_WRITE) {
          int r_arg = getNewRegister(program);
          curi = addInstrAfter(program, curi, genADDIInstruction(NULL, r_arg, RS1(instr), 0));
          ecall = genInstruction(NULL, OPC_ECALL, REG_INVALID, r_func, r_arg, NULL, 0);
          curi = addInstrAfter(program, curi, ecall);
 
-      } else if (instr->opcode == OPC_AXE_READ) {
+      } else if (instr->opcode == OPC_READ) {
          int r_res = getNewRegister(program);
          ecall = genInstruction(NULL, OPC_ECALL, r_res, r_func, REG_INVALID, NULL, 0);
          curi = addInstrAfter(program, curi, ecall);
@@ -301,6 +308,7 @@ void fixSyscalls(t_program_infos *program)
       curi = curi->next;
    }
 }
+
 
 void doTargetSpecificTransformations(t_program_infos *program)
 {

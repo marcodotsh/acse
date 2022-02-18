@@ -427,11 +427,11 @@ t_axe_instruction *genHALTInstruction(t_program_infos *program)
 t_axe_instruction *genREADInstruction(t_program_infos *program, int r_dest)
 {
    return genInstruction(
-         program, OPC_AXE_READ, r_dest, REG_INVALID, REG_INVALID, NULL, 0);
+         program, OPC_READ, r_dest, REG_INVALID, REG_INVALID, NULL, 0);
 }
 
 t_axe_instruction *genWRITEInstruction(t_program_infos *program, int r_src1)
 {
    return genInstruction(
-         program, OPC_AXE_WRITE, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
+         program, OPC_WRITE, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
 }
