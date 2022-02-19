@@ -82,7 +82,7 @@ int isImmediateArgumentInstrOpcode(int opcode)
 }
 
 
-int switchOpcodeImmediateForm(int orig)
+int getMatchingNonImmediateOpcode(int orig)
 {
    switch (orig) {
       case OPC_ADDI: return OPC_ADD;
@@ -138,11 +138,9 @@ void fixUnsupportedImmediates(t_program_infos *program)
       } else if (instr->opcode == OPC_MULI || instr->opcode == OPC_DIVI ||
             !isInt12(instr->immediate)) {
          int reg = getNewRegister(program);
+         int newOpc = getMatchingNonImmediateOpcode(instr->opcode);
          curi = addInstrAfter(program, curi, genLIInstruction(NULL, reg, IMM(instr)));
-         if (instr->opcode == OPC_MULI)
-            curi = addInstrAfter(program, curi, genMULInstruction(NULL, RD(instr), RS1(instr), reg));
-         else if (instr->opcode == OPC_DIVI)
-            curi = addInstrAfter(program, curi, genDIVInstruction(NULL, RD(instr), RS1(instr), reg));
+         curi = addInstrAfter(program, curi, genInstruction(NULL, newOpc, RD(instr), RS1(instr), reg, NULL, 0));
          removeInstructionAt(program, transformedInstrLnk);
 
       } else if (instr->opcode == OPC_SLLI || instr->opcode == OPC_SRLI || instr->opcode == OPC_SRAI) {
