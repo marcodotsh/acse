@@ -418,20 +418,20 @@ t_axe_instruction *genEBREAKInstruction(t_program_infos *program)
 }
 
 
-t_axe_instruction *genHALTInstruction(t_program_infos *program)
+t_axe_instruction *genExitSyscall(t_program_infos *program)
 {
-   return genInstruction(
-         program, OPC_HALT, REG_INVALID, REG_INVALID, REG_INVALID, NULL, 0);
+   return genInstruction(program, OPC_CALL_EXIT, REG_INVALID, REG_INVALID,
+         REG_INVALID, NULL, 0);
 }
 
-t_axe_instruction *genREADInstruction(t_program_infos *program, int r_dest)
+t_axe_instruction *genReadIntSyscall(t_program_infos *program, int r_dest)
 {
    return genInstruction(
-         program, OPC_READ, r_dest, REG_INVALID, REG_INVALID, NULL, 0);
+         program, OPC_CALL_READ_INT, r_dest, REG_INVALID, REG_INVALID, NULL, 0);
 }
 
-t_axe_instruction *genWRITEInstruction(t_program_infos *program, int r_src1)
+t_axe_instruction *genWriteIntSyscall(t_program_infos *program, int r_src1)
 {
-   return genInstruction(
-         program, OPC_WRITE, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
+   return genInstruction(program, OPC_CALL_WRITE_INT, REG_INVALID, r_src1,
+         REG_INVALID, NULL, 0);
 }

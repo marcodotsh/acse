@@ -22,76 +22,76 @@ const char *opcodeToString(int opcode)
 {
    switch (opcode) {
       /* Arithmetic */
-      case OPC_ADD:        return "add";
-      case OPC_SUB:        return "sub";
-      case OPC_AND:        return "and";
-      case OPC_OR:         return "or";
-      case OPC_XOR:        return "xor";
-      case OPC_MUL:        return "mul";
-      case OPC_DIV:        return "div";
-      case OPC_SLL:        return "sll";
-      case OPC_SRL:        return "srl";
-      case OPC_SRA:        return "sra";
+      case OPC_ADD:              return "add";
+      case OPC_SUB:              return "sub";
+      case OPC_AND:              return "and";
+      case OPC_OR:               return "or";
+      case OPC_XOR:              return "xor";
+      case OPC_MUL:              return "mul";
+      case OPC_DIV:              return "div";
+      case OPC_SLL:              return "sll";
+      case OPC_SRL:              return "srl";
+      case OPC_SRA:              return "sra";
       /* Arithmetic with immediate */
-      case OPC_ADDI:       return "addi";
-      case OPC_SUBI:       return "subi";
-      case OPC_ANDI:       return "andi";
-      case OPC_ORI:        return "ori";
-      case OPC_XORI:       return "xori";
-      case OPC_MULI:       return "muli";
-      case OPC_DIVI:       return "divi";
-      case OPC_SLLI:       return "slli";
-      case OPC_SRLI:       return "srli";
-      case OPC_SRAI:       return "srai";
-      /* Comparison */
-      case OPC_SEQ :       return "seq";
-      case OPC_SNE :       return "sne";
-      case OPC_SLT :       return "slt";
-      case OPC_SLTU:       return "sltu";
-      case OPC_SGE :       return "sge";
-      case OPC_SGEU:       return "sgeu";
-      case OPC_SGT :       return "sgt";
-      case OPC_SGTU:       return "sgtu";
-      case OPC_SLE :       return "sle";
-      case OPC_SLEU:       return "sleu";
+      case OPC_ADDI:             return "addi";
+      case OPC_SUBI:             return "subi";
+      case OPC_ANDI:             return "andi";
+      case OPC_ORI:              return "ori";
+      case OPC_XORI:             return "xori";
+      case OPC_MULI:             return "muli";
+      case OPC_DIVI:             return "divi";
+      case OPC_SLLI:             return "slli";
+      case OPC_SRLI:             return "srli";
+      case OPC_SRAI:             return "srai";
+      /* Comparison */     
+      case OPC_SEQ :             return "seq";
+      case OPC_SNE :             return "sne";
+      case OPC_SLT :             return "slt";
+      case OPC_SLTU:             return "sltu";
+      case OPC_SGE :             return "sge";
+      case OPC_SGEU:             return "sgeu";
+      case OPC_SGT :             return "sgt";
+      case OPC_SGTU:             return "sgtu";
+      case OPC_SLE :             return "sle";
+      case OPC_SLEU:             return "sleu";
       /* Comparison with immediate */
-      case OPC_SEQI :      return "seqi";
-      case OPC_SNEI :      return "snei";
-      case OPC_SLTI :      return "slti";
-      case OPC_SLTIU:      return "sltiu";
-      case OPC_SGEI :      return "sgei";
-      case OPC_SGEIU:      return "sgeiu";
-      case OPC_SGTI :      return "sgti";
-      case OPC_SGTIU:      return "sgtiu";
-      case OPC_SLEI :      return "slei";
-      case OPC_SLEIU:      return "sleiu";
-      /* Jump, Branch */
-      case OPC_J :         return "j";
-      case OPC_BEQ :       return "beq";
-      case OPC_BNE :       return "bne";
-      case OPC_BLT :       return "blt";
-      case OPC_BLTU:       return "bltu";
-      case OPC_BGE :       return "bge";
-      case OPC_BGEU:       return "bgeu";
-      case OPC_BGT :       return "bgt";
-      case OPC_BGTU:       return "bgtu";
-      case OPC_BLE :       return "ble";
-      case OPC_BLEU:       return "bleu";
-      /* Load/Store */  
-      case OPC_LW  :       return "lw";
-      case OPC_LW_G:       return "lw";
-      case OPC_SW  :       return "sw";
-      case OPC_SW_G:       return "sw";
-      case OPC_LI  :       return "li";
-      case OPC_LA  :       return "la";
-      /* Other */ 
-      case OPC_NOP:        return "nop";
-      case OPC_ECALL:      return "ecall";
-      case OPC_EBREAK:     return "ebreak";
+      case OPC_SEQI :            return "seqi";
+      case OPC_SNEI :            return "snei";
+      case OPC_SLTI :            return "slti";
+      case OPC_SLTIU:            return "sltiu";
+      case OPC_SGEI :            return "sgei";
+      case OPC_SGEIU:            return "sgeiu";
+      case OPC_SGTI :            return "sgti";
+      case OPC_SGTIU:            return "sgtiu";
+      case OPC_SLEI :            return "slei";
+      case OPC_SLEIU:            return "sleiu";
+      /* Jump, Branch */      
+      case OPC_J :               return "j";
+      case OPC_BEQ :             return "beq";
+      case OPC_BNE :             return "bne";
+      case OPC_BLT :             return "blt";
+      case OPC_BLTU:             return "bltu";
+      case OPC_BGE :             return "bge";
+      case OPC_BGEU:             return "bgeu";
+      case OPC_BGT :             return "bgt";
+      case OPC_BGTU:             return "bgtu";
+      case OPC_BLE :             return "ble";
+      case OPC_BLEU:             return "bleu";
+      /* Load/Store */        
+      case OPC_LW  :             return "lw";
+      case OPC_LW_G:             return "lw";
+      case OPC_SW  :             return "sw";
+      case OPC_SW_G:             return "sw";
+      case OPC_LI  :             return "li";
+      case OPC_LA  :             return "la";
+      /* Other */       
+      case OPC_NOP:              return "nop";
+      case OPC_ECALL:            return "ecall";
+      case OPC_EBREAK:           return "ebreak";
       /* Syscall */
-      case OPC_HALT:       return "HALT";
-      case OPC_READ:       return "READ";
-      case OPC_WRITE:      return "WRITE";
+      case OPC_CALL_EXIT:        return "exit";
+      case OPC_CALL_READ_INT:    return "read_int";
+      case OPC_CALL_WRITE_INT:   return "write_int";
    }
    return "<unknown>";
 }
@@ -109,8 +109,7 @@ const char *opcodeToString(int opcode)
 #define FORMAT_LI       8   /* mnemonic rd, imm         */
 #define FORMAT_LA       9   /* mnemonic rd, label       */
 #define FORMAT_SYSTEM  10   /* mnemonic                 */
-#define FORMAT_USE     11   /* mnemonic rs1             */
-#define FORMAT_DEFINE  12   /* menmonic rd              */
+#define FORMAT_FUNC    11   /* rd = fname(rs1, rs2)     */
 
 static int opcodeToFormat(int opcode)
 {
@@ -185,12 +184,11 @@ static int opcodeToFormat(int opcode)
       case OPC_NOP:
       case OPC_ECALL:
       case OPC_EBREAK:
-      case OPC_HALT:
          return FORMAT_SYSTEM;
-      case OPC_READ:
-         return FORMAT_DEFINE;
-      case OPC_WRITE:
-         return FORMAT_USE;
+      case OPC_CALL_EXIT:
+      case OPC_CALL_READ_INT:
+      case OPC_CALL_WRITE_INT:
+         return FORMAT_FUNC;
    }
    return -1;
 }
@@ -325,18 +323,22 @@ int instructionToString(
             fatalError(AXE_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
          break;
-      case FORMAT_DEFINE:
-         if (!instr->reg_dest)
-            fatalError(AXE_INVALID_INSTRUCTION);
-         res = snprintf(buf, bufsz, "%-6s %s", opc, rd);
-         break;
-      case FORMAT_USE:
-         if (!instr->reg_src1)
-            fatalError(AXE_INVALID_INSTRUCTION);
-         res = snprintf(buf, bufsz, "%-6s %s", opc, rs1);
-         break;
       case FORMAT_SYSTEM:
-      default: res = snprintf(buf, bufsz, "%-6s", opc);
+         res = snprintf(buf, bufsz, "%s", opc);
+         break;
+      case FORMAT_FUNC:
+      default:
+         if (instr->reg_dest)
+            buf += sprintf(buf, "%s = ", rd);
+         buf += sprintf(buf, "%s(", opc);
+         if (instr->reg_src1)
+            buf += sprintf(buf, "%s", rs1);
+         if (instr->reg_src1 && instr->reg_src2)
+            buf += sprintf(buf, ", ");
+         if (instr->reg_src2)
+            buf += sprintf(buf, "%s", rs2);
+         buf += sprintf(buf, ")");
+         break;
    }
 
    free(address);

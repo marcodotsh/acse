@@ -401,7 +401,7 @@ do_while_statement   : DO
 return_statement  : RETURN
                   {
                      /* insert an HALT instruction */
-                     genHALTInstruction(program);
+                     genExitSyscall(program);
                   }
 ;
 
@@ -418,7 +418,7 @@ read_statement : READ LPAR IDENTIFIER RPAR
                location = getRegLocationOfScalar(program, $3);
 
                /* insert a read instruction */
-               genREADInstruction (program, location);
+               genReadIntSyscall(program, location);
 
                /* free the memory associated with the IDENTIFIER */
                free($3);
@@ -437,7 +437,7 @@ write_statement : WRITE LPAR exp RPAR
                   location = $3.registerId;
 
                /* write to standard output an integer value */
-               genWRITEInstruction (program, location);
+               genWriteIntSyscall(program, location);
             }
 ;
 

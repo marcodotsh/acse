@@ -256,44 +256,45 @@ void fixSyscalls(t_program_infos *program)
    while (curi) {
       t_list *transformedInstrLnk = curi;
       t_axe_instruction *instr = curi->data;
-      t_axe_instruction *ecall;
-      int r_func, func;
+      t_axe_instruction *tmp, *ecall;
+      int func, r_func, r_arg, r_dest;
 
-      if (instr->opcode != OPC_HALT && 
-            instr->opcode != OPC_READ && 
-            instr->opcode != OPC_WRITE) {
+      if (instr->opcode != OPC_CALL_EXIT && 
+            instr->opcode != OPC_CALL_READ_INT && 
+            instr->opcode != OPC_CALL_WRITE_INT) {
          curi = curi->next;
          continue;
       }
 
-      if (instr->opcode == OPC_HALT)
+      /* load syscall ID in a0 */
+      if (instr->opcode == OPC_CALL_EXIT)
          func = SYSCALL_ID_EXIT;
-      else if (instr->opcode == OPC_WRITE)
+      else if (instr->opcode == OPC_CALL_WRITE_INT)
          func = SYSCALL_ID_PUTINT;
-      else if (instr->opcode == OPC_READ)
+      else if (instr->opcode == OPC_CALL_READ_INT)
          func = SYSCALL_ID_GETINT;
       r_func = getNewRegister(program);
       curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_func, func));
 
-      if (instr->opcode == OPC_HALT) {
-         int r_arg = getNewRegister(program);
-         curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_arg, 0));
-         ecall = genInstruction(NULL, OPC_ECALL, REG_INVALID, r_func, r_arg, NULL, 0);
-         curi = addInstrAfter(program, curi, ecall);
-
-      } else if (instr->opcode == OPC_WRITE) {
-         int r_arg = getNewRegister(program);
-         curi = addInstrAfter(program, curi, genADDIInstruction(NULL, r_arg, RS1(instr), 0));
-         ecall = genInstruction(NULL, OPC_ECALL, REG_INVALID, r_func, r_arg, NULL, 0);
-         curi = addInstrAfter(program, curi, ecall);
-
-      } else if (instr->opcode == OPC_READ) {
-         int r_res = getNewRegister(program);
-         ecall = genInstruction(NULL, OPC_ECALL, r_res, r_func, REG_INVALID, NULL, 0);
-         curi = addInstrAfter(program, curi, ecall);
-         curi = addInstrAfter(program, curi, genADDIInstruction(NULL, RD(instr), r_res, 0));
+      /* load argument in a1, if there is one */
+      if (instr->reg_src1 || instr->opcode == OPC_CALL_EXIT) {
+         r_arg = getNewRegister(program);
+         if (instr->opcode == OPC_CALL_EXIT)
+            tmp = genLIInstruction(NULL, r_arg, 0);
+         else
+            tmp = genADDIInstruction(NULL, r_arg, RS1(instr), 0);
+         curi = addInstrAfter(program, curi, tmp);
+      } else {
+         r_arg = REG_INVALID;
       }
 
+      /* generate an ECALL */
+      if (instr->reg_dest)
+         r_dest = getNewRegister(program);
+      else
+         r_dest = REG_INVALID;
+      ecall = genInstruction(NULL, OPC_ECALL, r_dest, r_func, r_arg, NULL, 0);
+      curi = addInstrAfter(program, curi, ecall);
       if (ecall->reg_dest)
          setMCRegisterWhitelist(ecall->reg_dest, REG_A0, -1);
       if (ecall->reg_src1)
@@ -301,6 +302,11 @@ void fixSyscalls(t_program_infos *program)
       if (ecall->reg_src2)
          setMCRegisterWhitelist(ecall->reg_src2, REG_A1, -1);
 
+      /* move a0 (result) to the destination reg. if needed */
+      if (instr->reg_dest)
+         curi = addInstrAfter(program, curi, genADDIInstruction(NULL, RD(instr), r_dest, 0));
+
+      /* remove the old call instruction */
       removeInstructionAt(program, transformedInstrLnk);
 
       curi = curi->next;

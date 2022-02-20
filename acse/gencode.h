@@ -278,18 +278,18 @@ extern t_axe_instruction *genEBREAKInstruction(t_program_infos *program);
 /* By calling this function, a new HALT instruction will be added
  * to `program'. An HALT instruction doesn't require
  * any kind of parameter */
-extern t_axe_instruction *genHALTInstruction(t_program_infos *program);
+extern t_axe_instruction *genExitSyscall(t_program_infos *program);
 
 /* A READ instruction requires only one parameter:
  * A destination register (where the value
  * read from standard input will be loaded). */
-extern t_axe_instruction *genREADInstruction(
+extern t_axe_instruction *genReadIntSyscall(
       t_program_infos *program, int r_dest);
 
 /* A WRITE instruction requires only one parameter:
  * A destination register (where the value
  * that will be written to the standard output is located). */
-extern t_axe_instruction *genWRITEInstruction(
+extern t_axe_instruction *genWriteIntSyscall(
       t_program_infos *program, int r_src1);
 
 

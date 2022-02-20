@@ -14,31 +14,18 @@
 
 int isHaltOrRetInstruction(t_axe_instruction *instr)
 {
-   if (instr == NULL) {
-      return 0;
-   }
-
-   return instr->opcode == OPC_HALT;
+   return instr->opcode == OPC_CALL_EXIT;
 }
 
 
 int isUnconditionalJump(t_axe_instruction *instr)
 {
-   if (isJumpInstruction(instr))
-   {
-      if (instr->opcode == OPC_J)
-         return 1;
-   }
-
-   return 0;
+   return instr->opcode == OPC_J;
 }
 
 
 int isJumpInstruction(t_axe_instruction *instr)
 {
-   if (instr == NULL)
-      return 0;
-
    switch (instr->opcode) {
       case OPC_J:
       case OPC_BEQ:

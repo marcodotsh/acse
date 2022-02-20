@@ -145,9 +145,9 @@ enum {
    OPC_EBREAK,
 
    /* Syscall opcodes */
-   OPC_HALT,
-   OPC_READ,
-   OPC_WRITE
+   OPC_CALL_EXIT,
+   OPC_CALL_READ_INT,
+   OPC_CALL_WRITE_INT
 };
 
 

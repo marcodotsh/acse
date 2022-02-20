@@ -576,7 +576,7 @@ void setProgramEnd(t_program_infos *program)
 
    if (program->label_to_assign != NULL)
    {
-      genHALTInstruction(program);
+      genExitSyscall(program);
       return;
    }
 
@@ -593,11 +593,11 @@ void setProgramEnd(t_program_infos *program)
       last_instr = (t_axe_instruction *)last_element->data;
       assert(last_instr != NULL);
 
-      if (last_instr->opcode == OPC_HALT)
+      if (last_instr->opcode == OPC_CALL_EXIT)
          return;
    }
 
-   genHALTInstruction(program);
+   genExitSyscall(program);
    return;
 }
 
