@@ -133,7 +133,10 @@ static void lexSkipWhitespaceAndComments(t_lexer *lex)
 
       if (state == 0) {
          /* normal whitespace */
-         if (next == '/') {
+         if (next == '#') {
+            /* beginning of a RISC-V-style line comment */
+            state = 2;
+         } else if (next == '/') {
             /* check for beginning of a comment */
             next = lexGetChar(lex);
             if (next == '*') {
