@@ -163,8 +163,10 @@ static void lexSkipWhitespaceAndComments(t_lexer *lex)
 
       } else if (state == 2) {
          /* in a line comment */
-         if (isnewline(next))
+         if (isnewline(next)) {
+            lexPutBack(lex, 1);
             state = -1;
+         }
       }
    }
 }
