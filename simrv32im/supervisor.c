@@ -52,7 +52,7 @@ t_svStatus svHandleEnvCall(void)
 
    switch (syscallId) {
       case SV_SYSCALL_PRINT_INT:
-         fprintf(stdout, "%d\n", cpuGetRegister(CPU_REG_A0));
+         fprintf(stdout, "%d", cpuGetRegister(CPU_REG_A0));
          break;
       case SV_SYSCALL_READ_INT:
          fputs("int value? >", stdout);
