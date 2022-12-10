@@ -292,5 +292,11 @@ extern t_axe_instruction *genReadIntSyscall(
 extern t_axe_instruction *genPrintIntSyscall(
       t_program_infos *program, int r_src1);
 
+/* A WRITE instruction requires only one parameter:
+ * A destination register (where the value
+ * that will be written to the standard output is located). */
+extern t_axe_instruction *genPrintCharSyscall(
+      t_program_infos *program, int r_src1);
+
 
 #endif

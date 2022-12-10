@@ -23,6 +23,7 @@
 #define SYSCALL_ID_PRINT_INT  1
 #define SYSCALL_ID_READ_INT   5
 #define SYSCALL_ID_EXIT_0     10
+#define SYSCALL_ID_PRINT_CHAR 11
 
 
 t_list *addInstrAfter(t_program_infos *program, t_list *prev, t_axe_instruction *instr)
@@ -261,7 +262,8 @@ void fixSyscalls(t_program_infos *program)
 
       if (instr->opcode != OPC_CALL_EXIT_0 && 
             instr->opcode != OPC_CALL_READ_INT && 
-            instr->opcode != OPC_CALL_PRINT_INT) {
+            instr->opcode != OPC_CALL_PRINT_INT &&
+            instr->opcode != OPC_CALL_PRINT_CHAR) {
          curi = curi->next;
          continue;
       }
@@ -273,6 +275,8 @@ void fixSyscalls(t_program_infos *program)
          func = SYSCALL_ID_PRINT_INT;
       else if (instr->opcode == OPC_CALL_READ_INT)
          func = SYSCALL_ID_READ_INT;
+      else if (instr->opcode == OPC_CALL_PRINT_CHAR)
+         func = SYSCALL_ID_PRINT_CHAR;
       r_func = getNewRegister(program);
       curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_func, func));
 

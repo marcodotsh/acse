@@ -435,3 +435,9 @@ t_axe_instruction *genPrintIntSyscall(t_program_infos *program, int r_src1)
    return genInstruction(program, OPC_CALL_PRINT_INT, REG_INVALID, r_src1,
          REG_INVALID, NULL, 0);
 }
+
+t_axe_instruction *genPrintCharSyscall(t_program_infos *program, int r_src1)
+{
+   return genInstruction(program, OPC_CALL_PRINT_CHAR, REG_INVALID, r_src1,
+         REG_INVALID, NULL, 0);
+}

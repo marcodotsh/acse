@@ -92,6 +92,7 @@ const char *opcodeToString(int opcode)
       case OPC_CALL_EXIT_0:      return "Exit";
       case OPC_CALL_READ_INT:    return "ReadInt";
       case OPC_CALL_PRINT_INT:   return "PrintInt";
+      case OPC_CALL_PRINT_CHAR:  return "PrintChar";
    }
    return "<unknown>";
 }
@@ -188,6 +189,7 @@ static int opcodeToFormat(int opcode)
       case OPC_CALL_EXIT_0:
       case OPC_CALL_READ_INT:
       case OPC_CALL_PRINT_INT:
+      case OPC_CALL_PRINT_CHAR:
          return FORMAT_FUNC;
    }
    return -1;

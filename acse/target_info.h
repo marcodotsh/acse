@@ -147,7 +147,8 @@ enum {
    /* Syscall opcodes */
    OPC_CALL_EXIT_0,
    OPC_CALL_READ_INT,
-   OPC_CALL_PRINT_INT
+   OPC_CALL_PRINT_INT,
+   OPC_CALL_PRINT_CHAR
 };
 
 

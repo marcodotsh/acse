@@ -438,6 +438,10 @@ write_statement : WRITE LPAR exp RPAR
 
                /* write to standard output an integer value */
                genPrintIntSyscall(program, location);
+
+               /* write a newline to standard output */
+               location = genLoadImmediate(program, '\n');
+               genPrintCharSyscall(program, location);
             }
 ;
 
