@@ -37,38 +37,41 @@ int svExpandStack(void)
 
 
 enum {
-   SV_SYSCALL_EXIT    = 93,
-   SV_SYSCALL_PUTCHAR = 2000,
-   SV_SYSCALL_GETCHAR = 2001,
-   SV_SYSCALL_PUTINT  = 2002,
-   SV_SYSCALL_GETINT  = 2003
+   SV_SYSCALL_PRINT_INT    = 1,
+   SV_SYSCALL_READ_INT     = 5,
+   SV_SYSCALL_EXIT_0       = 10,
+   SV_SYSCALL_PRINT_CHAR   = 11,
+   SV_SYSCALL_READ_CHAR    = 12,
+   SV_SYSCALL_EXIT         = 93
 };
 
 t_svStatus svHandleEnvCall(void)
 {
-   uint32_t syscallId = cpuGetRegister(CPU_REG_A0);
+   uint32_t syscallId = cpuGetRegister(CPU_REG_A7);
    int32_t ret;
 
    switch (syscallId) {
-      case SV_SYSCALL_EXIT:
-         svExitCode = cpuGetRegister(CPU_REG_A1);
-         return SV_STATUS_TERMINATED;
-      case SV_SYSCALL_PUTCHAR:
-         ret = putchar(cpuGetRegister(CPU_REG_A1));
-         cpuSetRegister(CPU_REG_A0, ret);
+      case SV_SYSCALL_PRINT_INT:
+         fprintf(stdout, "%d\n", cpuGetRegister(CPU_REG_A0));
          break;
-      case SV_SYSCALL_GETCHAR:
-         ret = getchar();
-         cpuSetRegister(CPU_REG_A0, ret);
-         break;
-      case SV_SYSCALL_PUTINT:
-         fprintf(stdout, "%d\n", cpuGetRegister(CPU_REG_A1));
-         break;
-      case SV_SYSCALL_GETINT:
+      case SV_SYSCALL_READ_INT:
          fputs("int value? >", stdout);
          fscanf(stdin, "%"PRId32, &ret);
          cpuSetRegister(CPU_REG_A0, ret);
          break;
+      case SV_SYSCALL_EXIT_0:
+         svExitCode = 0;
+         return SV_STATUS_TERMINATED;
+      case SV_SYSCALL_PRINT_CHAR:
+         ret = putchar(cpuGetRegister(CPU_REG_A0));
+         break;
+      case SV_SYSCALL_READ_CHAR:
+         ret = getchar();
+         cpuSetRegister(CPU_REG_A0, ret);
+         break;
+      case SV_SYSCALL_EXIT:
+         svExitCode = cpuGetRegister(CPU_REG_A0);
+         return SV_STATUS_TERMINATED;
       default:
          return SV_STATUS_INVALID_SYSCALL;
    }
