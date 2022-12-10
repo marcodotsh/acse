@@ -14,7 +14,7 @@
 
 int isHaltOrRetInstruction(t_axe_instruction *instr)
 {
-   return instr->opcode == OPC_CALL_EXIT;
+   return instr->opcode == OPC_CALL_EXIT_0;
 }
 
 

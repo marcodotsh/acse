@@ -20,9 +20,9 @@
 #define RS2(i) (i->reg_src2->ID)
 #define IMM(i) (i->immediate)
 
-#define SYSCALL_ID_EXIT   93
-#define SYSCALL_ID_PUTINT 2002
-#define SYSCALL_ID_GETINT 2003
+#define SYSCALL_ID_PRINT_INT  1
+#define SYSCALL_ID_READ_INT   5
+#define SYSCALL_ID_EXIT_0     10
 
 
 t_list *addInstrAfter(t_program_infos *program, t_list *prev, t_axe_instruction *instr)
@@ -259,30 +259,27 @@ void fixSyscalls(t_program_infos *program)
       t_axe_instruction *tmp, *ecall;
       int func, r_func, r_arg, r_dest;
 
-      if (instr->opcode != OPC_CALL_EXIT && 
+      if (instr->opcode != OPC_CALL_EXIT_0 && 
             instr->opcode != OPC_CALL_READ_INT && 
-            instr->opcode != OPC_CALL_WRITE_INT) {
+            instr->opcode != OPC_CALL_PRINT_INT) {
          curi = curi->next;
          continue;
       }
 
-      /* load syscall ID in a0 */
-      if (instr->opcode == OPC_CALL_EXIT)
-         func = SYSCALL_ID_EXIT;
-      else if (instr->opcode == OPC_CALL_WRITE_INT)
-         func = SYSCALL_ID_PUTINT;
+      /* load syscall ID in a7 */
+      if (instr->opcode == OPC_CALL_EXIT_0)
+         func = SYSCALL_ID_EXIT_0;
+      else if (instr->opcode == OPC_CALL_PRINT_INT)
+         func = SYSCALL_ID_PRINT_INT;
       else if (instr->opcode == OPC_CALL_READ_INT)
-         func = SYSCALL_ID_GETINT;
+         func = SYSCALL_ID_READ_INT;
       r_func = getNewRegister(program);
       curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_func, func));
 
-      /* load argument in a1, if there is one */
-      if (instr->reg_src1 || instr->opcode == OPC_CALL_EXIT) {
+      /* load argument in a0, if there is one */
+      if (instr->reg_src1) {
          r_arg = getNewRegister(program);
-         if (instr->opcode == OPC_CALL_EXIT)
-            tmp = genLIInstruction(NULL, r_arg, 0);
-         else
-            tmp = genADDIInstruction(NULL, r_arg, RS1(instr), 0);
+         tmp = genADDIInstruction(NULL, r_arg, RS1(instr), 0);
          curi = addInstrAfter(program, curi, tmp);
       } else {
          r_arg = REG_INVALID;
@@ -298,9 +295,9 @@ void fixSyscalls(t_program_infos *program)
       if (ecall->reg_dest)
          setMCRegisterWhitelist(ecall->reg_dest, REG_A0, -1);
       if (ecall->reg_src1)
-         setMCRegisterWhitelist(ecall->reg_src1, REG_A0, -1);
+         setMCRegisterWhitelist(ecall->reg_src1, REG_A7, -1);
       if (ecall->reg_src2)
-         setMCRegisterWhitelist(ecall->reg_src2, REG_A1, -1);
+         setMCRegisterWhitelist(ecall->reg_src2, REG_A0, -1);
 
       /* move a0 (result) to the destination reg. if needed */
       if (instr->reg_dest)

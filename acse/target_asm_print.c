@@ -89,9 +89,9 @@ const char *opcodeToString(int opcode)
       case OPC_ECALL:            return "ecall";
       case OPC_EBREAK:           return "ebreak";
       /* Syscall */
-      case OPC_CALL_EXIT:        return "exit";
-      case OPC_CALL_READ_INT:    return "read_int";
-      case OPC_CALL_WRITE_INT:   return "write_int";
+      case OPC_CALL_EXIT_0:      return "Exit";
+      case OPC_CALL_READ_INT:    return "ReadInt";
+      case OPC_CALL_PRINT_INT:   return "PrintInt";
    }
    return "<unknown>";
 }
@@ -185,9 +185,9 @@ static int opcodeToFormat(int opcode)
       case OPC_ECALL:
       case OPC_EBREAK:
          return FORMAT_SYSTEM;
-      case OPC_CALL_EXIT:
+      case OPC_CALL_EXIT_0:
       case OPC_CALL_READ_INT:
-      case OPC_CALL_WRITE_INT:
+      case OPC_CALL_PRINT_INT:
          return FORMAT_FUNC;
    }
    return -1;

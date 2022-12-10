@@ -401,7 +401,7 @@ do_while_statement   : DO
 return_statement  : RETURN
                   {
                      /* insert an HALT instruction */
-                     genExitSyscall(program);
+                     genExit0Syscall(program);
                   }
 ;
 
@@ -437,7 +437,7 @@ write_statement : WRITE LPAR exp RPAR
                   location = $3.registerId;
 
                /* write to standard output an integer value */
-               genWriteIntSyscall(program, location);
+               genPrintIntSyscall(program, location);
             }
 ;
 
