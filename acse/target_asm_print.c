@@ -397,7 +397,7 @@ int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
 
    instructionToString(buf, BUF_LENGTH, instr, machineRegIDs);
    if (instr->user_comment) {
-      res = fprintf(fp, "%-24s/* %s */", buf, instr->user_comment);
+      res = fprintf(fp, "%-24s# %s", buf, instr->user_comment);
    } else {
       res = fprintf(fp, "%s", buf);
    }
