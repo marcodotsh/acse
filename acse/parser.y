@@ -84,7 +84,7 @@ extern void yyerror(const char*);
  * Specifies the set of types available for the semantic values of terminal
  * and non-terminal symbols.
  ******************************************************************************/
-%union {            
+%union {
    int integer;
    char *string;
    t_axe_expression expr;
@@ -268,8 +268,6 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
             }
             | IDENTIFIER ASSIGN exp
             {
-               int location;
-
                /* in order to assign a value to a variable, we have to
                 * know where the variable is located (i.e. in which register).
                 * the function `getRegLocationOfScalar' is used in order
@@ -280,7 +278,7 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                 * the variable with $1 as identifier */
                
                /* get the location of the variable with the given ID. */
-               location = getRegLocationOfScalar(program, $1);
+               int location = getRegLocationOfScalar(program, $1);
 
                /* update the value of location */
                if ($3.type == IMMEDIATE)
@@ -401,15 +399,13 @@ return_statement  : RETURN
 
 read_statement : READ LPAR IDENTIFIER RPAR 
             {
-               int location;
-               
                /* read from standard input an integer value and assign
                 * it to a variable associated with the given identifier */
                /* get the location of the variable with the given ID */
                
                /* lookup the variable table and fetch the register location
                 * associated with the IDENTIFIER $3. */
-               location = getRegLocationOfScalar(program, $3);
+               int location = getRegLocationOfScalar(program, $3);
 
                /* insert a read instruction */
                genReadIntSyscall(program, location);
@@ -422,7 +418,6 @@ read_statement : READ LPAR IDENTIFIER RPAR
 write_statement : WRITE LPAR exp RPAR 
             {
                int location;
-
                if ($3.type == IMMEDIATE) {
                   /* load `immediate' into a new register. Returns the new
                    * register identifier or REG_INVALID if an error occurs */
@@ -445,10 +440,8 @@ exp: NUMBER
    }
    | IDENTIFIER 
    {
-      int variableReg;
-
       /* get the location of the symbol with the given ID */
-      variableReg = getRegLocationOfScalar(program, $1);
+      int variableReg = getRegLocationOfScalar(program, $1);
       
       /* return that register as the expression value */
       $$ = getRegisterExpression(variableReg);
@@ -458,11 +451,9 @@ exp: NUMBER
    }
    | IDENTIFIER LSQUARE exp RSQUARE
    {
-      int reg;
-      
       /* load the value IDENTIFIER[exp]
          * into `arrayElement' */
-      reg = genLoadArrayElement(program, $1, $3);
+      int reg = genLoadArrayElement(program, $1, $3);
 
       /* create a new expression */
       $$ = getRegisterExpression(reg);
@@ -528,9 +519,6 @@ exp: NUMBER
 
 int parseProgram(t_program_infos *program)
 {
-   char *logFileName;
-   FILE *logFile;
-
    /* Initialize all the global variables */
    line_num = 1;
    num_error = 0;
@@ -555,9 +543,9 @@ int parseProgram(t_program_infos *program)
       return 1;
 
 #ifndef NDEBUG
-   logFileName = getLogFileName("frontend");
+   char *logFileName = getLogFileName("frontend");
    debugPrintf(" -> Writing the output of parsing to \"%s\"\n", logFileName);
-   logFile = fopen(logFileName, "w");
+   FILE *logFile = fopen(logFileName, "w");
    printProgramInfos(program, logFile);
    fclose(logFile);
    free(logFileName);
@@ -575,10 +563,8 @@ int parseProgram(t_program_infos *program)
 
 int main(int argc, char *argv[])
 {
-   int error;
-
    /* Read the options on the command line */
-   error = parseCompilerOptions(argc, argv);
+   int error = parseCompilerOptions(argc, argv);
    if (error != 0)
       return error;
 
