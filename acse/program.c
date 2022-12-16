@@ -627,8 +627,6 @@ void printProgramInfos(t_program_infos *program, FILE *fout)
       
       if (var->isArray) {
          fprintf(fout, ", array size = %d", var->arraySize);
-      } else {
-         fprintf(fout, ", scalar initial value = %d", var->init_val);
       }
       fprintf(fout, "\n");
 

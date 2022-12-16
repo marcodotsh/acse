@@ -18,7 +18,7 @@
 
 /* create and initialize an instance of `t_axe_variable' */
 t_axe_variable *initializeVariable(
-      char *ID, int type, int isArray, int arraySize, int init_val)
+      char *ID, int type, int isArray, int arraySize)
 {
    t_axe_variable *result;
 
@@ -32,7 +32,6 @@ t_axe_variable *initializeVariable(
    result->isArray = isArray;
    result->arraySize = arraySize;
    result->ID = ID;
-   result->init_val = init_val;
    result->label = NULL;
    result->reg_location = REG_INVALID;
 
@@ -49,7 +48,7 @@ void finalizeVariable(t_axe_variable *variable)
 
 
 void createVariable(t_program_infos *program, char *ID, int type, int isArray,
-      int arraySize, int init_val)
+      int arraySize)
 {
    t_axe_variable *var, *variableFound;
    int sizeofElem;
@@ -77,7 +76,7 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
    }
 
    /* initialize a new variable */
-   var = initializeVariable(ID, type, isArray, arraySize, init_val);
+   var = initializeVariable(ID, type, isArray, arraySize);
 
    if (isArray) {
       /* arrays are stored in memory and need a variable location */
@@ -95,7 +94,7 @@ void createVariable(t_program_infos *program, char *ID, int type, int isArray,
             program, DIR_SPACE, var->arraySize * sizeofElem, var->label);
    } else {
       /* scalars are stored in registers */
-      var->reg_location = genLoadImmediate(program, init_val);
+      var->reg_location = getNewRegister(program);
    }
 
    /* now we can add the new variable to the program */

@@ -206,22 +206,16 @@ declaration_list  : declaration_list COMMA declaration
                   }
 ;
 
-declaration : IDENTIFIER ASSIGN NUMBER
+declaration : IDENTIFIER
             {
                /* create a new instance of t_axe_declaration */
-               $$ = initializeDeclaration($1, 0, 0, $3);
+               $$ = initializeDeclaration($1, 0, 0);
                free($1);
             }
             | IDENTIFIER LSQUARE NUMBER RSQUARE
             {
                /* create a new instance of t_axe_declaration */
-               $$ = initializeDeclaration($1, 1, $3, 0);
-               free($1);
-            }
-            | IDENTIFIER
-            {
-               /* create a new instance of t_axe_declaration */
-               $$ = initializeDeclaration($1, 0, 0, 0);
+               $$ = initializeDeclaration($1, 1, $3);
                free($1);
             }
 ;

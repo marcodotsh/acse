@@ -1,6 +1,7 @@
-int s = 0;
+int s;
 int x;
 
+s = 0;
 read(x);
 
 if (x >= 0) {

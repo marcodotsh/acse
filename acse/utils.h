@@ -29,7 +29,6 @@ typedef struct t_axe_declaration {
    int isArray;   /* must be TRUE if the current variable is an array */
    int arraySize; /* the size of the array. This information is useful
                    * only if the field `isArray' is TRUE */
-   int init_val;  /* initial value of the current variable. */
 } t_axe_declaration;
 
 /** Utility structure used to store information about a while statement. */
@@ -47,7 +46,7 @@ extern int debugPrintf(const char *fmt, ...);
 
 /** Allocate and intialize a new variable declaration structure. */
 extern t_axe_declaration *initializeDeclaration(
-      char *ID, int isArray, int arraySize, int init_val);
+      char *ID, int isArray, int arraySize);
 
 /** Create a variable for each `t_axe_declaration' inside the list `variables'.
  * Each new variable will be of type `varType'. */

@@ -23,8 +23,6 @@ typedef struct t_axe_variable {
    char *ID;           /* Variable identifier (should never be a NULL
                         * pointer or an empty string "") */
    int isArray;        /* Must be TRUE if the current variable is an array */
-   int init_val;       /* If `isArray' is FALSE, initial value of the
-                        * variable. */
    int reg_location;   /* If `isArray' is FALSE, the register ID associated to
                         * the variable. */
    int arraySize;      /* If `isArray' is TRUE, the size of the array. */
@@ -41,7 +39,7 @@ typedef struct t_axe_variable {
  * @param arraySize  If isArray!=0, the size of the array.
  * @param init_val   If isArray==0, initial value of the variable. */
 extern void createVariable(t_program_infos *program, char *ID, int type,
-      int isArray, int arraySize, int init_val);
+      int isArray, int arraySize);
 
 /** Deletes all variables in the given list.
  * @param variables The list of `t_axe_variable's to be deleted. */

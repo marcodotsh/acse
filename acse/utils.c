@@ -37,8 +37,7 @@ int debugPrintf(const char *fmt, ...)
 }
 
 
-t_axe_declaration *initializeDeclaration(
-      char *ID, int isArray, int arraySize, int init_val)
+t_axe_declaration *initializeDeclaration(char *ID, int isArray, int arraySize)
 {
    t_axe_declaration *result;
    char *name;
@@ -58,7 +57,6 @@ t_axe_declaration *initializeDeclaration(
    result->isArray = isArray;
    result->arraySize = arraySize;
    result->ID = name;
-   result->init_val = init_val;
 
    /* return the just created and initialized instance of t_axe_declaration */
    return result;
@@ -84,7 +82,7 @@ void addVariablesFromDecls(
 
       /* create and assign a new variable to program */
       createVariable(program, current_decl->ID, varType, current_decl->isArray,
-            current_decl->arraySize, current_decl->init_val);
+            current_decl->arraySize);
 
       /* update the value of `current_element' */
       current_element = current_element->next;
