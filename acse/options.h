@@ -1,10 +1,10 @@
 /*
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
- * 
+ *
  * options.h
  * Formal Languages & Compilers Machine, 2007/2008
- * 
+ *
  * Parsing of compilation options
  */
 

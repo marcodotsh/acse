@@ -44,14 +44,14 @@ int num_error;
 int num_warning;     
                      
 /* The singleton instance of `program'.
- *   An instance of `t_program_infos' holds in its internal structure all the
+ *   An instance of `t_program' holds in its internal structure all the
  * fundamental informations about the program being compiled:
  *   - the list of instructions
  *   - the list of data directives (static allocations)
  *   - the list of variables
  *   - the list of labels
  *   - ... */
-t_program_infos *program;
+t_program *program;
 
 /* This global variable is the file read by the Flex-generated scanner */
 extern FILE *yyin;
@@ -87,11 +87,11 @@ extern void yyerror(const char*);
 %union {
    int integer;
    char *string;
-   t_axe_expression expr;
-   t_axe_declaration *decl;
-   t_list *list;
-   t_axe_label *label;
-   t_while_statement while_stmt;
+   t_expressionValue expr;
+   t_declaration *decl;
+   t_listNode *list;
+   t_label *label;
+   t_whileStatement while_stmt;
 }
 
 /******************************************************************************
@@ -208,14 +208,14 @@ declaration_list  : declaration_list COMMA declaration
 
 declaration : IDENTIFIER
             {
-               /* create a new instance of t_axe_declaration */
-               $$ = initializeDeclaration($1, 0, 0);
+               /* create a new instance of t_declaration */
+               $$ = newDeclaration($1, 0, 0);
                free($1);
             }
             | IDENTIFIER LSQUARE NUMBER RSQUARE
             {
-               /* create a new instance of t_axe_declaration */
-               $$ = initializeDeclaration($1, 1, $3);
+               /* create a new instance of t_declaration */
+               $$ = newDeclaration($1, 1, $3);
                free($1);
             }
 ;
@@ -281,7 +281,7 @@ assign_statement : IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                int location = getRegLocationOfScalar(program, $1);
 
                /* update the value of location */
-               if ($3.type == IMMEDIATE)
+               if ($3.type == CONSTANT)
                   genMoveImmediate(program, location, $3.immediate);
                else
                   genADDIInstruction(program, location, $3.registerId, 0);
@@ -300,7 +300,7 @@ if_statement   : if_stmt
                {
                   /* reserve a new label that points to the address where to
                    * jump if `exp' is verified */
-                  $2 = newLabel(program);
+                  $2 = createLabel(program);
    
                   /* exit from the if-else */
                   genJInstruction(program, $2);
@@ -319,11 +319,11 @@ if_stmt  : IF
          {
             /* the label that points to the address where to jump if
              * `exp' is not verified */
-            $1 = newLabel(program);
+            $1 = createLabel(program);
          }
          LPAR exp RPAR
          {
-            if ($4.type == IMMEDIATE) {
+            if ($4.type == CONSTANT) {
                if ($4.immediate == 0)
                   genJInstruction(program, $1);
             } else {
@@ -347,9 +347,9 @@ while_statement   : WHILE
                      /* reserve a new label. This new label will point
                       * to the first instruction after the while code
                       * block */
-                     $1.label_end = newLabel(program);
+                     $1.label_end = createLabel(program);
 
-                     if ($4.type == IMMEDIATE) {
+                     if ($4.type == CONSTANT) {
                         if ($4.immediate == 0)
                            genJInstruction(program, $1.label_end);
                      } else {
@@ -373,14 +373,14 @@ do_while_statement   : DO
                      {
                         /* the label that points to the address where to jump if
                          * `exp' is not verified */
-                        $1 = newLabel(program);
+                        $1 = createLabel(program);
                         
                         /* fix the label */
                         assignLabel(program, $1);
                      }
                      code_block WHILE LPAR exp RPAR
                      {
-                        if ($6.type == IMMEDIATE) {
+                        if ($6.type == CONSTANT) {
                            if ($6.immediate != 0)
                               genJInstruction(program, $1);
                         } else {
@@ -418,7 +418,7 @@ read_statement : READ LPAR IDENTIFIER RPAR
 write_statement : WRITE LPAR exp RPAR 
             {
                int location;
-               if ($3.type == IMMEDIATE) {
+               if ($3.type == CONSTANT) {
                   /* load `immediate' into a new register. Returns the new
                    * register identifier or REG_INVALID if an error occurs */
                   location = genLoadImmediate(program, $3.immediate);
@@ -436,7 +436,7 @@ write_statement : WRITE LPAR exp RPAR
 
 exp: NUMBER
    { 
-      $$ = getImmediateExpression($1);
+      $$ = getConstantExprValue($1);
    }
    | IDENTIFIER 
    {
@@ -444,7 +444,7 @@ exp: NUMBER
       int variableReg = getRegLocationOfScalar(program, $1);
       
       /* return that register as the expression value */
-      $$ = getRegisterExpression(variableReg);
+      $$ = getRegisterExprValue(variableReg);
 
       /* free the memory associated with the IDENTIFIER */
       free($1);
@@ -456,18 +456,18 @@ exp: NUMBER
       int reg = genLoadArrayElement(program, $1, $3);
 
       /* create a new expression */
-      $$ = getRegisterExpression(reg);
+      $$ = getRegisterExprValue(reg);
 
       /* free the memory associated with the IDENTIFIER */
       free($1);
    }
    | NOT_OP exp
    {
-      if ($2.type == IMMEDIATE) {
-         /* IMMEDIATE (constant) expression: compute the value at
-            * compile-time and place the result in a new IMMEDIATE
+      if ($2.type == CONSTANT) {
+         /* CONSTANT (constant) expression: compute the value at
+            * compile-time and place the result in a new CONSTANT
             * expression */
-         $$ = getImmediateExpression(!($2.immediate));
+         $$ = getConstantExprValue(!($2.immediate));
       } else {
          /* REGISTER expression: generate the code that will compute
           * the result at compile time */
@@ -480,16 +480,16 @@ exp: NUMBER
          genSEQInstruction(program, res_reg, $2.registerId, REG_0);
          
          /* Return a REGISTER expression with the result register */
-         $$ = getRegisterExpression(res_reg);
+         $$ = getRegisterExprValue(res_reg);
       }
    }
    | MINUS exp
    {
-      if ($2.type == IMMEDIATE) {
-         $$ = getImmediateExpression(-($2.immediate));
+      if ($2.type == CONSTANT) {
+         $$ = getConstantExprValue(-($2.immediate));
       } else {
          /* create an expression for register REG_0 */
-         t_axe_expression exp_r0 = getRegisterExpression(REG_0);
+         t_expressionValue exp_r0 = getRegisterExprValue(REG_0);
          $$ = handleBinaryOperator(program, exp_r0, $2, OP_SUB);
       }
    }
@@ -517,7 +517,7 @@ exp: NUMBER
  * Parser wrapper function
  ******************************************************************************/
 
-int parseProgram(t_program_infos *program)
+int parseProgram(t_program *program)
 {
    /* Initialize all the global variables */
    line_num = 1;
@@ -546,7 +546,7 @@ int parseProgram(t_program_infos *program)
    char *logFileName = getLogFileName("frontend");
    debugPrintf(" -> Writing the output of parsing to \"%s\"\n", logFileName);
    FILE *logFile = fopen(logFileName, "w");
-   printProgramInfos(program, logFile);
+   dumpProgram(program, logFile);
    fclose(logFile);
    free(logFileName);
 #endif
@@ -569,7 +569,7 @@ int main(int argc, char *argv[])
       return error;
 
    /* initialize the translation infos */
-   program = allocProgramInfos();
+   program = newProgram();
 
    debugPrintf("Parsing the input program\n");
    error = parseProgram(program);
@@ -590,7 +590,7 @@ int main(int argc, char *argv[])
    }
    
    debugPrintf("Finalizing the compiler data structures.\n");
-   finalizeProgramInfos(program);
+   deleteProgram(program);
 
    debugPrintf("Done.\n");
    return 0;

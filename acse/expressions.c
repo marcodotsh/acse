@@ -14,18 +14,18 @@
 #include "utils.h"
 
 
-t_axe_expression getImmediateExpression(int value)
+t_expressionValue getConstantExprValue(int value)
 {
-   t_axe_expression exp;
-   exp.type = IMMEDIATE;
+   t_expressionValue exp;
+   exp.type = CONSTANT;
    exp.immediate = value;
    exp.registerId = REG_INVALID;
    return exp;
 }
 
-t_axe_expression getRegisterExpression(int registerId)
+t_expressionValue getRegisterExprValue(int registerId)
 {
-   t_axe_expression exp;
+   t_expressionValue exp;
    exp.type = REGISTER;
    exp.immediate = 0;
    exp.registerId = registerId;
@@ -81,7 +81,7 @@ int computeBinaryOperation(int val1, int val2, int binop)
    return 0;
 }
 
-int genBinaryOperationWithImmediate(t_program_infos *program,
+int genBinaryOperationWithImmediate(t_program *program,
       int r1, int immediate, int op)
 {
    int rd = getNewRegister(program);
@@ -148,7 +148,7 @@ int genBinaryOperationWithImmediate(t_program_infos *program,
    return rd;
 }
 
-int genBinaryOperation(t_program_infos *program, int r1, int r2, int op)
+int genBinaryOperation(t_program *program, int r1, int r2, int op)
 {
    int rd = getNewRegister(program);
 
@@ -216,29 +216,29 @@ int genBinaryOperation(t_program_infos *program, int r1, int r2, int op)
    return rd;
 }
 
-t_axe_expression handleBinaryOperator(t_program_infos *program,
-      t_axe_expression exp1, t_axe_expression exp2, int operator)
+t_expressionValue handleBinaryOperator(t_program *program,
+      t_expressionValue exp1, t_expressionValue exp2, int operator)
 {
-   t_axe_expression res;
+   t_expressionValue res;
 
-   if (exp1.type == IMMEDIATE && exp2.type == IMMEDIATE) {
+   if (exp1.type == CONSTANT && exp2.type == CONSTANT) {
       int v = computeBinaryOperation(exp1.immediate, exp2.immediate, operator);
-      res = getImmediateExpression(v);
+      res = getConstantExprValue(v);
 
-   } else if (exp1.type == REGISTER && exp2.type == IMMEDIATE) {
+   } else if (exp1.type == REGISTER && exp2.type == CONSTANT) {
       int rd = genBinaryOperationWithImmediate(program,
             exp1.registerId, exp2.immediate, operator);
-      res = getRegisterExpression(rd);
+      res = getRegisterExprValue(rd);
 
-   } else if ((exp1.type == IMMEDIATE || exp1.type == REGISTER)
+   } else if ((exp1.type == CONSTANT || exp1.type == REGISTER)
                 && exp2.type == REGISTER) {
       int r1, rd;
-      if (exp1.type == IMMEDIATE)
+      if (exp1.type == CONSTANT)
          r1 = genLoadImmediate(program, exp1.immediate);
       else
          r1 = exp1.registerId;
       rd = genBinaryOperation(program, r1, exp2.registerId, operator);
-      res = getRegisterExpression(rd);
+      res = getRegisterExprValue(rd);
 
    } else {
       fatalError(AXE_INVALID_EXPRESSION);

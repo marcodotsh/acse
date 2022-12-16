@@ -14,14 +14,14 @@
 #include "program.h"
 
 /* EXPRESSION TYPES */
-#define IMMEDIATE 0
+#define CONSTANT 0
 #define REGISTER 1
 
-typedef struct t_axe_expression {
-   int type;         /* REGISTER or IMMEDIATE */
-   int immediate;    /* an immediate value (only when type is IMMEDIATE) */
+typedef struct t_expressionValue {
+   int type;         /* REGISTER or CONSTANT */
+   int immediate;    /* an immediate value (only when type is CONSTANT) */
    int registerId;   /* a register ID (only when type is REGISTER) */
-} t_axe_expression;
+} t_expressionValue;
 
 
 /* mathematical operator constants */
@@ -47,18 +47,18 @@ typedef struct t_axe_expression {
 
 
 /* create an immediate (constant) expression */
-extern t_axe_expression getImmediateExpression(int value);
+extern t_expressionValue getConstantExprValue(int value);
 
 /* create a register expression */
-extern t_axe_expression getRegisterExpression(int registerId);
+extern t_expressionValue getRegisterExprValue(int registerId);
 
 /* This function generats instructions for binary numeric
  * operations.  It takes as input two expressions and a binary
  * operation identifier, and it returns a new expression that
  * represents the result of the specified binary operation
  * applied to `exp1' and `exp2'.
- * If the two expressions are both IMMEDIATE, no instructions are generated
- * and an IMMEDIATE expression is returned.
+ * If the two expressions are both CONSTANT, no instructions are generated
+ * and an CONSTANT expression is returned.
  *
  * Valid values for `operator' are:
  * OP_ADD 
@@ -85,7 +85,7 @@ extern t_axe_expression getRegisterExpression(int registerId);
  * OP_GTEQ   (used to test if the value of `exp1' is greater than
  *           the value of `exp2')
  */
-extern t_axe_expression handleBinaryOperator(t_program_infos *program,
-      t_axe_expression exp1, t_axe_expression exp2, int operator);
+extern t_expressionValue handleBinaryOperator(t_program *program,
+      t_expressionValue exp1, t_expressionValue exp2, int operator);
 
 #endif

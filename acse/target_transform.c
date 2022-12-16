@@ -26,7 +26,7 @@
 #define SYSCALL_ID_PRINT_CHAR 11
 
 
-t_list *addInstrAfter(t_program_infos *program, t_list *prev, t_axe_instruction *instr)
+t_listNode *addInstrAfter(t_program *program, t_listNode *prev, t_instruction *instr)
 {
    program->instructions = addAfter(program->instructions, prev, (void *)instr);
    if (prev == NULL)
@@ -35,9 +35,9 @@ t_list *addInstrAfter(t_program_infos *program, t_list *prev, t_axe_instruction 
 }
 
 
-void setMCRegisterWhitelist(t_axe_register *regObj, ...)
+void setMCRegisterWhitelist(t_instrArg *regObj, ...)
 {
-   t_list *res = NULL;
+   t_listNode *res = NULL;
    va_list args;
    int cur;
 
@@ -117,13 +117,13 @@ int isInt12(int immediate)
 }
 
 
-void fixUnsupportedImmediates(t_program_infos *program)
+void fixUnsupportedImmediates(t_program *program)
 {
-   t_list *curi = program->instructions;
+   t_listNode *curi = program->instructions;
 
    while (curi) {
-      t_list *transformedInstrLnk = curi;
-      t_axe_instruction *instr = curi->data;
+      t_listNode *transformedInstrLnk = curi;
+      t_instruction *instr = curi->data;
 
       if (!isImmediateArgumentInstrOpcode(instr->opcode)) {
          curi = curi->next;
@@ -153,13 +153,13 @@ void fixUnsupportedImmediates(t_program_infos *program)
 }
 
 
-void fixPseudoInstructions(t_program_infos *program)
+void fixPseudoInstructions(t_program *program)
 {
-   t_list *curi = program->instructions;
+   t_listNode *curi = program->instructions;
    
    while (curi) {
-      t_list *transformedInstrLnk = curi;
-      t_axe_instruction *instr = curi->data;
+      t_listNode *transformedInstrLnk = curi;
+      t_instruction *instr = curi->data;
       
       if (instr->opcode == OPC_SUBI) {
          instr->opcode = OPC_ADDI;
@@ -201,7 +201,7 @@ void fixPseudoInstructions(t_program_infos *program)
             instr->opcode = OPC_SLTIU;
             instr->immediate += 1;
          } else {
-            t_axe_register *tmp = instr->reg_src1;
+            t_instrArg *tmp = instr->reg_src1;
             instr->reg_src1 = instr->reg_src2;
             instr->reg_src2 = tmp;
             if (instr->opcode == OPC_SLE)
@@ -227,7 +227,7 @@ void fixPseudoInstructions(t_program_infos *program)
       } else if (instr->opcode == OPC_SGT || instr->opcode == OPC_SGTU ||
             instr->opcode == OPC_BGT || instr->opcode == OPC_BGTU ||
             instr->opcode == OPC_BLE || instr->opcode == OPC_BLEU) {
-         t_axe_register *tmp;
+         t_instrArg *tmp;
          if (instr->opcode == OPC_SGT)
             instr->opcode = OPC_SLT;
          else if (instr->opcode == OPC_SGTU)
@@ -250,14 +250,14 @@ void fixPseudoInstructions(t_program_infos *program)
 }
 
 
-void fixSyscalls(t_program_infos *program)
+void fixSyscalls(t_program *program)
 {
-   t_list *curi = program->instructions;
+   t_listNode *curi = program->instructions;
 
    while (curi) {
-      t_list *transformedInstrLnk = curi;
-      t_axe_instruction *instr = curi->data;
-      t_axe_instruction *tmp, *ecall;
+      t_listNode *transformedInstrLnk = curi;
+      t_instruction *instr = curi->data;
+      t_instruction *tmp, *ecall;
       int func, r_func, r_arg, r_dest;
 
       if (instr->opcode != OPC_CALL_EXIT_0 && 
@@ -315,7 +315,7 @@ void fixSyscalls(t_program_infos *program)
 }
 
 
-void doTargetSpecificTransformations(t_program_infos *program)
+void doTargetSpecificTransformations(t_program *program)
 {
    fixPseudoInstructions(program);
    fixSyscalls(program);

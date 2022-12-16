@@ -37,13 +37,13 @@ int debugPrintf(const char *fmt, ...)
 }
 
 
-t_axe_declaration *initializeDeclaration(char *ID, int isArray, int arraySize)
+t_declaration *newDeclaration(char *ID, int isArray, int arraySize)
 {
-   t_axe_declaration *result;
+   t_declaration *result;
    char *name;
 
    /* allocate memory for the new declaration */
-   result = (t_axe_declaration *)malloc(sizeof(t_axe_declaration));
+   result = (t_declaration *)malloc(sizeof(t_declaration));
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
@@ -58,16 +58,16 @@ t_axe_declaration *initializeDeclaration(char *ID, int isArray, int arraySize)
    result->arraySize = arraySize;
    result->ID = name;
 
-   /* return the just created and initialized instance of t_axe_declaration */
+   /* return the just created and initialized instance of t_declaration */
    return result;
 }
 
 
 void addVariablesFromDecls(
-      t_program_infos *program, int varType, t_list *variables)
+      t_program *program, int varType, t_listNode *variables)
 {
-   t_list *current_element;
-   t_axe_declaration *current_decl;
+   t_listNode *current_element;
+   t_declaration *current_decl;
 
    /* preconditions */
    assert(program != NULL);
@@ -77,7 +77,7 @@ void addVariablesFromDecls(
 
    while (current_element != NULL) {
       /* retrieve the current declaration infos */
-      current_decl = (t_axe_declaration *)current_element->data;
+      current_decl = (t_declaration *)current_element->data;
       assert(current_decl != NULL);
 
       /* create and assign a new variable to program */
@@ -94,7 +94,7 @@ void addVariablesFromDecls(
 
    while (current_element != NULL) {
       /* retrieve the current declaration infos */
-      current_decl = (t_axe_declaration *)current_element->data;
+      current_decl = (t_declaration *)current_element->data;
 
       /* assertion -- must always be verified */
       assert(current_decl != NULL);

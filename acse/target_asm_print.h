@@ -22,10 +22,9 @@ extern const char *opcodeToString(int opcode);
 extern char *registerIDToString(int regID, int machineRegIDs);
 
 /** Print the specified instruction to a file */
-extern int printInstruction(
-      t_axe_instruction *inst, FILE *fp, int machineRegIDs);
+extern int printInstruction(t_instruction *inst, FILE *fp, int machineRegIDs);
 
 /** write the assembly for the given program */
-extern void writeAssembly(t_program_infos *program);
+extern void writeAssembly(t_program *program);
 
 #endif

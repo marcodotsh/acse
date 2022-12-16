@@ -13,18 +13,18 @@
 #include "errors.h"
 
 
-t_list *newElement(void *data)
+t_listNode *newElement(void *data)
 {
-   t_list *result;
+   t_listNode *result;
 
-   /* create an instance of t_list in memory */
-   result = (t_list *)malloc(sizeof(t_list));
+   /* create an instance of t_listNode in memory */
+   result = (t_listNode *)malloc(sizeof(t_listNode));
 
    /* verify the out of memory condition */
    if (result == NULL)
       fatalError(AXE_OUT_OF_MEMORY);
 
-   /* set the internal value of the just created t_list element */
+   /* set the internal value of the just created t_listNode element */
    result->data = data;
    result->prev = NULL;
    result->next = NULL;
@@ -34,7 +34,7 @@ t_list *newElement(void *data)
 }
 
 
-t_list *addLinkAfter(t_list *list, t_list *listPos, t_list *newElem)
+t_listNode *addLinkAfter(t_listNode *list, t_listNode *listPos, t_listNode *newElem)
 {
    if (listPos == NULL) {
       /* add at the beginning of the list */
@@ -55,16 +55,16 @@ t_list *addLinkAfter(t_list *list, t_list *listPos, t_list *newElem)
 }
 
 
-t_list *addAfter(t_list *list, t_list *listPos, void *data)
+t_listNode *addAfter(t_listNode *list, t_listNode *listPos, void *data)
 {
-   t_list *newElem;
+   t_listNode *newElem;
 
    newElem = newElement(data);
    return addLinkAfter(list, listPos, newElem);
 }
 
 
-t_list *getLastElement(t_list *list)
+t_listNode *getLastElement(t_listNode *list)
 {
    /* preconditions */
    if (list == NULL)
@@ -77,7 +77,7 @@ t_list *getLastElement(t_list *list)
 }
 
 
-t_list *addBefore(t_list *list, t_list *listPos, void *data)
+t_listNode *addBefore(t_listNode *list, t_listNode *listPos, void *data)
 {
    if (!listPos) {
       /* add at the end of the list */
@@ -87,9 +87,9 @@ t_list *addBefore(t_list *list, t_list *listPos, void *data)
 }
 
 
-t_list *getElementAt(t_list *list, unsigned int position)
+t_listNode *getElementAt(t_listNode *list, unsigned int position)
 {
-   t_list *current_element;
+   t_listNode *current_element;
    unsigned int current_pos;
 
    if (list == NULL)
@@ -108,9 +108,9 @@ t_list *getElementAt(t_list *list, unsigned int position)
 }
 
 
-t_list *addElement(t_list *list, void *data, int pos)
+t_listNode *addElement(t_listNode *list, void *data, int pos)
 {
-   t_list *prev;
+   t_listNode *prev;
 
    if (pos < 0) {
       /* add last */
@@ -123,10 +123,10 @@ t_list *addElement(t_list *list, void *data, int pos)
 }
 
 
-t_list *addSorted(
-      t_list *list, void *data, int (*compareFunc)(void *a, void *b))
+t_listNode *addSorted(
+      t_listNode *list, void *data, int (*compareFunc)(void *a, void *b))
 {
-   t_list *cur_elem, *prev_elem;
+   t_listNode *cur_elem, *prev_elem;
    void *current_data;
 
    prev_elem = NULL;
@@ -150,10 +150,10 @@ int defaultListItemCompareFunc(void *a, void *b)
    return a == b;
 }
 
-t_list *findElementWithCallback(
-      t_list *list, void *data, int (*compareFunc)(void *a, void *b))
+t_listNode *findElementWithCallback(
+      t_listNode *list, void *data, int (*compareFunc)(void *a, void *b))
 {
-   t_list *current_elem;
+   t_listNode *current_elem;
    void *other_data;
 
    /* preconditions */
@@ -179,13 +179,13 @@ t_list *findElementWithCallback(
 }
 
 
-t_list *findElement(t_list *list, void *data)
+t_listNode *findElement(t_listNode *list, void *data)
 {
    return findElementWithCallback(list, data, NULL);
 }
 
 
-t_list *removeElement(t_list *list, t_list *element)
+t_listNode *removeElement(t_listNode *list, t_listNode *element)
 {
    /* preconditions */
    if (list == NULL || element == NULL)
@@ -219,9 +219,9 @@ t_list *removeElement(t_list *list, t_list *element)
 }
 
 
-t_list *removeElementWithData(t_list *list, void *data)
+t_listNode *removeElementWithData(t_listNode *list, void *data)
 {
-   t_list *current_elem;
+   t_listNode *current_elem;
 
    current_elem = findElement(list, data);
    if (current_elem)
@@ -230,7 +230,7 @@ t_list *removeElementWithData(t_list *list, void *data)
 }
 
 
-t_list *freeList(t_list *list)
+t_listNode *freeList(t_listNode *list)
 {
    while (list != NULL)
       list = removeElement(list, list);
@@ -238,7 +238,7 @@ t_list *freeList(t_list *list)
 }
 
 
-int getPosition(t_list *list, t_list *element)
+int getPosition(t_listNode *list, t_listNode *element)
 {
    int counter;
 
@@ -257,7 +257,7 @@ int getPosition(t_list *list, t_list *element)
 }
 
 
-int getLength(t_list *list)
+int getLength(t_listNode *list)
 {
    int counter;
 
@@ -271,9 +271,9 @@ int getLength(t_list *list)
 }
 
 
-t_list *addList(t_list *list, t_list *elements)
+t_listNode *addList(t_listNode *list, t_listNode *elements)
 {
-   t_list *current_src, *current_dest, *new_elem;
+   t_listNode *current_src, *current_dest, *new_elem;
 
    current_src = elements;
    current_dest = getLastElement(list);
@@ -290,7 +290,7 @@ t_list *addList(t_list *list, t_list *elements)
 }
 
 
-t_list *cloneList(t_list *list)
+t_listNode *cloneList(t_listNode *list)
 {
    return addList(NULL, list);
 }

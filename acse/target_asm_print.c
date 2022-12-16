@@ -222,7 +222,7 @@ char *registerIDToString(int regID, int machineRegIDs)
 }
 
 
-char *registerToString(t_axe_register *reg, int machineRegIDs)
+char *registerToString(t_instrArg *reg, int machineRegIDs)
 {
    if (!reg)
       return NULL;
@@ -230,7 +230,7 @@ char *registerToString(t_axe_register *reg, int machineRegIDs)
 }
 
 
-int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
+int labelToString(char *buf, int bufsz, t_label *label, int finalColon)
 {
    char *labelName;
    int res;
@@ -251,7 +251,7 @@ int labelToString(char *buf, int bufsz, t_axe_label *label, int finalColon)
 
 
 int instructionToString(
-      char *buf, int bufsz, t_axe_instruction *instr, int machineRegIDs)
+      char *buf, int bufsz, t_instruction *instr, int machineRegIDs)
 {
    int format, res;
    const char *fmtstring;
@@ -351,10 +351,10 @@ int instructionToString(
 }
 
 
-int translateForwardDeclarations(t_program_infos *program, FILE *fp)
+int translateForwardDeclarations(t_program *program, FILE *fp)
 {
-   t_list *li;
-   t_axe_label *nextLabel;
+   t_listNode *li;
+   t_label *nextLabel;
 
    /* preconditions */
    assert(fp != NULL);
@@ -384,7 +384,7 @@ int translateForwardDeclarations(t_program_infos *program, FILE *fp)
 }
 
 
-int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
+int printInstruction(t_instruction *instr, FILE *fp, int machineRegIDs)
 {
    char buf[BUF_LENGTH];
    int format, res;
@@ -410,10 +410,10 @@ int printInstruction(t_axe_instruction *instr, FILE *fp, int machineRegIDs)
 }
 
 
-int translateCodeSegment(t_program_infos *program, FILE *fp)
+int translateCodeSegment(t_program *program, FILE *fp)
 {
-   t_list *current_element;
-   t_axe_instruction *current_instr;
+   t_listNode *current_element;
+   t_instruction *current_instr;
    
    /* preconditions */
    assert(fp != NULL);
@@ -431,7 +431,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
    current_element = program->instructions;
    while (current_element != NULL) {
       /* retrieve the current instruction */
-      current_instr = (t_axe_instruction *)current_element->data;
+      current_instr = (t_instruction *)current_element->data;
       if (current_instr == NULL)
          fatalError(AXE_INVALID_INSTRUCTION);
 
@@ -449,7 +449,7 @@ int translateCodeSegment(t_program_infos *program, FILE *fp)
 }
 
 
-int printDirective(t_axe_data *data, FILE *fp)
+int printDirective(t_global *data, FILE *fp)
 {
    char buf[BUF_LENGTH];
 
@@ -480,10 +480,10 @@ int printDirective(t_axe_data *data, FILE *fp)
 }
 
 
-int translateDataSegment(t_program_infos *program, FILE *fp)
+int translateDataSegment(t_program *program, FILE *fp)
 {
-   t_list *current_element;
-   t_axe_data *current_data;
+   t_listNode *current_element;
+   t_global *current_data;
    
    /* preconditions */
    assert(fp != NULL);
@@ -501,7 +501,7 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
    current_element = program->data;
    while (current_element != NULL) {
       /* retrieve the current data element */
-      current_data = (t_axe_data *)current_element->data;
+      current_data = (t_global *)current_element->data;
 
       /* assertions */
       if (current_data == NULL)
@@ -521,7 +521,7 @@ int translateDataSegment(t_program_infos *program, FILE *fp)
 }
 
 
-void writeAssembly(t_program_infos *program)
+void writeAssembly(t_program *program)
 {
    char *output_file;
    FILE *fp;

@@ -1,10 +1,10 @@
 /*
  * Andrea Di Biagio
  * Politecnico di Milano, 2007
- * 
+ *
  * reg_alloc.h
  * Formal Languages & Compilers Machine, 2007/2008
- * 
+ *
  * Register allocation pass
  */
 
@@ -15,6 +15,6 @@
 
 /* Convert temporary register identifiers to real register identifiers,
  * analyzing the live interval of each temporary register. */
-extern void doRegisterAllocation(t_program_infos *program);
+extern void doRegisterAllocation(t_program *program);
 
 #endif
