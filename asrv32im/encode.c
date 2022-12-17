@@ -288,18 +288,54 @@ int encExpandPseudoInstruction(t_instruction instr, t_instruction mInstBuf[MAX_E
 
       case INSTR_OPC_BGT:
          mInstBuf[mInstSz].opcode = INSTR_OPC_BLT;
-         goto all_branches;
+         goto all_binary_branches;
       case INSTR_OPC_BLE:
          mInstBuf[mInstSz].opcode = INSTR_OPC_BGE;
-         goto all_branches;
+         goto all_binary_branches;
       case INSTR_OPC_BGTU:
          mInstBuf[mInstSz].opcode = INSTR_OPC_BLTU;
-         goto all_branches;
+         goto all_binary_branches;
       case INSTR_OPC_BLEU:
          mInstBuf[mInstSz].opcode = INSTR_OPC_BGEU;
-      all_branches:
+      all_binary_branches:
          mInstBuf[mInstSz].src1 = instr.src2;
          mInstBuf[mInstSz].src2 = instr.src1;
+         mInstBuf[mInstSz].label = instr.label;
+         mInstBuf[mInstSz].immMode = instr.immMode;
+         mInstSz++;
+         break;
+
+      case INSTR_OPC_BEQZ:
+         mInstBuf[mInstSz].opcode = INSTR_OPC_BEQ;
+         mInstBuf[mInstSz].src1 = instr.src1;
+         mInstBuf[mInstSz].src2 = 0;
+         goto all_unary_branches;
+      case INSTR_OPC_BNEZ:
+         mInstBuf[mInstSz].opcode = INSTR_OPC_BNE;
+         mInstBuf[mInstSz].src1 = instr.src1;
+         mInstBuf[mInstSz].src2 = 0;
+         goto all_unary_branches;
+      case INSTR_OPC_BLEZ:
+         mInstBuf[mInstSz].opcode = INSTR_OPC_BGE;
+         mInstBuf[mInstSz].src1 = 0;
+         mInstBuf[mInstSz].src2 = instr.src1;
+         goto all_unary_branches;
+      case INSTR_OPC_BGEZ:
+         mInstBuf[mInstSz].opcode = INSTR_OPC_BGE;
+         mInstBuf[mInstSz].src1 = instr.src1;
+         mInstBuf[mInstSz].src2 = 0;
+         goto all_unary_branches;
+      case INSTR_OPC_BLTZ:
+         mInstBuf[mInstSz].opcode = INSTR_OPC_BLT;
+         mInstBuf[mInstSz].src1 = instr.src1;
+         mInstBuf[mInstSz].src2 = 0;
+         goto all_unary_branches;
+      case INSTR_OPC_BGTZ:
+         mInstBuf[mInstSz].opcode = INSTR_OPC_BLT;
+         mInstBuf[mInstSz].src1 = 0;
+         mInstBuf[mInstSz].src2 = instr.src1;
+         goto all_unary_branches;
+      all_unary_branches:
          mInstBuf[mInstSz].label = instr.label;
          mInstBuf[mInstSz].immMode = instr.immMode;
          mInstSz++;

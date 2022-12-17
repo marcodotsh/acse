@@ -201,6 +201,7 @@ enum {
    FORMAT_JAL,        /* mnemonic rd, label                  */
    FORMAT_JALR,       /* mnemonic rs1, rs2, imm              */
    FORMAT_BRANCH,     /* mnemonic rs1, rs2, label            */
+   FORMAT_BRANCH_Z,   /* mnemonic rs1, label                 */
    FORMAT_JUMP,       /* mnemonic label                      */
    FORMAT_SYSTEM      /* mnemonic                            */
 };
@@ -250,6 +251,13 @@ static t_instrFormat instrOpcodeToFormat(t_instrOpcode opcode)
       case INSTR_OPC_BGTU:
       case INSTR_OPC_BLEU:
          return FORMAT_BRANCH;
+      case INSTR_OPC_BEQZ:
+      case INSTR_OPC_BNEZ:
+      case INSTR_OPC_BLEZ:
+      case INSTR_OPC_BGEZ:
+      case INSTR_OPC_BLTZ:
+      case INSTR_OPC_BGTZ:
+         return FORMAT_BRANCH_Z;
       case INSTR_OPC_LB:
       case INSTR_OPC_LH:
       case INSTR_OPC_LW:
@@ -397,6 +405,14 @@ static t_parserError expectInstruction(t_parserState *state, t_tokenID lastToken
          if (expectRegister(state, &instr.src1, 0) != P_ACCEPT)
             return P_SYN_ERROR;
          if (expectRegister(state, &instr.src2, 0) != P_ACCEPT)
+            return P_SYN_ERROR;
+         if (expectLabel(state, &instr) != P_ACCEPT)
+            return P_SYN_ERROR;
+         instr.immMode = INSTR_IMM_LBL;
+         break;
+      
+      case FORMAT_BRANCH_Z:
+         if (expectRegister(state, &instr.src1, 0) != P_ACCEPT)
             return P_SYN_ERROR;
          if (expectLabel(state, &instr) != P_ACCEPT)
             return P_SYN_ERROR;
