@@ -676,8 +676,8 @@ t_cfg *programToCFG(t_program *program, int *error)
 }
 
 int cfgIterateNodes(t_cfg *graph, void *context,
-      int (*callback)(t_basicBlock *block, t_cfgNode *node, int nodeIndex,
-            void *context))
+      int (*callback)(
+            t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context))
 {
    t_listNode *current_bb_element;
    t_listNode *current_nd_element;
@@ -786,210 +786,79 @@ t_listNode *bbGetLiveInVars(t_basicBlock *bblock)
    return cloneList(firstNode->in);
 }
 
-t_listNode *addListToSet(t_listNode *list, t_listNode *elements,
+t_listNode *addElementToSet(t_listNode *set, void *element,
       int (*compareFunc)(void *a, void *b), int *modified)
 {
-   t_listNode *current_element;
-   void *current_data;
-
-   /* if the list of elements is NULL returns the current list */
-   if (elements == NULL)
-      return list;
-
-   /* initialize the value of `current_element' */
-   current_element = elements;
-   while (current_element != NULL) {
-      /* retrieve the data associated with the current element */
-      current_data = current_element->data;
-
-      /* Test if the element was already inserted. */
-      if (findElementWithCallback(list, current_data, compareFunc) == NULL) {
-         list = addElement(list, current_data, -1);
-         if (modified != NULL)
-            (*modified) = 1;
-      }
-
-      /* retrieve the next element in the list */
-      current_element = current_element->next;
-   }
-
-   /* return the new list */
-   return list;
-}
-
-t_listNode *addVariableToSet(
-      t_listNode *set, t_cfgVar *element, int *modified)
-{
-   /* test the preconditions */
    if (element == NULL)
       return set;
 
-   if (findElementWithCallback(set, element, compareCFGVariables) == NULL) {
+   // Add the element if it's not already in the `set' list.
+   if (findElementWithCallback(set, element, compareFunc) == NULL) {
       set = addElement(set, element, -1);
       if (modified != NULL)
          (*modified) = 1;
    }
 
-   /* postconditions */
    return set;
 }
 
-t_listNode *addVariablesToSet(
-      t_listNode *set, t_listNode *elements, int *modified)
+t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
+      int (*compareFunc)(void *a, void *b), int *modified)
 {
-   /* test the preconditions */
-   if (set == NULL || elements == NULL)
-      return set;
-
-   /* update the set of variables */
-   set = addListToSet(set, elements, compareCFGVariables, modified);
-
-   /* postconditions: return the new list of variables */
-   return set;
-}
-
-int bbComputeLiveness(t_basicBlock *bblock, t_listNode *out)
-{
-   t_listNode *current_element;
-   t_listNode *cloned_list;
-   t_cfgNode *next_node;
-   t_cfgNode *current_node;
-   int modified;
-   int i, def_i, use_i;
-
-   /* initialize the local variables */
-   modified = 0;
-
-   assert(bblock != NULL && bblock->nodes != NULL);
-
-   current_element = getLastElement(bblock->nodes);
-   current_node = (t_cfgNode *)current_element->data;
-   assert(current_node != NULL);
-
-   /* update the out set */
-   current_node->out = addListToSet(current_node->out, out, NULL, &modified);
-
-   /* update the in list */
-   cloned_list = cloneList(current_node->out);
-
-   for (i = 0; i < CFLOW_MAX_USES; i++) {
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
-      if ((current_node->uses)[i] != NULL &&
-            (current_node->uses)[i]->ID != REG_0)
-         cloned_list =
-               addVariableToSet(cloned_list, (current_node->uses)[i], NULL);
-#else
-      if ((current_node->uses)[i] != NULL)
-         cloned_list =
-               addVariableToSet(cloned_list, (current_node->uses)[i], NULL);
-#endif
+   // Add all the elements to the set one by one
+   t_listNode *current_element = elements;
+   while (current_element != NULL) {
+      void *current_data = current_element->data;
+      set = addElementToSet(set, current_data, compareFunc, modified);
+      current_element = current_element->next;
    }
 
-   for (def_i = 0; def_i < CFLOW_MAX_DEFS; def_i++) {
-      int found = 0;
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
-      if (!(current_node->defs)[def_i] ||
-            (current_node->defs)[def_i]->ID == REG_0)
+   // return the new list
+   return set;
+}
+
+t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFLOW_MAX_DEFS],
+      t_cfgVar *uses[CFLOW_MAX_USES], t_listNode *liveOut)
+{
+   // Initialize live in set as equal to live out set
+   t_listNode *liveIn = cloneList(liveOut);
+
+   // Add all items from set of uses
+   for (int i = 0; i < CFLOW_MAX_USES; i++) {
+      if (uses[i] == NULL)
          continue;
-#else
-      if (!(current_node->defs)[def_i])
+#ifdef CFLOW_ALWAYS_LIVEIN_R0
+      if (uses[i]->ID == REG_0)
+         continue;
+#endif
+      liveIn = addElementToSet(liveIn, uses[i], NULL, NULL);
+   }
+
+   // Remove items from set of definitions as long as they are not present in
+   // the set of uses
+   for (int def_i = 0; def_i < CFLOW_MAX_DEFS; def_i++) {
+      int found = 0;
+
+      if (defs[def_i] == NULL)
+         continue;
+#ifdef CFLOW_ALWAYS_LIVEIN_R0
+      if (defs[def_i]->ID == REG_0)
          continue;
 #endif
 
-      for (use_i = 0; use_i < CFLOW_MAX_USES && !found; use_i++) {
-         if ((current_node->uses)[use_i]) {
-            if ((current_node->uses)[use_i]->ID ==
-                  (current_node->defs)[def_i]->ID)
-               found = 1;
-         }
+      for (int use_i = 0; use_i < CFLOW_MAX_USES && !found; use_i++) {
+         if (uses[use_i] && uses[use_i]->ID == defs[def_i]->ID)
+            found = 1;
       }
 
       if (!found)
-         cloned_list =
-               removeElementWithData(cloned_list, current_node->defs[def_i]);
+         liveIn = removeElementWithData(liveIn, defs[def_i]);
    }
 
-   current_node->in =
-         addListToSet(current_node->in, cloned_list, NULL, &modified);
-
-   /* remove the cloned list */
-   freeList(cloned_list);
-
-   /* set the new value of next_node */
-   next_node = current_node;
-   current_element = current_element->prev;
-   while (current_element != NULL) {
-      /* take a new node */
-      current_node = (t_cfgNode *)current_element->data;
-      assert(current_node != NULL);
-
-      /* clone the `in' list of the next_node */
-      cloned_list = cloneList(next_node->in);
-
-      /* update the out list */
-      current_node->out =
-            addListToSet(current_node->out, cloned_list, NULL, &modified);
-
-      /* remove the cloned list */
-      freeList(cloned_list);
-
-      /* clone the `in' list of the next_node */
-      cloned_list = cloneList(current_node->out);
-
-      /* update the in list */
-      for (i = 0; i < CFLOW_MAX_USES; i++) {
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
-         if ((current_node->uses)[i] != NULL &&
-               (current_node->uses)[i]->ID != REG_0)
-            cloned_list =
-                  addVariableToSet(cloned_list, (current_node->uses)[i], NULL);
-#else
-         if ((current_node->uses)[i] != NULL)
-            cloned_list =
-                  addVariableToSet(cloned_list, (current_node->uses)[i], NULL);
-#endif
-      }
-
-      for (def_i = 0; def_i < CFLOW_MAX_DEFS; def_i++) {
-         int found = 0;
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
-         if (!(current_node->defs)[def_i] ||
-               (current_node->defs)[def_i]->ID == REG_0)
-            continue;
-#else
-         if (!(current_node->defs)[def_i])
-            continue;
-#endif
-
-         for (use_i = 0; use_i < CFLOW_MAX_USES && !found; use_i++) {
-            if ((current_node->uses)[use_i]) {
-               if ((current_node->uses)[use_i]->ID ==
-                     (current_node->defs)[def_i]->ID)
-                  found = 1;
-            }
-         }
-
-         if (!found)
-            cloned_list =
-                  removeElementWithData(cloned_list, current_node->defs[def_i]);
-      }
-
-      current_node->in =
-            addListToSet(current_node->in, cloned_list, NULL, &modified);
-
-      /* remove the cloned list */
-      freeList(cloned_list);
-
-      /* update the loop control informations */
-      current_element = current_element->prev;
-      next_node = current_node;
-   }
-
-   /* return the `modified' value */
-   return modified;
+   return liveIn;
 }
 
-t_listNode *cfgComputeLiveOutVars(t_cfg *graph, t_basicBlock *block)
+t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 {
    t_listNode *current_elem;
    t_basicBlock *current_succ;
@@ -1013,7 +882,7 @@ t_listNode *cfgComputeLiveOutVars(t_cfg *graph, t_basicBlock *block)
          liveINVars = bbGetLiveInVars(current_succ);
 
          /* update the value of `result' */
-         result = addListToSet(result, liveINVars, NULL, NULL);
+         result = addElementsToSet(result, liveINVars, NULL, NULL);
 
          /* free the temporary list of live intervals */
          freeList(liveINVars);
@@ -1024,6 +893,51 @@ t_listNode *cfgComputeLiveOutVars(t_cfg *graph, t_basicBlock *block)
 
    /* postconditions */
    return result;
+}
+
+int cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
+{
+   assert(bblock != NULL && bblock->nodes != NULL);
+
+   // Keep track of whether we modified something or not
+   int modified = 0;
+
+   // Start with the last node in the basic block, we will proceed upwards
+   // from there.
+   t_listNode *curLI = getLastElement(bblock->nodes);
+   // The live in set of the successors of the last node in the block is the
+   // live out set of the block itself.
+   t_listNode *successorsLiveIn = cfgComputeLiveOutOfBlock(graph, bblock);
+
+   while (curLI != NULL) {
+      // Get the current CFG node
+      t_cfgNode *curNode = (t_cfgNode *)curLI->data;
+      assert(curNode != NULL);
+
+      // Live out of a block is equal to the union of the live in sets of the
+      // successors
+      curNode->out =
+            addElementsToSet(curNode->out, successorsLiveIn, NULL, &modified);
+      freeList(successorsLiveIn);
+
+      // Compute the live in set of the block using the set of definition,
+      // uses and live out variables of the block
+      t_listNode *liveIn = computeLiveInSetEquation(
+            curNode->defs, curNode->uses, curNode->out);
+      curNode->in = addElementsToSet(curNode->in, liveIn, NULL, &modified);
+
+      // Since there are no branches in a basic block, the successors of
+      // the predecessor is just the current block.
+      successorsLiveIn = liveIn;
+
+      // Continue backwards to the previous node
+      curLI = curLI->prev;
+   }
+
+   freeList(successorsLiveIn);
+
+   // Return a non-zero value if anything was modified
+   return modified;
 }
 
 int cfgPerformLivenessIteration(t_cfg *graph)
@@ -1050,15 +964,9 @@ int cfgPerformLivenessIteration(t_cfg *graph)
       current_bblock = (t_basicBlock *)current_element->data;
       assert(current_bblock != NULL);
 
-      /* retrieve the variables that will be live out from this block */
-      live_out_vars = cfgComputeLiveOutVars(graph, current_bblock);
-
       /* retrieve the liveness informations for the current bblock */
-      if (bbComputeLiveness(current_bblock, live_out_vars))
+      if (cfgUpdateLivenessOfNodesInBlock(graph, current_bblock))
          modified = 1;
-
-      /* remove the list `out' */
-      freeList(live_out_vars);
 
       /* retrieve the previous element in the list */
       current_element = current_element->prev;
