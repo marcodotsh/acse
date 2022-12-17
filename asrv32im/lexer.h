@@ -11,6 +11,7 @@ enum {
    TOK_NEWLINE,
    TOK_ID,
    TOK_NUMBER,
+   TOK_STRING,
    TOK_COMMA,
    TOK_COLON,
    TOK_LPAR,
@@ -20,6 +21,7 @@ enum {
    TOK_DATA,
    TOK_SPACE,
    TOK_WORD,
+   TOK_ASCII,
    TOK_GLOBAL,
    TOK_HI,
    TOK_LO,
@@ -42,5 +44,6 @@ int lexGetLastTokenColumn(t_lexer *lex);
 t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex);
 t_instrRegID lexGetLastRegisterID(t_lexer *lex);
 int32_t lexGetLastNumberValue(t_lexer *lex);
+char *lexGetLastStringValue(t_lexer *lex);
 
 #endif

@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 #include "lexer.h"
 
 
@@ -9,11 +10,12 @@ struct t_lexer {
    FILE *fp;
    int row, col;
    int tokRow, tokCol;
-   int32_t tokLastData;
    char *buf;
    off_t bufWritePtr;
    off_t bufReadPtr;
    size_t bufSize;
+   int32_t tokLastData;
+   char *tokLastString;
 };
 
 
@@ -37,6 +39,8 @@ t_lexer *newLexer(FILE *fp)
       free(lex);
       return NULL;
    }
+
+   lex->tokLastString = NULL;
    
    return lex;
 }
@@ -47,6 +51,7 @@ void deleteLexer(t_lexer *lex)
    if (lex == NULL)
       return;
    fclose(lex->fp);
+   free(lex->tokLastString);
    free(lex->buf);
    free(lex);
 }
@@ -217,6 +222,87 @@ static t_tokenID lexConsumeNumber(t_lexer *lex, char firstChar)
 }
 
 
+static t_tokenID lexConsumeString(t_lexer *lex, char firstChar)
+{
+   char next = lexGetChar(lex);
+   while (next != '"' && next != '\n' && next != '\r' && next != '\0') {
+      next = lexGetChar(lex);
+      if (next == '\\') {
+         next = lexGetChar(lex);
+      }
+   }
+   if (next != '"') {
+      fprintf(stderr, "warning at %d,%d: string not properly terminated\n", lex->row+1, lex->col);
+   }
+
+   free(lex->tokLastString);
+   lex->tokLastString = lexGetLastTokenText(lex);
+   char *in = lex->tokLastString+1;
+   char *out = lex->tokLastString;
+   bool stop = false;
+   while (!stop) {
+      char c = *in++;
+      switch (c) {
+         case '\0':
+         case '"':
+         case '\n':
+         case '\r':
+            stop = true;
+            break;
+         case '\\':
+            c = *in++;
+            switch (c) {
+               case '\0':
+                  stop = true;
+                  break;
+               case 'b':
+                  *out++ = '\b';
+                  break;
+               case 'f':
+                  *out++ = '\f';
+                  break;
+               case 'n':
+                  *out++ = '\n';
+                  break;
+               case 'r':
+                  *out++ = '\r';
+                  break;
+               case 't':
+                  *out++ = '\t';
+                  break;
+               case 'v':
+                  *out++ = '\013';
+                  break;
+               case '\\':
+               case '"':
+                  *out++ = c;
+                  break;
+               case 'x':
+               case 'X':
+                  c = (char)strtol(in, &in, 16);
+                  *out++ = c;
+                  break;
+               default:
+                  if (isdigit(c)) {
+                     c = (char)strtol(in, &in, 8);
+                     *out++ = c;
+                  } else {
+                     fprintf(stderr, "warning at %d,%d: invalid escape character in string\n", lex->row+1, lex->col);
+                     *out++ = c;
+                  }
+                  break;
+            }
+            break;
+         default:
+            *out++ = c;
+            break;
+      }
+   }
+   *out = '\0';
+   return TOK_STRING;
+}
+
+
 static t_tokenID lexConsumeDirective(t_lexer *lex, char firstChar)
 {
 #define DIRECTIVE_MAX 10
@@ -246,6 +332,8 @@ static t_tokenID lexConsumeDirective(t_lexer *lex, char firstChar)
       return TOK_WORD;
    if (strcasecmp("global", kwbuf) == 0)
       return TOK_GLOBAL;
+   if (strcasecmp("ascii", kwbuf) == 0)
+      return TOK_ASCII;
    return TOK_UNRECOGNIZED;
 }
 
@@ -468,6 +556,9 @@ t_tokenID lexNextToken(t_lexer *lex)
    if (isdigit(next) || next == '-') {
       return lexConsumeNumber(lex, next);
    }
+   if (next == '"') {
+      return lexConsumeString(lex, next);
+   }
    if (next == '.') {
       return lexConsumeDirective(lex, next);
    }
@@ -521,4 +612,9 @@ t_instrRegID lexGetLastRegisterID(t_lexer *lex)
 int32_t lexGetLastNumberValue(t_lexer *lex)
 {
    return (t_instrOpcode)lex->tokLastData;
+}
+
+char *lexGetLastStringValue(t_lexer *lex)
+{
+   return lex->tokLastString;
 }

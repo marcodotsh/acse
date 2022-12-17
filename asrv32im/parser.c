@@ -467,6 +467,21 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
       return P_ACCEPT;
    }
 
+   if (lastToken == TOK_ASCII) {
+      do {
+         if (!parserExpect(state, TOK_STRING, "expected string after \".ascii\""))
+            return P_SYN_ERROR;
+         char *str = lexGetLastStringValue(state->lex);
+         data.dataSize = sizeof(char);
+         data.initialized = 1;
+         for (; *str != '\0'; str++) {
+            data.data[0] = *str;
+            objSecAppendData(state->curSection, data);
+         }
+      } while (parserAccept(state, TOK_COMMA));
+      return P_ACCEPT;
+   }
+
    return P_SYN_ERROR;
 }
 
@@ -477,6 +492,8 @@ static t_parserError expectLineContent(t_parserState *state)
       return expectData(state, TOK_SPACE);
    if (parserAccept(state, TOK_WORD) == P_ACCEPT)
       return expectData(state, TOK_WORD);
+   if (parserAccept(state, TOK_ASCII) == P_ACCEPT)
+      return expectData(state, TOK_ASCII);
    if (parserAccept(state, TOK_MNEMONIC) == P_ACCEPT)
       return expectInstruction(state, TOK_MNEMONIC);
    parserEmitError(state, "expected a data directive or an instruction");
