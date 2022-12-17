@@ -619,7 +619,7 @@ void dumpProgram(t_program *program, FILE *fout)
          fprintf(fout, "(invalid)");
 
       if (var->isArray) {
-         fprintf(fout, ", array size = %d", var->arraySize);
+         fprintf(fout, "[%d]", var->arraySize);
       }
       fprintf(fout, "\n");
 
