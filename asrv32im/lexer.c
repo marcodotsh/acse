@@ -347,6 +347,8 @@ static t_tokenID lexConsumeDirective(t_lexer *lex, char firstChar)
       return TOK_ASCII;
    if (strcasecmp("byte", kwbuf) == 0)
       return TOK_BYTE;
+   if (strcasecmp("align", kwbuf) == 0 || strcasecmp("balign", kwbuf) == 0)
+      return TOK_ALIGN;
    return TOK_UNRECOGNIZED;
 }
 

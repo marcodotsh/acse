@@ -118,10 +118,17 @@ typedef struct t_data {
    uint8_t data[DATA_MAX];
 } t_data;
 
+typedef struct t_alignData {
+   size_t alignModulo;
+   size_t effectiveSize;
+   uint8_t fillByte;
+} t_alignData;
+
 typedef int t_objSecItemClass;
 enum {
    OBJ_SEC_ITM_CLASS_INSTR,
    OBJ_SEC_ITM_CLASS_DATA,
+   OBJ_SEC_ITM_CLASS_ALIGN_DATA,
    OBJ_SEC_ITM_CLASS_VOID
 };
 
@@ -132,6 +139,7 @@ typedef struct t_objSecItem {
    union {
       t_instruction instr;
       t_data data;
+      t_alignData alignData;
    } body;
 } t_objSecItem;
 
@@ -144,6 +152,7 @@ void objDump(t_object *obj);
 
 t_objSection *objGetSection(t_object *obj, t_objSectionID id);
 void objSecAppendData(t_objSection *sec, t_data data);
+void objSecAppendAlignmentData(t_objSection *sec, t_alignData align);
 void objSecAppendInstruction(t_objSection *sec, t_instruction instr);
 int objSecDeclareLabel(t_objSection *sec, t_objLabel *label);
 

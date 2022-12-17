@@ -159,6 +159,19 @@ void objSecAppendData(t_objSection *sec, t_data data)
    objSecAppend(sec, itm);
 }
 
+void objSecAppendAlignmentData(t_objSection *sec, t_alignData align)
+{
+   t_objSecItem *itm;
+
+   itm = malloc(sizeof(t_objSecItem));
+   if (!itm)
+      return;
+   itm->address = 0;
+   itm->class = OBJ_SEC_ITM_CLASS_ALIGN_DATA;
+   itm->body.alignData = align;
+   objSecAppend(sec, itm);
+}
+
 t_objSecItem *objSecInsertInstructionAfter(t_objSection *sec, t_instruction instr, t_objSecItem *prev)
 {
    t_objSecItem *itm;
@@ -258,6 +271,7 @@ static int objSecExpandPseudoInstructions(t_objSection *sec)
 static uint32_t objSecMaterializeAddresses(t_objSection *sec, uint32_t baseAddr)
 {
    uint32_t curAddr = baseAddr;
+   uint32_t alignAmt;
    uint32_t thisSize;
    t_objSecItem *itm;
 
@@ -269,6 +283,14 @@ static uint32_t objSecMaterializeAddresses(t_objSection *sec, uint32_t baseAddr)
       switch (itm->class) {
          case OBJ_SEC_ITM_CLASS_DATA:
             thisSize = itm->body.data.dataSize;
+            break;
+         case OBJ_SEC_ITM_CLASS_ALIGN_DATA:
+            alignAmt = itm->body.alignData.alignModulo;
+            if (curAddr % alignAmt == 0)
+               thisSize = 0;
+            else
+               thisSize = alignAmt - (curAddr % alignAmt);
+            itm->body.alignData.effectiveSize = thisSize;
             break;
          case OBJ_SEC_ITM_CLASS_INSTR:
             thisSize = encGetInstrLength(itm->body.instr);
@@ -364,6 +386,10 @@ static void objSecDump(t_objSection *sec)
                printf("%02x ", itm->body.data.data[i]);
             printf("}\n");
          }
+      } else if (itm->class == OBJ_SEC_ITM_CLASS_ALIGN_DATA) {
+         printf("    Alignment value = %ld,\n", itm->body.alignData.alignModulo);
+         printf("    Effective size = %ld,\n", itm->body.alignData.effectiveSize);
+         printf("    Fill value = %02x\n", itm->body.alignData.fillByte);
       } else if (itm->class == OBJ_SEC_ITM_CLASS_VOID) {
          printf("    (null contents)\n");
       } else {

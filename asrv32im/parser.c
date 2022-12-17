@@ -504,6 +504,36 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
 }
 
 
+static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
+{
+   t_alignData align = { 0 };
+
+   if (!parserExpect(state, TOK_NUMBER, "expected alignment amount"))
+      return P_SYN_ERROR;
+   int32_t amt = lexGetLastNumberValue(state->lex);
+   if (amt <= 0) {
+      parserEmitError(state, "alignment amount must be a positive integer");
+      return P_SYN_ERROR;
+   }
+   align.alignModulo = amt;
+   if (parserAccept(state, TOK_COMMA)) {
+      if (!parserExpect(state, TOK_NUMBER, "expected alignment padding value"))
+         return P_SYN_ERROR;
+      int32_t pad = lexGetLastNumberValue(state->lex);
+      if (pad < -128 || pad >= 256) {
+         parserEmitError(state, "alignment padding must fit in a 8-bit byte");
+         return P_SYN_ERROR;
+      }
+      align.fillByte = (uint8_t)pad;
+   } else {
+      align.fillByte = 0;
+   }
+
+   objSecAppendAlignmentData(state->curSection, align);
+   return P_ACCEPT;
+}
+
+
 static t_parserError expectLineContent(t_parserState *state)
 {
    if (parserAccept(state, TOK_SPACE) == P_ACCEPT)
@@ -514,6 +544,8 @@ static t_parserError expectLineContent(t_parserState *state)
       return expectData(state, TOK_BYTE);
    if (parserAccept(state, TOK_ASCII) == P_ACCEPT)
       return expectData(state, TOK_ASCII);
+   if (parserAccept(state, TOK_ALIGN) == P_ACCEPT)
+      return expectAlign(state, TOK_ALIGN);
    if (parserAccept(state, TOK_MNEMONIC) == P_ACCEPT)
       return expectInstruction(state, TOK_MNEMONIC);
    parserEmitError(state, "expected a data directive or an instruction");

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "output.h"
 
 
@@ -215,19 +216,25 @@ t_outError outputSecContentToFile(FILE *fp, off_t whence, t_objSection *sec)
    
    itm = objSecGetItemList(sec);
    for (; itm != NULL; itm = itm->next) {
-      if (itm->class == OBJ_SEC_ITM_CLASS_VOID)
+      if (itm->class == OBJ_SEC_ITM_CLASS_VOID) {
          continue;
-      if (itm->class != OBJ_SEC_ITM_CLASS_DATA)
-         return OUT_INVALID_BINARY;
-
-      if (itm->body.data.initialized) {
-         if (fwrite(itm->body.data.data, itm->body.data.dataSize, 1, fp) < 1)
-            return OUT_FILE_ERROR;
-      } else {
-         tmp = 0;
-         for (i=0; i<itm->body.data.dataSize; i++)
-            if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
+      } else if (itm->class == OBJ_SEC_ITM_CLASS_DATA) {
+         if (itm->body.data.initialized) {
+            if (fwrite(itm->body.data.data, itm->body.data.dataSize, 1, fp) < 1)
                return OUT_FILE_ERROR;
+         } else {
+            tmp = 0;
+            for (i=0; i<itm->body.data.dataSize; i++)
+               if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
+                  return OUT_FILE_ERROR;
+         }
+      } else if (itm->class == OBJ_SEC_ITM_CLASS_ALIGN_DATA) {
+         tmp = itm->body.alignData.fillByte;
+         for (i=0; i<itm->body.alignData.effectiveSize; i++)
+               if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
+                  return OUT_FILE_ERROR;
+      } else {
+         assert(0 && "bug, unexpected item type in section");
       }
    }
    return OUT_NO_ERROR;

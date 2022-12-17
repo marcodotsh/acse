@@ -24,6 +24,7 @@ enum {
    TOK_WORD,
    TOK_BYTE,
    TOK_ASCII,
+   TOK_ALIGN,
    TOK_GLOBAL,
    TOK_HI,
    TOK_LO,
