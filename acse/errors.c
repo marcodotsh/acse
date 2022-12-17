@@ -23,29 +23,29 @@ static const char *errorToString(int errorcode)
    const char *msg;
 
    switch (errorcode) {
-      case AXE_OUT_OF_MEMORY: msg = "Out of memory"; break;
-      case AXE_INVALID_INSTRUCTION: msg = "Invalid instruction"; break;
-      case AXE_VARIABLE_ALREADY_DECLARED:
+      case ERROR_OUT_OF_MEMORY: msg = "Out of memory"; break;
+      case ERROR_INVALID_INSTRUCTION: msg = "Invalid instruction"; break;
+      case ERROR_VARIABLE_ALREADY_DECLARED:
          msg = "Variable already declared";
          break;
-      case AXE_INVALID_TYPE: msg = "Invalid type"; break;
-      case AXE_FOPEN_ERROR: msg = "fopen failed"; break;
-      case AXE_FCLOSE_ERROR: msg = "fclose failed"; break;
-      case AXE_FWRITE_ERROR: msg = "Error while writing on file"; break;
-      case AXE_INVALID_DATA_FORMAT: msg = "Invalid data format"; break;
-      case AXE_INVALID_OPCODE: msg = "Invalid opcode found"; break;
-      case AXE_INVALID_ARRAY_SIZE: msg = "Invalid array size"; break;
-      case AXE_INVALID_EXPRESSION: msg = "Invalid expression found"; break;
-      case AXE_LABEL_ALREADY_ASSIGNED: msg = "label already assigned"; break;
-      case AXE_INVALID_CFLOW_GRAPH:
+      case ERROR_INVALID_TYPE: msg = "Invalid type"; break;
+      case ERROR_FOPEN_ERROR: msg = "fopen failed"; break;
+      case ERROR_FCLOSE_ERROR: msg = "fclose failed"; break;
+      case ERROR_FWRITE_ERROR: msg = "Error while writing on file"; break;
+      case ERROR_INVALID_DATA_FORMAT: msg = "Invalid data format"; break;
+      case ERROR_INVALID_OPCODE: msg = "Invalid opcode found"; break;
+      case ERROR_INVALID_ARRAY_SIZE: msg = "Invalid array size"; break;
+      case ERROR_INVALID_EXPRESSION: msg = "Invalid expression found"; break;
+      case ERROR_LABEL_ALREADY_ASSIGNED: msg = "label already assigned"; break;
+      case ERROR_INVALID_CFLOW_GRAPH:
          msg = "Invalid control-dataflow graph informations";
          break;
-      case AXE_INVALID_REG_ALLOC:
+      case ERROR_INVALID_REG_ALLOC:
          msg = "Invalid register allocator instance found";
          break;
-      case AXE_REG_ALLOC_ERROR: msg = "register allocation failed"; break;
-      case AXE_VARIABLE_TYPE_MISMATCH: msg = "type of the variable does not match"; break;
-      case AXE_VARIABLE_NOT_DECLARED: msg = "variable not declared"; break;
+      case ERROR_REG_ALLOC_ERROR: msg = "register allocation failed"; break;
+      case ERROR_VARIABLE_TYPE_MISMATCH: msg = "type of the variable does not match"; break;
+      case ERROR_VARIABLE_NOT_DECLARED: msg = "variable not declared"; break;
       default: msg = "Unknown error"; break;
    }
 

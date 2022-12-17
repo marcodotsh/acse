@@ -32,8 +32,7 @@ static int compareCFGVariables(void *a, void *b)
 /* Alloc a new control flow graph variable object. If a variable object
  * referencing the same identifier already exists, returns the pre-existing
  * object. */
-t_cfgVar *newCFGVariable(
-      t_cfg *graph, int identifier, t_listNode *mcRegs, int *error)
+t_cfgVar *cfgCreateVariable(t_cfg *graph, int identifier, t_listNode *mcRegs)
 {
    t_cfgVar *result;
    t_listNode *elementFound;
@@ -42,11 +41,8 @@ t_cfgVar *newCFGVariable(
 
    /* alloc memory for a variable information */
    result = malloc(sizeof(t_cfgVar));
-   if (result == NULL) {
-      if (error)
-         *error = AXE_OUT_OF_MEMORY;
-      return NULL;
-   }
+   if (result == NULL)
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    /* update the value of result */
    result->ID = identifier;
@@ -90,11 +86,11 @@ t_cfgVar *newCFGVariable(
 }
 
 /* set the def-use values for the current node */
-int cfgSetDefUses(t_cfg *graph, t_cfgNode *node)
+void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 {
    t_instruction *instr;
    t_cfgVar *varDest, *varSource1, *varSource2, *varPSW;
-   int def_i, use_i, error;
+   int def_i, use_i;
 
    /* preconditions */
    assert(graph != NULL);
@@ -108,28 +104,20 @@ int cfgSetDefUses(t_cfg *graph, t_cfgNode *node)
    varDest = NULL;
    varSource1 = NULL;
    varSource2 = NULL;
-   varPSW = newCFGVariable(graph, VAR_PSW, NULL, &error);
-   if (varPSW == NULL)
-      return error;
+   varPSW = cfgCreateVariable(graph, VAR_PSW, NULL);
 
    /* update the values of the variables */
    if (instr->reg_dest != NULL) {
-      varDest = newCFGVariable(graph, (instr->reg_dest)->ID,
-            instr->reg_dest->mcRegWhitelist, &error);
-      if (varDest == NULL)
-         return error;
+      varDest = cfgCreateVariable(graph, (instr->reg_dest)->ID,
+            instr->reg_dest->mcRegWhitelist);
    }
    if (instr->reg_src1 != NULL) {
-      varSource1 = newCFGVariable(graph, (instr->reg_src1)->ID,
-            instr->reg_src1->mcRegWhitelist, &error);
-      if (varSource1 == NULL)
-         return error;
+      varSource1 = cfgCreateVariable(graph, (instr->reg_src1)->ID,
+            instr->reg_src1->mcRegWhitelist);
    }
    if (instr->reg_src2 != NULL) {
-      varSource2 = newCFGVariable(graph, (instr->reg_src2)->ID,
-            instr->reg_src2->mcRegWhitelist, &error);
-      if (varSource2 == NULL)
-         return error;
+      varSource2 = cfgCreateVariable(graph, (instr->reg_src2)->ID,
+            instr->reg_src2->mcRegWhitelist);
    }
 
    def_i = 0;
@@ -146,14 +134,12 @@ int cfgSetDefUses(t_cfg *graph, t_cfgNode *node)
       node->uses[use_i++] = varSource2;
    if (instructionUsesPSW(instr))
       node->uses[use_i++] = varPSW;
-
-   return AXE_OK;
 }
 
-t_cfgNode *newCFGNode(t_cfg *graph, t_instruction *instr, int *error)
+t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr)
 {
    t_cfgNode *result;
-   int i, error2;
+   int i;
 
    /* test the preconditions */
    assert(graph != NULL);
@@ -161,27 +147,18 @@ t_cfgNode *newCFGNode(t_cfg *graph, t_instruction *instr, int *error)
 
    /* create a new instance of type `t_cflow_node' */
    result = malloc(sizeof(t_cfgNode));
-   if (result == NULL) {
-      if (error)
-         *error = AXE_OUT_OF_MEMORY;
-      return NULL;
-   }
+   if (result == NULL)
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    /* initialize result */
-   for (i = 0; i < CFLOW_MAX_DEFS; i++)
+   for (i = 0; i < CFG_MAX_DEFS; i++)
       result->defs[i] = NULL;
-   for (i = 0; i < CFLOW_MAX_USES; i++)
+   for (i = 0; i < CFG_MAX_USES; i++)
       result->uses[i] = NULL;
    result->instr = instr;
 
    /* set the def-uses for the current node */
-   error2 = cfgSetDefUses(graph, result);
-   if (error2 != AXE_OK) {
-      if (error)
-         *error = error2;
-      free(result);
-      return NULL;
-   }
+   cfgComputeDefUses(graph, result);
 
    /* set the list of variables that are live in
     * and live out from the current node */
@@ -207,16 +184,11 @@ void deleteCFGNode(t_cfgNode *node)
    free(node);
 }
 
-t_basicBlock *newBasicBlock(int *error)
+t_basicBlock *newBasicBlock(void)
 {
-   t_basicBlock *result;
-
-   result = malloc(sizeof(t_basicBlock));
-   if (result == NULL) {
-      if (error)
-         *error = AXE_OUT_OF_MEMORY;
-      return NULL;
-   }
+   t_basicBlock *result = malloc(sizeof(t_basicBlock));
+   if (result == NULL)
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    /* initialize result */
    result->pred = NULL;
@@ -291,11 +263,11 @@ int bbInsertNode(t_basicBlock *block, t_cfgNode *node)
    assert(node != NULL && node->instr != NULL);
 
    if (findElement(block->nodes, node) != NULL)
-      return CFLOW_NODE_ALREADY_INSERTED;
+      return ERROR_CFG_NODE_ALREADY_INSERTED;
 
    /* add the current node to the basic block */
    block->nodes = addElement(block->nodes, node, -1);
-   return AXE_OK;
+   return NO_ERROR;
 }
 
 int bbInsertNodeBefore(
@@ -310,14 +282,14 @@ int bbInsertNodeBefore(
 
    before_node_elem = findElement(block->nodes, before_node);
    if (before_node_elem == NULL)
-      return CFLOW_INVALID_NODE;
+      return ERROR_CFG_INVALID_NODE;
 
    if (findElement(block->nodes, new_node) != NULL)
-      return CFLOW_NODE_ALREADY_INSERTED;
+      return ERROR_CFG_NODE_ALREADY_INSERTED;
 
    /* add the current node to the basic block */
    block->nodes = addBefore(block->nodes, before_node_elem, new_node);
-   return AXE_OK;
+   return NO_ERROR;
 }
 
 /* insert a new node without updating the dataflow informations */
@@ -333,37 +305,28 @@ int bbInsertNodeAfter(
 
    after_node_elem = findElement(block->nodes, after_node);
    if (after_node_elem == NULL)
-      return CFLOW_INVALID_NODE;
+      return ERROR_CFG_INVALID_NODE;
 
    if (findElement(block->nodes, new_node) != NULL)
-      return CFLOW_NODE_ALREADY_INSERTED;
+      return ERROR_CFG_NODE_ALREADY_INSERTED;
 
    /* add the current node to the basic block */
    block->nodes = addAfter(block->nodes, after_node_elem, new_node);
-   return AXE_OK;
+   return NO_ERROR;
 }
 
 /* allocate memory for a control flow graph */
-static t_cfg *newCFG(int *error)
+static t_cfg *newCFG(void)
 {
-   t_cfg *result;
-
-   result = malloc(sizeof(t_cfg));
-   if (result == NULL) {
-      if (error)
-         *error = AXE_OUT_OF_MEMORY;
-      return NULL;
-   }
+   t_cfg *result = malloc(sizeof(t_cfg));
+   if (result == NULL) 
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    /* initialize `result' */
    result->startingBlock = NULL;
    result->blocks = NULL;
    result->cflow_variables = NULL;
-   result->endingBlock = newBasicBlock(error);
-   if (!result->endingBlock) {
-      free(result);
-      return NULL;
-   }
+   result->endingBlock = newBasicBlock();
 
    /* return the just created cflow graph */
    return result;
@@ -461,29 +424,24 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
 /* test if the current instruction `instr' is a labelled instruction */
 int instrIsStartingNode(t_instruction *instr)
 {
-   /* preconditions */
    assert(instr != NULL);
-
-   /* test if the instruction holds a label identifier */
    return instr->label != NULL;
 }
 
 /* test if the current instruction will end a basic block */
 int instrIsEndingNode(t_instruction *instr)
 {
-   /* preconditions */
    assert(instr != NULL);
    return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
 }
 
 int cfgInsertBlock(t_cfg *graph, t_basicBlock *block)
 {
-   /* preconditions */
    assert(graph != NULL);
    assert(block != NULL);
 
    if (findElement(graph->blocks, block) != NULL)
-      return CFLOW_BBLOCK_ALREADY_INSERTED;
+      return ERROR_CFG_BBLOCK_ALREADY_INSERTED;
 
    /* add the current node to the basic block */
    graph->blocks = addElement(graph->blocks, block, -1);
@@ -491,10 +449,10 @@ int cfgInsertBlock(t_cfg *graph, t_basicBlock *block)
    /* test if this is the first basic block for the program */
    if (graph->startingBlock == NULL)
       graph->startingBlock = block;
-   return AXE_OK;
+   return NO_ERROR;
 }
 
-int cfgMakeTransitions(t_cfg *graph)
+int cfgComputeTransitions(t_cfg *graph)
 {
    t_listNode *current_element;
    t_basicBlock *current_block;
@@ -530,11 +488,11 @@ int cfgMakeTransitions(t_cfg *graph)
       } else {
          if (isJumpInstruction(last_instruction)) {
             if (last_instruction->addressParam == NULL)
-               return CFLOW_INVALID_LABEL_FOUND;
+               return ERROR_CFG_INVALID_LABEL_FOUND;
 
             jumpBlock = cfgSearchLabel(graph, last_instruction->addressParam);
             if (jumpBlock == NULL)
-               return CFLOW_INVALID_LABEL_FOUND;
+               return ERROR_CFG_INVALID_LABEL_FOUND;
 
             /* add the jumpBlock to the list of successors of current_block */
             /* add also current_block to the list of predecessors of jumpBlock
@@ -565,7 +523,7 @@ int cfgMakeTransitions(t_cfg *graph)
       current_element = current_element->next;
    }
 
-   return AXE_OK;
+   return NO_ERROR;
 }
 
 t_cfg *programToCFG(t_program *program, int *error)
@@ -586,9 +544,7 @@ t_cfg *programToCFG(t_program *program, int *error)
    assert(instructions != NULL);
 
    /* alloc memory for a new control flow graph */
-   result = newCFG(error);
-   if (result == NULL)
-      return NULL;
+   result = newCFG();
 
    /* set the starting basic block */
    bblock = NULL;
@@ -601,11 +557,7 @@ t_cfg *programToCFG(t_program *program, int *error)
       assert(current_instr != NULL);
 
       /* create a new node for the current basic block */
-      current_node = newCFGNode(result, current_instr, error);
-      if (current_node == NULL) {
-         deleteCFG(result);
-         return NULL;
-      }
+      current_node = cfgCreateNode(result, current_instr);
 
       /* test if the current instruction will start or end a block */
       startingNode = instrIsStartingNode(current_instr);
@@ -613,17 +565,12 @@ t_cfg *programToCFG(t_program *program, int *error)
 
       if (startingNode || bblock == NULL) {
          /* alloc a new basic block */
-         bblock = newBasicBlock(error);
-         if (bblock == NULL) {
-            deleteCFG(result);
-            deleteCFGNode(current_node);
-            return NULL;
-         }
+         bblock = newBasicBlock();
 
          /* add the current instruction to the newly created
           * basic block */
          error2 = bbInsertNode(bblock, current_node);
-         if (error2 != AXE_OK) {
+         if (error2 != NO_ERROR) {
             if (error)
                *error = error2;
             deleteCFG(result);
@@ -634,7 +581,7 @@ t_cfg *programToCFG(t_program *program, int *error)
 
          /* add the new basic block to the control flow graph */
          error2 = cfgInsertBlock(result, bblock);
-         if (error2 != AXE_OK) {
+         if (error2 != NO_ERROR) {
             if (error)
                *error = error2;
             deleteCFG(result);
@@ -646,7 +593,7 @@ t_cfg *programToCFG(t_program *program, int *error)
          /* add the current instruction to the current
           * basic block */
          error2 = bbInsertNode(bblock, current_node);
-         if (error2 != AXE_OK) {
+         if (error2 != NO_ERROR) {
             if (error)
                *error = error2;
             deleteCFG(result);
@@ -663,8 +610,8 @@ t_cfg *programToCFG(t_program *program, int *error)
    }
 
    /* update the basic blocks chain */
-   error2 = cfgMakeTransitions(result);
-   if (error2 != AXE_OK) {
+   error2 = cfgComputeTransitions(result);
+   if (error2 != NO_ERROR) {
       if (error)
          *error = error2;
       deleteCFG(result);
@@ -688,7 +635,7 @@ int cfgIterateNodes(t_cfg *graph, void *context,
    /* intialize the instruction counter */
    counter = 0;
    /* initialize the exit code */
-   exitcode = AXE_OK;
+   exitcode = NO_ERROR;
 
    /* fetch the first basic block */
    current_bb_element = graph->blocks;
@@ -817,17 +764,17 @@ t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
    return set;
 }
 
-t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFLOW_MAX_DEFS],
-      t_cfgVar *uses[CFLOW_MAX_USES], t_listNode *liveOut)
+t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFG_MAX_DEFS],
+      t_cfgVar *uses[CFG_MAX_USES], t_listNode *liveOut)
 {
    // Initialize live in set as equal to live out set
    t_listNode *liveIn = cloneList(liveOut);
 
    // Add all items from set of uses
-   for (int i = 0; i < CFLOW_MAX_USES; i++) {
+   for (int i = 0; i < CFG_MAX_USES; i++) {
       if (uses[i] == NULL)
          continue;
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
+#ifdef CFG_T0_ALWAYS_LIVE
       if (uses[i]->ID == REG_0)
          continue;
 #endif
@@ -836,17 +783,17 @@ t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFLOW_MAX_DEFS],
 
    // Remove items from set of definitions as long as they are not present in
    // the set of uses
-   for (int def_i = 0; def_i < CFLOW_MAX_DEFS; def_i++) {
+   for (int def_i = 0; def_i < CFG_MAX_DEFS; def_i++) {
       int found = 0;
 
       if (defs[def_i] == NULL)
          continue;
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
+#ifdef CFG_T0_ALWAYS_LIVE
       if (defs[def_i]->ID == REG_0)
          continue;
 #endif
 
-      for (int use_i = 0; use_i < CFLOW_MAX_USES && !found; use_i++) {
+      for (int use_i = 0; use_i < CFG_MAX_USES && !found; use_i++) {
          if (uses[use_i] && uses[use_i]->ID == defs[def_i]->ID)
             found = 1;
       }
@@ -976,7 +923,7 @@ int cfgPerformLivenessIteration(t_cfg *graph)
    return modified;
 }
 
-void cfgPerformLivenessAnalysis(t_cfg *graph)
+void cfgComputeLiveness(t_cfg *graph)
 {
    int modified;
 
@@ -1066,11 +1013,11 @@ void bbDump(t_basicBlock *block, FILE *fout, int verbose)
 
       if (verbose != 0) {
          fprintf(fout, "     DEFS = [");
-         dumpArrayOfVariables(current_node->defs, CFLOW_MAX_DEFS, fout);
+         dumpArrayOfVariables(current_node->defs, CFG_MAX_DEFS, fout);
          fprintf(fout, "]\n");
 
          fprintf(fout, "     USES = [");
-         dumpArrayOfVariables(current_node->uses, CFLOW_MAX_USES, fout);
+         dumpArrayOfVariables(current_node->uses, CFG_MAX_USES, fout);
          fprintf(fout, "]\n");
 
          fprintf(fout, "     LIVE IN = [");
@@ -1106,7 +1053,7 @@ void cfgDump(t_cfg *graph, FILE *fout, int verbose)
    fprintf(fout, "%s",
          "NOTE: Temporary registers are considered as variables of the\n"
          "intermediate language.\n");
-#ifdef CFLOW_ALWAYS_LIVEIN_R0
+#ifdef CFG_T0_ALWAYS_LIVE
    fprintf(fout, "%s",
          "  Variable \'x0\' (which refers to the physical register \'zero\') "
          "is\n"
@@ -1114,7 +1061,7 @@ void cfgDump(t_cfg *graph, FILE *fout, int verbose)
          "Thus, in the following control flow graph, \'x0\' will never appear\n"
          "as LIVE-IN or LIVE-OUT variable for a statement.\n"
          "  If you want to consider \'x0\' as a normal variable, you have to\n"
-         "un-define the macro CFLOW_ALWAYS_LIVEIN_R0 in \"cflow_graph.h\"."
+         "un-define the macro CFG_T0_ALWAYS_LIVE in \"cflow_graph.h\"."
          "\n\n");
 #endif
 

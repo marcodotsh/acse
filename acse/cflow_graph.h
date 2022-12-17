@@ -17,18 +17,18 @@
 
 /* If this macro is defined, the control flow analysis will always consider
  * x0 as a LIVE IN temporary register (i.e. variable) */
-#define CFLOW_ALWAYS_LIVEIN_R0
+#define CFG_T0_ALWAYS_LIVE
 
 /* Max number of defs and uses for each cfg node */
-#define CFLOW_MAX_DEFS 2
-#define CFLOW_MAX_USES 3
+#define CFG_MAX_DEFS 2
+#define CFG_MAX_USES 3
 
 /* Error codes */
 enum {
-   CFLOW_INVALID_NODE = 1000,
-   CFLOW_INVALID_LABEL_FOUND,
-   CFLOW_NODE_ALREADY_INSERTED,
-   CFLOW_BBLOCK_ALREADY_INSERTED
+   ERROR_CFG_INVALID_NODE = 1000,
+   ERROR_CFG_INVALID_LABEL_FOUND,
+   ERROR_CFG_NODE_ALREADY_INSERTED,
+   ERROR_CFG_BBLOCK_ALREADY_INSERTED
 };
 
 /* Special variables */
@@ -50,9 +50,9 @@ typedef struct t_cfgVar {
  * inside the code */
 typedef struct t_cfgNode {
    /* set of variables defined by this node */
-   t_cfgVar *defs[CFLOW_MAX_DEFS];
+   t_cfgVar *defs[CFG_MAX_DEFS];
    /* set of variables that will be used by this node */
-   t_cfgVar *uses[CFLOW_MAX_USES];
+   t_cfgVar *uses[CFG_MAX_USES];
    /* a pointer to the instruction associated with this node */
    t_instruction *instr;
    /* variables that are live-in the current node */
@@ -82,10 +82,8 @@ typedef struct t_cfg {
 /** Allocate a new node for a given Control Flow Graph.
  *  @param graph The Control Flow Graph where the node will be put.
  *  @param instr The instruction which will be represented by the node.
- *  @param error Points to a variable that will be set to an error
- *               code if an error occurs.
- *  @returns The new node, or NULL if an error occurred. */
-extern t_cfgNode *newCFGNode(t_cfg *graph, t_instruction *instr, int *error);
+ *  @returns The new node. */
+extern t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr);
 /** Free a given Control Flow Graph node.
  *  @param node The node to be freed. */
 extern void deleteCFGNode(t_cfgNode *node);
@@ -94,10 +92,8 @@ extern void deleteCFGNode(t_cfgNode *node);
 /* Basic Blocks */
 
 /** Allocate a new empty basic block
- *  @param error Points to a variable that will be set to an error
- *               code if an error occurs.
- *  @returns The new block, or NULL if an error occurred. */
-extern t_basicBlock *newBasicBlock(int *error);
+ *  @returns The new block. */
+extern t_basicBlock *newBasicBlock();
 /** Frees the memory associated with a given basic block
  *  @param block The block to be freed. */
 extern void deleteBasicBlock(t_basicBlock *block);
@@ -114,20 +110,20 @@ extern void bbSetSucc(t_basicBlock *block, t_basicBlock *succ);
 /** Inserts a new node at the end of a block.
  *  @param block The block where to insert the node.
  *  @param node The node to insert.
- *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
+ *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
 extern int bbInsertNode(t_basicBlock *block, t_cfgNode *node);
 /** Inserts a new node before another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
- *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
+ *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
 extern int bbInsertNodeBefore(
       t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node);
 /** Inserts a new node after another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
- *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
+ *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
 extern int bbInsertNodeAfter(
       t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
 
@@ -149,7 +145,7 @@ extern void deleteCFG(t_cfg *graph);
  *  bbSetSucc.
  *  @param graph The graph where the block must be added.
  *  @param block The block to add.
- *  @returns AXE_OK if the operation succeeded, otherwise an error code. */
+ *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
 extern int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
 
 /** Iterates through the nodes in a control flow graph.
@@ -174,16 +170,16 @@ extern void cfgToProgram(t_program *program, t_cfg *graph);
 
 /** Computes graph-level liveness information of the variables.
  *  @param graph The control flow graph. */
-extern void cfgPerformLivenessAnalysis(t_cfg *graph);
+extern void cfgComputeLiveness(t_cfg *graph);
 
 /** Retrieve the list of live variables entering the given block. Only valid
- *  after calling cfgPerformLivenessAnalysis() on the graph.
+ *  after calling cfgComputeLiveness() on the graph.
  *  @param bblock The basic block.
  *  @return The list of variables. The list is dynamically allocated and must be
  *          freed. */
 extern t_listNode *bbGetLiveInVars(t_basicBlock *bblock);
 /** Retrieve the list of live variables when exiting the given block. Only valid
- *  after calling cfgPerformLivenessAnalysis() on the graph.
+ *  after calling cfgComputeLiveness() on the graph.
  *  @param bblock The basic block.
  *  @return The list of variables. The list is dynamically allocated and must be
  *          freed. */

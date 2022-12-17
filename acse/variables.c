@@ -24,7 +24,7 @@ t_variable *newVariable(char *ID, int type, int isArray, int arraySize)
    /* allocate memory for the new variable */
    result = (t_variable *)malloc(sizeof(t_variable));
    if (result == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    /* initialize the content of `result' */
    result->type = type;
@@ -59,18 +59,18 @@ void createVariable(
    assert(ID != NULL);
 
    if (type != INTEGER_TYPE)
-      fatalError(AXE_INVALID_TYPE);
+      fatalError(ERROR_INVALID_TYPE);
 
    /* check if another variable already exists with the same ID */
    variableFound = getVariable(program, ID);
    if (variableFound != NULL) {
-      emitError(AXE_VARIABLE_ALREADY_DECLARED);
+      emitError(ERROR_VARIABLE_ALREADY_DECLARED);
       return;
    }
 
    /* check if the array size is valid */
    if (isArray && arraySize <= 0) {
-      emitError(AXE_INVALID_ARRAY_SIZE);
+      emitError(ERROR_INVALID_ARRAY_SIZE);
       return;
    }
 
@@ -81,7 +81,7 @@ void createVariable(
       /* arrays are stored in memory and need a variable location */
       lblName = calloc(strlen(ID) + 8, sizeof(char));
       if (!lblName)
-         fatalError(AXE_OUT_OF_MEMORY);
+         fatalError(ERROR_OUT_OF_MEMORY);
       sprintf(lblName, "l_%s", ID);
       var->label = createLabel(program);
       setLabelName(program, var->label, lblName);
@@ -184,11 +184,11 @@ int getRegLocationOfScalar(t_program *program, char *ID)
    /* get the location of the variable with the given ID */
    var = getVariable(program, ID);
    if (var == NULL) {
-      emitError(AXE_VARIABLE_NOT_DECLARED);
+      emitError(ERROR_VARIABLE_NOT_DECLARED);
       return REG_INVALID;
    }
    if (var->isArray) {
-      emitError(AXE_VARIABLE_TYPE_MISMATCH);
+      emitError(ERROR_VARIABLE_TYPE_MISMATCH);
       return REG_INVALID;
    }
 
@@ -207,11 +207,11 @@ t_label *getMemLocationOfArray(t_program *program, char *ID)
    var = getVariable(program, ID);
 
    if (var == NULL) {
-      emitError(AXE_VARIABLE_NOT_DECLARED);
+      emitError(ERROR_VARIABLE_NOT_DECLARED);
       return NULL;
    }
    if (!var->isArray) {
-      emitError(AXE_VARIABLE_TYPE_MISMATCH);
+      emitError(ERROR_VARIABLE_TYPE_MISMATCH);
       return NULL;
    }
    assert(var->label != NULL);

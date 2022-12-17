@@ -528,7 +528,7 @@ int parseProgram(t_program *program)
    if (compilerOptions.inputFileName != NULL) {
       yyin = fopen(compilerOptions.inputFileName, "r");
       if (yyin == NULL)
-         fatalError(AXE_FOPEN_ERROR);
+         fatalError(ERROR_FOPEN_ERROR);
       debugPrintf(" -> Reading input from \"%s\"\n", compilerOptions.inputFileName);
    } else {
       yyin = stdin;

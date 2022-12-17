@@ -83,7 +83,7 @@ char *getLogFileName(const char *logType)
 
    basename = strdup(compilerOptions.outputFileName);
    if (!basename)
-      fatalError(AXE_OUT_OF_MEMORY);
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    lastDot = -1;
    for (i = 0; basename[i] != '\0'; i++) {
@@ -96,7 +96,7 @@ char *getLogFileName(const char *logType)
    nameLen = strlen(basename) + strlen(logType) + 8;
    outfn = calloc(nameLen, sizeof(char));
    if (!outfn)
-      fatalError(AXE_OUT_OF_MEMORY);
+      fatalError(ERROR_OUT_OF_MEMORY);
    
    snprintf(outfn, nameLen, "%s_%s.log", basename, logType);
    free(basename);

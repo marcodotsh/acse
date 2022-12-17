@@ -45,12 +45,12 @@ t_declaration *newDeclaration(char *ID, int isArray, int arraySize)
    /* allocate memory for the new declaration */
    result = (t_declaration *)malloc(sizeof(t_declaration));
    if (result == NULL)
-      fatalError(AXE_OUT_OF_MEMORY);
+      fatalError(ERROR_OUT_OF_MEMORY);
 
    name = strdup(ID);
    if (!name) {
       free(result);
-      fatalError(AXE_OUT_OF_MEMORY);
+      fatalError(ERROR_OUT_OF_MEMORY);
    }
 
    /* initialize the content of `result' */

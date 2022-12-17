@@ -268,7 +268,7 @@ int instructionToString(
       int n = labelToString(NULL, 0, instr->addressParam, 0);
       address = calloc(n + 1, sizeof(char));
       if (!address)
-         fatalError(AXE_OUT_OF_MEMORY);
+         fatalError(ERROR_OUT_OF_MEMORY);
       labelToString(address, n + 1, instr->addressParam, 0);
    }
    imm = instr->immediate;
@@ -277,52 +277,52 @@ int instructionToString(
    switch (format) {
       case FORMAT_OP:
          if (!instr->reg_dest || !instr->reg_src1 || !instr->reg_src2)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rd, rs1, rs2);
          break;
       case FORMAT_OPIMM:
          if (!instr->reg_dest || !instr->reg_src1)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s, %d", opc, rd, rs1, imm);
          break;
       case FORMAT_LOAD:
          if (!instr->reg_dest || !instr->reg_src1)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rd, imm, rs1);
          break;
       case FORMAT_LOAD_GL:
          if (!instr->reg_dest || !instr->addressParam)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
          break;
       case FORMAT_STORE:
          if (!instr->reg_src2 || !instr->reg_src1)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
          break;
       case FORMAT_STORE_GL:
          if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs2, address, rs1);
          break;
       case FORMAT_BRANCH:
          if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, rs2, address);
          break;
       case FORMAT_JUMP:
          if (!instr->addressParam)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s", opc, address);
          break;
       case FORMAT_LI:
          if (!instr->reg_dest)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %d", opc, rd, imm);
          break;
       case FORMAT_LA:
          if (!instr->reg_dest || !instr->addressParam)
-            fatalError(AXE_INVALID_INSTRUCTION);
+            fatalError(ERROR_INVALID_INSTRUCTION);
          res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
          break;
       case FORMAT_SYSTEM:
@@ -433,7 +433,7 @@ int translateCodeSegment(t_program *program, FILE *fp)
       /* retrieve the current instruction */
       current_instr = (t_instruction *)current_element->data;
       if (current_instr == NULL)
-         fatalError(AXE_INVALID_INSTRUCTION);
+         fatalError(ERROR_INVALID_INSTRUCTION);
 
       /* print label, instruction and comment */
       if (printInstruction(current_instr, fp, 1) < 0)
@@ -473,7 +473,7 @@ int printDirective(t_global *data, FILE *fp)
             return -1;
          break;
       default:
-         fatalError(AXE_INVALID_DATA_FORMAT);
+         fatalError(ERROR_INVALID_DATA_FORMAT);
    }
    
    return 0;
@@ -505,7 +505,7 @@ int translateDataSegment(t_program *program, FILE *fp)
 
       /* assertions */
       if (current_data == NULL)
-         fatalError(AXE_INVALID_DATA_FORMAT);
+         fatalError(ERROR_INVALID_DATA_FORMAT);
 
       /* print label and directive */
       if (printDirective(current_data, fp) < 0)
@@ -542,20 +542,20 @@ void writeAssembly(t_program *program)
    /* open a new file */
    fp = fopen(output_file, "w");
    if (fp == NULL)
-      fatalError(AXE_FOPEN_ERROR);
+      fatalError(ERROR_FOPEN_ERROR);
 
    if (translateForwardDeclarations(program, fp) < 0)
-      fatalError(AXE_FWRITE_ERROR);
+      fatalError(ERROR_FWRITE_ERROR);
 
    /* print the data segment */
    if (translateDataSegment(program, fp) < 0)
-      fatalError(AXE_FWRITE_ERROR);
+      fatalError(ERROR_FWRITE_ERROR);
 
    /* print the code segment */
    if (translateCodeSegment(program, fp) < 0)
-      fatalError(AXE_FWRITE_ERROR);
+      fatalError(ERROR_FWRITE_ERROR);
 
    /* close the file and return */
    if (fclose(fp) == EOF)
-      fatalError(AXE_FCLOSE_ERROR);
+      fatalError(ERROR_FCLOSE_ERROR);
 }
