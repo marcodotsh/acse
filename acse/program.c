@@ -628,16 +628,9 @@ void dumpProgram(t_program *program, FILE *fout)
          fprintf(
                fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
          free(labelName);
+      } else {
+         fprintf(fout, "   temporary register = t%d\n", var->reg_location);
       }
-
-      fprintf(fout, "   location = ");
-
-      reg = getRegLocationOfScalar(program, var->ID);
-      if (reg == REG_INVALID)
-         fprintf(fout, "N/A");
-      else
-         fprintf(fout, "R%d", reg);
-      fprintf(fout, "\n");
 
       cur_var = cur_var->next;
    }
