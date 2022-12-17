@@ -222,16 +222,21 @@ static t_tokenID lexConsumeNumber(t_lexer *lex, char firstChar)
 }
 
 
-static t_tokenID lexConsumeString(t_lexer *lex, char firstChar)
+static t_tokenID lexConsumeCharacterOrString(t_lexer *lex, t_tokenID type, char firstChar)
 {
+   char delimiter = '"';
+   if (type == TOK_CHARACTER) {
+      delimiter = '\'';
+   }
+
    char next = lexGetChar(lex);
-   while (next != '"' && next != '\n' && next != '\r' && next != '\0') {
+   while (next != delimiter && next != '\n' && next != '\r' && next != '\0') {
       next = lexGetChar(lex);
       if (next == '\\') {
          next = lexGetChar(lex);
       }
    }
-   if (next != '"') {
+   if (next != delimiter) {
       fprintf(stderr, "warning at %d,%d: string not properly terminated\n", lex->row+1, lex->col);
    }
 
@@ -244,7 +249,6 @@ static t_tokenID lexConsumeString(t_lexer *lex, char firstChar)
       char c = *in++;
       switch (c) {
          case '\0':
-         case '"':
          case '\n':
          case '\r':
             stop = true;
@@ -274,16 +278,15 @@ static t_tokenID lexConsumeString(t_lexer *lex, char firstChar)
                   *out++ = '\013';
                   break;
                case '\\':
-               case '"':
-                  *out++ = c;
-                  break;
                case 'x':
                case 'X':
                   c = (char)strtol(in, &in, 16);
                   *out++ = c;
                   break;
                default:
-                  if (isdigit(c)) {
+                  if (c == delimiter) {
+                     *out++ = c;
+                  } else if (isdigit(c)) {
                      c = (char)strtol(in, &in, 8);
                      *out++ = c;
                   } else {
@@ -294,12 +297,20 @@ static t_tokenID lexConsumeString(t_lexer *lex, char firstChar)
             }
             break;
          default:
-            *out++ = c;
+            if (c == delimiter) {
+               stop = true;
+            } else {
+               *out++ = c;
+            }
             break;
       }
    }
    *out = '\0';
-   return TOK_STRING;
+
+   if (type == TOK_CHARACTER && (off_t)(out - lex->tokLastString) != 1) {
+      return TOK_UNRECOGNIZED;
+   }
+   return type;
 }
 
 
@@ -334,6 +345,8 @@ static t_tokenID lexConsumeDirective(t_lexer *lex, char firstChar)
       return TOK_GLOBAL;
    if (strcasecmp("ascii", kwbuf) == 0)
       return TOK_ASCII;
+   if (strcasecmp("byte", kwbuf) == 0)
+      return TOK_BYTE;
    return TOK_UNRECOGNIZED;
 }
 
@@ -557,7 +570,10 @@ t_tokenID lexNextToken(t_lexer *lex)
       return lexConsumeNumber(lex, next);
    }
    if (next == '"') {
-      return lexConsumeString(lex, next);
+      return lexConsumeCharacterOrString(lex, TOK_STRING, next);
+   }
+   if (next == '\'') {
+      return lexConsumeCharacterOrString(lex, TOK_CHARACTER, next);
    }
    if (next == '.') {
       return lexConsumeDirective(lex, next);

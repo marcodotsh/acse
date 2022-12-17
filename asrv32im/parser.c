@@ -467,6 +467,24 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
       return P_ACCEPT;
    }
 
+   if (lastToken == TOK_BYTE) {
+      do {
+         data.dataSize = sizeof(uint8_t);
+         data.initialized = 1;
+         if (parserAccept(state, TOK_NUMBER)) {
+            data.data[0] = lexGetLastNumberValue(state->lex);
+         } else if (parserAccept(state, TOK_CHARACTER)) {
+            char *str = lexGetLastStringValue(state->lex);
+            data.data[0] = *str;
+         } else {
+            parserEmitError(state, "expected numeric or character constant");
+            return P_SYN_ERROR;
+         }
+         objSecAppendData(state->curSection, data);
+      } while (parserAccept(state, TOK_COMMA));
+      return P_ACCEPT;
+   }
+
    if (lastToken == TOK_ASCII) {
       do {
          if (!parserExpect(state, TOK_STRING, "expected string after \".ascii\""))
@@ -492,6 +510,8 @@ static t_parserError expectLineContent(t_parserState *state)
       return expectData(state, TOK_SPACE);
    if (parserAccept(state, TOK_WORD) == P_ACCEPT)
       return expectData(state, TOK_WORD);
+   if (parserAccept(state, TOK_BYTE) == P_ACCEPT)
+      return expectData(state, TOK_BYTE);
    if (parserAccept(state, TOK_ASCII) == P_ACCEPT)
       return expectData(state, TOK_ASCII);
    if (parserAccept(state, TOK_MNEMONIC) == P_ACCEPT)
