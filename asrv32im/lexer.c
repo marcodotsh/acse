@@ -446,6 +446,8 @@ t_tokenID lexNextToken(t_lexer *lex)
       if (next != '\n')
          lexPutBack(lex, 1);
       return TOK_NEWLINE;
+   } else if (next == ';') {
+      return TOK_NEWLINE;
    }
 
    if (next == ',')
