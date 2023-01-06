@@ -73,7 +73,7 @@ static int lexExpandBufferIfFull(t_lexer *lex, int space)
 }
 
 
-static int lexGetChar(t_lexer *lex)
+int lexGetChar(t_lexer *lex)
 {
    int res;
 
@@ -182,7 +182,7 @@ static void lexSkipWhitespaceAndComments(t_lexer *lex)
 
 static t_tokenID lexConsumeNumber(t_lexer *lex, char firstChar)
 {
-   char next, *temp;
+   char next;
 
    if (firstChar == '-')
       firstChar = lexGetChar(lex);
@@ -213,12 +213,22 @@ static t_tokenID lexConsumeNumber(t_lexer *lex, char firstChar)
       while (isdigit(next))
          next = lexGetChar(lex);
    }
-
    lexPutBack(lex, 1);
-   temp = lexGetLastTokenText(lex);
+
+   char *temp = lexGetLastTokenText(lex);
    lex->tokLastData = (int32_t)strtol(temp, NULL, 0);
    free(temp);
-   return TOK_NUMBER;
+
+   t_tokenID type;
+   if ((next == 'b' || next == 'f') && (lex->tokLastData > 0)) {
+      type = TOK_LOCAL_REF;
+      if (next == 'b')
+         lex->tokLastData = -lex->tokLastData;
+      lexGetChar(lex);
+   } else {
+      type = TOK_NUMBER;
+   }
+   return type;
 }
 
 

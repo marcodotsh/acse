@@ -11,6 +11,12 @@ enum {
    P_SYN_ERROR = -1
 };
 
+typedef struct t_localLabel {
+   struct t_localLabel *next;
+   int identifier;
+   t_objLabel *label;
+} t_localLabel;
+
 typedef struct t_parserState {
    t_lexer *lex;
    t_object *object;
@@ -18,7 +24,66 @@ typedef struct t_parserState {
    int numErrors;
    int hasLastToken;
    t_tokenID lastToken;
+   t_localLabel *backLabels;
+   t_localLabel *forwardLabels;
 } t_parserState;
+
+
+static t_localLabel *parserGetLocalLabel(t_parserState *state, int identifier, int back)
+{
+   t_localLabel *cur;
+   if (back)
+      cur = state->backLabels;
+   else
+      cur = state->forwardLabels;
+   while (cur) {
+      if (cur->identifier == identifier)
+         break;
+      cur = cur->next;
+   }
+   if (cur)
+      return cur;
+   if (back)
+      return NULL;
+
+   cur = calloc(1, sizeof(t_localLabel));
+   cur->identifier = identifier;
+   char realLblName[50];
+   static int progressive = 0;
+   snprintf(realLblName, 50, ".local_%d_%d", identifier, progressive++);
+   cur->label = objGetLabel(state->object, realLblName);
+   cur->next = state->forwardLabels;
+   state->forwardLabels = cur;
+   return cur;
+}
+
+static void parserDeclareLocalLabel(t_parserState *state, t_localLabel *label)
+{
+   t_localLabel *prev = NULL, *cur = state->forwardLabels;
+   while (cur && cur != label) {
+      prev = cur;
+      cur = cur->next;
+   }
+   assert(cur != NULL && "attempted to declare a label which was never created");
+   if (prev == NULL) {
+      state->forwardLabels = label->next;
+   } else {
+      prev->next = label->next;
+   }
+   label->next = state->backLabels;
+   state->backLabels = label;
+   objSecDeclareLabel(state->curSection, label->label);
+}
+
+static void deleteLocalLabelList(t_localLabel *head)
+{
+   t_localLabel *next;
+   while (head) {
+      next = head->next;
+      free(head);
+      head = next;
+   }
+}
 
 
 static void parserEmitError(t_parserState *state, const char *msg)
@@ -109,15 +174,23 @@ static t_parserError expectNumber(t_parserState *state, int32_t *res, int32_t mi
 
 static t_parserError acceptLabel(t_parserState *state, t_instruction *instr)
 {
-   char *tmp;
+   if (parserAccept(state, TOK_LOCAL_REF) == P_ACCEPT) {
+      int n = lexGetLastNumberValue(state->lex);
+      int back = n < 0;
+      if (back)
+         n = -n;
+      t_localLabel *ll = parserGetLocalLabel(state, n, back);
+      instr->label = ll->label;
+      return P_ACCEPT;
+
+   } else if (parserAccept(state, TOK_ID) == P_ACCEPT) {
+      char *tmp = lexGetLastTokenText(state->lex);
+      instr->label = objGetLabel(state->object, tmp);
+      free(tmp);
+      return P_ACCEPT;
+   }
    
-   if (parserAccept(state, TOK_ID) != P_ACCEPT)
-      return P_REJECT;
-   
-   tmp = lexGetLastTokenText(state->lex);
-   instr->label = objGetLabel(state->object, tmp);
-   free(tmp);
-   return P_ACCEPT;
+   return P_REJECT;
 }
 
 static t_parserError expectLabel(t_parserState *state, t_instruction *instr)
@@ -555,9 +628,6 @@ static t_parserError expectLineContent(t_parserState *state)
 
 static t_parserError expectLine(t_parserState *state)
 {
-   char *temp;
-   t_objLabel *label;
-
    if (parserAccept(state, TOK_NEWLINE) == P_ACCEPT)
       return P_ACCEPT;
 
@@ -575,11 +645,21 @@ static t_parserError expectLine(t_parserState *state)
       return parserExpect(state, TOK_NEWLINE, "expected end of the line");
    }
 
-   if (parserAccept(state, TOK_ID) == P_ACCEPT) {
-      temp = lexGetLastTokenText(state->lex);
+   if (parserAccept(state, TOK_NUMBER) == P_ACCEPT) {
+      int n = lexGetLastNumberValue(state->lex);
+      if (n < 0) {
+         parserEmitError(state, "local labels must be positive numbers");
+         return P_SYN_ERROR;
+      }
+      if (parserExpect(state, TOK_COLON, "expected colon after number to define a local label") != P_ACCEPT)
+         return P_SYN_ERROR;
+      t_localLabel *ll = parserGetLocalLabel(state, n, 0);
+      parserDeclareLocalLabel(state, ll);
+   } else if (parserAccept(state, TOK_ID) == P_ACCEPT) {
+      char *temp = lexGetLastTokenText(state->lex);
       if (parserExpect(state, TOK_COLON, "expected label or valid mnemonic") != P_ACCEPT)
          return P_SYN_ERROR;
-      label = objGetLabel(state->object, temp);
+      t_objLabel *label = objGetLabel(state->object, temp);
       if (!objSecDeclareLabel(state->curSection, label))
          parserEmitError(state, "label already declared");
       free(temp);
@@ -605,6 +685,8 @@ t_object *parseObject(t_lexer *lex)
    state.curSection = objGetSection(state.object, OBJ_SECTION_TEXT);
    state.numErrors = 0;
    state.hasLastToken = 0;
+   state.backLabels = NULL;
+   state.forwardLabels = NULL;
 
    while (parserAccept(&state, TOK_EOF) != P_ACCEPT) {
       err = expectLine(&state);
@@ -624,6 +706,9 @@ t_object *parseObject(t_lexer *lex)
          }
       }
    }
+
+   deleteLocalLabelList(state.backLabels);
+   deleteLocalLabelList(state.forwardLabels);
 
    if (state.numErrors > 0)
       goto error;

@@ -10,6 +10,7 @@ enum {
    TOK_EOF = 0,
    TOK_NEWLINE,
    TOK_ID,
+   TOK_LOCAL_REF,
    TOK_NUMBER,
    TOK_CHARACTER,
    TOK_STRING,
@@ -38,6 +39,8 @@ typedef struct t_lexer t_lexer;
 
 t_lexer *newLexer(FILE *fp);
 void deleteLexer(t_lexer *lex);
+
+int lexGetChar(t_lexer *lex);
 
 t_tokenID lexNextToken(t_lexer *lex);
 char *lexGetLastTokenText(t_lexer *lex);
