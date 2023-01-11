@@ -145,13 +145,12 @@ static t_parserError parserExpect(t_parserState *state, t_tokenID tok, const cha
    return P_SYN_ERROR;
 }
 
-
 static t_parserError expectRegister(t_parserState *state, t_instrRegID *res, int last)
 {
    if (parserExpect(state, TOK_REGISTER, "expected a register") != P_ACCEPT)
       return P_SYN_ERROR;
    *res = lexGetLastRegisterID(state->lex);
-   if (!last && parserExpect(state, TOK_COMMA, "expected a comma") != P_ACCEPT)
+   if (!last && parserExpect(state, TOK_COMMA, "register name must be followed by a comma") != P_ACCEPT)
       return P_SYN_ERROR;
    return P_ACCEPT;
 }
@@ -454,8 +453,13 @@ static t_parserError expectInstruction(t_parserState *state, t_tokenID lastToken
 
       case FORMAT_LA:
       case FORMAT_JAL:
-         if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
-            return P_SYN_ERROR;
+         if (parserAccept(state, TOK_REGISTER) != P_ACCEPT) {
+            instr.dest = 1;
+         } else {
+            instr.dest = lexGetLastRegisterID(state->lex);
+            if (parserExpect(state, TOK_COMMA, "register name must be followed by a comma") != P_ACCEPT)
+               return P_SYN_ERROR;
+         }
          if (expectLabel(state, &instr) != P_ACCEPT)
             return P_SYN_ERROR;
          instr.immMode = INSTR_IMM_LBL;
