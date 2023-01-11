@@ -233,7 +233,7 @@ static t_parserError expectImmediate(t_parserState *state, t_instruction *instr,
          max = 0x7FF;
       } else if (size == IMM_SIZE_20) {
          min = -0x80000;
-         max = 0x7FFFF;
+         max = 0xFFFFF;
       } else
          assert(0 && "invalid immediate size");
       
