@@ -468,14 +468,22 @@ static t_parserError expectInstruction(t_parserState *state, t_tokenID lastToken
       case FORMAT_JALR:
          if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
             return P_SYN_ERROR;
-         if (expectImmediate(state, &instr, IMM_SIZE_12) != P_ACCEPT)
-            return P_SYN_ERROR;
-         if (parserExpect(state, TOK_LPAR, "expected parenthesis") != P_ACCEPT)
-            return P_SYN_ERROR;
-         if (expectRegister(state, &instr.src1, 1) != P_ACCEPT)
-            return P_SYN_ERROR;
-         if (parserExpect(state, TOK_RPAR, "expected parenthesis") != P_ACCEPT)
-            return P_SYN_ERROR;
+         if (parserAccept(state, TOK_REGISTER) == P_ACCEPT) {
+            instr.src1 = lexGetLastRegisterID(state->lex);
+            if (parserExpect(state, TOK_COMMA, "register name must be followed by a comma") != P_ACCEPT)
+               return P_SYN_ERROR;
+            if (expectImmediate(state, &instr, IMM_SIZE_12) != P_ACCEPT)
+               return P_SYN_ERROR;
+         } else {
+            if (expectImmediate(state, &instr, IMM_SIZE_12) != P_ACCEPT)
+               return P_SYN_ERROR;
+            if (parserExpect(state, TOK_LPAR, "expected parenthesis") != P_ACCEPT)
+               return P_SYN_ERROR;
+            if (expectRegister(state, &instr.src1, 1) != P_ACCEPT)
+               return P_SYN_ERROR;
+            if (parserExpect(state, TOK_RPAR, "expected parenthesis") != P_ACCEPT)
+               return P_SYN_ERROR;
+         }
          break;
 
       case FORMAT_BRANCH:
