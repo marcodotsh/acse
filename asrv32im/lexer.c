@@ -351,14 +351,16 @@ static t_tokenID lexConsumeDirective(t_lexer *lex, char firstChar)
       return TOK_SPACE;
    if (strcasecmp("word", kwbuf) == 0)
       return TOK_WORD;
-   if (strcasecmp("global", kwbuf) == 0)
-      return TOK_GLOBAL;
-   if (strcasecmp("ascii", kwbuf) == 0)
-      return TOK_ASCII;
+   if (strcasecmp("half", kwbuf) == 0)
+      return TOK_HALF;
    if (strcasecmp("byte", kwbuf) == 0)
       return TOK_BYTE;
+   if (strcasecmp("ascii", kwbuf) == 0)
+      return TOK_ASCII;
    if (strcasecmp("align", kwbuf) == 0 || strcasecmp("balign", kwbuf) == 0)
       return TOK_ALIGN;
+   if (strcasecmp("global", kwbuf) == 0)
+      return TOK_GLOBAL;
    return TOK_UNRECOGNIZED;
 }
 

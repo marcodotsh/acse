@@ -536,17 +536,22 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
       return P_ACCEPT;
    }
 
-   if (lastToken == TOK_WORD) {
+   if (lastToken == TOK_WORD || lastToken == TOK_HALF) {
       do {
          if (!parserExpect(state, TOK_NUMBER, "expected number"))
             return P_SYN_ERROR;
          temp = lexGetLastNumberValue(state->lex);
-         data.dataSize = sizeof(int32_t);
+         if (lastToken == TOK_WORD)
+            data.dataSize = 4;
+         else if (lastToken == TOK_HALF)
+            data.dataSize = 2;
          data.initialized = 1;
          data.data[0] = temp & 0xFF;
          data.data[1] = (temp >> 8) & 0xFF;
-         data.data[2] = (temp >> 16) & 0xFF;
-         data.data[3] = (temp >> 24) & 0xFF;
+         if (lastToken == TOK_WORD) {
+            data.data[2] = (temp >> 16) & 0xFF;
+            data.data[3] = (temp >> 24) & 0xFF;
+         }
          objSecAppendData(state->curSection, data);
       } while (parserAccept(state, TOK_COMMA));
       return P_ACCEPT;
@@ -625,6 +630,8 @@ static t_parserError expectLineContent(t_parserState *state)
       return expectData(state, TOK_SPACE);
    if (parserAccept(state, TOK_WORD) == P_ACCEPT)
       return expectData(state, TOK_WORD);
+   if (parserAccept(state, TOK_HALF) == P_ACCEPT)
+      return expectData(state, TOK_HALF);
    if (parserAccept(state, TOK_BYTE) == P_ACCEPT)
       return expectData(state, TOK_BYTE);
    if (parserAccept(state, TOK_ASCII) == P_ACCEPT)

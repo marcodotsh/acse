@@ -23,6 +23,7 @@ enum {
    TOK_DATA,
    TOK_SPACE,
    TOK_WORD,
+   TOK_HALF,
    TOK_BYTE,
    TOK_ASCII,
    TOK_ALIGN,
