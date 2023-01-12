@@ -16,9 +16,6 @@
  * It returns the new register identifier or REG_INVALID if an error occurs */
 extern int genLoadImmediate(t_program *program, int immediate);
 
-/* Generate the instruction to move an `immediate' value into a register. */
-extern void genMoveImmediate(t_program *program, int dest, int imm);
-
 
 /*----------------------------------------------------
  *                   ARITHMETIC

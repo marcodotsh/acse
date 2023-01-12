@@ -19,6 +19,9 @@ static const char *errorToString(int errorcode)
     case ERROR_OUT_OF_MEMORY:
       msg = "Out of memory";
       break;
+    case ERROR_INVALID_REGISTER_IDENTIFIER:
+      msg = "Compiler bug, invalid register identifier";
+      break;
     case ERROR_INVALID_INSTRUCTION:
       msg = "Invalid instruction";
       break;

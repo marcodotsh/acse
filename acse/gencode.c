@@ -5,15 +5,20 @@
 #include "target_info.h"
 
 
-void genMoveImmediate(t_program *program, int dest, int immediate)
+void validateRegisterId(t_program *program, int r)
 {
-  genLIInstruction(program, dest, immediate);
+  if (!program)
+    return;
+  if (r >= 0 && r < program->current_register)
+    return;
+  fatalError(ERROR_INVALID_REGISTER_IDENTIFIER);
 }
+
 
 int genLoadImmediate(t_program *program, int immediate)
 {
   int imm_register = getNewRegister(program);
-  genMoveImmediate(program, imm_register, immediate);
+  genLIInstruction(program, imm_register, immediate);
   return imm_register;
 }
 
@@ -21,18 +26,25 @@ int genLoadImmediate(t_program *program, int immediate)
 static t_instruction *genRFormatInstruction(
     t_program *program, int opcode, int rd, int rs1, int rs2)
 {
+  validateRegisterId(program, rd);
+  validateRegisterId(program, rs1);
+  validateRegisterId(program, rs2);
   return genInstruction(program, opcode, rd, rs1, rs2, NULL, 0);
 }
 
 static t_instruction *genIFormatInstruction(
     t_program *program, int opcode, int rd, int rs1, int immediate)
 {
+  validateRegisterId(program, rd);
+  validateRegisterId(program, rs1);
   return genInstruction(program, opcode, rd, rs1, REG_INVALID, NULL, immediate);
 }
 
 static t_instruction *genBFormatInstruction(
     t_program *program, int opcode, int rs1, int rs2, t_label *label)
 {
+  validateRegisterId(program, rs1);
+  validateRegisterId(program, rs2);
   return genInstruction(program, opcode, REG_INVALID, rs1, rs2, label, 0);
 }
 
@@ -351,12 +363,14 @@ t_instruction *genBLEUInstruction(
 
 t_instruction *genLIInstruction(t_program *program, int r_dest, int immediate)
 {
+  validateRegisterId(program, r_dest);
   return genInstruction(
       program, OPC_LI, r_dest, REG_INVALID, REG_INVALID, NULL, immediate);
 }
 
 t_instruction *genLAInstruction(t_program *program, int r_dest, t_label *label)
 {
+  validateRegisterId(program, r_dest);
   return genInstruction(
       program, OPC_LA, r_dest, REG_INVALID, REG_INVALID, label, 0);
 }
@@ -364,6 +378,8 @@ t_instruction *genLAInstruction(t_program *program, int r_dest, t_label *label)
 t_instruction *genLWInstruction(
     t_program *program, int r_dest, int immediate, int rs1)
 {
+  validateRegisterId(program, r_dest);
+  validateRegisterId(program, rs1);
   return genInstruction(
       program, OPC_LW, r_dest, rs1, REG_INVALID, NULL, immediate);
 }
@@ -371,6 +387,8 @@ t_instruction *genLWInstruction(
 t_instruction *genSWInstruction(
     t_program *program, int rs2, int immediate, int rs1)
 {
+  validateRegisterId(program, rs2);
+  validateRegisterId(program, rs1);
   return genInstruction(
       program, OPC_SW, REG_INVALID, rs1, rs2, NULL, immediate);
 }
@@ -378,6 +396,7 @@ t_instruction *genSWInstruction(
 t_instruction *genLWGlobalInstruction(
     t_program *program, int r_dest, t_label *label)
 {
+  validateRegisterId(program, r_dest);
   return genInstruction(
       program, OPC_LW_G, r_dest, REG_INVALID, REG_INVALID, label, 0);
 }
@@ -385,6 +404,7 @@ t_instruction *genLWGlobalInstruction(
 t_instruction *genSWGlobalInstruction(
     t_program *program, int rs2, t_label *label)
 {
+  validateRegisterId(program, rs2);
   return genInstruction(program, OPC_SW_G, REG_INVALID, REG_T6, rs2, label, 0);
 }
 
@@ -416,18 +436,21 @@ t_instruction *genExit0Syscall(t_program *program)
 
 t_instruction *genReadIntSyscall(t_program *program, int r_dest)
 {
+  validateRegisterId(program, r_dest);
   return genInstruction(
       program, OPC_CALL_READ_INT, r_dest, REG_INVALID, REG_INVALID, NULL, 0);
 }
 
 t_instruction *genPrintIntSyscall(t_program *program, int r_src1)
 {
+  validateRegisterId(program, r_src1);
   return genInstruction(
       program, OPC_CALL_PRINT_INT, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
 }
 
 t_instruction *genPrintCharSyscall(t_program *program, int r_src1)
 {
+  validateRegisterId(program, r_src1);
   return genInstruction(
       program, OPC_CALL_PRINT_CHAR, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
 }

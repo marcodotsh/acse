@@ -273,7 +273,7 @@ assign_statement: IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
 
                   /* update the value of location */
                   if ($3.type == CONSTANT)
-                    genMoveImmediate(program, location, $3.immediate);
+                    genLIInstruction(program, location, $3.immediate);
                   else
                     genADDIInstruction(program, location, $3.registerId, 0);
 
