@@ -376,7 +376,7 @@ void dbgCmdDisassemble(char *args)
       return;
    }
 
-   for (i=0; i<len; i++) {
+   for (int i=0; i<len; i++) {
       t_memAddress curaddr = addr + 4*i;
       uint32_t instr = memDebugRead32(curaddr, NULL);
       isaDisassemble(instr, buffer, 80);
@@ -406,7 +406,7 @@ void dbgCmdMemDump(char *args)
 
    if (len > 0) {
       fprintf(stderr, "%08"PRIx32": ", (t_memAddress)addr);
-      for (i=0; i<len; i++) {
+      for (int i=0; i<len; i++) {
          t_memAddress curaddr = addr + i;
          uint8_t byte = memDebugRead8(curaddr, NULL);
          fprintf(stderr, "%02"PRIx8, byte);
