@@ -1,8 +1,8 @@
-int a,b,somma;
+int a,b,sum;
 
 read(a);
 read(b);
 
-somma = a + b;
+sum = a + b;
 
-write(somma);
+write(sum);

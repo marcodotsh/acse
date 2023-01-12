@@ -1,6 +1,6 @@
 /// @file target_transform.h
-/// @brief Transformation passes used to abstract machine-dependent details from the
-///        intermediate representation
+/// @brief Transformation passes used to abstract machine-dependent details from
+///        the intermediate representation
 
 #ifndef TARGET_TRANSFORM_H
 #define TARGET_TRANSFORM_H

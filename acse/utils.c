@@ -17,92 +17,92 @@
 int debugPrintf(const char *fmt, ...)
 {
 #ifndef NDEBUG
-   int res;
-   va_list args;
+  int res;
+  va_list args;
 
-   va_start(args, fmt);
-   res = vprintf(fmt, args);
-   va_end(args);
-   return res;
+  va_start(args, fmt);
+  res = vprintf(fmt, args);
+  va_end(args);
+  return res;
 #else
-   return 0;
+  return 0;
 #endif
 }
 
 
 t_declaration *newDeclaration(char *ID, int isArray, int arraySize)
 {
-   t_declaration *result;
-   char *name;
+  t_declaration *result;
+  char *name;
 
-   /* allocate memory for the new declaration */
-   result = (t_declaration *)malloc(sizeof(t_declaration));
-   if (result == NULL)
-      fatalError(ERROR_OUT_OF_MEMORY);
+  /* allocate memory for the new declaration */
+  result = (t_declaration *)malloc(sizeof(t_declaration));
+  if (result == NULL)
+    fatalError(ERROR_OUT_OF_MEMORY);
 
-   name = strdup(ID);
-   if (!name) {
-      free(result);
-      fatalError(ERROR_OUT_OF_MEMORY);
-   }
+  name = strdup(ID);
+  if (!name) {
+    free(result);
+    fatalError(ERROR_OUT_OF_MEMORY);
+  }
 
-   /* initialize the content of `result' */
-   result->isArray = isArray;
-   result->arraySize = arraySize;
-   result->ID = name;
+  /* initialize the content of `result' */
+  result->isArray = isArray;
+  result->arraySize = arraySize;
+  result->ID = name;
 
-   /* return the just created and initialized instance of t_declaration */
-   return result;
+  /* return the just created and initialized instance of t_declaration */
+  return result;
 }
 
 
 void addVariablesFromDecls(
-      t_program *program, int varType, t_listNode *variables)
+    t_program *program, int varType, t_listNode *variables)
 {
-   t_listNode *current_element;
-   t_declaration *current_decl;
+  t_listNode *current_element;
+  t_declaration *current_decl;
 
-   /* preconditions */
-   assert(program != NULL);
+  /* preconditions */
+  assert(program != NULL);
 
-   /* initialize `current_element' */
-   current_element = variables;
+  /* initialize `current_element' */
+  current_element = variables;
 
-   while (current_element != NULL) {
-      /* retrieve the current declaration infos */
-      current_decl = (t_declaration *)current_element->data;
-      assert(current_decl != NULL);
+  while (current_element != NULL) {
+    /* retrieve the current declaration infos */
+    current_decl = (t_declaration *)current_element->data;
+    assert(current_decl != NULL);
 
-      /* create and assign a new variable to program */
-      createVariable(program, current_decl->ID, varType, current_decl->isArray,
-            current_decl->arraySize);
+    /* create and assign a new variable to program */
+    createVariable(program, current_decl->ID, varType, current_decl->isArray,
+        current_decl->arraySize);
 
-      /* update the value of `current_element' */
-      current_element = current_element->next;
-   }
+    /* update the value of `current_element' */
+    current_element = current_element->next;
+  }
 
-   /* free the linked list */
-   /* initialize `current_element' */
-   current_element = variables;
+  /* free the linked list */
+  /* initialize `current_element' */
+  current_element = variables;
 
-   while (current_element != NULL) {
-      /* retrieve the current declaration infos */
-      current_decl = (t_declaration *)current_element->data;
+  while (current_element != NULL) {
+    /* retrieve the current declaration infos */
+    current_decl = (t_declaration *)current_element->data;
 
-      /* assertion -- must always be verified */
-      assert(current_decl != NULL);
+    /* assertion -- must always be verified */
+    assert(current_decl != NULL);
 
-      /* associate a register to each declared variable
-       * that is not an array type */
-      if (!(current_decl->isArray))
-         getRegLocationOfScalar(program, current_decl->ID);
+    /* associate a register to each declared variable
+     * that is not an array type */
+    if (!(current_decl->isArray))
+      getRegLocationOfScalar(program, current_decl->ID);
 
-      /* free the memory associated with the current declaration */
-      free(current_decl);
+    /* free the memory associated with the current declaration */
+    free(current_decl);
 
-      /* update the value of `current_element' */
-      current_element = current_element->next;
-   }
+    /* update the value of `current_element' */
+    current_element = current_element->next;
+  }
 
-   freeList(variables);
+  freeList(variables);
 }

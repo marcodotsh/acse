@@ -17,11 +17,11 @@
 
 /** A list element */
 typedef struct t_listNode {
-   struct t_listNode *next; /* The next element in the chain, if it exists,
-                              * or NULL instead. */
-   struct t_listNode *prev; /* The previous element in the chain, if it exists,
-                              * or NULL instead. */
-   void *data;               /* Pointer to the data associated to this node */
+  struct t_listNode *next; /* The next element in the chain, if it exists,
+                            * or NULL instead. */
+  struct t_listNode *prev; /* The previous element in the chain, if it exists,
+                            * or NULL instead. */
+  void *data;              /* Pointer to the data associated to this node */
 } t_listNode;
 
 
@@ -41,8 +41,7 @@ extern t_listNode *addElement(t_listNode *list, void *data, int pos);
  *                of the list.
  * @param data The data pointer that will be associated to the new element.
  * @returns A pointer to the new head of the list. */
-extern t_listNode *addAfter(
-      t_listNode *list, t_listNode *listPos, void *data);
+extern t_listNode *addAfter(t_listNode *list, t_listNode *listPos, void *data);
 
 /** Add a new element in a list before another given element.
  * @param list    The list where to add the element.
@@ -51,8 +50,7 @@ extern t_listNode *addAfter(
  *                of the list.
  * @param data The data pointer that will be associated to the new element.
  * @returns A pointer to the new head of the list. */
-extern t_listNode *addBefore(
-      t_listNode *list, t_listNode *listPos, void *data);
+extern t_listNode *addBefore(t_listNode *list, t_listNode *listPos, void *data);
 
 /** Add a new element in a sorted list.
  * @param list          The list where to add the element.
@@ -62,7 +60,7 @@ extern t_listNode *addBefore(
  *                      shall return -1 if a < b, 0 if a == b, and 1 if a > b.
  * @returns A pointer to the new head of the list. */
 extern t_listNode *addSorted(
-      t_listNode *list, void *data, int (*compareFunc)(void *a, void *b));
+    t_listNode *list, void *data, int (*compareFunc)(void *a, void *b));
 
 /** Add elements to a list by copying them from another list.
  * @param list       The list where to add the elements.
@@ -106,7 +104,7 @@ extern t_listNode *findElement(t_listNode *list, void *data);
  * @returns The first list element that satisfies the comparison function,
  *          or NULL if no such element is in the list. */
 extern t_listNode *findElementWithCallback(
-      t_listNode *list, void *data, int (*compareFunc)(void *a, void *b));
+    t_listNode *list, void *data, int (*compareFunc)(void *a, void *b));
 
 /** Finds the position of an element inside a list.
  * @param list    The list where the element belongs.

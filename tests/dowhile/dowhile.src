@@ -5,8 +5,8 @@ read(b);
 
 do
 {
-	a = a + 1;
-	b = b - 1;
+  a = a + 1;
+  b = b - 1;
 }while(b > 0);
 
 write(a);

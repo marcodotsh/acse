@@ -12,15 +12,15 @@
 
 /** A structure that defines the internal data of an `Acse variable' */
 typedef struct t_variable {
-   int type;         /* A valid data type */
-   char *ID;         /* Variable identifier (should never be a NULL
-                      * pointer or an empty string "") */
-   int isArray;      /* Must be TRUE if the current variable is an array */
-   int reg_location; /* If `isArray' is FALSE, the register ID associated to
-                      * the variable. */
-   int arraySize;    /* If `isArray' is TRUE, the size of the array. */
-   t_label *label;   /* If `isArray' is TRUE, a label that refers to the
-                      * location of the variable inside the data segment */
+  int type;         /* A valid data type */
+  char *ID;         /* Variable identifier (should never be a NULL
+                     * pointer or an empty string "") */
+  int isArray;      /* Must be TRUE if the current variable is an array */
+  int reg_location; /* If `isArray' is FALSE, the register ID associated to
+                     * the variable. */
+  int arraySize;    /* If `isArray' is TRUE, the size of the array. */
+  t_label *label;   /* If `isArray' is TRUE, a label that refers to the
+                     * location of the variable inside the data segment */
 } t_variable;
 
 
@@ -32,7 +32,7 @@ typedef struct t_variable {
  * @param arraySize  If isArray!=0, the size of the array.
  * @param init_val   If isArray==0, initial value of the variable. */
 extern void createVariable(
-      t_program *program, char *ID, int type, int isArray, int arraySize);
+    t_program *program, char *ID, int type, int isArray, int arraySize);
 
 /** Deletes all variables in the given list.
  * @param variables The list of `t_variable's to be deleted. */
@@ -63,7 +63,7 @@ extern int getRegLocationOfScalar(t_program *program, char *ID);
  * @returns The identifier of the register that (at runtime) will contain the
  *          address of the array element at position `index'. */
 extern int genLoadArrayAddress(
-      t_program *program, char *ID, t_expressionValue index);
+    t_program *program, char *ID, t_expressionValue index);
 
 /** Generate instructions that load the content of an element of an array in a
  * register.
@@ -73,7 +73,7 @@ extern int genLoadArrayAddress(
  * @returns The identifier of the register that (at runtime) will contain the
  *          value of the array element at position `index'. */
 extern int genLoadArrayElement(
-      t_program *program, char *ID, t_expressionValue index);
+    t_program *program, char *ID, t_expressionValue index);
 
 /** Generate instructions that store a value into a given array element.
  * @param program The program where the array belongs.
@@ -82,7 +82,7 @@ extern int genLoadArrayElement(
  * @param data    An expression that refers to the value to be stored in the
  *                array element specified by `index'. */
 extern void genStoreArrayElement(t_program *program, char *ID,
-      t_expressionValue index, t_expressionValue data);
+    t_expressionValue index, t_expressionValue data);
 
 
 #endif

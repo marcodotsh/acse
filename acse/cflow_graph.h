@@ -18,55 +18,55 @@
 
 /* Error codes */
 enum {
-   ERROR_CFG_INVALID_NODE = 1000,
-   ERROR_CFG_INVALID_LABEL_FOUND,
-   ERROR_CFG_NODE_ALREADY_INSERTED,
-   ERROR_CFG_BBLOCK_ALREADY_INSERTED
+  ERROR_CFG_INVALID_NODE = 1000,
+  ERROR_CFG_INVALID_LABEL_FOUND,
+  ERROR_CFG_NODE_ALREADY_INSERTED,
+  ERROR_CFG_BBLOCK_ALREADY_INSERTED
 };
 
 /* Special variables */
-#define VAR_PSW       -2
+#define VAR_PSW -2
 #define VAR_UNDEFINED -1
 
 
 /* A variable of the intermediate code */
 typedef struct t_cfgVar {
-   /* Variable identifier. Negative IDs are reserved for artificial
-    * variables which are not part of the code */
-   int ID;
-   /* Physical register whitelist */
-   t_listNode *mcRegWhitelist;
+  /* Variable identifier. Negative IDs are reserved for artificial
+   * variables which are not part of the code */
+  int ID;
+  /* Physical register whitelist */
+  t_listNode *mcRegWhitelist;
 } t_cfgVar;
 
 /* A Node exists only in a basic block. It defines a list of
  * def-uses and it is associated with a specific instruction
  * inside the code */
 typedef struct t_cfgNode {
-   /* set of variables defined by this node */
-   t_cfgVar *defs[CFG_MAX_DEFS];
-   /* set of variables that will be used by this node */
-   t_cfgVar *uses[CFG_MAX_USES];
-   /* a pointer to the instruction associated with this node */
-   t_instruction *instr;
-   /* variables that are live-in the current node */
-   t_listNode *in;
-   /* variables that are live-out the current node */
-   t_listNode *out;
+  /* set of variables defined by this node */
+  t_cfgVar *defs[CFG_MAX_DEFS];
+  /* set of variables that will be used by this node */
+  t_cfgVar *uses[CFG_MAX_USES];
+  /* a pointer to the instruction associated with this node */
+  t_instruction *instr;
+  /* variables that are live-in the current node */
+  t_listNode *in;
+  /* variables that are live-out the current node */
+  t_listNode *out;
 } t_cfgNode;
 
 /* an ordered list of nodes with only one predecessor and one successor */
 typedef struct t_basicBlock {
-   t_listNode *pred;  /* predecessors : a list of basic blocks */
-   t_listNode *succ;  /* successors : a list of basic blocks */
-   t_listNode *nodes; /* an ordered list of instructions */
+  t_listNode *pred;  /* predecessors : a list of basic blocks */
+  t_listNode *succ;  /* successors : a list of basic blocks */
+  t_listNode *nodes; /* an ordered list of instructions */
 } t_basicBlock;
 
 /* a control flow graph */
 typedef struct t_cfg {
-   t_basicBlock *startingBlock; /* the starting basic block of code */
-   t_basicBlock *endingBlock;   /* the last block of the graph */
-   t_listNode *blocks;          /* an ordered list of all the basic blocks */
-   t_listNode *cflow_variables; /* a list of all the variable identifiers */
+  t_basicBlock *startingBlock; /* the starting basic block of code */
+  t_basicBlock *endingBlock;   /* the last block of the graph */
+  t_listNode *blocks;          /* an ordered list of all the basic blocks */
+  t_listNode *cflow_variables; /* a list of all the variable identifiers */
 } t_cfg;
 
 
@@ -111,14 +111,14 @@ extern int bbInsertNode(t_basicBlock *block, t_cfgNode *node);
  *  @param new_node The node to insert.
  *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
 extern int bbInsertNodeBefore(
-      t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node);
+    t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node);
 /** Inserts a new node after another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
  *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
 extern int bbInsertNodeAfter(
-      t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
+    t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
 
 
 /* Control Flow Graph */
@@ -149,8 +149,8 @@ extern int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
  *         found. The callback can return 1 to stop the iteration process.
  *  @returns The value returned by the last callback invocation. */
 extern int cfgIterateNodes(t_cfg *graph, void *context,
-      int (*callback)(t_basicBlock *block, t_cfgNode *node, int nodeIndex,
-            void *context));
+    int (*callback)(
+        t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context));
 
 /** Rebuilds a program from the given CFG.
  *  @param program The program to be modified

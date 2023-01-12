@@ -1,11 +1,7 @@
-/***************************************************************************
+/** @file scanner.l
+ ** @brief The Flex file describing the tokens used by the LANCE language. */
 
-                                    Scanner 
-
-***************************************************************************/
 %{
-/// @file scanner.l
-
 #include <string.h>
 #include "expressions.h"
 #include "utils.h"
@@ -28,27 +24,27 @@ extern void yyerror(const char*);
 /******************************************************************************
  * DEFINITIONS
  ******************************************************************************/
-DIGIT    [0-9]
-ID       [a-zA-Z_][a-zA-Z0-9_]*
+DIGIT                     [0-9]
+ID                        [a-zA-Z_][a-zA-Z0-9_]*
 
 /******************************************************************************
  * RULES
  ******************************************************************************/
 %%
 
-"\r\n"            { ++line_num; }
-"\n"              { ++line_num; }
+"\r\n"                    { ++line_num; }
+"\n"                      { ++line_num; }
 
-[ \t\f\v]+        { /* Ignore whitespace. */ }
+[ \t\f\v]+                { /* Ignore whitespace. */ }
 
-"//"[^\n]*        { /* ignore comment lines */ }
-"/*"              BEGIN(comment);
+"//"[^\n]*                { /* ignore comment lines */ }
+"/*"                      BEGIN(comment);
 
 <comment>[^*\n]*
-<comment>[^*\n]*\n      { ++line_num; }
-<comment>"*"+[^*/\n]*   
-<comment>"*"+[^*/\n]*\n { ++line_num; }
-<comment>"*"+"/"        BEGIN(INITIAL);
+<comment>[^*\n]*\n        { ++line_num; }
+<comment>"*"+[^*/\n]*     
+<comment>"*"+[^*/\n]*\n   { ++line_num; }
+<comment>"*"+"/"          BEGIN(INITIAL);
 
 "{"               { return LBRACE; }
 "}"               { return RBRACE; }

@@ -11,10 +11,10 @@ typedef t_memAddress t_memSize;
 
 typedef int t_memError;
 enum {
-   MEM_NO_ERROR = 0,
-   MEM_OUT_OF_MEMORY = -1,
-   MEM_EXTENT_MAPPED = -2,
-   MEM_MAPPING_ERROR = -3,
+  MEM_NO_ERROR = 0,
+  MEM_OUT_OF_MEMORY = -1,
+  MEM_EXTENT_MAPPED = -2,
+  MEM_MAPPING_ERROR = -3,
 };
 
 t_memError memMapArea(t_memAddress base, t_memSize extent, uint8_t **outBuffer);

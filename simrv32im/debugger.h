@@ -6,8 +6,8 @@
 
 typedef int t_dbgResult;
 enum {
-   DBG_RESULT_CONTINUE,
-   DBG_RESULT_EXIT
+  DBG_RESULT_CONTINUE,
+  DBG_RESULT_EXIT
 };
 
 typedef int t_dbgBreakpointId;
@@ -29,7 +29,7 @@ t_dbgBreakpointId dbgAddBreakpoint(t_memAddress address);
 int dbgRemoveBreakpoint(t_dbgBreakpointId brkId);
 t_memAddress dbgGetBreakpoint(t_dbgBreakpointId brkId);
 t_dbgEnumBreakpointState dbgEnumerateBreakpoints(t_dbgEnumBreakpointState state,
-      t_dbgBreakpointId *outId, t_memAddress *outAddress);
+    t_dbgBreakpointId *outId, t_memAddress *outAddress);
 
 t_dbgResult dbgTick(void);
 

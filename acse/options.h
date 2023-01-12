@@ -7,8 +7,8 @@
 #include <stdio.h>
 
 typedef struct t_options {
-   char *outputFileName;
-   char *inputFileName;
+  char *outputFileName;
+  char *inputFileName;
 } t_options;
 
 extern t_options compilerOptions;
