@@ -32,6 +32,9 @@ $(objdir):
 $(bindir):
 	mkdir -p $@
 
+check:
+	$(MAKE) -C tests
+
 clean:
 	rm -rf $(objdir)
 	rm -f $(project) $(project:=.exe)

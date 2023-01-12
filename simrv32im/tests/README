@@ -1,0 +1,3 @@
+Tests from https://github.com/riscv/riscv-tests/tree/master/isa/rv32ui
+All macros have been expanded to remove the dependency from the C preprocessor.
+Additional changes required for asrv32im compatibility.
