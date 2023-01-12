@@ -208,7 +208,6 @@ Elf32_Shdr outputSecToELFSHdr(t_objSection *sec, Elf32_Addr fileOffset, Elf32_Wo
 t_outError outputSecContentToFile(FILE *fp, off_t whence, t_objSection *sec)
 {
    t_objSecItem *itm;
-   uint8_t tmp;
    int i;
 
    if (fseeko(fp, whence, SEEK_SET) < 0)
@@ -223,16 +222,24 @@ t_outError outputSecContentToFile(FILE *fp, off_t whence, t_objSection *sec)
             if (fwrite(itm->body.data.data, itm->body.data.dataSize, 1, fp) < 1)
                return OUT_FILE_ERROR;
          } else {
-            tmp = 0;
+            uint8_t tmp = 0;
             for (i=0; i<itm->body.data.dataSize; i++)
                if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
                   return OUT_FILE_ERROR;
          }
       } else if (itm->class == OBJ_SEC_ITM_CLASS_ALIGN_DATA) {
-         tmp = itm->body.alignData.fillByte;
-         for (i=0; i<itm->body.alignData.effectiveSize; i++)
-               if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
+         if (itm->body.alignData.nopFill) {
+            uint32_t tmp = 0x00000013; // nop = addi x0, x0, 0
+            assert((itm->body.alignData.effectiveSize % 4) == 0);
+            for (i=0; i<itm->body.alignData.effectiveSize; i+=4)
+               if (fwrite(&tmp, sizeof(uint32_t), 1, fp) < 1)
                   return OUT_FILE_ERROR;
+         } else {
+            uint8_t tmp = itm->body.alignData.fillByte;
+            for (i=0; i<itm->body.alignData.effectiveSize; i++)
+                  if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
+                     return OUT_FILE_ERROR;
+         }
       } else {
          assert(0 && "bug, unexpected item type in section");
       }

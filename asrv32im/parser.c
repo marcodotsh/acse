@@ -605,7 +605,18 @@ static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
       parserEmitError(state, "alignment amount must be a positive integer");
       return P_SYN_ERROR;
    }
-   align.alignModulo = amt;
+   if (lastToken == TOK_ALIGN)
+      align.alignModulo = 1U << amt;
+   else
+      align.alignModulo = amt;
+
+   if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
+      if ((align.alignModulo % 4) != 0)
+         fprintf(stderr, "%s", "warning: alignment directive in .text with an amount which is not multiple of 4\n");
+      else
+         align.nopFill = true;
+   }
+   
    if (parserAccept(state, TOK_COMMA)) {
       if (!parserExpect(state, TOK_NUMBER, "expected alignment padding value"))
          return P_SYN_ERROR;
@@ -614,6 +625,7 @@ static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
          parserEmitError(state, "alignment padding must fit in a 8-bit byte");
          return P_SYN_ERROR;
       }
+      align.nopFill = false;
       align.fillByte = (uint8_t)pad;
    } else {
       align.fillByte = 0;
@@ -638,6 +650,8 @@ static t_parserError expectLineContent(t_parserState *state)
       return expectData(state, TOK_ASCII);
    if (parserAccept(state, TOK_ALIGN) == P_ACCEPT)
       return expectAlign(state, TOK_ALIGN);
+   if (parserAccept(state, TOK_BALIGN) == P_ACCEPT)
+      return expectAlign(state, TOK_BALIGN);
    if (parserAccept(state, TOK_MNEMONIC) == P_ACCEPT)
       return expectInstruction(state, TOK_MNEMONIC);
    parserEmitError(state, "expected a data directive or an instruction");

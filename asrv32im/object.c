@@ -12,6 +12,7 @@ struct t_objLabel {
 };
 
 struct t_objSection {
+   t_objSectionID id;
    t_objSecItem *items;
    t_objSecItem *lastItem;
    uint32_t start;
@@ -25,13 +26,14 @@ struct t_object {
 };
 
 
-static t_objSection *newSection(void)
+static t_objSection *newSection(t_objSectionID id)
 {
    t_objSection *sec;
 
    sec = malloc(sizeof(t_objSection));
    if (!sec)
       return NULL;
+   sec->id = id;
    sec->items = NULL;
    sec->lastItem = NULL;
    sec->start = 0;
@@ -63,8 +65,8 @@ t_object *newObject(void)
    obj = malloc(sizeof(t_object));
    if (!obj)
       return NULL;
-   obj->data = newSection();
-   obj->text = newSection();
+   obj->data = newSection(OBJ_SECTION_DATA);
+   obj->text = newSection(OBJ_SECTION_TEXT);
    obj->labelList = NULL;
    if (!obj->data || !obj->text) {
       deleteObject(obj);
@@ -121,6 +123,12 @@ t_objSection *objGetSection(t_object *obj, t_objSectionID id)
    if (id == OBJ_SECTION_DATA)
       return obj->data;
    return NULL;
+}
+
+
+t_objSectionID objSecGetID(t_objSection *sec)
+{
+   return sec->id;
 }
 
 

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 typedef int t_objSectionID;
 enum {
@@ -121,6 +122,7 @@ typedef struct t_data {
 typedef struct t_alignData {
    size_t alignModulo;
    size_t effectiveSize;
+   bool nopFill;
    uint8_t fillByte;
 } t_alignData;
 
@@ -151,6 +153,7 @@ t_objLabel *objGetLabel(t_object *obj, const char *name);
 void objDump(t_object *obj);
 
 t_objSection *objGetSection(t_object *obj, t_objSectionID id);
+t_objSectionID objSecGetID(t_objSection *sec);
 void objSecAppendData(t_objSection *sec, t_data data);
 void objSecAppendAlignmentData(t_objSection *sec, t_alignData align);
 void objSecAppendInstruction(t_objSection *sec, t_instruction instr);
