@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * utils.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file utils.c
 
 #include <assert.h>
 #include <stdio.h>

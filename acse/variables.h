@@ -1,12 +1,5 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * variables.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * Variable handling (both scalars and arrays)
- */
+/// @file variables.h
+/// @brief Variable handling (both scalars and arrays)
 
 #ifndef VARIABLES_H
 #define VARIABLES_H

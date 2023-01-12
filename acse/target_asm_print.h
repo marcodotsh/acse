@@ -1,12 +1,5 @@
-/*
- * Daniele Cattaneo
- * Politecnico di Milano, 2020
- *
- * target_asm_print.h
- * Formal Languages & Compilers Machine, 2007-2020
- *
- * Generation of the output assembly program.
- */
+/// @file target_asm_print.h
+/// @brief Generation of the output assembly program.
 
 #ifndef TARGET_ASM_PRINT_H
 #define TARGET_ASM_PRINT_H

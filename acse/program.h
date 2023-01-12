@@ -1,13 +1,6 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * program.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * Contains t_program and some functions for label management
- * (reserve, fix, assign)
- */
+/// @file program.h
+/// @brief Contains t_program and some functions for label management
+///        (reserve, fix, assign)
 
 #ifndef PROGRAM_H
 #define PROGRAM_H

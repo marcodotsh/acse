@@ -1,12 +1,5 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- * 
- * errors.h
- * Formal Languages & Compilers Machine, 2007/2008
- * 
- * Error handling
- */
+/// @file errors.h
+/// @brief Error handling
 
 #ifndef ERRORS_H
 #define ERRORS_H

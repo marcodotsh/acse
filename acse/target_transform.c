@@ -1,10 +1,4 @@
-/*
- * Daniele Cattaneo
- * Politecnico di Milano, 2020
- * 
- * mace_transform.h
- * Formal Languages & Compilers Machine, 2007-2020
- */
+/// @file mace_transform.h
 
 #include <assert.h>
 #include <stdarg.h>

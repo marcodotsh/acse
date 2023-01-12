@@ -1,13 +1,6 @@
-/*
- * Daniele Cattaneo
- * Politecnico di Milano, 2020
- *
- * target_transform.h
- * Formal Languages & Compilers Machine, 2007-2020
- *
- * Transformation passes used to abstract machine-dependent details from the
- * intermediate representation
- */
+/// @file target_transform.h
+/// @brief Transformation passes used to abstract machine-dependent details from the
+///        intermediate representation
 
 #ifndef TARGET_TRANSFORM_H
 #define TARGET_TRANSFORM_H

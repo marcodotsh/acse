@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * list.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file list.c
 
 #include <stdlib.h>
 #include <assert.h>

@@ -1,12 +1,5 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * reg_alloc.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * Register allocation pass
- */
+/// @file reg_alloc.h
+/// @brief Register allocation pass
 
 #ifndef REG_ALLOC_H
 #define REG_ALLOC_H

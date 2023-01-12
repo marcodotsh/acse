@@ -1,13 +1,6 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * utils.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * Contains important functions to access the list of symbols and other
- * utility functions and macros.
- */
+/// @file utils.h
+/// @brief Contains important functions to access the list of symbols and other
+///        utility functions and macros.
 
 #ifndef UTILS_H
 #define UTILS_H

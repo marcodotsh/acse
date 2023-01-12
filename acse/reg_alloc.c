@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * reg_alloc.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file reg_alloc.c
 
 #include <assert.h>
 #include "reg_alloc.h"

@@ -1,12 +1,5 @@
-/*
- * Daniele Cattaneo
- * Politecnico di Milano, 2022
- * 
- * target_info.h
- * Formal Languages & Compilers Machine, 2007-2022
- * 
- * Properties of the target machine
- */
+/// @file target_info.h
+/// @brief Properties of the target machine
 
 #include <assert.h>
 #include "target_info.h"

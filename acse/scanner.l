@@ -4,13 +4,7 @@
 
 ***************************************************************************/
 %{
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- * 
- * scanner.l
- * Formal Languages & Compilers Machine, 2007/2008
- */
+/// @file scanner.l
 
 #include <string.h>
 #include "expressions.h"

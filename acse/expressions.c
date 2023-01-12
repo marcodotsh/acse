@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- * 
- * expressions.c
- * Formal Languages & Compilers Machine, 2007/2008
- * 
- */
+/// @file expressions.c
 
 #include <limits.h>
 #include "expressions.h"

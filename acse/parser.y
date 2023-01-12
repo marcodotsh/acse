@@ -1,11 +1,5 @@
 %{
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- * 
- * parser.y
- * Formal Languages & Compilers Machine, 2007/2008
- */
+/// @file parser.y
 
 /*************************************************************************
 

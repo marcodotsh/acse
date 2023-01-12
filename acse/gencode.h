@@ -1,13 +1,6 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * gencode.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * Code generation functions. See also utils.h for genLoadImmediate()
- * and genMoveImmediate().
- */
+/// @file gencode.h
+/// @brief Code generation functions. See also utils.h for genLoadImmediate()
+///        and genMoveImmediate().
 
 #ifndef GENCODE_H
 #define GENCODE_H

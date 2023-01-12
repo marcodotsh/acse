@@ -1,12 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- * Daniele Cattaneo
- * Politecnico di Milano, 2020-2022
- * 
- * target_asm_print.c
- * Formal Languages & Compilers Machine, 2007-2022
- */
+/// @file target_asm_print.c
 
 #include <assert.h>
 #include "utils.h"

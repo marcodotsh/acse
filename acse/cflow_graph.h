@@ -1,12 +1,5 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * cflow_graph.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * Control-Flow-Graph generation and related analyses
- */
+/// @file cflow_graph.h
+/// @brief Control-Flow-Graph generation and related analyses
 
 #ifndef CFLOW_GRAPH_H
 #define CFLOW_GRAPH_H

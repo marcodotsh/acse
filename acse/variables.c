@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * variables.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file variables.c
 
 #include <assert.h>
 #include "variables.h"

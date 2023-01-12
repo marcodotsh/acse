@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * errors.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file errors.c
 
 #include <assert.h>
 #include "errors.h"

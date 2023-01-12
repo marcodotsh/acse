@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * cflow_graph.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file cflow_graph.c
 
 #include <assert.h>
 #include "cflow_graph.h"

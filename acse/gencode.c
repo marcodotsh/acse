@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * gencode.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file gencode.c
 
 #include "gencode.h"
 #include "errors.h"

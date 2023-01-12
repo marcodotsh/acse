@@ -1,12 +1,5 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- * 
- * expressions.h
- * Formal Languages & Compilers Machine, 2007/2008
- * 
- * Support functions for t_axe_expressions.
- */
+/// @file expressions.h
+/// @brief Support functions for t_axe_expressions.
 
 #ifndef EXPRESSIONS_H
 #define EXPRESSIONS_H

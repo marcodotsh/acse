@@ -1,12 +1,5 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * list.h
- * Formal Languages & Compilers Machine, 2007/2008
- *
- * A double-linked list.
- */
+/// @file list.h
+/// @brief A double-linked list.
 
 #ifndef LIST_H
 #define LIST_H

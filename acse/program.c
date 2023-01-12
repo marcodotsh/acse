@@ -1,11 +1,4 @@
-/*
- * Andrea Di Biagio
- * Politecnico di Milano, 2007
- *
- * engine.c
- * Formal Languages & Compilers Machine, 2007/2008
- *
- */
+/// @file engine.c
 
 #include <assert.h>
 #include <string.h>
