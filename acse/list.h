@@ -9,19 +9,19 @@
 #include <stdio.h>
 #include <string.h>
 
-/** Convert an integer from a list data pointer */
+/// Convert an integer from a list data pointer
 #define INT_TO_LIST_DATA(data) ((void *)((intptr_t)(data)))
 
-/** Convert a data item pointer created by INT_TO_LIST_DATA() to an integer */
+/// Convert a data item pointer created by INT_TO_LIST_DATA() to an integer
 #define LIST_DATA_TO_INT(data) ((int)((intptr_t)(data)))
 
-/** A list element */
+/// A node belonging a list.
 typedef struct t_listNode {
-  struct t_listNode *next; /* The next element in the chain, if it exists,
-                            * or NULL instead. */
-  struct t_listNode *prev; /* The previous element in the chain, if it exists,
-                            * or NULL instead. */
-  void *data;              /* Pointer to the data associated to this node */
+  struct t_listNode *next;  ///< The next element in the chain, if it exists,
+                            ///  or NULL instead.
+  struct t_listNode *prev;  ///< The previous element in the chain, if it 
+                            ///  exists, or NULL instead.
+  void *data;               ///< Pointer to the data associated to this node
 } t_listNode;
 
 
