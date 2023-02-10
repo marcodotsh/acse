@@ -79,7 +79,6 @@ extern void yyerror(const char*);
   char *string;
   t_symbol *var;
   t_expressionValue expr;
-  t_declaration *decl;
   t_listNode *list;
   t_label *label;
   t_whileStatement while_stmt;
@@ -95,22 +94,20 @@ extern void yyerror(const char*);
  ******************************************************************************/
 
 %token EOF_TOK /* end of file */
-%token LBRACE RBRACE LPAR RPAR LSQUARE RSQUARE
-%token SEMI PLUS MINUS MUL_OP DIV_OP
+%token LPAR RPAR LSQUARE RSQUARE LBRACE RBRACE
+%token COMMA SEMI PLUS MINUS MUL_OP DIV_OP
 %token AND_OP OR_OP NOT_OP
 %token ASSIGN LT GT SHL_OP SHR_OP EQ NOTEQ LTEQ GTEQ
 %token ANDAND OROR
-%token COMMA
+%token TYPE
 %token RETURN
-%token READ
-%token WRITE
+%token READ WRITE
 
 /* These are the tokens with a semantic value of the given type. */
 %token <label> DO
 %token <while_stmt> WHILE
 %token <label> IF
 %token <label> ELSE
-%token <integer> TYPE
 %token <string> IDENTIFIER
 %token <integer> NUMBER
 
@@ -124,8 +121,6 @@ extern void yyerror(const char*);
 
 %type <var> var_id
 %type <expr> exp
-%type <decl> declaration
-%type <list> declaration_list
 %type <label> if_stmt
 
 /******************************************************************************
@@ -176,40 +171,24 @@ program : var_declarations statements EOF_TOK
         }
 ;
 
-var_declarations: var_declarations var_declaration  { /* does nothing */ }
-                | /* empty */                       { /* does nothing */ }
+var_declarations: var_declarations var_declaration
+                | %empty
 ;
 
 var_declaration : TYPE declaration_list SEMI
-                {
-                  /* update the program infos by adding new variables */
-                  addVariablesFromDecls(program, $1, $2);
-                }
 ;
 
 declaration_list: declaration_list COMMA declaration
-                {
-                  /* add the new declaration to the list of declarations */
-                  $$ = addElement($1, $3, -1);
-                }
                 | declaration
-                {
-                  /* add the new declaration to the list of declarations */
-                  $$ = addElement(NULL, $1, -1);
-                }
 ;
 
 declaration : IDENTIFIER
             {
-              /* create a new instance of t_declaration */
-              $$ = newDeclaration($1, 0, 0);
-              free($1);
+              createSymbol(program, $1, TYPE_INT, 0);
             }
             | IDENTIFIER LSQUARE NUMBER RSQUARE
             {
-              /* create a new instance of t_declaration */
-              $$ = newDeclaration($1, 1, $3);
-              free($1);
+              createSymbol(program, $1, TYPE_INT_ARRAY, $3);
             }
 ;
 

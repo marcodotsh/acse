@@ -76,7 +76,7 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 "do"              { return DO; }
 "else"            { return ELSE; }
 "if"              { return IF; }
-"int"             { yylval.integer = 0; return TYPE; }
+"int"             { return TYPE; }
 "while"           { return WHILE; }
 "return"          { return RETURN; }
 "read"            { return READ; }
