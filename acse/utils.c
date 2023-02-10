@@ -92,11 +92,6 @@ void addVariablesFromDecls(
     /* assertion -- must always be verified */
     assert(current_decl != NULL);
 
-    /* associate a register to each declared variable
-     * that is not an array type */
-    if (!(current_decl->isArray))
-      getRegLocationOfScalar(program, current_decl->ID);
-
     /* free the memory associated with the current declaration */
     free(current_decl);
 

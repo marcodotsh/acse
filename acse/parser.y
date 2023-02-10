@@ -77,6 +77,7 @@ extern void yyerror(const char*);
 %union {
   int integer;
   char *string;
+  t_variable *var;
   t_expressionValue expr;
   t_declaration *decl;
   t_listNode *list;
@@ -121,6 +122,7 @@ extern void yyerror(const char*);
  * their semantic value.
  ******************************************************************************/
 
+%type <var> var_id
 %type <expr> exp
 %type <decl> declaration
 %type <list> declaration_list
@@ -240,24 +242,17 @@ read_write_statement: read_statement  { /* does nothing */ }
                     | write_statement { /* does nothing */ }
 ;
 
-assign_statement: IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
+assign_statement: var_id LSQUARE exp RSQUARE ASSIGN exp
                 {
                   /* Notify to `program' that the value $6
                    * have to be assigned to the location
                    * addressed by $1[$3]. Where $1 is obviously
-                   * the array/pointer identifier, $3 is an expression
+                   * the array/pointer object, $3 is an expression
                    * that holds an integer value. That value will be
                    * used as an index for the array $1 */
                   genStoreArrayElement(program, $1, $3, $6);
-
-                  /* free the memory associated with the IDENTIFIER.
-                   * The use of the free instruction is required
-                   * because of the value associated with IDENTIFIER.
-                   * The value of IDENTIFIER is a string created
-                   * by a call to the function `strdup' (see Acse.lex) */
-                  free($1);
                 }
-                | IDENTIFIER ASSIGN exp
+                | var_id ASSIGN exp
                 {
                   /* in order to assign a value to a variable, we have to know
                    * where the variable is located (i.e. in which register).
@@ -276,9 +271,6 @@ assign_statement: IDENTIFIER LSQUARE exp RSQUARE ASSIGN exp
                     genLIInstruction(program, location, $3.immediate);
                   else
                     genADDIInstruction(program, location, $3.registerId, 0);
-
-                  /* free the memory associated with the IDENTIFIER */
-                  free($1);
                 }
 ;
         
@@ -388,7 +380,7 @@ return_statement: RETURN
                 }
 ;
 
-read_statement: READ LPAR IDENTIFIER RPAR 
+read_statement: READ LPAR var_id RPAR 
               {
                 /* read from standard input an integer value and assign
                  * it to a variable associated with the given identifier */
@@ -400,9 +392,6 @@ read_statement: READ LPAR IDENTIFIER RPAR
       
                 /* insert a read instruction */
                 genReadIntSyscall(program, location);
-      
-                /* free the memory associated with the IDENTIFIER */
-                free($3);
               }
 ;
         
@@ -429,18 +418,15 @@ exp : NUMBER
     { 
       $$ = getConstantExprValue($1);
     }
-    | IDENTIFIER 
+    | var_id 
     {
       /* get the location of the symbol with the given ID */
       int variableReg = getRegLocationOfScalar(program, $1);
 
       /* return that register as the expression value */
       $$ = getRegisterExprValue(variableReg);
-
-      /* free the memory associated with the IDENTIFIER */
-      free($1);
     }
-    | IDENTIFIER LSQUARE exp RSQUARE
+    | var_id LSQUARE exp RSQUARE
     {
       /* load the value IDENTIFIER[exp]
         * into `arrayElement' */
@@ -448,9 +434,6 @@ exp : NUMBER
 
       /* create a new expression */
       $$ = getRegisterExprValue(reg);
-
-      /* free the memory associated with the IDENTIFIER */
-      free($1);
     }
     | NOT_OP exp
     {
@@ -501,6 +484,18 @@ exp : NUMBER
     | exp ANDAND exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDL); }
     | exp OROR exp    { $$ = handleBinaryOperator(program, $1, $3, OP_ORL); }
     | LPAR exp RPAR  { $$ = $2; }
+;
+
+var_id: IDENTIFIER
+      {
+        t_variable *var = getVariable(program, $1);
+        if (var == NULL) {
+          emitError(ERROR_VARIABLE_NOT_DECLARED);
+          YYERROR;
+        }
+        $$ = var;
+        free($1);
+      }
 ;
 
 %%

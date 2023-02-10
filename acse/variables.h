@@ -38,7 +38,6 @@ extern void createVariable(
  * @param variables The list of `t_variable's to be deleted. */
 extern void deleteVariables(t_listNode *variables);
 
-
 /** Get information about a previously added variable.
  * @param program The program where the variable belongs.
  * @param ID      The identifier of the variable.
@@ -46,14 +45,14 @@ extern void deleteVariables(t_listNode *variables);
  *          variable, or NULL if the variable has not been declared yet. */
 extern t_variable *getVariable(t_program *program, char *ID);
 
+
 /** Given a scalar variable identifier, return the ID of the register where
  * the value of the variable is stored in the compiled program.
  * @param program The program where the variable belongs.
  * @param ID      The identifier of the variable.
  * @returns The register identifier of the variable or, if an error occurs,
  *          REG_INVALID. */
-extern int getRegLocationOfScalar(t_program *program, char *ID);
-
+extern int getRegLocationOfScalar(t_program *program, t_variable *var);
 
 /** Generate instructions that load the address of an element of an array in a
  * register.
@@ -63,7 +62,7 @@ extern int getRegLocationOfScalar(t_program *program, char *ID);
  * @returns The identifier of the register that (at runtime) will contain the
  *          address of the array element at position `index'. */
 extern int genLoadArrayAddress(
-    t_program *program, char *ID, t_expressionValue index);
+    t_program *program, t_variable *array, t_expressionValue index);
 
 /** Generate instructions that load the content of an element of an array in a
  * register.
@@ -73,7 +72,7 @@ extern int genLoadArrayAddress(
  * @returns The identifier of the register that (at runtime) will contain the
  *          value of the array element at position `index'. */
 extern int genLoadArrayElement(
-    t_program *program, char *ID, t_expressionValue index);
+    t_program *program, t_variable *array, t_expressionValue index);
 
 /** Generate instructions that store a value into a given array element.
  * @param program The program where the array belongs.
@@ -81,7 +80,7 @@ extern int genLoadArrayElement(
  * @param index   An expression that refers to a specific element of the array.
  * @param data    An expression that refers to the value to be stored in the
  *                array element specified by `index'. */
-extern void genStoreArrayElement(t_program *program, char *ID,
+extern void genStoreArrayElement(t_program *program, t_variable *array,
     t_expressionValue index, t_expressionValue data);
 
 

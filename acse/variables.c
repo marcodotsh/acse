@@ -164,22 +164,15 @@ t_variable *getVariable(t_program *program, char *ID)
 }
 
 
-int getRegLocationOfScalar(t_program *program, char *ID)
+int getRegLocationOfScalar(t_program *program, t_variable *var)
 {
   int sy_error;
   int location;
-  t_variable *var;
 
   /* preconditions: ID and program shouldn't be NULL pointer */
-  assert(ID != NULL);
+  assert(var != NULL);
   assert(program != NULL);
 
-  /* get the location of the variable with the given ID */
-  var = getVariable(program, ID);
-  if (var == NULL) {
-    emitError(ERROR_VARIABLE_NOT_DECLARED);
-    return REG_INVALID;
-  }
   if (var->isArray) {
     emitError(ERROR_VARIABLE_TYPE_MISMATCH);
     return REG_INVALID;
@@ -190,35 +183,27 @@ int getRegLocationOfScalar(t_program *program, char *ID)
 }
 
 
-t_label *getMemLocationOfArray(t_program *program, char *ID)
+t_label *getMemLocationOfArray(t_program *program, t_variable *array)
 {
   t_variable *var;
 
-  assert(ID != NULL);
+  assert(array != NULL);
   assert(program != NULL);
 
-  var = getVariable(program, ID);
-
-  if (var == NULL) {
-    emitError(ERROR_VARIABLE_NOT_DECLARED);
-    return NULL;
-  }
-  if (!var->isArray) {
+  if (!array->isArray) {
     emitError(ERROR_VARIABLE_TYPE_MISMATCH);
     return NULL;
   }
-  assert(var->label != NULL);
+  assert(array->label != NULL);
 
-  return var->label;
+  return array->label;
 }
 
 
-void genStoreArrayElement(t_program *program, char *ID, t_expressionValue index,
+void genStoreArrayElement(t_program *program, t_variable *array, t_expressionValue index,
     t_expressionValue data)
 {
-  int address;
-
-  address = genLoadArrayAddress(program, ID, index);
+  int address = genLoadArrayAddress(program, array, index);
 
   if (data.type == REGISTER) {
     /* load the value indirectly into `mova_register' */
@@ -234,13 +219,13 @@ void genStoreArrayElement(t_program *program, char *ID, t_expressionValue index,
 }
 
 
-int genLoadArrayElement(t_program *program, char *ID, t_expressionValue index)
+int genLoadArrayElement(t_program *program, t_variable *array, t_expressionValue index)
 {
   int load_register;
   int address;
 
   /* retrieve the address of the array slot */
-  address = genLoadArrayAddress(program, ID, index);
+  address = genLoadArrayAddress(program, array, index);
 
   /* get a new register */
   load_register = getNewRegister(program);
@@ -253,18 +238,18 @@ int genLoadArrayElement(t_program *program, char *ID, t_expressionValue index)
 }
 
 
-int genLoadArrayAddress(t_program *program, char *ID, t_expressionValue index)
+int genLoadArrayAddress(t_program *program, t_variable *array, t_expressionValue index)
 {
   int mova_register, sizeofElem;
   t_label *label;
 
   /* preconditions */
   assert(program != NULL);
-  assert(ID != NULL);
+  assert(array != NULL);
 
   /* retrieve the label associated with the given
    * identifier */
-  label = getMemLocationOfArray(program, ID);
+  label = getMemLocationOfArray(program, array);
 
   /* test if an error occurred */
   if (label == NULL)
