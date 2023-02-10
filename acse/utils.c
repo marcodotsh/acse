@@ -74,7 +74,7 @@ void addVariablesFromDecls(
     assert(current_decl != NULL);
 
     /* create and assign a new variable to program */
-    createSymbol(program, current_decl->ID, varType, current_decl->isArray,
+    createSymbol(program, current_decl->ID, current_decl->isArray ? TYPE_INT_ARRAY : TYPE_INT,
         current_decl->arraySize);
 
     /* update the value of `current_element' */

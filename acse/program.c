@@ -603,23 +603,16 @@ void dumpProgram(t_program *program, FILE *fout)
     t_symbol *var = cur_var->data;
     fprintf(fout, "[%s]\n", var->ID);
 
-    fprintf(fout, "   type = ");
-    if (var->type == INTEGER_TYPE)
-      fprintf(fout, "int");
-    else
-      fprintf(fout, "(invalid)");
-
-    if (var->isArray) {
-      fprintf(fout, "[%d]", var->arraySize);
-    }
-    fprintf(fout, "\n");
-
-    if (var->isArray) {
+    if (var->type == TYPE_INT) {
+      fprintf(fout, "   type = int\n");
+      fprintf(fout, "   temporary register = t%d\n", var->reg_location);
+    } else if (var->type == TYPE_INT_ARRAY) {
+      fprintf(fout, "   type = int[%d]\n", var->arraySize);
       char *labelName = getLabelName(var->label);
       fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
       free(labelName);
     } else {
-      fprintf(fout, "   temporary register = t%d\n", var->reg_location);
+      fprintf(fout, "   type = invalid\n");
     }
 
     cur_var = cur_var->next;

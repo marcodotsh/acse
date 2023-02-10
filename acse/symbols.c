@@ -10,7 +10,7 @@
 
 
 /* create and initialize an instance of `t_symbol' */
-t_symbol *newVariable(char *ID, int type, int isArray, int arraySize)
+t_symbol *newVariable(char *ID, t_symbolType type, int arraySize)
 {
   t_symbol *result;
 
@@ -21,7 +21,6 @@ t_symbol *newVariable(char *ID, int type, int isArray, int arraySize)
 
   /* initialize the content of `result' */
   result->type = type;
-  result->isArray = isArray;
   result->arraySize = arraySize;
   result->ID = ID;
   result->label = NULL;
@@ -40,7 +39,7 @@ void deleteVariable(t_symbol *variable)
 
 
 t_symbol *createSymbol(
-    t_program *program, char *ID, int type, int isArray, int arraySize)
+    t_program *program, char *ID, t_symbolType type, int arraySize)
 {
   t_symbol *var, *variableFound;
   int sizeofElem;
@@ -51,7 +50,7 @@ t_symbol *createSymbol(
   assert(program != NULL);
   assert(ID != NULL);
 
-  if (type != INTEGER_TYPE)
+  if (type != TYPE_INT && type != TYPE_INT_ARRAY)
     fatalError(ERROR_INVALID_TYPE);
 
   /* check if another variable already exists with the same ID */
@@ -62,15 +61,15 @@ t_symbol *createSymbol(
   }
 
   /* check if the array size is valid */
-  if (isArray && arraySize <= 0) {
+  if (type == TYPE_INT_ARRAY && arraySize <= 0) {
     emitError(ERROR_INVALID_ARRAY_SIZE);
     return NULL;
   }
 
   /* initialize a new variable */
-  var = newVariable(ID, type, isArray, arraySize);
+  var = newVariable(ID, type, arraySize);
 
-  if (isArray) {
+  if (type == TYPE_INT_ARRAY) {
     /* arrays are stored in memory and need a variable location */
     lblName = calloc(strlen(ID) + 8, sizeof(char));
     if (!lblName)
@@ -119,6 +118,15 @@ void deleteSymbols(t_listNode *variables)
 
   /* free the list of variables */
   freeList(variables);
+}
+
+
+bool isArray(t_symbol *symbol)
+{
+  // Just check if the type field corresponds to one of the known array types
+  if (symbol->type == TYPE_INT_ARRAY)
+    return true;
+  return false;
 }
 
 
@@ -174,7 +182,7 @@ int getRegLocationOfVariable(t_program *program, t_symbol *var)
   assert(var != NULL);
   assert(program != NULL);
 
-  if (var->isArray) {
+  if (isArray(var)) {
     emitError(ERROR_VARIABLE_TYPE_MISMATCH);
     return REG_INVALID;
   }
@@ -191,7 +199,7 @@ t_label *getMemLocationOfArray(t_program *program, t_symbol *array)
   assert(array != NULL);
   assert(program != NULL);
 
-  if (!array->isArray) {
+  if (!isArray(array)) {
     emitError(ERROR_VARIABLE_TYPE_MISMATCH);
     return NULL;
   }
