@@ -8,6 +8,6 @@
 
 /* Convert temporary register identifiers to real register identifiers,
  * analyzing the live interval of each temporary register. */
-extern void doRegisterAllocation(t_program *program);
+void doRegisterAllocation(t_program *program);
 
 #endif

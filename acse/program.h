@@ -78,57 +78,57 @@ typedef struct t_program {
  * is called once: its only purpouse is to initialize an instance of the struct
  * `t_program' that will contain all the informations about the program
  * that will be compiled */
-extern t_program *newProgram(void);
+t_program *newProgram(void);
 
 /* finalize all the data structures associated with `program' */
-extern void deleteProgram(t_program *program);
+void deleteProgram(t_program *program);
 
 
 /* Labels */
 
 /* reserve a new label identifier and return the identifier to the caller */
-extern t_label *createLabel(t_program *program);
+t_label *createLabel(t_program *program);
 
 /* assign the given label identifier to the next instruction. Returns
  * the label assigned; otherwise (an error occurred) NULL */
-extern t_label *assignLabel(t_program *program, t_label *label);
+t_label *assignLabel(t_program *program, t_label *label);
 
 /* reserve and fix a new label. It returns either the label assigned or
  * NULL if an error occurred */
-extern t_label *assignNewLabel(t_program *program);
+t_label *assignNewLabel(t_program *program);
 
 /* Sets the name of a label to the specified string. Note: if another label
  * with the same name already exists, the name assigned to this label will be
  * modified to remove any ambiguity. */
-extern void setLabelName(t_program *program, t_label *label, const char *name);
+void setLabelName(t_program *program, t_label *label, const char *name);
 
 /* Returns a dynamically allocated string that contains the name of the given
  * label. */
-extern char *getLabelName(t_label *label);
+char *getLabelName(t_label *label);
 
 /* return TRUE if the two labels hold the same identifier */
-extern int compareLabels(t_label *labelA, t_label *labelB);
+int compareLabels(t_label *labelA, t_label *labelB);
 
 
 /* Instructions */
 
 /* get a register still not used. This function returns
  * the ID of the register found*/
-extern int getNewRegister(t_program *program);
+int getNewRegister(t_program *program);
 
 /* add a new instruction to the current program. This function is directly
  * called by all the functions defined in `gencode.h' */
-extern t_instruction *genInstruction(t_program *program, int opcode, int r_dest,
+t_instruction *genInstruction(t_program *program, int opcode, int r_dest,
     int r_src1, int r_src2, t_label *label, int immediate);
 
 /* remove an instruction from the program, given its link in the instruction
  * list. */
-extern void removeInstructionAt(t_program *program, t_listNode *instrLi);
+void removeInstructionAt(t_program *program, t_listNode *instrLi);
 
 
 /* Directives */
 
-extern t_global *genDataDirective(
+t_global *genDataDirective(
     t_program *program, int type, int value, t_label *label);
 
 
@@ -136,10 +136,10 @@ extern t_global *genDataDirective(
 
 /* Notify the end of the program. This function is directly called
  * from the parser when the parsing process is ended */
-extern void setProgramEnd(t_program *program);
+void setProgramEnd(t_program *program);
 
 /* print information about the program in the specified file */
-extern void dumpProgram(t_program *program, FILE *fout);
+void dumpProgram(t_program *program, FILE *fout);
 
 
 #endif

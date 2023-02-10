@@ -25,6 +25,6 @@ typedef struct t_whileStatement {
 
 /** In debug builds (NDEBUG not defined), prints a message on the standard
  * output like `printf'. Otherwise, does nothing and returns zero. */
-extern int debugPrintf(const char *fmt, ...);
+int debugPrintf(const char *fmt, ...);
 
 #endif

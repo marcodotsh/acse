@@ -40,10 +40,10 @@ typedef struct t_expressionValue {
 
 
 /* create an immediate (constant) expression */
-extern t_expressionValue getConstantExprValue(int value);
+t_expressionValue getConstantExprValue(int value);
 
 /* create a register expression */
-extern t_expressionValue getRegisterExprValue(int registerId);
+t_expressionValue getRegisterExprValue(int registerId);
 
 /* This function generats instructions for binary numeric
  * operations.  It takes as input two expressions and a binary
@@ -78,7 +78,7 @@ extern t_expressionValue getRegisterExprValue(int registerId);
  * OP_GTEQ   (used to test if the value of `exp1' is greater than
  *           the value of `exp2')
  */
-extern t_expressionValue handleBinaryOperator(t_program *program,
+t_expressionValue handleBinaryOperator(t_program *program,
     t_expressionValue exp1, t_expressionValue exp2, int operator);
 
 #endif

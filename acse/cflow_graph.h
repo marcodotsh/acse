@@ -76,48 +76,48 @@ typedef struct t_cfg {
  *  @param graph The Control Flow Graph where the node will be put.
  *  @param instr The instruction which will be represented by the node.
  *  @returns The new node. */
-extern t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr);
+t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr);
 /** Free a given Control Flow Graph node.
  *  @param node The node to be freed. */
-extern void deleteCFGNode(t_cfgNode *node);
+void deleteCFGNode(t_cfgNode *node);
 
 
 /* Basic Blocks */
 
 /** Allocate a new empty basic block
  *  @returns The new block. */
-extern t_basicBlock *newBasicBlock();
+t_basicBlock *newBasicBlock();
 /** Frees the memory associated with a given basic block
  *  @param block The block to be freed. */
-extern void deleteBasicBlock(t_basicBlock *block);
+void deleteBasicBlock(t_basicBlock *block);
 
 /** Adds a predecessor to a basic block.
  *  @param block The successor block.
  *  @param pred The predecessor block. */
-extern void bbSetPred(t_basicBlock *block, t_basicBlock *pred);
+void bbSetPred(t_basicBlock *block, t_basicBlock *pred);
 /** Adds a successor to a basic block.
  *  @param block The predecessor block.
  *  @param pred The successor block. */
-extern void bbSetSucc(t_basicBlock *block, t_basicBlock *succ);
+void bbSetSucc(t_basicBlock *block, t_basicBlock *succ);
 
 /** Inserts a new node at the end of a block.
  *  @param block The block where to insert the node.
  *  @param node The node to insert.
  *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-extern int bbInsertNode(t_basicBlock *block, t_cfgNode *node);
+int bbInsertNode(t_basicBlock *block, t_cfgNode *node);
 /** Inserts a new node before another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
  *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-extern int bbInsertNodeBefore(
+int bbInsertNodeBefore(
     t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node);
 /** Inserts a new node after another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
  *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-extern int bbInsertNodeAfter(
+int bbInsertNodeAfter(
     t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
 
 
@@ -128,10 +128,10 @@ extern int bbInsertNodeAfter(
  *  @param error Points to a variable that will be set to an error
  *               code if an error occurs.
  *  @returns The new control flow graph, or NULL in case of error. */
-extern t_cfg *programToCFG(t_program *program, int *error);
+t_cfg *programToCFG(t_program *program, int *error);
 /** Frees a control flow graph.
  *  @param graph The graph to be freed. */
-extern void deleteCFG(t_cfg *graph);
+void deleteCFG(t_cfg *graph);
 
 /** Inserts a new block in a control flow graph. Before invoking this function,
  *  the block must be linked to the others in the graph with bbSetPred and
@@ -139,7 +139,7 @@ extern void deleteCFG(t_cfg *graph);
  *  @param graph The graph where the block must be added.
  *  @param block The block to add.
  *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-extern int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
+int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
 
 /** Iterates through the nodes in a control flow graph.
  *  @param graph The graph that must be iterated over.
@@ -148,7 +148,7 @@ extern int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
  *  @param callback The callback function that will be called at each node
  *         found. The callback can return 1 to stop the iteration process.
  *  @returns The value returned by the last callback invocation. */
-extern int cfgIterateNodes(t_cfg *graph, void *context,
+int cfgIterateNodes(t_cfg *graph, void *context,
     int (*callback)(
         t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context));
 
@@ -156,27 +156,27 @@ extern int cfgIterateNodes(t_cfg *graph, void *context,
  *  @param program The program to be modified
  *  @param graph The control flow graph to be linearized and transformed into a
  *         new program. */
-extern void cfgToProgram(t_program *program, t_cfg *graph);
+void cfgToProgram(t_program *program, t_cfg *graph);
 
 
 /* Data Flow Analysis */
 
 /** Computes graph-level liveness information of the variables.
  *  @param graph The control flow graph. */
-extern void cfgComputeLiveness(t_cfg *graph);
+void cfgComputeLiveness(t_cfg *graph);
 
 /** Retrieve the list of live variables entering the given block. Only valid
  *  after calling cfgComputeLiveness() on the graph.
  *  @param bblock The basic block.
  *  @return The list of variables. The list is dynamically allocated and must be
  *          freed. */
-extern t_listNode *bbGetLiveInVars(t_basicBlock *bblock);
+t_listNode *bbGetLiveInVars(t_basicBlock *bblock);
 /** Retrieve the list of live variables when exiting the given block. Only valid
  *  after calling cfgComputeLiveness() on the graph.
  *  @param bblock The basic block.
  *  @return The list of variables. The list is dynamically allocated and must be
  *          freed. */
-extern t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
+t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
 
 
 /* Utilities */
@@ -186,6 +186,6 @@ extern t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
  * @param fout The output file.
  * @param verbose Pass a non-zero value to also print additional information
  *        about the liveness of the variables. */
-extern void cfgDump(t_cfg *graph, FILE *fout, int verbose);
+void cfgDump(t_cfg *graph, FILE *fout, int verbose);
 
 #endif

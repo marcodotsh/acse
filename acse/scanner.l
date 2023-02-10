@@ -14,7 +14,7 @@ extern int line_num;
 extern int num_error;
 
 /* extern declaration of function yyerror */
-extern void yyerror(const char*);
+void yyerror(const char*);
 
 %}
 

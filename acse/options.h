@@ -11,9 +11,9 @@ typedef struct t_options {
   char *inputFileName;
 } t_options;
 
-extern t_options compilerOptions;
+t_options compilerOptions;
 
-extern int parseCompilerOptions(int argc, char *argv[]);
-extern char *getLogFileName(const char *logType);
+int parseCompilerOptions(int argc, char *argv[]);
+char *getLogFileName(const char *logType);
 
 #endif

@@ -10,21 +10,21 @@
 
 /** Supported data types */
 typedef enum {
-  TYPE_INT,         ///< `int' scalar type
-  TYPE_INT_ARRAY    ///< `int' array type
+  TYPE_INT,      ///< `int' scalar type
+  TYPE_INT_ARRAY ///< `int' array type
 } t_symbolType;
 
 /** A structure that represents the properties of a given symbol in the source
  *  code */
 typedef struct t_symbol {
-  t_symbolType type;  ///< A valid data type
-  char *ID;           ///< Symbol name (should never be a NULL pointer or an
-                      ///  empty string "")
-  int reg_location;   ///< For scalar variables only, the register ID associated
-                      ///  to the variable.
-  int arraySize;      ///< For arrays only, the size of the array.
-  t_label *label;     ///< For arrays only, a label that refers to the location
-                      ///  of the variable inside the data segment
+  t_symbolType type; ///< A valid data type
+  char *ID;          ///< Symbol name (should never be a NULL pointer or an
+                     ///  empty string "")
+  int reg_location;  ///< For scalar variables only, the register ID associated
+                     ///  to the variable.
+  int arraySize;     ///< For arrays only, the size of the array.
+  t_label *label;    ///< For arrays only, a label that refers to the location
+                     ///  of the variable inside the data segment
 } t_symbol;
 
 
@@ -34,19 +34,19 @@ typedef struct t_symbol {
  * @param type       The data type of the variable associated to the symbol.
  * @param arraySize  For arrays, the size of the array.
  * @returns A pointer to the newly created symbol object. */
-extern t_symbol *createSymbol(
+t_symbol *createSymbol(
     t_program *program, char *ID, t_symbolType type, int arraySize);
 
 /** Deletes all symbols in the given list.
  * @param symbols The list of `t_symbol's to be deleted. */
-extern void deleteSymbols(t_listNode *symbols);
+void deleteSymbols(t_listNode *symbols);
 
 /** Get information about a previously added symbol.
  * @param program The program where the symbol belongs.
  * @param ID      The identifier of the symbol.
  * @returns A pointer to the corresponding symbol object, or NULL if the symbol
  *          has not been declared yet. */
-extern t_symbol *getSymbol(t_program *program, char *ID);
+t_symbol *getSymbol(t_program *program, char *ID);
 
 /** Checks if the type of the given symbol is an array type.
  * @param symbol The symbol object.
@@ -61,7 +61,7 @@ bool isArray(t_symbol *symbol);
  * @param var     The symbol object of the variable.
  * @returns The register identifier of the variable or, if an error occurs,
  *          REG_INVALID. */
-extern int getRegLocationOfVariable(t_program *program, t_symbol *var);
+int getRegLocationOfVariable(t_program *program, t_symbol *var);
 
 /** Generate instructions that load the address of an element of an array in a
  * register.
@@ -70,7 +70,7 @@ extern int getRegLocationOfVariable(t_program *program, t_symbol *var);
  * @param index   An expression that refers to a specific element of the array.
  * @returns The identifier of the register that (at runtime) will contain the
  *          address of the array element at position `index'. */
-extern int genLoadArrayAddress(
+int genLoadArrayAddress(
     t_program *program, t_symbol *array, t_expressionValue index);
 
 /** Generate instructions that load the content of an element of an array in a
@@ -80,7 +80,7 @@ extern int genLoadArrayAddress(
  * @param index   An expression that refers to a specific element of the array.
  * @returns The identifier of the register that (at runtime) will contain the
  *          value of the array element at position `index'. */
-extern int genLoadArrayElement(
+int genLoadArrayElement(
     t_program *program, t_symbol *array, t_expressionValue index);
 
 /** Generate instructions that store a value into a given array element.
@@ -89,7 +89,7 @@ extern int genLoadArrayElement(
  * @param index   An expression that refers to a specific element of the array.
  * @param data    An expression that refers to the value to be stored in the
  *                array element specified by `index'. */
-extern void genStoreArrayElement(t_program *program, t_symbol *array,
+void genStoreArrayElement(t_program *program, t_symbol *array,
     t_expressionValue index, t_expressionValue data);
 
 

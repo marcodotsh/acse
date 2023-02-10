@@ -146,37 +146,37 @@ enum {
 
 
 /** Returns 1 if `instr` is a jump (branch) instruction. */
-extern int isJumpInstruction(t_instruction *instr);
+int isJumpInstruction(t_instruction *instr);
 
 /** Returns 1 if `instr` is a unconditional jump instruction (BT, BF) */
-extern int isUnconditionalJump(t_instruction *instr);
+int isUnconditionalJump(t_instruction *instr);
 
 /** Returns 1 if `instr` is either the HALT instruction or the RET
  * instruction. */
-extern int isHaltOrRetInstruction(t_instruction *instr);
+int isHaltOrRetInstruction(t_instruction *instr);
 
 /** Returns 1 if `instr` is a function call instruction. */
-extern int isCallInstruction(t_instruction *instr);
+int isCallInstruction(t_instruction *instr);
 
 
 /** Returns 1 if the instruction uses/defines the PSW (flags) register, 0
  * otherwise. Always returns zero on architectures that do not have a
  * flags register. */
-extern int instructionUsesPSW(t_instruction *instr);
-extern int instructionDefinesPSW(t_instruction *instr);
+int instructionUsesPSW(t_instruction *instr);
+int instructionDefinesPSW(t_instruction *instr);
 
 
 /** Returns a register ID suitable for spill operations. The maximum index
  * is always bounded by NUM_SPILL_REGS. */
-extern int getSpillRegister(int i);
+int getSpillRegister(int i);
 
 /** Returns the list of register IDs available for the register allocator,
  * sorted in order of priority. */
-extern t_listNode *getListOfGenPurposeRegisters(void);
+t_listNode *getListOfGenPurposeRegisters(void);
 
 /** Returns the list of register IDs that can be modified by a given function
  * call instruction, except for input and output parameters. */
-extern t_listNode *getListOfCallerSaveRegisters(void);
+t_listNode *getListOfCallerSaveRegisters(void);
 
 
 #endif

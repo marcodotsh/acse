@@ -32,19 +32,19 @@
 
 /** Prints a warning message depending on the given code.
  * @param warningcode The code of the warning. */
-extern void emitWarning(int warningcode);
+void emitWarning(int warningcode);
 
 /** Prints an error message depending on the given code.
  * Does not terminate the program.
  * @param errorcode The error code. */
-extern void emitError(int errorcode);
+void emitError(int errorcode);
 
 /** Prints the given syntax error message.
  * @param message A description of the specific syntax error. */
-extern void emitSyntaxError(const char *message);
+void emitSyntaxError(const char *message);
 
 /** Prints the specified error message and terminates the program.
  * @param errorcode The error code. */
-extern __attribute__((noreturn)) void fatalError(int errorcode);
+__attribute__((noreturn)) void fatalError(int errorcode);
 
 #endif

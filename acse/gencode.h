@@ -14,32 +14,32 @@
 
 /* Generate the instruction to load an `immediate' value into a new register.
  * It returns the new register identifier or REG_INVALID if an error occurs */
-extern int genLoadImmediate(t_program *program, int immediate);
+int genLoadImmediate(t_program *program, int immediate);
 
 
 /*----------------------------------------------------
  *                   ARITHMETIC
  *---------------------------------------------------*/
 
-extern t_instruction *genADDInstruction(
+t_instruction *genADDInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSUBInstruction(
+t_instruction *genSUBInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genANDInstruction(
+t_instruction *genANDInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genORInstruction(
+t_instruction *genORInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genXORInstruction(
+t_instruction *genXORInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genMULInstruction(
+t_instruction *genMULInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genDIVInstruction(
+t_instruction *genDIVInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSLLInstruction(
+t_instruction *genSLLInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSRLInstruction(
+t_instruction *genSRLInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSRAInstruction(
+t_instruction *genSRAInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
 
 /*----------------------------------------------------
@@ -57,7 +57,7 @@ extern t_instruction *genSRAInstruction(
  * operation. `r_dest' is a register location, `immediate' is an immediate
  * value. The content of `r_source1' is added to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
-extern t_instruction *genADDIInstruction(
+t_instruction *genADDIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -71,7 +71,7 @@ extern t_instruction *genADDIInstruction(
  * operation. `r_dest' is a register location, `immediate' is an immediate
  * value. The content of `r_source1' is subtracted to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
-extern t_instruction *genSUBIInstruction(
+t_instruction *genSUBIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -80,7 +80,7 @@ extern t_instruction *genSUBIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genANDIInstruction(
+t_instruction *genANDIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -89,7 +89,7 @@ extern t_instruction *genANDIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genORIInstruction(
+t_instruction *genORIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -98,7 +98,7 @@ extern t_instruction *genORIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genXORIInstruction(
+t_instruction *genXORIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -107,7 +107,7 @@ extern t_instruction *genXORIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genMULIInstruction(
+t_instruction *genMULIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -116,7 +116,7 @@ extern t_instruction *genMULIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genDIVIInstruction(
+t_instruction *genDIVIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -125,10 +125,10 @@ extern t_instruction *genDIVIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genSLLIInstruction(
+t_instruction *genSLLIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
-extern t_instruction *genSRLIInstruction(
+t_instruction *genSRLIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
@@ -137,7 +137,7 @@ extern t_instruction *genSRLIInstruction(
  * `r_source1' and `immediate' are the two operands of the binary numeric
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
-extern t_instruction *genSRAIInstruction(
+t_instruction *genSRAIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 
@@ -145,25 +145,25 @@ extern t_instruction *genSRAIInstruction(
  *                   COMPARISON
  *---------------------------------------------------*/
 
-extern t_instruction *genSEQInstruction(
+t_instruction *genSEQInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSNEInstruction(
+t_instruction *genSNEInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSLTInstruction(
+t_instruction *genSLTInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSLTUInstruction(
+t_instruction *genSLTUInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSGEInstruction(
+t_instruction *genSGEInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSGEUInstruction(
+t_instruction *genSGEUInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSGTInstruction(
+t_instruction *genSGTInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSGTUInstruction(
+t_instruction *genSGTUInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSLEInstruction(
+t_instruction *genSLEInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
-extern t_instruction *genSLEUInstruction(
+t_instruction *genSLEUInstruction(
     t_program *program, int r_dest, int r_src1, int r_src2);
 
 
@@ -171,25 +171,25 @@ extern t_instruction *genSLEUInstruction(
  *                   COMPARISON WITH CONSTANT
  *---------------------------------------------------*/
 
-extern t_instruction *genSEQIInstruction(
+t_instruction *genSEQIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSNEIInstruction(
+t_instruction *genSNEIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSLTIInstruction(
+t_instruction *genSLTIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSLTIUInstruction(
+t_instruction *genSLTIUInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSGEIInstruction(
+t_instruction *genSGEIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSGEIUInstruction(
+t_instruction *genSGEIUInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSGTIInstruction(
+t_instruction *genSGTIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSGTIUInstruction(
+t_instruction *genSGTIUInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSLEIInstruction(
+t_instruction *genSLEIInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
-extern t_instruction *genSLEIUInstruction(
+t_instruction *genSLEIUInstruction(
     t_program *program, int r_dest, int r_src1, int immediate);
 
 
@@ -197,29 +197,29 @@ extern t_instruction *genSLEIUInstruction(
  *                   JUMP
  *---------------------------------------------------*/
 
-extern t_instruction *genJInstruction(t_program *program, t_label *label);
+t_instruction *genJInstruction(t_program *program, t_label *label);
 
-extern t_instruction *genBEQInstruction(
+t_instruction *genBEQInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBEQInstruction(
+t_instruction *genBEQInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBNEInstruction(
+t_instruction *genBNEInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBLTInstruction(
+t_instruction *genBLTInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBLTUInstruction(
+t_instruction *genBLTUInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBGEInstruction(
+t_instruction *genBGEInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBGEUInstruction(
+t_instruction *genBGEUInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBGTInstruction(
+t_instruction *genBGTInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBGTUInstruction(
+t_instruction *genBGTUInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBLEInstruction(
+t_instruction *genBLEInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
-extern t_instruction *genBLEUInstruction(
+t_instruction *genBLEUInstruction(
     t_program *program, int rs1, int rs2, t_label *label);
 
 
@@ -227,23 +227,21 @@ extern t_instruction *genBLEUInstruction(
  *                  LOAD/STORE
  *---------------------------------------------------*/
 
-extern t_instruction *genLIInstruction(
-    t_program *program, int r_dest, int immediate);
+t_instruction *genLIInstruction(t_program *program, int r_dest, int immediate);
 
 /* A MOVA instruction copies an address value into a register.
  * An address can be either an instance of `t_label'
  * or a number (numeric address) */
-extern t_instruction *genLAInstruction(
-    t_program *program, int r_dest, t_label *label);
+t_instruction *genLAInstruction(t_program *program, int r_dest, t_label *label);
 
-extern t_instruction *genLWInstruction(
+t_instruction *genLWInstruction(
     t_program *program, int r_dest, int immediate, int rs1);
-extern t_instruction *genSWInstruction(
+t_instruction *genSWInstruction(
     t_program *program, int rs2, int immediate, int rs1);
 
-extern t_instruction *genLWGlobalInstruction(
+t_instruction *genLWGlobalInstruction(
     t_program *program, int r_dest, t_label *label);
-extern t_instruction *genSWGlobalInstruction(
+t_instruction *genSWGlobalInstruction(
     t_program *program, int rs2, t_label *label);
 
 
@@ -254,10 +252,10 @@ extern t_instruction *genSWGlobalInstruction(
 /* By calling this function, a new NOP instruction will be added
  * to `program'. A NOP instruction doesn't make use of
  * any kind of parameter */
-extern t_instruction *genNOPInstruction(t_program *program);
+t_instruction *genNOPInstruction(t_program *program);
 
-extern t_instruction *genECALLInstruction(t_program *program);
-extern t_instruction *genEBREAKInstruction(t_program *program);
+t_instruction *genECALLInstruction(t_program *program);
+t_instruction *genEBREAKInstruction(t_program *program);
 
 
 /*----------------------------------------------------
@@ -267,22 +265,22 @@ extern t_instruction *genEBREAKInstruction(t_program *program);
 /* By calling this function, a new HALT instruction will be added
  * to `program'. An HALT instruction doesn't require
  * any kind of parameter */
-extern t_instruction *genExit0Syscall(t_program *program);
+t_instruction *genExit0Syscall(t_program *program);
 
 /* A READ instruction requires only one parameter:
  * A destination register (where the value
  * read from standard input will be loaded). */
-extern t_instruction *genReadIntSyscall(t_program *program, int r_dest);
+t_instruction *genReadIntSyscall(t_program *program, int r_dest);
 
 /* A WRITE instruction requires only one parameter:
  * A destination register (where the value
  * that will be written to the standard output is located). */
-extern t_instruction *genPrintIntSyscall(t_program *program, int r_src1);
+t_instruction *genPrintIntSyscall(t_program *program, int r_src1);
 
 /* A WRITE instruction requires only one parameter:
  * A destination register (where the value
  * that will be written to the standard output is located). */
-extern t_instruction *genPrintCharSyscall(t_program *program, int r_src1);
+t_instruction *genPrintCharSyscall(t_program *program, int r_src1);
 
 
 #endif

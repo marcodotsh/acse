@@ -544,7 +544,7 @@ int getNewRegister(t_program *program)
   return result;
 }
 
-extern t_global *genDataDirective(
+t_global *genDataDirective(
     t_program *program, int type, int value, t_label *label)
 {
   t_global *res;
