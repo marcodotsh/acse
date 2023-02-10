@@ -1,7 +1,7 @@
 /// @file variables.c
 
 #include <assert.h>
-#include "variables.h"
+#include "symbols.h"
 #include "gencode.h"
 #include "utils.h"
 #include "errors.h"
@@ -9,13 +9,13 @@
 #include "expressions.h"
 
 
-/* create and initialize an instance of `t_variable' */
-t_variable *newVariable(char *ID, int type, int isArray, int arraySize)
+/* create and initialize an instance of `t_symbol' */
+t_symbol *newVariable(char *ID, int type, int isArray, int arraySize)
 {
-  t_variable *result;
+  t_symbol *result;
 
   /* allocate memory for the new variable */
-  result = (t_variable *)malloc(sizeof(t_variable));
+  result = (t_symbol *)malloc(sizeof(t_symbol));
   if (result == NULL)
     fatalError(ERROR_OUT_OF_MEMORY);
 
@@ -27,22 +27,22 @@ t_variable *newVariable(char *ID, int type, int isArray, int arraySize)
   result->label = NULL;
   result->reg_location = REG_INVALID;
 
-  /* return the just created and initialized instance of t_variable */
+  /* return the just created and initialized instance of t_symbol */
   return result;
 }
 
 
-/* finalize an instance of `t_variable' */
-void deleteVariable(t_variable *variable)
+/* finalize an instance of `t_symbol' */
+void deleteVariable(t_symbol *variable)
 {
   free(variable);
 }
 
 
-void createVariable(
+t_symbol *createSymbol(
     t_program *program, char *ID, int type, int isArray, int arraySize)
 {
-  t_variable *var, *variableFound;
+  t_symbol *var, *variableFound;
   int sizeofElem;
   int sy_error;
   char *lblName;
@@ -55,16 +55,16 @@ void createVariable(
     fatalError(ERROR_INVALID_TYPE);
 
   /* check if another variable already exists with the same ID */
-  variableFound = getVariable(program, ID);
+  variableFound = getSymbol(program, ID);
   if (variableFound != NULL) {
     emitError(ERROR_VARIABLE_ALREADY_DECLARED);
-    return;
+    return NULL;
   }
 
   /* check if the array size is valid */
   if (isArray && arraySize <= 0) {
     emitError(ERROR_INVALID_ARRAY_SIZE);
-    return;
+    return NULL;
   }
 
   /* initialize a new variable */
@@ -91,13 +91,14 @@ void createVariable(
 
   /* now we can add the new variable to the program */
   program->variables = addElement(program->variables, var, -1);
+  return var;
 }
 
 
-void deleteVariables(t_listNode *variables)
+void deleteSymbols(t_listNode *variables)
 {
   t_listNode *current_element;
-  t_variable *current_var;
+  t_symbol *current_var;
 
   if (variables == NULL)
     return;
@@ -105,7 +106,7 @@ void deleteVariables(t_listNode *variables)
   /* initialize the `current_element' */
   current_element = variables;
   while (current_element != NULL) {
-    current_var = (t_variable *)current_element->data;
+    current_var = (t_symbol *)current_element->data;
     if (current_var != NULL) {
       if (current_var->ID != NULL)
         free(current_var->ID);
@@ -123,8 +124,8 @@ void deleteVariables(t_listNode *variables)
 
 int compareVariables(void *Var_A, void *Var_B)
 {
-  t_variable *va;
-  t_variable *vb;
+  t_symbol *va;
+  t_symbol *vb;
 
   if (Var_A == NULL)
     return Var_B == NULL;
@@ -132,17 +133,17 @@ int compareVariables(void *Var_A, void *Var_B)
   if (Var_B == NULL)
     return 0;
 
-  va = (t_variable *)Var_A;
-  vb = (t_variable *)Var_B;
+  va = (t_symbol *)Var_A;
+  vb = (t_symbol *)Var_B;
 
   /* test if the name is the same */
   return (!strcmp(va->ID, vb->ID));
 }
 
 
-t_variable *getVariable(t_program *program, char *ID)
+t_symbol *getSymbol(t_program *program, char *ID)
 {
-  t_variable search_pattern;
+  t_symbol search_pattern;
   t_listNode *elementFound;
 
   /* preconditions */
@@ -158,13 +159,13 @@ t_variable *getVariable(t_program *program, char *ID)
 
   /* if the element is found return it to the caller. Otherwise return NULL. */
   if (elementFound != NULL)
-    return (t_variable *)elementFound->data;
+    return (t_symbol *)elementFound->data;
 
   return NULL;
 }
 
 
-int getRegLocationOfScalar(t_program *program, t_variable *var)
+int getRegLocationOfVariable(t_program *program, t_symbol *var)
 {
   int sy_error;
   int location;
@@ -183,9 +184,9 @@ int getRegLocationOfScalar(t_program *program, t_variable *var)
 }
 
 
-t_label *getMemLocationOfArray(t_program *program, t_variable *array)
+t_label *getMemLocationOfArray(t_program *program, t_symbol *array)
 {
-  t_variable *var;
+  t_symbol *var;
 
   assert(array != NULL);
   assert(program != NULL);
@@ -200,7 +201,7 @@ t_label *getMemLocationOfArray(t_program *program, t_variable *array)
 }
 
 
-void genStoreArrayElement(t_program *program, t_variable *array, t_expressionValue index,
+void genStoreArrayElement(t_program *program, t_symbol *array, t_expressionValue index,
     t_expressionValue data)
 {
   int address = genLoadArrayAddress(program, array, index);
@@ -219,7 +220,7 @@ void genStoreArrayElement(t_program *program, t_variable *array, t_expressionVal
 }
 
 
-int genLoadArrayElement(t_program *program, t_variable *array, t_expressionValue index)
+int genLoadArrayElement(t_program *program, t_symbol *array, t_expressionValue index)
 {
   int load_register;
   int address;
@@ -238,7 +239,7 @@ int genLoadArrayElement(t_program *program, t_variable *array, t_expressionValue
 }
 
 
-int genLoadArrayAddress(t_program *program, t_variable *array, t_expressionValue index)
+int genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue index)
 {
   int mova_register, sizeofElem;
   t_label *label;

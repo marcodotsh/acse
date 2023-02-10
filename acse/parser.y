@@ -15,7 +15,7 @@
 #include "expressions.h"
 #include "gencode.h"
 #include "utils.h"
-#include "variables.h"
+#include "symbols.h"
 #include "cflow_graph.h"
 #include "reg_alloc.h"
 #include "options.h"
@@ -77,7 +77,7 @@ extern void yyerror(const char*);
 %union {
   int integer;
   char *string;
-  t_variable *var;
+  t_symbol *var;
   t_expressionValue expr;
   t_declaration *decl;
   t_listNode *list;
@@ -256,15 +256,15 @@ assign_statement: var_id LSQUARE exp RSQUARE ASSIGN exp
                 {
                   /* in order to assign a value to a variable, we have to know
                    * where the variable is located (i.e. in which register).
-                   * the function `getRegLocationOfScalar' is used in order
+                   * the function `getRegLocationOfVariable' is used in order
                    * to retrieve the register location assigned to
                    * a given identifier.
-                   * `getRegLocationOfScalar' perform a query on the list
+                   * `getRegLocationOfVariable' perform a query on the list
                    * of variables in order to discover the correct location of
                    * the variable with $1 as identifier */
 
                   /* get the location of the variable with the given ID. */
-                  int location = getRegLocationOfScalar(program, $1);
+                  int location = getRegLocationOfVariable(program, $1);
 
                   /* update the value of location */
                   if ($3.type == CONSTANT)
@@ -388,7 +388,7 @@ read_statement: READ LPAR var_id RPAR
                 
                 /* lookup the variable table and fetch the register location
                  * associated with the IDENTIFIER $3. */
-                int location = getRegLocationOfScalar(program, $3);
+                int location = getRegLocationOfVariable(program, $3);
       
                 /* insert a read instruction */
                 genReadIntSyscall(program, location);
@@ -421,7 +421,7 @@ exp : NUMBER
     | var_id 
     {
       /* get the location of the symbol with the given ID */
-      int variableReg = getRegLocationOfScalar(program, $1);
+      int variableReg = getRegLocationOfVariable(program, $1);
 
       /* return that register as the expression value */
       $$ = getRegisterExprValue(variableReg);
@@ -488,7 +488,7 @@ exp : NUMBER
 
 var_id: IDENTIFIER
       {
-        t_variable *var = getVariable(program, $1);
+        t_symbol *var = getSymbol(program, $1);
         if (var == NULL) {
           emitError(ERROR_VARIABLE_NOT_DECLARED);
           YYERROR;

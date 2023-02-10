@@ -11,7 +11,7 @@
 #include "options.h"
 #include "errors.h"
 #include "target_info.h"
-#include "variables.h"
+#include "symbols.h"
 
 
 int debugPrintf(const char *fmt, ...)
@@ -74,7 +74,7 @@ void addVariablesFromDecls(
     assert(current_decl != NULL);
 
     /* create and assign a new variable to program */
-    createVariable(program, current_decl->ID, varType, current_decl->isArray,
+    createSymbol(program, current_decl->ID, varType, current_decl->isArray,
         current_decl->arraySize);
 
     /* update the value of `current_element' */

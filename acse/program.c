@@ -11,7 +11,7 @@
 #include "target_info.h"
 #include "target_asm_print.h"
 #include "options.h"
-#include "variables.h"
+#include "symbols.h"
 
 /* global line number (defined in Acse.y) */
 extern int line_num;
@@ -243,7 +243,7 @@ void deleteProgram(t_program *program)
   if (program == NULL)
     return;
   if (program->variables != NULL)
-    deleteVariables(program->variables);
+    deleteSymbols(program->variables);
   if (program->instructions != NULL)
     deleteInstructions(program->instructions);
   if (program->data != NULL)
@@ -600,7 +600,7 @@ void dumpProgram(t_program *program, FILE *fout)
   while (cur_var) {
     int reg;
 
-    t_variable *var = cur_var->data;
+    t_symbol *var = cur_var->data;
     fprintf(fout, "[%s]\n", var->ID);
 
     fprintf(fout, "   type = ");
