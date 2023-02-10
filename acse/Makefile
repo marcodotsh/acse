@@ -29,8 +29,11 @@ all: $(project)
 $(project): $(object) $(bindir)
 	$(CC) $(LDFLAGS) $(object) -o $@
 
+$(objdir)/%.o: $(objdir)/%.c
+	$(CC) $(CFLAGS) -MMD -c -o $@ $<
+
 $(objdir)/%.o: %.c
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -c -o $@ $<
 
 $(objdir)/lex.yy.c: $(lex_src) $(objdir)/parser.tab.h
 	$(FLEX) $(LFLAGS) -o $@ $<
