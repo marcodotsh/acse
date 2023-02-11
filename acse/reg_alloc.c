@@ -1,6 +1,7 @@
 /// @file reg_alloc.c
 
 #include <assert.h>
+#include <stdbool.h>
 #include "reg_alloc.h"
 #include "target_info.h"
 #include "errors.h"
@@ -144,15 +145,15 @@ int compareLiveIntEndPoints(void *varA, void *varB)
 }
 
 /* Given two live intervals, check if they refer to the same interval */
-int compareLiveIntIDs(void *varA, void *varB)
+bool compareLiveIntIDs(void *varA, void *varB)
 {
   t_liveInterval *liA = (t_liveInterval *)varA;
   t_liveInterval *liB = (t_liveInterval *)varB;
 
   if (varA == NULL)
-    return 0;
+    return false;
   if (varB == NULL)
-    return 0;
+    return false;
 
   return liA->varID == liB->varID;
 }
@@ -420,7 +421,7 @@ void handleCallerSaveRegisters(t_regAllocator *ra, t_cfg *cfg)
   cfgIterateNodes(cfg, (void *)ra, handleCallerSaveRegistersNodeCallback);
 }
 
-int compareFreeRegListNodes(void *freeReg, void *constraintReg)
+bool compareFreeRegListNodes(void *freeReg, void *constraintReg)
 {
   return INT_TO_LIST_DATA(constraintReg) == INT_TO_LIST_DATA(freeReg);
 }
@@ -696,7 +697,7 @@ void executeLinearScan(t_regAllocator *RA)
  * Materialization
  */
 
-int compareTempLabels(void *valA, void *valB)
+bool compareTempLabels(void *valA, void *valB)
 {
   t_tempLabel *tlA = (t_tempLabel *)valA;
   t_tempLabel *tlB = (t_tempLabel *)valB;
@@ -1234,7 +1235,7 @@ void doRegisterAllocation(t_program *program)
   logFileName = getLogFileName("controlFlow");
   debugPrintf(" -> Writing the control flow graph to \"%s\"\n", logFileName);
   logFile = fopen(logFileName, "w");
-  cfgDump(graph, logFile, 0);
+  cfgDump(graph, logFile, false);
   fclose(logFile);
   free(logFileName);
 #endif
@@ -1245,7 +1246,7 @@ void doRegisterAllocation(t_program *program)
   logFileName = getLogFileName("dataFlow");
   debugPrintf(" -> Writing the liveness information to \"%s\"\n", logFileName);
   logFile = fopen(logFileName, "w");
-  cfgDump(graph, logFile, 1);
+  cfgDump(graph, logFile, true);
   fclose(logFile);
   free(logFileName);
 #endif

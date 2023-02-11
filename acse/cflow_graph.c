@@ -9,15 +9,15 @@
 #include "target_asm_print.h"
 
 
-static int compareCFGVariables(void *a, void *b)
+static bool compareCFGVariables(void *a, void *b)
 {
   t_cfgVar *varA = (t_cfgVar *)a;
   t_cfgVar *varB = (t_cfgVar *)b;
 
   if (a == NULL && b == NULL)
-    return 1;
+    return true;
   if (a == NULL || b == NULL)
-    return 0;
+    return false;
 
   return varA->ID == varB->ID;
 }
@@ -415,14 +415,14 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
 }
 
 /* test if the current instruction `instr' is a labelled instruction */
-int instrIsStartingNode(t_instruction *instr)
+bool instrIsStartingNode(t_instruction *instr)
 {
   assert(instr != NULL);
   return instr->label != NULL;
 }
 
 /* test if the current instruction will end a basic block */
-int instrIsEndingNode(t_instruction *instr)
+bool instrIsEndingNode(t_instruction *instr)
 {
   assert(instr != NULL);
   return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
@@ -527,8 +527,8 @@ t_cfg *programToCFG(t_program *program, int *error)
   t_listNode *current_element;
   t_cfgNode *current_node;
   t_instruction *current_instr;
-  int startingNode;
-  int endingNode;
+  bool startingNode;
+  bool endingNode;
   int error2;
 
   /* preconditions */
@@ -727,7 +727,7 @@ t_listNode *bbGetLiveInVars(t_basicBlock *bblock)
 }
 
 t_listNode *addElementToSet(t_listNode *set, void *element,
-    int (*compareFunc)(void *a, void *b), int *modified)
+    bool (*compareFunc)(void *a, void *b), int *modified)
 {
   if (element == NULL)
     return set;
@@ -743,7 +743,7 @@ t_listNode *addElementToSet(t_listNode *set, void *element,
 }
 
 t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
-    int (*compareFunc)(void *a, void *b), int *modified)
+    bool (*compareFunc)(void *a, void *b), int *modified)
 {
   // Add all the elements to the set one by one
   t_listNode *current_element = elements;
@@ -976,7 +976,7 @@ void dumpListOfVariables(t_listNode *variables, FILE *fout)
   fflush(fout);
 }
 
-void bbDump(t_basicBlock *block, FILE *fout, int verbose)
+void bbDump(t_basicBlock *block, FILE *fout, bool verbose)
 {
   t_listNode *elem;
   t_cfgNode *current_node;
@@ -1004,7 +1004,7 @@ void bbDump(t_basicBlock *block, FILE *fout, int verbose)
       printInstruction(current_node->instr, fout, 0);
     fprintf(fout, "\n");
 
-    if (verbose != 0) {
+    if (verbose) {
       fprintf(fout, "     DEFS = [");
       dumpArrayOfVariables(current_node->defs, CFG_MAX_DEFS, fout);
       fprintf(fout, "]\n");
@@ -1027,7 +1027,7 @@ void bbDump(t_basicBlock *block, FILE *fout, int verbose)
   fflush(fout);
 }
 
-void cfgDump(t_cfg *graph, FILE *fout, int verbose)
+void cfgDump(t_cfg *graph, FILE *fout, bool verbose)
 {
   int counter;
   t_listNode *current_element;

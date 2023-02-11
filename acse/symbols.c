@@ -1,6 +1,7 @@
 /// @file variables.c
 
 #include <assert.h>
+#include <stdbool.h>
 #include "symbols.h"
 #include "gencode.h"
 #include "utils.h"
@@ -130,7 +131,7 @@ bool isArray(t_symbol *symbol)
 }
 
 
-int compareVariables(void *Var_A, void *Var_B)
+bool compareVariables(void *Var_A, void *Var_B)
 {
   t_symbol *va;
   t_symbol *vb;
@@ -139,13 +140,13 @@ int compareVariables(void *Var_A, void *Var_B)
     return Var_B == NULL;
 
   if (Var_B == NULL)
-    return 0;
+    return false;
 
   va = (t_symbol *)Var_A;
   vb = (t_symbol *)Var_B;
 
   /* test if the name is the same */
-  return (!strcmp(va->ID, vb->ID));
+  return strcmp(va->ID, vb->ID) == 0;
 }
 
 

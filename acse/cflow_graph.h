@@ -5,6 +5,7 @@
 #define CFLOW_GRAPH_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "program.h"
 #include "list.h"
 
@@ -146,7 +147,8 @@ int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
  *  @param context The context pointer that will be passed to the callback
  *         function.
  *  @param callback The callback function that will be called at each node
- *         found. The callback can return 1 to stop the iteration process.
+ *         found. The callback can return a non-zero value to stop the iteration
+ *         process.
  *  @returns The value returned by the last callback invocation. */
 int cfgIterateNodes(t_cfg *graph, void *context,
     int (*callback)(
@@ -186,6 +188,6 @@ t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
  * @param fout The output file.
  * @param verbose Pass a non-zero value to also print additional information
  *        about the liveness of the variables. */
-void cfgDump(t_cfg *graph, FILE *fout, int verbose);
+void cfgDump(t_cfg *graph, FILE *fout, bool verbose);
 
 #endif

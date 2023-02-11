@@ -311,7 +311,8 @@ void setRawLabelName(t_program *program, t_label *label, const char *finalName)
 
 void setLabelName(t_program *program, t_label *label, const char *name)
 {
-  int serial = -1, ok, allocatedSpace;
+  int serial = -1, allocatedSpace;
+  bool ok;
   char *sanitizedName, *finalName, *dstp;
   const char *srcp;
 
@@ -329,7 +330,7 @@ void setLabelName(t_program *program, t_label *label, const char *name)
   snprintf(finalName, allocatedSpace, "%s", sanitizedName);
   do {
     t_listNode *i;
-    ok = 1;
+    ok = true;
     for (i = program->labels; i != NULL; i = i->next) {
       t_label *thisLab = i->data;
       char *thisLabName;
@@ -343,7 +344,7 @@ void setLabelName(t_program *program, t_label *label, const char *name)
       free(thisLabName);
 
       if (difference == 0) {
-        ok = 0;
+        ok = false;
         snprintf(finalName, allocatedSpace, "%s_%d", sanitizedName, ++serial);
         break;
       }

@@ -139,13 +139,13 @@ t_listNode *addSorted(
 }
 
 
-int defaultListItemCompareFunc(void *a, void *b)
+static bool defaultListItemCompareFunc(void *a, void *b)
 {
   return a == b;
 }
 
 t_listNode *findElementWithCallback(
-    t_listNode *list, void *data, int (*compareFunc)(void *a, void *b))
+    t_listNode *list, void *data, bool (*compareFunc)(void *a, void *b))
 {
   t_listNode *current_elem;
   void *other_data;

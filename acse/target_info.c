@@ -5,19 +5,19 @@
 #include "target_info.h"
 
 
-int isHaltOrRetInstruction(t_instruction *instr)
+bool isHaltOrRetInstruction(t_instruction *instr)
 {
   return instr->opcode == OPC_CALL_EXIT_0;
 }
 
 
-int isUnconditionalJump(t_instruction *instr)
+bool isUnconditionalJump(t_instruction *instr)
 {
   return instr->opcode == OPC_J;
 }
 
 
-int isJumpInstruction(t_instruction *instr)
+bool isJumpInstruction(t_instruction *instr)
 {
   switch (instr->opcode) {
     case OPC_J:
@@ -31,28 +31,28 @@ int isJumpInstruction(t_instruction *instr)
     case OPC_BGTU:
     case OPC_BLE:
     case OPC_BLEU:
-      return 1;
+      return true;
     default:
-      return 0;
+      return false;
   }
 }
 
 
-int isCallInstruction(t_instruction *instr)
+bool isCallInstruction(t_instruction *instr)
 {
   return instr->opcode == OPC_ECALL;
 }
 
 
-int instructionUsesPSW(t_instruction *instr)
+bool instructionUsesPSW(t_instruction *instr)
 {
-  return 0;
+  return false;
 }
 
 
-int instructionDefinesPSW(t_instruction *instr)
+bool instructionDefinesPSW(t_instruction *instr)
 {
-  return 0;
+  return false;
 }
 
 

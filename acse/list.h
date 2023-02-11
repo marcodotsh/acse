@@ -4,6 +4,7 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -104,7 +105,7 @@ t_listNode *findElement(t_listNode *list, void *data);
  * @returns The first list element that satisfies the comparison function,
  *          or NULL if no such element is in the list. */
 t_listNode *findElementWithCallback(
-    t_listNode *list, void *data, int (*compareFunc)(void *a, void *b));
+    t_listNode *list, void *data, bool (*compareFunc)(void *a, void *b));
 
 /** Finds the position of an element inside a list.
  * @param list    The list where the element belongs.

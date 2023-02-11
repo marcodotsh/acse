@@ -4,6 +4,7 @@
 #ifndef TARGET_INFO_H
 #define TARGET_INFO_H
 
+#include <stdbool.h>
 #include "program.h"
 
 /** Name of the target architecture */
@@ -145,25 +146,25 @@ enum {
 };
 
 
-/** Returns 1 if `instr` is a jump (branch) instruction. */
-int isJumpInstruction(t_instruction *instr);
+/** Returns true if `instr` is a jump (branch) instruction. */
+bool isJumpInstruction(t_instruction *instr);
 
-/** Returns 1 if `instr` is a unconditional jump instruction (BT, BF) */
-int isUnconditionalJump(t_instruction *instr);
+/** Returns true if `instr` is a unconditional jump instruction (BT, BF) */
+bool isUnconditionalJump(t_instruction *instr);
 
-/** Returns 1 if `instr` is either the HALT instruction or the RET
+/** Returns true if `instr` is either the HALT instruction or the RET
  * instruction. */
-int isHaltOrRetInstruction(t_instruction *instr);
+bool isHaltOrRetInstruction(t_instruction *instr);
 
-/** Returns 1 if `instr` is a function call instruction. */
-int isCallInstruction(t_instruction *instr);
+/** Returns true if `instr` is a function call instruction. */
+bool isCallInstruction(t_instruction *instr);
 
 
-/** Returns 1 if the instruction uses/defines the PSW (flags) register, 0
+/** Returns true if the instruction uses/defines the PSW (flags) register, 0
  * otherwise. Always returns zero on architectures that do not have a
  * flags register. */
-int instructionUsesPSW(t_instruction *instr);
-int instructionDefinesPSW(t_instruction *instr);
+bool instructionUsesPSW(t_instruction *instr);
+bool instructionDefinesPSW(t_instruction *instr);
 
 
 /** Returns a register ID suitable for spill operations. The maximum index
