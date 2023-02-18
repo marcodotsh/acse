@@ -219,9 +219,8 @@ void genStoreArrayElement(t_program *program, t_symbol *array, t_expressionValue
     /* load the value indirectly into `mova_register' */
     genSWInstruction(program, data.registerId, 0, address);
   } else {
-    int imm_register;
-
-    imm_register = genLoadImmediate(program, data.immediate);
+    int imm_register = getNewRegister(program);
+    genLIInstruction(program, imm_register, data.immediate);
 
     /* load the value indirectly into `load_register' */
     genSWInstruction(program, imm_register, 0, address);

@@ -1,20 +1,10 @@
 /// @file gencode.h
-/// @brief Code generation functions. See also utils.h for genLoadImmediate()
-///        and genMoveImmediate().
+/// @brief Code generation functions.
 
 #ifndef GENCODE_H
 #define GENCODE_H
 
 #include "program.h"
-
-
-/*----------------------------------------------------
- *                   UTILITY
- *---------------------------------------------------*/
-
-/* Generate the instruction to load an `immediate' value into a new register.
- * It returns the new register identifier or REG_INVALID if an error occurs */
-int genLoadImmediate(t_program *program, int immediate);
 
 
 /*----------------------------------------------------

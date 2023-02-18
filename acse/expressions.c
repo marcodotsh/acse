@@ -240,10 +240,12 @@ t_expressionValue handleBinaryOperator(t_program *program,
   } else if ((exp1.type == CONSTANT || exp1.type == REGISTER) &&
       exp2.type == REGISTER) {
     int r1, rd;
-    if (exp1.type == CONSTANT)
-      r1 = genLoadImmediate(program, exp1.immediate);
-    else
+    if (exp1.type == CONSTANT) {
+      r1 = getNewRegister(program);
+      genLIInstruction(program, r1, exp1.immediate);
+    } else {
       r1 = exp1.registerId;
+    }
     rd = genBinaryOperation(program, r1, exp2.registerId, operator);
     res = getRegisterExprValue(rd);
 

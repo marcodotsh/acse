@@ -15,14 +15,6 @@ void validateRegisterId(t_program *program, int r)
 }
 
 
-int genLoadImmediate(t_program *program, int immediate)
-{
-  int imm_register = getNewRegister(program);
-  genLIInstruction(program, imm_register, immediate);
-  return imm_register;
-}
-
-
 static t_instruction *genRFormatInstruction(
     t_program *program, int opcode, int rd, int rs1, int rs2)
 {

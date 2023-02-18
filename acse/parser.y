@@ -380,15 +380,17 @@ write_statement : WRITE LPAR exp RPAR
                   if ($3.type == CONSTANT) {
                     /* load `immediate' into a new register. Returns the new
                      * register identifier or REG_INVALID if an error occurs */
-                    location = genLoadImmediate(program, $3.immediate);
-                  } else
+                    location = getNewRegister(program);
+                    genLIInstruction(program, location, $3.immediate);
+                  } else {
                     location = $3.registerId;
-
+                  }
                   /* write to standard output an integer value */
                   genPrintIntSyscall(program, location);
 
                   /* write a newline to standard output */
-                  location = genLoadImmediate(program, '\n');
+                  location = getNewRegister(program);
+                  genLIInstruction(program, location, '\n');
                   genPrintCharSyscall(program, location);
                 }
 ;
