@@ -13,7 +13,6 @@
 #include "target_info.h"
 #include "errors.h"
 #include "list.h"
-#include "expressions.h"
 #include "gencode.h"
 #include "utils.h"
 #include "symbols.h"

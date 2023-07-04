@@ -7,7 +7,6 @@
 #include "utils.h"
 #include "errors.h"
 #include "target_info.h"
-#include "expressions.h"
 
 
 /* create and initialize an instance of `t_symbol' */

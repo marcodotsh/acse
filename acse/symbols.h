@@ -5,7 +5,7 @@
 #define VARIABLES_H
 
 #include "program.h"
-#include "expressions.h"
+#include "utils.h"
 #include <stdbool.h>
 
 /** Supported data types */

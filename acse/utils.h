@@ -28,6 +28,26 @@ typedef struct t_whileStatement {
                              * that follows the while construct */
 } t_whileStatement;
 
+/* EXPRESSION TYPES */
+#define CONSTANT 0
+#define REGISTER 1
+
+typedef struct t_expressionValue {
+  int type;       /* REGISTER or CONSTANT */
+  int immediate;  /* an immediate value (only when type is CONSTANT) */
+  int registerId; /* a register ID (only when type is REGISTER) */
+} t_expressionValue;
+
+
+/* create an immediate (constant) expression */
+t_expressionValue constantExpressionValue(int value);
+
+/* create a register expression */
+t_expressionValue registerExpressionValue(int registerId);
+
+int genConvertExpValueToRegister(t_program *program, t_expressionValue exp);
+
+t_expressionValue genNormalizeBooleanExpValue(t_program *program, t_expressionValue exp);
 
 /** In debug builds (NDEBUG not defined), prints a message on the standard
  * output like `printf'. Otherwise, does nothing and returns zero. */

@@ -3,7 +3,6 @@
 
 %{
 #include <string.h>
-#include "expressions.h"
 #include "utils.h"
 #include "list.h"
 #include "symbols.h"
