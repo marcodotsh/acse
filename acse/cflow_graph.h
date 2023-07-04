@@ -87,7 +87,7 @@ void deleteCFGNode(t_cfgNode *node);
 
 /** Allocate a new empty basic block
  *  @returns The new block. */
-t_basicBlock *newBasicBlock();
+t_basicBlock *newBasicBlock(void);
 /** Frees the memory associated with a given basic block
  *  @param block The block to be freed. */
 void deleteBasicBlock(t_basicBlock *block);
