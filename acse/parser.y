@@ -6,6 +6,7 @@
 #include <stdio.h>     
 #include <stdlib.h>
 #include <assert.h>
+#include <limits.h>
 #include "program.h"
 #include "target_asm_print.h"
 #include "target_transform.h"
@@ -397,7 +398,7 @@ write_statement : WRITE LPAR exp RPAR
 
 exp : NUMBER
     { 
-      $$ = getConstantExprValue($1);
+      $$ = constantExpressionValue($1);
     }
     | var_id 
     {
@@ -405,7 +406,7 @@ exp : NUMBER
       int variableReg = getRegLocationOfVariable(program, $1);
 
       /* return that register as the expression value */
-      $$ = getRegisterExprValue(variableReg);
+      $$ = registerExpressionValue(variableReg);
     }
     | var_id LSQUARE exp RSQUARE
     {
@@ -414,7 +415,7 @@ exp : NUMBER
       int reg = genLoadArrayElement(program, $1, $3);
 
       /* create a new expression */
-      $$ = getRegisterExprValue(reg);
+      $$ = registerExpressionValue(reg);
     }
     | NOT_OP exp
     {
@@ -422,7 +423,7 @@ exp : NUMBER
         /* CONSTANT (constant) expression: compute the value at
           * compile-time and place the result in a new CONSTANT
           * expression */
-        $$ = getConstantExprValue(!($2.immediate));
+        $$ = constantExpressionValue(!($2.immediate));
       } else {
         /* REGISTER expression: generate the code that will compute
          * the result at compile time */
@@ -435,36 +436,282 @@ exp : NUMBER
         genSEQInstruction(program, res_reg, $2.registerId, REG_0);
 
         /* Return a REGISTER expression with the result register */
-        $$ = getRegisterExprValue(res_reg);
+        $$ = registerExpressionValue(res_reg);
       }
     }
     | MINUS exp
     {
       if ($2.type == CONSTANT) {
-        $$ = getConstantExprValue(-($2.immediate));
+        $$ = constantExpressionValue(-($2.immediate));
       } else {
-        /* create an expression for register REG_0 */
-        t_expressionValue exp_r0 = getRegisterExprValue(REG_0);
-        $$ = handleBinaryOperator(program, exp_r0, $2, OP_SUB);
+        int res = getNewRegister(program);
+        genSUBInstruction(program, res, REG_0, $2.registerId);
+        $$ = registerExpressionValue(res);
       }
     }
-    | exp AND_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDB); }
-    | exp OR_OP exp  { $$ = handleBinaryOperator(program, $1, $3, OP_ORB); }
-    | exp PLUS exp    { $$ = handleBinaryOperator(program, $1, $3, OP_ADD); }
-    | exp MINUS exp  { $$ = handleBinaryOperator(program, $1, $3, OP_SUB); }
-    | exp MUL_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_MUL); }
-    | exp DIV_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_DIV); }
-    | exp LT exp    { $$ = handleBinaryOperator(program, $1, $3, OP_LT); }
-    | exp GT exp    { $$ = handleBinaryOperator(program, $1, $3, OP_GT); }
-    | exp EQ exp    { $$ = handleBinaryOperator(program, $1, $3, OP_EQ); }
-    | exp NOTEQ exp  { $$ = handleBinaryOperator(program, $1, $3, OP_NOTEQ); }
-    | exp LTEQ exp    { $$ = handleBinaryOperator(program, $1, $3, OP_LTEQ); }
-    | exp GTEQ exp    { $$ = handleBinaryOperator(program, $1, $3, OP_GTEQ); }
-    | exp SHL_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_SHL); }
-    | exp SHR_OP exp { $$ = handleBinaryOperator(program, $1, $3, OP_SHR); }
-    | exp ANDAND exp { $$ = handleBinaryOperator(program, $1, $3, OP_ANDL); }
-    | exp OROR exp    { $$ = handleBinaryOperator(program, $1, $3, OP_ORL); }
-    | LPAR exp RPAR  { $$ = $2; }
+    | exp AND_OP exp 
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate & $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genANDInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genANDIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp OR_OP exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate | $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genORInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genORIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp PLUS exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate + $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genADDInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genADDIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp MINUS exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate - $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSUBInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSUBIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp MUL_OP exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate * $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genMULInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genMULIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp DIV_OP exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        if ($3.immediate == 0) {
+          emitWarning(WARN_DIVISION_BY_ZERO);
+          $$ = constantExpressionValue(INT_MAX);
+        } else if ($1.immediate == INT_MIN && $3.immediate == -1) {
+          emitWarning(WARN_OVERFLOW);
+          $$ = constantExpressionValue(INT_MIN);
+        } else {
+          $$ = constantExpressionValue($1.immediate / $3.immediate);
+        }
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genDIVInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genDIVIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp LT exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate < $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSLTInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSLTIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp GT exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate > $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSGTInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSGTIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp EQ exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate == $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSEQInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSEQIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp NOTEQ exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate != $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSNEInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSNEIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp LTEQ exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate <= $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSLEInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSLEIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp GTEQ exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate >= $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSGEInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSGEIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp SHL_OP exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        if ($3.immediate < 0 || $3.immediate >= 32) {
+          emitWarning(WARN_INVALID_SHIFT_AMOUNT);
+        }
+        $$ = constantExpressionValue($1.immediate << ($3.immediate & 0x1F));
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSLLInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSLLIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp SHR_OP exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        if ($3.immediate < 0 || $3.immediate >= 32) {
+          emitWarning(WARN_INVALID_SHIFT_AMOUNT);
+        }
+        int constRes = SHIFT_RIGHT_ARITH($1.immediate, $3.immediate & 0x1F);
+        $$ = constantExpressionValue(constRes);
+      } else {
+        int rd = getNewRegister(program);
+        int rs1 = genConvertExpValueToRegister(program, $1);
+        if ($3.type == REGISTER) {
+          genSRAInstruction(program, rd, rs1, $3.registerId);
+        } else if ($3.type == CONSTANT) {
+          genSRAIInstruction(program, rd, rs1, $3.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp ANDAND exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate && $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
+        t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
+        int rs1 = genConvertExpValueToRegister(program, normLhs);
+        if (normRhs.type == REGISTER) {
+          genANDInstruction(program, rd, rs1, normRhs.registerId);
+        } else if (normRhs.type == CONSTANT) {
+          genANDIInstruction(program, rd, rs1, normRhs.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | exp OROR exp
+    {
+      if ($1.type == CONSTANT && $3.type == CONSTANT) {
+        $$ = constantExpressionValue($1.immediate || $3.immediate);
+      } else {
+        int rd = getNewRegister(program);
+        t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
+        t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
+        int rs1 = genConvertExpValueToRegister(program, normLhs);
+        if (normRhs.type == REGISTER) {
+          genORInstruction(program, rd, rs1, normRhs.registerId);
+        } else if (normRhs.type == CONSTANT) {
+          genORIInstruction(program, rd, rs1, normRhs.immediate);
+        }
+        $$ = registerExpressionValue(rd);
+      }
+    }
+    | LPAR exp RPAR
+    {
+      $$ = $2;
+    }
 ;
 
 var_id: IDENTIFIER

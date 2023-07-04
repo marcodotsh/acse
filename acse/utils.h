@@ -14,6 +14,12 @@
 /** Minimum between two values. */
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
 
+/** Arithmetic shift to the right.
+ *  The C language does not guarantee the a right shift of a signed value is an
+ *  arithmetic shift, so we need to use this macro. */
+#define SHIFT_RIGHT_ARITH(x, y) \
+    (((x) >> (y)) | ((x) < 0 ? (((1 << (y)) - 1) << MAX(32 - (y), 0)) : 0))
+
 /** Utility structure used to store information about a while statement. */
 typedef struct t_whileStatement {
   t_label *label_condition; /* this label points to the expression
