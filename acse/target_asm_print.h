@@ -12,7 +12,7 @@ const char *opcodeToString(int opcode);
 
 /** Convert a register to a string. The result string is dynamically allocated
  * and must be freed. Returns NULL on error. */
-char *registerIDToString(int regID, int machineRegIDs);
+char *registerIDToString(t_regID regID, int machineRegIDs);
 
 /** Print the specified instruction to a file */
 int printInstruction(t_instruction *inst, FILE *fp, int machineRegIDs);

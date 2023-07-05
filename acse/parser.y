@@ -243,7 +243,7 @@ assign_statement: var_id LSQUARE exp RSQUARE ASSIGN exp
                    * the variable with $1 as identifier */
 
                   /* get the location of the variable with the given ID. */
-                  int location = getRegLocationOfVariable(program, $1);
+                  t_regID location = getRegLocationOfVariable(program, $1);
 
                   /* update the value of location */
                   if ($3.type == CONSTANT)
@@ -367,7 +367,7 @@ read_statement: READ LPAR var_id RPAR
                 
                 /* lookup the variable table and fetch the register location
                  * associated with the IDENTIFIER $3. */
-                int location = getRegLocationOfVariable(program, $3);
+                t_regID location = getRegLocationOfVariable(program, $3);
       
                 /* insert a read instruction */
                 genReadIntSyscall(program, location);
@@ -376,7 +376,7 @@ read_statement: READ LPAR var_id RPAR
         
 write_statement : WRITE LPAR exp RPAR 
                 {
-                  int location;
+                  t_regID location;
                   if ($3.type == CONSTANT) {
                     /* load `immediate' into a new register. Returns the new
                      * register identifier or REG_INVALID if an error occurs */
@@ -402,7 +402,7 @@ exp : NUMBER
     | var_id 
     {
       /* get the location of the symbol with the given ID */
-      int variableReg = getRegLocationOfVariable(program, $1);
+      t_regID variableReg = getRegLocationOfVariable(program, $1);
 
       /* return that register as the expression value */
       $$ = registerExpressionValue(variableReg);
@@ -411,7 +411,7 @@ exp : NUMBER
     {
       /* load the value IDENTIFIER[exp]
         * into `arrayElement' */
-      int reg = genLoadArrayElement(program, $1, $3);
+      t_regID reg = genLoadArrayElement(program, $1, $3);
 
       /* create a new expression */
       $$ = registerExpressionValue(reg);
@@ -428,7 +428,7 @@ exp : NUMBER
          * the result at compile time */
 
         /* Reserve a new register for the result */
-        int res_reg = getNewRegister(program);
+        t_regID res_reg = getNewRegister(program);
 
         /* Generate a SUBI instruction which will store the negated
           * logic value into the register we reserved */
@@ -443,7 +443,7 @@ exp : NUMBER
       if ($2.type == CONSTANT) {
         $$ = constantExpressionValue(-($2.immediate));
       } else {
-        int res = getNewRegister(program);
+        t_regID res = getNewRegister(program);
         genSUBInstruction(program, res, REG_0, $2.registerId);
         $$ = registerExpressionValue(res);
       }
@@ -453,8 +453,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate & $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genANDInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -468,8 +468,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate | $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genORInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -483,8 +483,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate + $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genADDInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -498,8 +498,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate - $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSUBInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -513,8 +513,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate * $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genMULInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -536,8 +536,8 @@ exp : NUMBER
           $$ = constantExpressionValue($1.immediate / $3.immediate);
         }
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genDIVInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -551,8 +551,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate < $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSLTInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -566,8 +566,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate > $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSGTInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -581,8 +581,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate == $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSEQInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -596,8 +596,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate != $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSNEInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -611,8 +611,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate <= $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSLEInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -626,8 +626,8 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate >= $3.immediate);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSGEInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -644,8 +644,8 @@ exp : NUMBER
         }
         $$ = constantExpressionValue($1.immediate << ($3.immediate & 0x1F));
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSLLInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -663,8 +663,8 @@ exp : NUMBER
         int constRes = SHIFT_RIGHT_ARITH($1.immediate, $3.immediate & 0x1F);
         $$ = constantExpressionValue(constRes);
       } else {
-        int rd = getNewRegister(program);
-        int rs1 = genConvertExpValueToRegister(program, $1);
+        t_regID rd = getNewRegister(program);
+        t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
           genSRAInstruction(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
@@ -678,10 +678,10 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate && $3.immediate);
       } else {
-        int rd = getNewRegister(program);
+        t_regID rd = getNewRegister(program);
         t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
         t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
-        int rs1 = genConvertExpValueToRegister(program, normLhs);
+        t_regID rs1 = genConvertExpValueToRegister(program, normLhs);
         if (normRhs.type == REGISTER) {
           genANDInstruction(program, rd, rs1, normRhs.registerId);
         } else if (normRhs.type == CONSTANT) {
@@ -695,10 +695,10 @@ exp : NUMBER
       if ($1.type == CONSTANT && $3.type == CONSTANT) {
         $$ = constantExpressionValue($1.immediate || $3.immediate);
       } else {
-        int rd = getNewRegister(program);
+        t_regID rd = getNewRegister(program);
         t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
         t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
-        int rs1 = genConvertExpValueToRegister(program, normLhs);
+        t_regID rs1 = genConvertExpValueToRegister(program, normLhs);
         if (normRhs.type == REGISTER) {
           genORInstruction(program, rd, rs1, normRhs.registerId);
         } else if (normRhs.type == CONSTANT) {

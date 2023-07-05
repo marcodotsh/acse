@@ -6,6 +6,13 @@
 #define PROGRAM_H
 
 #include "list.h"
+#include <limits.h>
+
+
+typedef int t_regID;
+
+#define REG_INVALID ((t_regID)(-1))
+#define REG_0       ((t_regID)(0))
 
 
 typedef struct t_label {
@@ -16,12 +23,9 @@ typedef struct t_label {
   int isAlias;
 } t_label;
 
-/* registers */
-#define REG_INVALID -1
-#define REG_0 0
 
 typedef struct t_instrArg {
-  int ID;                     /* an identifier of the register */
+  t_regID ID;                 /* an identifier of the register */
   t_listNode *mcRegWhitelist; /* the list of machine registers where this
                                * variable can be allocated. NULL if any
                                * register is allowed. */
@@ -65,7 +69,7 @@ typedef struct t_program {
   t_listNode *instructions;
   t_listNode *data;
   t_listNode *variables;
-  int current_register;
+  t_regID current_register;
   unsigned int current_label_ID;
   t_label *label_to_assign;
 } t_program;
@@ -114,12 +118,12 @@ int compareLabels(t_label *labelA, t_label *labelB);
 
 /* get a register still not used. This function returns
  * the ID of the register found*/
-int getNewRegister(t_program *program);
+t_regID getNewRegister(t_program *program);
 
 /* add a new instruction to the current program. This function is directly
  * called by all the functions defined in `gencode.h' */
-t_instruction *genInstruction(t_program *program, int opcode, int r_dest,
-    int r_src1, int r_src2, t_label *label, int immediate);
+t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
+    t_regID r_src1, t_regID r_src2, t_label *label, int immediate);
 
 /* remove an instruction from the program, given its link in the instruction
  * list. */

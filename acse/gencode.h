@@ -12,25 +12,25 @@
  *---------------------------------------------------*/
 
 t_instruction *genADDInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSUBInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genANDInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genORInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genXORInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genMULInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genDIVInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSLLInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSRLInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSRAInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 
 /*----------------------------------------------------
  *                   ARITHMETIC WITH CONSTANT
@@ -48,7 +48,7 @@ t_instruction *genSRAInstruction(
  * value. The content of `r_source1' is added to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
 t_instruction *genADDIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a SUBI instruction. The semantic of an SUBI instruction
@@ -62,7 +62,7 @@ t_instruction *genADDIInstruction(
  * value. The content of `r_source1' is subtracted to the value of `immediate'
  * and the result is then stored into the register `RDest'. */
 t_instruction *genSUBIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * an ANDBI instruction. An example RTL representation of ANDBI R1 R2 #IMM is:
@@ -71,7 +71,7 @@ t_instruction *genSUBIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genANDIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * an ORBI instruction. An example RTL representation of ORBI R1 R2 #IMM is:
@@ -80,7 +80,7 @@ t_instruction *genANDIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genORIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a EORBI instruction. An example RTL representation of EORBI R1 R2 #IMM is:
@@ -89,7 +89,7 @@ t_instruction *genORIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genXORIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a MULI instruction. An example RTL representation of MULI is:
@@ -98,7 +98,7 @@ t_instruction *genXORIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genMULIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a DIVI instruction. An example RTL representation of DIVI R1 R2 #IMM is:
@@ -107,7 +107,7 @@ t_instruction *genMULIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genDIVIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a SHLI instruction. An example RTL representation of SHLI R1 R2 #IMM is:
@@ -116,10 +116,10 @@ t_instruction *genDIVIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genSLLIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 t_instruction *genSRLIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 /* Used in order to create and assign to the current `program'
  * a SHRI instruction. An example RTL representation of SHRI R1 R2 #IMM is:
@@ -128,7 +128,7 @@ t_instruction *genSRLIInstruction(
  * comparison. `r_dest' is a register location, `immediate' is an immediate
  * value. */
 t_instruction *genSRAIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 
 /*----------------------------------------------------
@@ -136,25 +136,25 @@ t_instruction *genSRAIInstruction(
  *---------------------------------------------------*/
 
 t_instruction *genSEQInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSNEInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSLTInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSLTUInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSGEInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSGEUInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSGTInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSGTUInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSLEInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 t_instruction *genSLEUInstruction(
-    t_program *program, int r_dest, int r_src1, int r_src2);
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
 
 
 /*----------------------------------------------------
@@ -162,25 +162,25 @@ t_instruction *genSLEUInstruction(
  *---------------------------------------------------*/
 
 t_instruction *genSEQIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSNEIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSLTIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSLTIUInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSGEIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSGEIUInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSGTIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSGTIUInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSLEIInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 t_instruction *genSLEIUInstruction(
-    t_program *program, int r_dest, int r_src1, int immediate);
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
 
 
 /*----------------------------------------------------
@@ -190,49 +190,49 @@ t_instruction *genSLEIUInstruction(
 t_instruction *genJInstruction(t_program *program, t_label *label);
 
 t_instruction *genBEQInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBEQInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBNEInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBLTInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBLTUInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBGEInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBGEUInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBGTInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBGTUInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBLEInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 t_instruction *genBLEUInstruction(
-    t_program *program, int rs1, int rs2, t_label *label);
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 
 
 /*----------------------------------------------------
  *                  LOAD/STORE
  *---------------------------------------------------*/
 
-t_instruction *genLIInstruction(t_program *program, int r_dest, int immediate);
+t_instruction *genLIInstruction(t_program *program, t_regID r_dest, int immediate);
 
 /* A MOVA instruction copies an address value into a register.
  * An address can be either an instance of `t_label'
  * or a number (numeric address) */
-t_instruction *genLAInstruction(t_program *program, int r_dest, t_label *label);
+t_instruction *genLAInstruction(t_program *program, t_regID r_dest, t_label *label);
 
 t_instruction *genLWInstruction(
-    t_program *program, int r_dest, int immediate, int rs1);
+    t_program *program, t_regID r_dest, int immediate, t_regID rs1);
 t_instruction *genSWInstruction(
-    t_program *program, int rs2, int immediate, int rs1);
+    t_program *program, t_regID rs2, int immediate, t_regID rs1);
 
 t_instruction *genLWGlobalInstruction(
-    t_program *program, int r_dest, t_label *label);
+    t_program *program, t_regID r_dest, t_label *label);
 t_instruction *genSWGlobalInstruction(
-    t_program *program, int rs2, t_label *label);
+    t_program *program, t_regID rs2, t_label *label);
 
 
 /*----------------------------------------------------
@@ -260,17 +260,17 @@ t_instruction *genExit0Syscall(t_program *program);
 /* A READ instruction requires only one parameter:
  * A destination register (where the value
  * read from standard input will be loaded). */
-t_instruction *genReadIntSyscall(t_program *program, int r_dest);
+t_instruction *genReadIntSyscall(t_program *program, t_regID r_dest);
 
 /* A WRITE instruction requires only one parameter:
  * A destination register (where the value
  * that will be written to the standard output is located). */
-t_instruction *genPrintIntSyscall(t_program *program, int r_src1);
+t_instruction *genPrintIntSyscall(t_program *program, t_regID r_src1);
 
 /* A WRITE instruction requires only one parameter:
  * A destination register (where the value
  * that will be written to the standard output is located). */
-t_instruction *genPrintCharSyscall(t_program *program, int r_src1);
+t_instruction *genPrintCharSyscall(t_program *program, t_regID r_src1);
 
 
 #endif

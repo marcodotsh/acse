@@ -35,7 +35,7 @@ typedef struct t_whileStatement {
 typedef struct t_expressionValue {
   int type;       /* REGISTER or CONSTANT */
   int immediate;  /* an immediate value (only when type is CONSTANT) */
-  int registerId; /* a register ID (only when type is REGISTER) */
+  t_regID registerId; /* a register ID (only when type is REGISTER) */
 } t_expressionValue;
 
 
@@ -43,9 +43,9 @@ typedef struct t_expressionValue {
 t_expressionValue constantExpressionValue(int value);
 
 /* create a register expression */
-t_expressionValue registerExpressionValue(int registerId);
+t_expressionValue registerExpressionValue(t_regID registerId);
 
-int genConvertExpValueToRegister(t_program *program, t_expressionValue exp);
+t_regID genConvertExpValueToRegister(t_program *program, t_expressionValue exp);
 
 t_expressionValue genNormalizeBooleanExpValue(t_program *program, t_expressionValue exp);
 

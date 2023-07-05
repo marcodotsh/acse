@@ -26,15 +26,15 @@ enum {
 };
 
 /* Special variables */
-#define VAR_PSW -2
-#define VAR_UNDEFINED -1
+#define VAR_UNDEFINED (REG_INVALID)
+#define VAR_PSW       ((t_regID)(-2))
 
 
 /* A variable of the intermediate code */
 typedef struct t_cfgVar {
   /* Variable identifier. Negative IDs are reserved for artificial
    * variables which are not part of the code */
-  int ID;
+  t_regID ID;
   /* Physical register whitelist */
   t_listNode *mcRegWhitelist;
 } t_cfgVar;

@@ -252,7 +252,7 @@ static int opcodeToFormat(int opcode)
 }
 
 
-char *registerIDToString(int regID, int machineRegIDs)
+char *registerIDToString(t_regID regID, int machineRegIDs)
 {
   char *buf;
   static const char *mcRegIds[] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1",
@@ -575,7 +575,7 @@ int translateDataSegment(t_program *program, FILE *fp)
 
 void writeAssembly(t_program *program)
 {
-  char *output_file;
+  const char *output_file;
   FILE *fp;
   int error;
 

@@ -34,13 +34,13 @@ void setMCRegisterWhitelist(t_instrArg *regObj, ...)
 {
   t_listNode *res = NULL;
   va_list args;
-  int cur;
+  t_regID cur;
 
   va_start(args, regObj);
-  cur = va_arg(args, int);
+  cur = va_arg(args, t_regID);
   while (cur != REG_INVALID) {
     res = addElement(res, INT_TO_LIST_DATA(cur), -1);
-    cur = va_arg(args, int);
+    cur = va_arg(args, t_regID);
   }
   va_end(args);
 
@@ -155,7 +155,7 @@ void fixUnsupportedImmediates(t_program *program)
 
     } else if (instr->opcode == OPC_MULI || instr->opcode == OPC_DIVI ||
         !isInt12(instr->immediate)) {
-      int reg = getNewRegister(program);
+      t_regID reg = getNewRegister(program);
       int newOpc = getMatchingNonImmediateOpcode(instr->opcode);
       curi =
           addInstrAfter(program, curi, genLIInstruction(NULL, reg, IMM(instr)));
@@ -283,7 +283,8 @@ void fixSyscalls(t_program *program)
     t_listNode *transformedInstrLnk = curi;
     t_instruction *instr = curi->data;
     t_instruction *tmp, *ecall;
-    int func, r_func, r_arg, r_dest;
+    int func;
+    t_regID r_func, r_arg, r_dest;
 
     if (instr->opcode != OPC_CALL_EXIT_0 &&
         instr->opcode != OPC_CALL_READ_INT &&

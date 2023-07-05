@@ -56,10 +56,10 @@ bool instructionDefinesPSW(t_instruction *instr)
 }
 
 
-int getSpillRegister(int i)
+t_regID getSpillRegister(int i)
 {
   assert(i < NUM_SPILL_REGS);
-  return i + REG_S9;
+  return (t_regID)i + REG_S9;
 }
 
 
@@ -80,7 +80,7 @@ t_listNode *getListOfGenPurposeRegisters(void)
 
 t_listNode *getListOfCallerSaveRegisters(void)
 {
-  static const int regs[] = {REG_T0, REG_T1, REG_T2, REG_T3, REG_T4, REG_T5,
+  static const t_regID regs[] = {REG_T0, REG_T1, REG_T2, REG_T3, REG_T4, REG_T5,
       REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7,
       REG_INVALID};
   int i;

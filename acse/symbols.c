@@ -173,10 +173,10 @@ t_symbol *getSymbol(t_program *program, char *ID)
 }
 
 
-int getRegLocationOfVariable(t_program *program, t_symbol *var)
+t_regID getRegLocationOfVariable(t_program *program, t_symbol *var)
 {
   int sy_error;
-  int location;
+  t_regID location;
 
   /* preconditions: ID and program shouldn't be NULL pointer */
   assert(var != NULL);
@@ -212,13 +212,13 @@ t_label *getMemLocationOfArray(t_program *program, t_symbol *array)
 void genStoreArrayElement(t_program *program, t_symbol *array, t_expressionValue index,
     t_expressionValue data)
 {
-  int address = genLoadArrayAddress(program, array, index);
+  t_regID address = genLoadArrayAddress(program, array, index);
 
   if (data.type == REGISTER) {
     /* load the value indirectly into `mova_register' */
     genSWInstruction(program, data.registerId, 0, address);
   } else {
-    int imm_register = getNewRegister(program);
+    t_regID imm_register = getNewRegister(program);
     genLIInstruction(program, imm_register, data.immediate);
 
     /* load the value indirectly into `load_register' */
@@ -227,10 +227,9 @@ void genStoreArrayElement(t_program *program, t_symbol *array, t_expressionValue
 }
 
 
-int genLoadArrayElement(t_program *program, t_symbol *array, t_expressionValue index)
+t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_expressionValue index)
 {
-  int load_register;
-  int address;
+  t_regID load_register, address;
 
   /* retrieve the address of the array slot */
   address = genLoadArrayAddress(program, array, index);
@@ -246,9 +245,10 @@ int genLoadArrayElement(t_program *program, t_symbol *array, t_expressionValue i
 }
 
 
-int genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue index)
+t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue index)
 {
-  int mova_register, sizeofElem;
+  t_regID mova_register;
+  int sizeofElem;
   t_label *label;
 
   /* preconditions */
@@ -279,7 +279,7 @@ int genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue i
           program, mova_register, mova_register, index.immediate * sizeofElem);
     }
   } else {
-    int idxReg;
+    t_regID idxReg;
     assert(index.type == REGISTER);
 
     idxReg = index.registerId;

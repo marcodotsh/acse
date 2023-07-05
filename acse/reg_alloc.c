@@ -17,13 +17,13 @@
 #define MAX_INSTR_ARGS 3
 
 /* constants */
-#define RA_SPILL_REQUIRED -1
-#define RA_REGISTER_INVALID 0
-#define RA_EXCLUDED_VARIABLE 0
+#define RA_SPILL_REQUIRED    ((t_regID)(-1))
+#define RA_REGISTER_INVALID  ((t_regID)(0))
+#define RA_EXCLUDED_VARIABLE ((t_regID)(0))
 
 
 typedef struct t_liveInterval {
-  int varID;                    /* a variable identifier */
+  t_regID varID;                /* a variable identifier */
   t_listNode *mcRegConstraints; /* list of all registers where this variable
                                  * can be allocated. */
   int startPoint;               /* the index of the first instruction
@@ -35,16 +35,16 @@ typedef struct t_liveInterval {
 typedef struct t_regAllocator {
   t_listNode *live_intervals; /* an ordered list of live intervals */
   int varNum;                 /* number of variables */
-  int *bindings;             /* an array of bindings of kind : varID-->register.
-                              * If a certain variable X need to be spilled
-                              * in memory, the value of `register' is set
-                              * to the value of the macro RA_SPILL_REQUIRED */
+  t_regID *bindings;          /* an array of bindings of kind : varID-->register.
+                               * If a certain variable X need to be spilled
+                               * in memory, the value of `register' is set
+                               * to the value of the macro RA_SPILL_REQUIRED */
   t_listNode *freeRegisters; /* a list of free registers */
 } t_regAllocator;
 
 typedef struct t_tempLabel {
   t_label *label;
-  int regID;
+  t_regID regID;
 } t_tempLabel;
 
 /* Structure representing the current state of an instruction argument during
@@ -62,7 +62,7 @@ typedef struct t_spillInstrArgState {
 /* Structure representing the current state of a spill-reserved register */
 typedef struct t_spillRegState {
   /* virtual register ID associated to this spill register */
-  int assignedVar;
+  t_regID assignedVar;
   /* non-zero if at least one of the instructions wrote something new into
    * the spill register, and the value has not been written to the spill
    * memory location yet. */
@@ -84,7 +84,7 @@ typedef struct t_spillState {
 /* Allocate and initialize a live interval data structure with a given varID,
  * starting and ending points */
 t_liveInterval *newLiveInterval(
-    int varID, t_listNode *mcRegs, int startPoint, int endPoint)
+    t_regID varID, t_listNode *mcRegs, int startPoint, int endPoint)
 {
   t_liveInterval *result;
 
@@ -427,9 +427,9 @@ bool compareFreeRegListNodes(void *freeReg, void *constraintReg)
 }
 
 /* Get a new register from the free list */
-int assignRegister(t_regAllocator *RA, t_listNode *constraints)
+t_regID assignRegister(t_regAllocator *RA, t_listNode *constraints)
 {
-  int regID;
+  t_regID regID;
   t_listNode *i;
 
   if (constraints == NULL)
@@ -438,7 +438,7 @@ int assignRegister(t_regAllocator *RA, t_listNode *constraints)
   for (i = constraints; i; i = i->next) {
     t_listNode *freeReg;
 
-    regID = LIST_DATA_TO_INT(i->data);
+    regID = (t_regID)LIST_DATA_TO_INT(i->data);
     freeReg = findElementWithCallback(
         RA->freeRegisters, INT_TO_LIST_DATA(regID), compareFreeRegListNodes);
     if (freeReg) {
@@ -473,7 +473,7 @@ t_listNode *spillAtInterval(
   /* If the current interval ends before the last one, spill
    * the last one, otherwise spill the current interval. */
   if (last_interval->endPoint > interval->endPoint) {
-    int attempt = RA->bindings[last_interval->varID];
+    t_regID attempt = RA->bindings[last_interval->varID];
     if (findElement(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
       RA->bindings[interval->varID] = RA->bindings[last_interval->varID];
       RA->bindings[last_interval->varID] = RA_SPILL_REQUIRED;
@@ -524,7 +524,7 @@ t_listNode *expireOldIntervals(
      * instruction that defines interval. As a result, we can allocate
      * interval to the same reg as current_interval. */
     if (current_interval->endPoint == interval->startPoint) {
-      int curIntReg = RA->bindings[current_interval->varID];
+      t_regID curIntReg = RA->bindings[current_interval->varID];
       if (curIntReg >= 0) {
         t_listNode *allocated =
             addElement(NULL, INT_TO_LIST_DATA(curIntReg), 0);
@@ -576,7 +576,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   t_listNode *intervals;
   t_listNode *current_cflow_var;
   t_cfgVar *cflow_var;
-  int max_var_ID;
+  t_regID max_var_ID;
   int counter;
 
   /* Check preconditions: the cfg must exist */
@@ -609,7 +609,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
    * allocate space for the binding array, and initialize it */
 
   /*alloc memory for the array of bindings */
-  result->bindings = (int *)malloc(sizeof(int) * result->varNum);
+  result->bindings = (t_regID *)malloc(sizeof(t_regID) * result->varNum);
   if (result->bindings == NULL)
     fatalError(ERROR_OUT_OF_MEMORY);
 
@@ -648,7 +648,7 @@ void executeLinearScan(t_regAllocator *RA)
   t_listNode *current_element;
   t_liveInterval *current_interval;
   t_listNode *active_intervals;
-  int reg;
+  t_regID reg;
 
   /* test the preconditions */
   assert(RA != NULL);
@@ -710,7 +710,7 @@ bool compareTempLabels(void *valA, void *valB)
   return tlA->regID == tlB->regID;
 }
 
-t_tempLabel *newTempLabel(t_label *label, int regID)
+t_tempLabel *newTempLabel(t_label *label, t_regID regID)
 {
   t_tempLabel *result = malloc(sizeof(t_tempLabel));
   if (result == NULL)
@@ -750,7 +750,8 @@ void deleteListOfTempLabels(t_listNode *tempLabels)
  * Returns an error code. */
 t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
 {
-  int counter, error;
+  t_regID counter;
+  int error;
   t_listNode *result;
   t_tempLabel *tlabel;
   t_label *axe_label;
@@ -783,7 +784,7 @@ t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
   return result;
 }
 
-int genStoreSpillVariable(int temp_register, int selected_register,
+int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
     t_cfg *graph, t_basicBlock *current_block, t_cfgNode *current_node,
     t_listNode *labelBindings, int before)
 {
@@ -821,9 +822,9 @@ int genStoreSpillVariable(int temp_register, int selected_register,
   return NO_ERROR;
 }
 
-int genLoadSpillVariable(int temp_register, int selected_register, t_cfg *graph,
-    t_basicBlock *block, t_cfgNode *current_node, t_listNode *labelBindings,
-    int before)
+int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
+    t_cfg *graph, t_basicBlock *block, t_cfgNode *current_node,
+    t_listNode *labelBindings, int before)
 {
   t_instruction *loadInstr;
   t_cfgNode *loadNode = NULL;
@@ -1117,7 +1118,7 @@ int materializeRegisterAllocation(
  *  Debug print utilities
  */
 
-void dumpVariableBindings(int *bindings, int numVars, FILE *fout)
+void dumpVariableBindings(t_regID *bindings, int numVars, FILE *fout)
 {
   int counter;
 
@@ -1165,7 +1166,7 @@ void dumpLiveIntervals(t_listNode *intervals, FILE *fout)
     for (i = interval->mcRegConstraints; i != NULL; i = i->next) {
       char *reg;
 
-      reg = registerIDToString(LIST_DATA_TO_INT(i->data), 1);
+      reg = registerIDToString((t_regID)LIST_DATA_TO_INT(i->data), 1);
       fprintf(fout, "%s", reg);
       free(reg);
 

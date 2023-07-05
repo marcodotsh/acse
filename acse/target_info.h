@@ -169,7 +169,7 @@ bool instructionDefinesPSW(t_instruction *instr);
 
 /** Returns a register ID suitable for spill operations. The maximum index
  * is always bounded by NUM_SPILL_REGS. */
-int getSpillRegister(int i);
+t_regID getSpillRegister(int i);
 
 /** Returns the list of register IDs available for the register allocator,
  * sorted in order of priority. */

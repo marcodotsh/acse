@@ -46,7 +46,7 @@ void deleteLabel(t_label *lab)
 }
 
 /* create and initialize an instance of `t_instrArg' */
-t_instrArg *newInstrArg(int ID)
+t_instrArg *newInstrArg(t_regID ID)
 {
   t_instrArg *result;
 
@@ -462,8 +462,8 @@ void addInstruction(t_program *program, t_instruction *instr)
   program->instructions = addElement(program->instructions, instr, -1);
 }
 
-t_instruction *genInstruction(t_program *program, int opcode, int r_dest,
-    int r_src1, int r_src2, t_label *label, int immediate)
+t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
+    t_regID r_src1, t_regID r_src2, t_label *label, int immediate)
 {
   t_instruction *instr;
 
@@ -531,9 +531,9 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
   deleteInstruction(instrToRemove);
 }
 
-int getNewRegister(t_program *program)
+t_regID getNewRegister(t_program *program)
 {
-  int result;
+  t_regID result;
 
   /* test the preconditions */
   assert(program != NULL);
@@ -599,8 +599,6 @@ void dumpProgram(t_program *program, FILE *fout)
   fprintf(fout, "-----------\n");
   cur_var = program->variables;
   while (cur_var) {
-    int reg;
-
     t_symbol *var = cur_var->data;
     fprintf(fout, "[%s]\n", var->ID);
 

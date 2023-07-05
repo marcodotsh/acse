@@ -25,7 +25,7 @@ static bool compareCFGVariables(void *a, void *b)
 /* Alloc a new control flow graph variable object. If a variable object
  * referencing the same identifier already exists, returns the pre-existing
  * object. */
-t_cfgVar *cfgCreateVariable(t_cfg *graph, int identifier, t_listNode *mcRegs)
+t_cfgVar *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs)
 {
   t_cfgVar *result;
   t_listNode *elementFound;
