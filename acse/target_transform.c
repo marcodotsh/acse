@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "target_transform.h"
 #include "gencode.h"
 #include "utils.h"
@@ -50,7 +51,7 @@ void setMCRegisterWhitelist(t_instrArg *regObj, ...)
 }
 
 
-int isImmediateArgumentInstrOpcode(int opcode)
+bool isImmediateArgumentInstrOpcode(int opcode)
 {
   switch (opcode) {
     case OPC_ADDI:
@@ -73,9 +74,9 @@ int isImmediateArgumentInstrOpcode(int opcode)
     case OPC_SGTIU:
     case OPC_SLEI:
     case OPC_SLEIU:
-      return 1;
+      return true;
   }
-  return 0;
+  return false;
 }
 
 
@@ -127,7 +128,7 @@ int getMatchingNonImmediateOpcode(int orig)
 }
 
 
-int isInt12(int immediate)
+bool isInt12(int immediate)
 {
   return immediate < (1 << 11) && immediate >= -(1 << 11);
 }

@@ -997,7 +997,7 @@ void bbDump(t_basicBlock *block, FILE *fout, bool verbose)
     if (current_node->instr == NULL)
       fprintf(fout, "(null)");
     else
-      printInstruction(current_node->instr, fout, 0);
+      printInstruction(current_node->instr, fout, false);
     fprintf(fout, "\n");
 
     if (verbose) {

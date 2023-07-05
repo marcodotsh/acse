@@ -624,7 +624,7 @@ void dumpProgram(t_program *program, FILE *fout)
     if (instr == NULL)
       fprintf(fout, "(null)");
     else
-      printInstruction(instr, fout, 0);
+      printInstruction(instr, fout, false);
     fprintf(fout, "\n");
     cur_inst = cur_inst->next;
   }

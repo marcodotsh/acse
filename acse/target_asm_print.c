@@ -252,7 +252,7 @@ static int opcodeToFormat(int opcode)
 }
 
 
-char *registerIDToString(t_regID regID, int machineRegIDs)
+char *registerIDToString(t_regID regID, bool machineRegIDs)
 {
   char *buf;
   static const char *mcRegIds[] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1",
@@ -274,7 +274,7 @@ char *registerIDToString(t_regID regID, int machineRegIDs)
 }
 
 
-char *registerToString(t_instrArg *reg, int machineRegIDs)
+char *registerToString(t_instrArg *reg, bool machineRegIDs)
 {
   if (!reg)
     return NULL;
@@ -303,7 +303,7 @@ int labelToString(char *buf, int bufsz, t_label *label, int finalColon)
 
 
 int instructionToString(
-    char *buf, int bufsz, t_instruction *instr, int machineRegIDs)
+    char *buf, int bufsz, t_instruction *instr, bool machineRegIDs)
 {
   int format, res;
   const char *opc;
@@ -436,7 +436,7 @@ int translateForwardDeclarations(t_program *program, FILE *fp)
 }
 
 
-int printInstruction(t_instruction *instr, FILE *fp, int machineRegIDs)
+int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
 {
   char buf[BUF_LENGTH];
   int res;
@@ -488,7 +488,7 @@ int translateCodeSegment(t_program *program, FILE *fp)
       fatalError(ERROR_INVALID_INSTRUCTION);
 
     /* print label, instruction and comment */
-    if (printInstruction(current_instr, fp, 1) < 0)
+    if (printInstruction(current_instr, fp, true) < 0)
       return -1;
     if (fprintf(fp, "\n") < 0)
       return -1;
