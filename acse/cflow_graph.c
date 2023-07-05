@@ -266,7 +266,6 @@ int bbInsertNode(t_basicBlock *block, t_cfgNode *node)
 int bbInsertNodeBefore(
     t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node)
 {
-  int before_node_posn;
   t_listNode *before_node_elem;
 
   /* preconditions */
@@ -289,7 +288,6 @@ int bbInsertNodeBefore(
 int bbInsertNodeAfter(
     t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node)
 {
-  int after_node_posn;
   t_listNode *after_node_elem;
 
   /* preconditions */
@@ -899,8 +897,6 @@ int cfgPerformLivenessIteration(t_cfg *graph)
   current_element = getLastElement(graph->blocks);
 
   while (current_element != NULL) {
-    t_listNode *live_out_vars;
-
     current_bblock = (t_basicBlock *)current_element->data;
     assert(current_bblock != NULL);
 

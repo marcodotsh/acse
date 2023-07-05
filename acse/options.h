@@ -7,11 +7,11 @@
 #include <stdio.h>
 
 typedef struct t_options {
-  char *outputFileName;
-  char *inputFileName;
+  const char *outputFileName;
+  const char *inputFileName;
 } t_options;
 
-t_options compilerOptions;
+extern t_options compilerOptions;
 
 int parseCompilerOptions(int argc, char *argv[]);
 char *getLogFileName(const char *logType);

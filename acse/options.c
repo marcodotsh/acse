@@ -31,7 +31,7 @@ void usage(const char *name)
 int parseCompilerOptions(int argc, char *argv[])
 {
   char *name = argv[0];
-  int ch, res = 0;
+  int ch;
   static const struct option options[] = {
       {"help", no_argument, NULL, 'h'},
   };
@@ -72,7 +72,8 @@ int parseCompilerOptions(int argc, char *argv[])
 char *getLogFileName(const char *logType)
 {
   char *outfn, *basename;
-  int nameLen, lastDot, i;
+  size_t nameLen;
+  int lastDot, i;
 
   basename = strdup(compilerOptions.outputFileName);
   if (!basename)
@@ -86,7 +87,7 @@ char *getLogFileName(const char *logType)
   if (lastDot >= 0)
     basename[lastDot] = '\0';
 
-  nameLen = strlen(basename) + strlen(logType) + 8;
+  nameLen = strlen(basename) + strlen(logType) + (size_t)8;
   outfn = calloc(nameLen, sizeof(char));
   if (!outfn)
     fatalError(ERROR_OUT_OF_MEMORY);

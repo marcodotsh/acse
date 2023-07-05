@@ -202,7 +202,7 @@ void fixPseudoInstructions(t_program *program)
       removeInstructionAt(program, transformedInstrLnk);
 
     } else if ((instr->opcode == OPC_SGTI && IMM(instr) == INT32_MAX) ||
-        instr->opcode == OPC_SGTIU && (uint32_t)IMM(instr) == UINT32_MAX) {
+        (instr->opcode == OPC_SGTIU && (uint32_t)IMM(instr) == UINT32_MAX)) {
       curi = addInstrAfter(program, curi, genLIInstruction(NULL, RD(instr), 0));
       removeInstructionAt(program, transformedInstrLnk);
 
@@ -301,7 +301,7 @@ void fixSyscalls(t_program *program)
       func = SYSCALL_ID_PRINT_INT;
     else if (instr->opcode == OPC_CALL_READ_INT)
       func = SYSCALL_ID_READ_INT;
-    else if (instr->opcode == OPC_CALL_PRINT_CHAR)
+    else // if (instr->opcode == OPC_CALL_PRINT_CHAR)
       func = SYSCALL_ID_PRINT_CHAR;
     r_func = getNewRegister(program);
     curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_func, func));

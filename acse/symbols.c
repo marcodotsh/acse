@@ -43,7 +43,6 @@ t_symbol *createSymbol(
 {
   t_symbol *var, *variableFound;
   int sizeofElem;
-  int sy_error;
   char *lblName;
 
   /* test the preconditions */
@@ -175,7 +174,6 @@ t_symbol *getSymbol(t_program *program, char *ID)
 
 t_regID getRegLocationOfVariable(t_program *program, t_symbol *var)
 {
-  int sy_error;
   t_regID location;
 
   /* preconditions: ID and program shouldn't be NULL pointer */
@@ -194,8 +192,6 @@ t_regID getRegLocationOfVariable(t_program *program, t_symbol *var)
 
 t_label *getMemLocationOfArray(t_program *program, t_symbol *array)
 {
-  t_symbol *var;
-
   assert(array != NULL);
   assert(program != NULL);
 

@@ -306,9 +306,8 @@ int instructionToString(
     char *buf, int bufsz, t_instruction *instr, int machineRegIDs)
 {
   int format, res;
-  const char *fmtstring;
   const char *opc;
-  char *rd, *rs1, *rs2;
+  char *rd, *rs1, *rs2, *buf0 = buf;
   int32_t imm;
   char *address = NULL;
 
@@ -318,7 +317,7 @@ int instructionToString(
   rs2 = registerToString(instr->reg_src2, machineRegIDs);
   if (instr->addressParam) {
     int n = labelToString(NULL, 0, instr->addressParam, 0);
-    address = calloc(n + 1, sizeof(char));
+    address = calloc((size_t)n + 1, sizeof(char));
     if (!address)
       fatalError(ERROR_OUT_OF_MEMORY);
     labelToString(address, n + 1, instr->addressParam, 0);
@@ -392,6 +391,7 @@ int instructionToString(
       if (instr->reg_src2)
         buf += sprintf(buf, "%s", rs2);
       buf += sprintf(buf, ")");
+      res = (int)(buf - buf0);
       break;
   }
 
@@ -439,7 +439,7 @@ int translateForwardDeclarations(t_program *program, FILE *fp)
 int printInstruction(t_instruction *instr, FILE *fp, int machineRegIDs)
 {
   char buf[BUF_LENGTH];
-  int format, res;
+  int res;
 
   if (instr->label != NULL) {
     labelToString(buf, BUF_LENGTH, instr->label, 1);
@@ -577,7 +577,6 @@ void writeAssembly(t_program *program)
 {
   const char *output_file;
   FILE *fp;
-  int error;
 
   /* test the preconditions */
   assert(program != NULL);

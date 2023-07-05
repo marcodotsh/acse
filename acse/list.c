@@ -110,7 +110,7 @@ t_listNode *addElement(t_listNode *list, void *data, int pos)
     /* add last */
     prev = NULL;
   } else {
-    prev = getElementAt(list, pos);
+    prev = getElementAt(list, (unsigned int)pos);
   }
 
   return addBefore(list, prev, data);

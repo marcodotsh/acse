@@ -19,7 +19,7 @@ extern int line_num;
 int prev_line_num = -1;
 
 
-static t_label *newLabel(int value)
+static t_label *newLabel(unsigned int value)
 {
   t_label *result;
 
@@ -311,7 +311,8 @@ void setRawLabelName(t_program *program, t_label *label, const char *finalName)
 
 void setLabelName(t_program *program, t_label *label, const char *name)
 {
-  int serial = -1, allocatedSpace;
+  int serial = -1;
+  size_t allocatedSpace;
   bool ok;
   char *sanitizedName, *finalName, *dstp;
   const char *srcp;
@@ -439,8 +440,6 @@ char *getLabelName(t_label *label)
 /* add an instruction at the tail of the list `program->instructions'. */
 void addInstruction(t_program *program, t_instruction *instr)
 {
-  t_listNode *ip;
-
   /* test the preconditions */
   assert(program != NULL);
   assert(instr != NULL);
@@ -495,7 +494,6 @@ t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
 
 void removeInstructionAt(t_program *program, t_listNode *instrLi)
 {
-  t_listNode *ipi;
   t_instruction *instrToRemove = (t_instruction *)instrLi->data;
 
   /* move the label and/or the comment to the next instruction */

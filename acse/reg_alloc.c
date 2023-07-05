@@ -609,7 +609,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
    * allocate space for the binding array, and initialize it */
 
   /*alloc memory for the array of bindings */
-  result->bindings = (t_regID *)malloc(sizeof(t_regID) * result->varNum);
+  result->bindings = malloc(sizeof(t_regID) * (size_t)result->varNum);
   if (result->bindings == NULL)
     fatalError(ERROR_OUT_OF_MEMORY);
 
@@ -751,7 +751,6 @@ void deleteListOfTempLabels(t_listNode *tempLabels)
 t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
 {
   t_regID counter;
-  int error;
   t_listNode *result;
   t_tempLabel *tlabel;
   t_label *axe_label;
@@ -793,7 +792,6 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
   t_listNode *elementFound;
   t_tempLabel pattern;
   t_tempLabel *tlabel;
-  int error;
 
   pattern.regID = temp_register;
   elementFound =
@@ -831,7 +829,6 @@ int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
   t_listNode *elementFound;
   t_tempLabel pattern;
   t_tempLabel *tlabel;
-  int error;
 
   pattern.regID = temp_register;
   elementFound =
