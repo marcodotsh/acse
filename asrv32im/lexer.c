@@ -11,8 +11,8 @@ struct t_lexer {
   int row, col;
   int tokRow, tokCol;
   char *buf;
-  off_t bufWritePtr;
-  off_t bufReadPtr;
+  size_t bufWritePtr;
+  size_t bufReadPtr;
   size_t bufSize;
   int32_t tokLastData;
   char *tokLastString;
@@ -22,7 +22,6 @@ struct t_lexer {
 t_lexer *newLexer(FILE *fp)
 {
   t_lexer *lex;
-  int temp;
 
   lex = calloc(1, sizeof(t_lexer));
   if (!lex)
@@ -57,30 +56,30 @@ void deleteLexer(t_lexer *lex)
 }
 
 
-static int lexExpandBufferIfFull(t_lexer *lex, int space)
+static bool lexExpandBufferIfFull(t_lexer *lex, size_t space)
 {
   size_t newSize;
 
   if (lex->bufWritePtr + space < lex->bufSize)
-    return 0;
+    return true;
 
   newSize = lex->bufSize * 2;
   lex->buf = realloc(lex->buf, newSize);
   if (!lex->buf)
-    return 1;
+    return false;
   lex->bufSize = newSize;
-  return 0;
+  return true;
 }
 
 
-int lexGetChar(t_lexer *lex)
+char lexGetChar(t_lexer *lex)
 {
   int res;
 
   if (lex->bufReadPtr < lex->bufWritePtr)
     return lex->buf[lex->bufReadPtr++];
 
-  if (lexExpandBufferIfFull(lex, 1) != 0)
+  if (!lexExpandBufferIfFull(lex, 1))
     return 0;
 
   res = fgetc(lex->fp);
@@ -92,13 +91,13 @@ int lexGetChar(t_lexer *lex)
   } else
     lex->col++;
 
-  lex->buf[lex->bufWritePtr++] = res;
+  lex->buf[lex->bufWritePtr++] = (char)res;
   lex->bufReadPtr = lex->bufWritePtr;
-  return res;
+  return (char)res;
 }
 
 
-static void lexPutBack(t_lexer *lex, int n)
+static void lexPutBack(t_lexer *lex, size_t n)
 {
   assert(n <= lex->bufReadPtr);
   lex->bufReadPtr -= n;

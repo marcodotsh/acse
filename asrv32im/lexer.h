@@ -42,7 +42,7 @@ typedef struct t_lexer t_lexer;
 t_lexer *newLexer(FILE *fp);
 void deleteLexer(t_lexer *lex);
 
-int lexGetChar(t_lexer *lex);
+char lexGetChar(t_lexer *lex);
 
 t_tokenID lexNextToken(t_lexer *lex);
 char *lexGetLastTokenText(t_lexer *lex);
