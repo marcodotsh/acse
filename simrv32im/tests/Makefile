@@ -18,4 +18,4 @@ all: $(RUN)
 
 .PHONY: clean
 clean:
-	rm $(OBJS)
+	rm -f $(OBJS)
