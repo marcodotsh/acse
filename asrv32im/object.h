@@ -157,7 +157,7 @@ t_objSectionID objSecGetID(t_objSection *sec);
 void objSecAppendData(t_objSection *sec, t_data data);
 void objSecAppendAlignmentData(t_objSection *sec, t_alignData align);
 void objSecAppendInstruction(t_objSection *sec, t_instruction instr);
-int objSecDeclareLabel(t_objSection *sec, t_objLabel *label);
+bool objSecDeclareLabel(t_objSection *sec, t_objLabel *label);
 
 t_objSecItem *objSecGetItemList(t_objSection *sec);
 uint32_t objSecGetStart(t_objSection *sec);
@@ -167,6 +167,6 @@ t_objSecItem *objLabelGetPointedItem(t_objLabel *lbl);
 const char *objLabelGetName(t_objLabel *lbl);
 uint32_t objLabelGetPointer(t_objLabel *lbl);
 
-int objMaterialize(t_object *obj);
+bool objMaterialize(t_object *obj);
 
 #endif

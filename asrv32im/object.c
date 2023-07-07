@@ -201,22 +201,22 @@ void objSecAppendInstruction(t_objSection *sec, t_instruction instr)
   objSecInsertInstructionAfter(sec, instr, sec->lastItem);
 }
 
-int objSecDeclareLabel(t_objSection *sec, t_objLabel *label)
+bool objSecDeclareLabel(t_objSection *sec, t_objLabel *label)
 {
   t_objSecItem *itm;
 
   if (label->pointer)
-    return 0;
+    return false;
 
   itm = malloc(sizeof(t_objSecItem));
   if (!itm)
-    return 0;
+    return false;
   itm->address = 0;
   itm->class = OBJ_SEC_ITM_CLASS_VOID;
   objSecAppend(sec, itm);
 
   label->pointer = itm;
-  return 1;
+  return true;
 }
 
 
@@ -257,7 +257,7 @@ uint32_t objLabelGetPointer(t_objLabel *lbl)
 }
 
 
-static int objSecExpandPseudoInstructions(t_objSection *sec)
+static bool objSecExpandPseudoInstructions(t_objSection *sec)
 {
   t_instruction buf[MAX_EXP_FACTOR];
   int n, i;
@@ -269,50 +269,53 @@ static int objSecExpandPseudoInstructions(t_objSection *sec)
 
     n = encExpandPseudoInstruction(itm->body.instr, buf);
     if (n == 0)
-      return 0;
+      return false;
     i = 0;
     itm->body.instr = buf[i++];
     for (; i < n; i++)
       itm = objSecInsertInstructionAfter(sec, buf[i], itm);
   }
-  return 1;
+  return true;
 }
 
-static uint32_t objSecMaterializeAddresses(t_objSection *sec, uint32_t baseAddr)
+static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
 {
-  uint32_t curAddr = baseAddr;
-  uint32_t alignAmt;
-  uint32_t thisSize;
+  size_t alignAmt;
   t_objSecItem *itm;
 
-  sec->start = baseAddr;
+  sec->start = *curAddr;
   sec->size = 0;
   for (itm = sec->items; itm != NULL; itm = itm->next) {
-    itm->address = curAddr;
-    thisSize = 0;
+    itm->address = *curAddr;
+    size_t thisSize = 0;
     switch (itm->class) {
       case OBJ_SEC_ITM_CLASS_DATA:
         thisSize = itm->body.data.dataSize;
         break;
       case OBJ_SEC_ITM_CLASS_ALIGN_DATA:
         alignAmt = itm->body.alignData.alignModulo;
-        if (curAddr % alignAmt == 0)
+        if (*curAddr % alignAmt == 0)
           thisSize = 0;
         else
-          thisSize = alignAmt - (curAddr % alignAmt);
+          thisSize = alignAmt - (*curAddr % alignAmt);
         itm->body.alignData.effectiveSize = thisSize;
         break;
       case OBJ_SEC_ITM_CLASS_INSTR:
         thisSize = encGetInstrLength(itm->body.instr);
         break;
     }
-    sec->size += thisSize;
-    curAddr += thisSize;
+    size_t sizeLeft = (size_t)0x100000000ULL - (size_t)(*curAddr);
+    if (thisSize > sizeLeft) {
+      fprintf(stderr, "error: section overflows addressing space\n");
+      return false;
+    }
+    sec->size += (uint32_t)thisSize;
+    *curAddr += (uint32_t)thisSize;
   }
-  return curAddr;
+  return true;
 }
 
-static int objSecResolveImmediates(t_objSection *sec)
+static bool objSecResolveImmediates(t_objSection *sec)
 {
   t_objSecItem *itm;
 
@@ -320,12 +323,12 @@ static int objSecResolveImmediates(t_objSection *sec)
     if (itm->class != OBJ_SEC_ITM_CLASS_INSTR)
       continue;
     if (!encResolveImmediates(&itm->body.instr, itm->address))
-      return 0;
+      return false;
   }
-  return 1;
+  return true;
 }
 
-static int objSecMaterializeInstructions(t_objSection *sec)
+static bool objSecMaterializeInstructions(t_objSection *sec)
 {
   t_objSecItem *itm;
 
@@ -336,40 +339,41 @@ static int objSecMaterializeInstructions(t_objSection *sec)
       continue;
 
     if (!encPhysicalInstruction(itm->body.instr, itm->address, &tmp))
-      return 0;
+      return false;
     itm->class = OBJ_SEC_ITM_CLASS_DATA;
     itm->body.data = tmp;
   }
-  return 1;
+  return true;
 }
 
-int objMaterialize(t_object *obj)
+bool objMaterialize(t_object *obj)
 {
-  uint32_t curAddr;
-
   /* transform pseudo-instructions to normal instructions */
   if (!objSecExpandPseudoInstructions(obj->text))
-    return 0;
+    return false;
   if (!objSecExpandPseudoInstructions(obj->data))
-    return 0;
+    return false;
 
   /* assign an address to every item in the object */
-  curAddr = objSecMaterializeAddresses(obj->text, 0x1000);
-  objSecMaterializeAddresses(obj->data, curAddr);
+  uint32_t curAddr = 0x1000;
+  if (!objSecMaterializeAddresses(obj->text, &curAddr))
+    return false;
+  if (!objSecMaterializeAddresses(obj->data, &curAddr))
+    return false;
 
   /* transform label references into constants */
   if (!objSecResolveImmediates(obj->text))
-    return 0;
+    return false;
   if (!objSecResolveImmediates(obj->data))
-    return 0;
+    return false;
 
   /* transform instructions into data */
   if (!objSecMaterializeInstructions(obj->text))
-    return 0;
+    return false;
   if (!objSecMaterializeInstructions(obj->data))
-    return 0;
+    return false;
 
-  return 1;
+  return true;
 }
 
 
