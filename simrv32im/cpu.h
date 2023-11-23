@@ -5,7 +5,8 @@
 #include "isa.h"
 
 
-typedef t_isaXSize t_cpuRegValue;
+typedef t_isaUXSize t_cpuURegValue;
+typedef t_isaSXSize t_cpuSRegValue;
 
 typedef int t_cpuRegID;
 enum {
@@ -86,10 +87,10 @@ enum {
   CPU_STATUS_EBREAK_TRAP = -4
 };
 
-t_cpuRegValue cpuGetRegister(t_cpuRegID reg);
-void cpuSetRegister(t_cpuRegID reg, t_cpuRegValue value);
+t_cpuURegValue cpuGetRegister(t_cpuRegID reg);
+void cpuSetRegister(t_cpuRegID reg, t_cpuURegValue value);
 
-void cpuReset(t_cpuRegValue pcValue);
+void cpuReset(t_cpuURegValue pcValue);
 t_cpuStatus cpuTick(void);
 t_cpuStatus cpuClearLastFault(void);
 

@@ -4,7 +4,7 @@ override CFLAGS +=
 override LDFLAGS +=
 
 objdir = ./obj
-override CFLAGS += -I$(objdir) -I. -g --std=c99 -pedantic-errors
+override CFLAGS += -I$(objdir) -I. -g --std=c99 -pedantic-errors -Wall
 
 c_src = $(wildcard *.c)
 

@@ -269,7 +269,7 @@ void dbgCmdHelp(void)
 
 void dbgCmdStepOver(void)
 {
-  t_cpuRegValue pc;
+  t_cpuURegValue pc;
   t_isaUInt inst;
 
   pc = cpuGetRegister(CPU_REG_PC);
@@ -341,7 +341,7 @@ void dbgCmdPrintBreakpoints(void)
 void dbgCmdPrintCpuStatus(void)
 {
   t_cpuRegID r;
-  t_cpuRegValue pc;
+  t_cpuURegValue pc;
   t_isaUInt inst;
   char buffer[80];
 
@@ -361,7 +361,7 @@ void dbgCmdPrintCpuStatus(void)
 
 void dbgCmdDisassemble(char *args)
 {
-  unsigned long addr, len, i;
+  unsigned long addr, len;
   char buffer[80];
   char *arg2, *arg3;
 
@@ -389,8 +389,7 @@ void dbgCmdDisassemble(char *args)
 
 void dbgCmdMemDump(char *args)
 {
-  unsigned long addr, len, i;
-  char buffer[80];
+  unsigned long addr, len;
   char *arg2, *arg3;
 
   addr = strtoul(args, &arg2, 0);

@@ -115,7 +115,7 @@ typedef struct t_instruction {
 #define DATA_MAX 16
 typedef struct t_data {
   size_t dataSize;
-  int initialized;
+  bool initialized;
   uint8_t data[DATA_MAX];
 } t_data;
 

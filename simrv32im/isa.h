@@ -5,7 +5,8 @@
 
 
 #define ISA_XSIZE (32)
-typedef uint32_t t_isaXSize;
+typedef int32_t t_isaSXSize;
+typedef uint32_t t_isaUXSize;
 typedef int32_t t_isaInt;
 typedef uint32_t t_isaUInt;
 

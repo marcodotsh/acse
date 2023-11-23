@@ -373,7 +373,6 @@ static t_parserError expectInstruction(
 {
   t_instrFormat format;
   t_immSizeClass immSize;
-  t_parserError err;
   t_instruction instr = {0};
 
   if (lastToken != TOK_MNEMONIC)
@@ -542,8 +541,8 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
   if (lastToken == TOK_SPACE) {
     if (!parserExpect(state, TOK_NUMBER, "expected number after \".space\""))
       return P_SYN_ERROR;
-    data.dataSize = lexGetLastNumberValue(state->lex);
-    data.initialized = 0;
+    data.dataSize = (uint32_t)lexGetLastNumberValue(state->lex);
+    data.initialized = false;
     objSecAppendData(state->curSection, data);
     return P_ACCEPT;
   }
@@ -557,7 +556,7 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
         data.dataSize = 4;
       else if (lastToken == TOK_HALF)
         data.dataSize = 2;
-      data.initialized = 1;
+      data.initialized = true;
       data.data[0] = temp & 0xFF;
       data.data[1] = (temp >> 8) & 0xFF;
       if (lastToken == TOK_WORD) {
@@ -572,12 +571,17 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
   if (lastToken == TOK_BYTE) {
     do {
       data.dataSize = sizeof(uint8_t);
-      data.initialized = 1;
+      data.initialized = true;
       if (parserAccept(state, TOK_NUMBER)) {
-        data.data[0] = lexGetLastNumberValue(state->lex);
+        temp = lexGetLastNumberValue(state->lex);
+        if (temp < -128 || temp > 255) {
+          parserEmitError(state, "expected number between -128 and 255");
+          return P_SYN_ERROR;
+        }
+        data.data[0] = (uint8_t)temp;
       } else if (parserAccept(state, TOK_CHARACTER)) {
         char *str = lexGetLastStringValue(state->lex);
-        data.data[0] = *str;
+        data.data[0] = (uint8_t)(*str);
       } else {
         parserEmitError(state, "expected numeric or character constant");
         return P_SYN_ERROR;
@@ -593,9 +597,9 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
         return P_SYN_ERROR;
       char *str = lexGetLastStringValue(state->lex);
       data.dataSize = sizeof(char);
-      data.initialized = 1;
+      data.initialized = true;
       for (; *str != '\0'; str++) {
-        data.data[0] = *str;
+        data.data[0] = (uint8_t)(*str);
         objSecAppendData(state->curSection, data);
       }
     } while (parserAccept(state, TOK_COMMA));
@@ -620,7 +624,7 @@ static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
   if (lastToken == TOK_ALIGN)
     align.alignModulo = 1U << amt;
   else
-    align.alignModulo = amt;
+    align.alignModulo = (size_t)amt;
 
   if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
     if ((align.alignModulo % 4) != 0)

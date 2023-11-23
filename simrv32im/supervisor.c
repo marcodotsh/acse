@@ -47,7 +47,7 @@ enum {
 
 t_svStatus svHandleEnvCall(void)
 {
-  uint32_t syscallId = cpuGetRegister(CPU_REG_A7);
+  t_cpuURegValue syscallId = cpuGetRegister(CPU_REG_A7);
   int32_t ret;
 
   switch (syscallId) {
@@ -57,20 +57,20 @@ t_svStatus svHandleEnvCall(void)
     case SV_SYSCALL_READ_INT:
       fputs("int value? >", stdout);
       fscanf(stdin, "%" PRId32, &ret);
-      cpuSetRegister(CPU_REG_A0, ret);
+      cpuSetRegister(CPU_REG_A0, (t_cpuURegValue)ret);
       break;
     case SV_SYSCALL_EXIT_0:
       svExitCode = 0;
       return SV_STATUS_TERMINATED;
     case SV_SYSCALL_PRINT_CHAR:
-      ret = putchar(cpuGetRegister(CPU_REG_A0));
+      putchar((int)cpuGetRegister(CPU_REG_A0));
       break;
     case SV_SYSCALL_READ_CHAR:
       ret = getchar();
-      cpuSetRegister(CPU_REG_A0, ret);
+      cpuSetRegister(CPU_REG_A0, (t_cpuURegValue)ret);
       break;
     case SV_SYSCALL_EXIT:
-      svExitCode = cpuGetRegister(CPU_REG_A0);
+      svExitCode = (int)cpuGetRegister(CPU_REG_A0);
       return SV_STATUS_TERMINATED;
     default:
       return SV_STATUS_INVALID_SYSCALL;
@@ -88,7 +88,6 @@ t_isaInt svGetExitCode(void)
 
 t_svStatus svVMTick(void)
 {
-  int stop;
   t_cpuStatus cpuStatus;
   t_dbgResult dbgRes;
   t_svStatus status = SV_STATUS_RUNNING;

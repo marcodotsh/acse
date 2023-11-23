@@ -99,7 +99,7 @@ typedef struct __attribute__((packed)) Elf32_Shdr {
 typedef struct t_outStrTbl {
   char *buf;
   size_t bufSz;
-  off_t tail;
+  size_t tail;
 } t_outStrTbl;
 
 t_outError outStrTblInit(t_outStrTbl *tbl)
@@ -134,7 +134,7 @@ t_outError outStrTblAddString(t_outStrTbl *tbl, char *str, Elf32_Word *outIdx)
   }
   strcpy(tbl->buf + tbl->tail, str);
   if (outIdx)
-    *outIdx = tbl->tail;
+    *outIdx = (Elf32_Word)tbl->tail;
   tbl->tail += strSz;
   return OUT_NO_ERROR;
 }
@@ -149,7 +149,7 @@ Elf32_Shdr outputStrTabToELFSHdr(
   shdr.sh_flags = SHF_STRINGS;
   shdr.sh_addr = 0;
   shdr.sh_offset = fileOffset;
-  shdr.sh_size = tbl->tail;
+  shdr.sh_size = (Elf32_Word)tbl->tail;
   shdr.sh_link = SHN_UNDEF;
   shdr.sh_info = 0;
   shdr.sh_addralign = 0;
@@ -160,10 +160,6 @@ Elf32_Shdr outputStrTabToELFSHdr(
 
 t_outError outputStrTabContentToFile(FILE *fp, off_t whence, t_outStrTbl *tbl)
 {
-  t_objSecItem *itm;
-  uint8_t tmp;
-  int i;
-
   if (fseeko(fp, whence, SEEK_SET) < 0)
     return OUT_FILE_ERROR;
   if (fwrite(tbl->buf, tbl->tail, 1, fp) < 1)
@@ -299,8 +295,8 @@ t_outError outputToELF(t_object *obj, const char *fname)
   head.e.e_type = ET_EXEC;
   head.e.e_machine = EM_RISCV;
   head.e.e_version = 1;
-  head.e.e_phoff = ((intptr_t)head.p - (intptr_t)&head.e);
-  head.e.e_shoff = ((intptr_t)head.s - (intptr_t)&head.e);
+  head.e.e_phoff = (Elf32_Off)((intptr_t)head.p - (intptr_t)&head.e);
+  head.e.e_shoff = (Elf32_Off)((intptr_t)head.s - (intptr_t)&head.e);
   head.e.e_flags = 0;
   head.e.e_ehsize = sizeof(Elf32_Ehdr);
   head.e.e_phentsize = sizeof(Elf32_Phdr);

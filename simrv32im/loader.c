@@ -111,7 +111,6 @@ typedef struct __attribute__((packed)) Elf32_Phdr {
 t_ldrError ldrLoadELF(const char *path)
 {
   t_ldrError res = LDR_NO_ERROR;
-  size_t size;
   FILE *fp = NULL;
   Elf32_Ehdr header;
   Elf32_Phdr segment;

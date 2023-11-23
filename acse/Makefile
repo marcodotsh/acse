@@ -8,7 +8,7 @@ override YFLAGS +=
 override LFLAGS +=
 
 objdir = ./obj
-override CFLAGS += -I$(objdir) -I. -g --std=c99 -Wall -Wextra -Wconversion -pedantic-errors
+override CFLAGS += -I$(objdir) -I. -g --std=c99 -pedantic-errors
 
 y_src = parser.y
 lex_src = scanner.l

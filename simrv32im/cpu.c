@@ -5,12 +5,12 @@
 
 #define CPU_N_REGS 32
 
-t_cpuRegValue cpuRegs[CPU_N_REGS];
-t_cpuRegValue cpuPC;
+t_cpuURegValue cpuRegs[CPU_N_REGS];
+t_cpuURegValue cpuPC;
 t_cpuStatus lastStatus;
 
 
-t_cpuRegValue cpuGetRegister(t_cpuRegID reg)
+t_cpuURegValue cpuGetRegister(t_cpuRegID reg)
 {
   if (reg == CPU_REG_X0)
     return 0;
@@ -20,7 +20,7 @@ t_cpuRegValue cpuGetRegister(t_cpuRegID reg)
 }
 
 
-void cpuSetRegister(t_cpuRegID reg, t_cpuRegValue value)
+void cpuSetRegister(t_cpuRegID reg, t_cpuURegValue value)
 {
   if (reg == CPU_REG_PC)
     cpuPC = value;
@@ -29,13 +29,11 @@ void cpuSetRegister(t_cpuRegID reg, t_cpuRegValue value)
 }
 
 
-void cpuReset(t_cpuRegValue pcValue)
+void cpuReset(t_cpuURegValue pcValue)
 {
-  int i;
-
   lastStatus = CPU_STATUS_OK;
   cpuPC = pcValue;
-  for (i = 0; i < CPU_N_REGS; i++) {
+  for (int i = 0; i < CPU_N_REGS; i++) {
     cpuRegs[i] = 0;
   }
 }
@@ -131,13 +129,13 @@ t_cpuStatus cpuExecuteLOAD(uint32_t instr)
       memStatus = memRead8(addr, &tmp8);
       if (memStatus != MEM_NO_ERROR)
         return CPU_STATUS_MEMORY_FAULT;
-      cpuRegs[rd] = (int32_t)((int8_t)tmp8);
+      cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)((int8_t)tmp8));
       break;
     case 1: /* LH */
       memStatus = memRead16(addr, &tmp16);
       if (memStatus != MEM_NO_ERROR)
         return CPU_STATUS_MEMORY_FAULT;
-      cpuRegs[rd] = (int32_t)((int16_t)tmp16);
+      cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)((int16_t)tmp16));
       break;
     case 2: /* LW */
       memStatus = memRead32(addr, &tmp32);
@@ -149,13 +147,13 @@ t_cpuStatus cpuExecuteLOAD(uint32_t instr)
       memStatus = memRead8(addr, &tmp8);
       if (memStatus != MEM_NO_ERROR)
         return CPU_STATUS_MEMORY_FAULT;
-      cpuRegs[rd] = (uint32_t)tmp8;
+      cpuRegs[rd] = (t_cpuURegValue)tmp8;
       break;
     case 5: /* LHU */
       memStatus = memRead16(addr, &tmp16);
       if (memStatus != MEM_NO_ERROR)
         return CPU_STATUS_MEMORY_FAULT;
-      cpuRegs[rd] = (uint32_t)tmp16;
+      cpuRegs[rd] = (t_cpuURegValue)tmp16;
       break;
     default:
       return CPU_STATUS_ILL_INST_FAULT;
@@ -182,7 +180,7 @@ t_cpuStatus cpuExecuteOPIMM(uint32_t instr)
       break;
     case 2: /* SLTI */
       cpuRegs[rd] =
-          ((int32_t)cpuRegs[rs1]) < ((int32_t)ISA_INST_I_IMM12_SEXT(instr));
+          ((t_cpuSRegValue)cpuRegs[rs1]) < ((t_cpuSRegValue)ISA_INST_I_IMM12_SEXT(instr));
       break;
     case 3: /* SLTIU */
       cpuRegs[rd] = cpuRegs[rs1] < ISA_INST_I_IMM12(instr);
@@ -265,7 +263,7 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
         cpuRegs[rd] = cpuRegs[rs1] << (cpuRegs[rs2] & 0x1F);
         break;
       case 2: /* SLT */
-        cpuRegs[rd] = ((int32_t)cpuRegs[rs1]) < ((int32_t)cpuRegs[rs2]);
+        cpuRegs[rd] = ((t_cpuSRegValue)cpuRegs[rs1]) < ((t_cpuSRegValue)cpuRegs[rs2]);
         break;
       case 3: /* SLTU */
         cpuRegs[rd] = cpuRegs[rs1] < cpuRegs[rs2];
