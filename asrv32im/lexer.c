@@ -641,12 +641,12 @@ t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex)
 
 t_instrRegID lexGetLastRegisterID(t_lexer *lex)
 {
-  return (t_instrOpcode)lex->tokLastData;
+  return (t_instrRegID)lex->tokLastData;
 }
 
 int32_t lexGetLastNumberValue(t_lexer *lex)
 {
-  return (t_instrOpcode)lex->tokLastData;
+  return (int32_t)lex->tokLastData;
 }
 
 char *lexGetLastStringValue(t_lexer *lex)
