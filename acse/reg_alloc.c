@@ -632,7 +632,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   }
 
   /* create a list of freeRegisters */
-  result->freeRegisters = getListOfGenPurposeRegisters();
+  result->freeRegisters = getListOfRegisters();
 
   /* Initialize register constraints */
   initializeRegisterConstraints(result);
@@ -804,7 +804,7 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
   assert(tlabel != NULL);
 
   /* create a store instruction */
-  storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label);
+  storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label, REG_T6);
 
   /* create a node for the load instruction */
   storeNode = cfgCreateNode(graph, storeInstr);

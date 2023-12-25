@@ -160,7 +160,7 @@ const char *opcodeToString(int opcode)
 #define FORMAT_LOAD 2     // mnemonic rd, imm(rs1)
 #define FORMAT_LOAD_GL 3  // mnemonic rd, label
 #define FORMAT_STORE 4    // mnemonic rs2, imm(rs1)
-#define FORMAT_STORE_GL 5 // mnemonic rs2, label, rs1
+#define FORMAT_STORE_GL 5 // mnemonic rs2, label, rd
 #define FORMAT_BRANCH 6   // mnemonic rs1, rs2, label
 #define FORMAT_JUMP 7     // mnemonic label
 #define FORMAT_LI 8       // mnemonic rd, imm
@@ -352,9 +352,9 @@ int instructionToString(
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
       break;
     case FORMAT_STORE_GL:
-      if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
+      if (!instr->reg_dest || !instr->reg_src1 || !instr->addressParam)
         fatalError(ERROR_INVALID_INSTRUCTION);
-      res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs2, address, rs1);
+      res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, address, rd);
       break;
     case FORMAT_BRANCH:
       if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)

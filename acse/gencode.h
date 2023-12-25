@@ -232,7 +232,7 @@ t_instruction *genSWInstruction(
 t_instruction *genLWGlobalInstruction(
     t_program *program, t_regID r_dest, t_label *label);
 t_instruction *genSWGlobalInstruction(
-    t_program *program, t_regID rs2, t_label *label);
+    t_program *program, t_regID rs1, t_label *label, t_regID r_temp);
 
 
 /*----------------------------------------------------

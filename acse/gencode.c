@@ -394,10 +394,10 @@ t_instruction *genLWGlobalInstruction(
 }
 
 t_instruction *genSWGlobalInstruction(
-    t_program *program, t_regID rs2, t_label *label)
+    t_program *program, t_regID rs1, t_label *label, t_regID r_temp)
 {
-  validateRegisterId(program, rs2);
-  return genInstruction(program, OPC_SW_G, REG_INVALID, REG_T6, rs2, label, 0);
+  validateRegisterId(program, rs1);
+  return genInstruction(program, OPC_SW_G, r_temp, rs1, REG_INVALID, label, 0);
 }
 
 

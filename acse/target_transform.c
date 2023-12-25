@@ -269,6 +269,17 @@ void fixPseudoInstructions(t_program *program)
       tmp = instr->reg_src1;
       instr->reg_src1 = instr->reg_src2;
       instr->reg_src2 = tmp;
+
+    } else if (instr->opcode == OPC_SW_G) {
+      // We always force the temporary argument of SW instructions to be T6.
+      //   This solves two problems. First, as T6 is never used by register
+      // allocation, we can freely use global SW instructions to generate stores
+      // to spilled registers. The other problem this solves is that the
+      // register allocation is not aware of the fact that the register used for
+      // the first operand must be different than the register of the temporary
+      // operand; by forcing T6 here we avoid the assignment of the two to the
+      // same register by construction.
+      setMCRegisterWhitelist(instr->reg_dest, REG_T6, -1);
     }
 
     curi = curi->next;
