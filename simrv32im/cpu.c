@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "cpu.h"
 #include "memory.h"
 
@@ -120,8 +121,8 @@ t_cpuStatus cpuExecuteLOAD(uint32_t instr)
   uint16_t tmp16;
   uint32_t tmp32;
   t_memError memStatus;
-  int rd = ISA_INST_RD(instr);
-  int rs1 = ISA_INST_RS1(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
   addr = cpuRegs[rs1] + ISA_INST_I_IMM12_SEXT(instr);
 
   switch (ISA_INST_FUNCT3(instr)) {
@@ -165,8 +166,8 @@ t_cpuStatus cpuExecuteLOAD(uint32_t instr)
 
 t_cpuStatus cpuExecuteOPIMM(uint32_t instr)
 {
-  int rd = ISA_INST_RD(instr);
-  int rs1 = ISA_INST_RS1(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
 
   switch (ISA_INST_FUNCT3(instr)) {
     case 0: /* ADDI */
@@ -210,7 +211,7 @@ t_cpuStatus cpuExecuteOPIMM(uint32_t instr)
 
 t_cpuStatus cpuExecuteAUIPC(uint32_t instr)
 {
-  int rd = ISA_INST_RD(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
   cpuRegs[rd] = cpuPC + (ISA_INST_U_IMM20(instr) << 12);
   cpuPC += 4;
   return CPU_STATUS_OK;
@@ -220,8 +221,8 @@ t_cpuStatus cpuExecuteSTORE(uint32_t instr)
 {
   t_memAddress addr;
   t_memError memStatus;
-  int rs1 = ISA_INST_RS1(instr);
-  int rs2 = ISA_INST_RS2(instr);
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
+  t_cpuRegID rs2 = ISA_INST_RS2(instr);
   addr = cpuRegs[rs1] + ISA_INST_S_IMM12_SEXT(instr);
 
   switch (ISA_INST_FUNCT3(instr)) {
@@ -250,9 +251,9 @@ t_cpuStatus cpuExecuteSTORE(uint32_t instr)
 
 t_cpuStatus cpuExecuteOP(uint32_t instr)
 {
-  int rd = ISA_INST_RD(instr);
-  int rs1 = ISA_INST_RS1(instr);
-  int rs2 = ISA_INST_RS2(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
+  t_cpuRegID rs2 = ISA_INST_RS2(instr);
 
   if (ISA_INST_FUNCT7(instr) == 0x00) {
     switch (ISA_INST_FUNCT3(instr)) {
@@ -314,9 +315,7 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
             32);
         break;
       case 3: /* MULHU */
-        cpuRegs[rd] =
-            (uint32_t)(((uint64_t)(cpuRegs[rs1]) * (uint64_t)(cpuRegs[rs2])) >>
-                32);
+        cpuRegs[rd] = (t_cpuURegValue)(((uint64_t)(cpuRegs[rs1]) * (uint64_t)(cpuRegs[rs2])) >> 32);
         break;
       case 4: /* DIV */
         if (cpuRegs[rs2] == 0)
@@ -324,7 +323,8 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
         else if (cpuRegs[rs1] == 0x80000000 && cpuRegs[rs2] == 0xFFFFFFFF)
           cpuRegs[rd] = 0x80000000;
         else
-          cpuRegs[rd] = (int32_t)cpuRegs[rs1] / (int32_t)cpuRegs[rs2];
+          cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)cpuRegs[rs1] / 
+              (t_cpuSRegValue)cpuRegs[rs2]);
         break;
       case 5: /* DIVU */
         if (cpuRegs[rs2] == 0)
@@ -338,7 +338,7 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
         else if (cpuRegs[rs1] == 0x80000000 && cpuRegs[rs2] == 0xFFFFFFFF)
           cpuRegs[rd] = 0;
         else
-          cpuRegs[rd] = (int32_t)cpuRegs[rs1] % (int32_t)cpuRegs[rs2];
+          cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)cpuRegs[rs1] % (t_cpuSRegValue)cpuRegs[rs2]);
         break;
       case 7: /* REMU */
         if (cpuRegs[rs2] == 0)
@@ -357,7 +357,7 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
 
 t_cpuStatus cpuExecuteLUI(uint32_t instr)
 {
-  int rd = ISA_INST_RD(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
   cpuRegs[rd] = ISA_INST_U_IMM20(instr) << 12;
   cpuPC += 4;
   return CPU_STATUS_OK;
@@ -365,10 +365,10 @@ t_cpuStatus cpuExecuteLUI(uint32_t instr)
 
 t_cpuStatus cpuExecuteBRANCH(uint32_t instr)
 {
-  int rs1 = ISA_INST_RS1(instr);
-  int rs2 = ISA_INST_RS2(instr);
-  int32_t offs = ISA_INST_B_IMM13_SEXT(instr);
-  int taken = 0;
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
+  t_cpuRegID rs2 = ISA_INST_RS2(instr);
+  t_cpuSRegValue offs = (t_cpuSRegValue)ISA_INST_B_IMM13_SEXT(instr);
+  bool taken = 0;
 
   switch (ISA_INST_FUNCT3(instr)) {
     case 0: /* BEQ */
@@ -378,10 +378,10 @@ t_cpuStatus cpuExecuteBRANCH(uint32_t instr)
       taken = cpuRegs[rs1] != cpuRegs[rs2];
       break;
     case 4: /* BLT */
-      taken = (int32_t)cpuRegs[rs1] < (int32_t)cpuRegs[rs2];
+      taken = (t_cpuSRegValue)cpuRegs[rs1] < (t_cpuSRegValue)cpuRegs[rs2];
       break;
     case 5: /* BGE */
-      taken = (int32_t)cpuRegs[rs1] >= (int32_t)cpuRegs[rs2];
+      taken = (t_cpuSRegValue)cpuRegs[rs1] >= (t_cpuSRegValue)cpuRegs[rs2];
       break;
     case 6: /* BLTU */
       taken = cpuRegs[rs1] < cpuRegs[rs2];
@@ -393,28 +393,28 @@ t_cpuStatus cpuExecuteBRANCH(uint32_t instr)
       return CPU_STATUS_ILL_INST_FAULT;
   }
 
-  cpuPC += taken ? offs : 4;
+  cpuPC += taken ? (t_cpuURegValue)offs : 4;
   return CPU_STATUS_OK;
 }
 
 t_cpuStatus cpuExecuteJALR(uint32_t instr)
 {
-  int32_t offs = ISA_INST_I_IMM12_SEXT(instr);
-  int rd = ISA_INST_RD(instr);
-  int rs1 = ISA_INST_RS1(instr);
+  t_cpuSRegValue offs = (t_cpuSRegValue)ISA_INST_I_IMM12_SEXT(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
   if (ISA_INST_FUNCT3(instr) != 0)
     return CPU_STATUS_ILL_INST_FAULT;
   cpuRegs[rd] = cpuPC + 4;
-  cpuPC = (cpuRegs[rs1] + offs) & ~1; // clear bit zero as suggested by the spec
+  cpuPC = (cpuRegs[rs1] + (t_cpuURegValue)offs) & ~(t_cpuURegValue)1; // clear bit zero as suggested by the spec
   return CPU_STATUS_OK;
 }
 
 t_cpuStatus cpuExecuteJAL(uint32_t instr)
 {
-  int32_t offs = ISA_INST_J_IMM21_SEXT(instr);
-  int rd = ISA_INST_RD(instr);
+  t_cpuSRegValue offs = (t_cpuSRegValue)ISA_INST_J_IMM21_SEXT(instr);
+  t_cpuRegID rd = ISA_INST_RD(instr);
   cpuRegs[rd] = cpuPC + 4;
-  cpuPC += offs;
+  cpuPC += (t_cpuURegValue)offs;
   return CPU_STATUS_OK;
 }
 

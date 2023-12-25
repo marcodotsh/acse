@@ -2,7 +2,7 @@
 #define ISA_H
 
 #include <stdint.h>
-
+#include <stdbool.h>
 
 #define ISA_XSIZE (32)
 typedef int32_t t_isaSXSize;
@@ -10,12 +10,109 @@ typedef uint32_t t_isaUXSize;
 typedef int32_t t_isaInt;
 typedef uint32_t t_isaUInt;
 
-#define SRA(x, amt) \
-  (((x) >> (amt)) | \
-      (((x) & (1 << 31)) ? (((1 << (amt)) - 1) << (32 - (amt))) : 0))
-#define SEXT(x, s) ((x) | (((x) & (1 << ((s)-1))) ? ((uint32_t)-1) << (s) : 0))
+typedef t_isaUXSize t_cpuURegValue;
+typedef t_isaSXSize t_cpuSRegValue;
 
-#define BITS(x, a, b) (((x) >> (a)) & (((uint32_t)1 << ((b) - (a))) - 1))
+typedef unsigned int t_cpuRegID;
+enum {
+  CPU_REG_X0 = 0,
+  CPU_REG_ZERO = CPU_REG_X0,
+  CPU_REG_X1,
+  CPU_REG_RA = CPU_REG_X1,
+  CPU_REG_X2,
+  CPU_REG_SP = CPU_REG_X2,
+  CPU_REG_X3,
+  CPU_REG_GP = CPU_REG_X3,
+  CPU_REG_X4,
+  CPU_REG_TP = CPU_REG_X4,
+  CPU_REG_X5,
+  CPU_REG_T0 = CPU_REG_X5,
+  CPU_REG_X6,
+  CPU_REG_T1 = CPU_REG_X6,
+  CPU_REG_X7,
+  CPU_REG_R2 = CPU_REG_X7,
+  CPU_REG_X8,
+  CPU_REG_FP = CPU_REG_X8,
+  CPU_REG_S0 = CPU_REG_X8,
+  CPU_REG_X9,
+  CPU_REG_S1 = CPU_REG_X9,
+  CPU_REG_X10,
+  CPU_REG_A0 = CPU_REG_X10,
+  CPU_REG_X11,
+  CPU_REG_A1 = CPU_REG_X11,
+  CPU_REG_X12,
+  CPU_REG_A2 = CPU_REG_X12,
+  CPU_REG_X13,
+  CPU_REG_A3 = CPU_REG_X13,
+  CPU_REG_X14,
+  CPU_REG_A4 = CPU_REG_X14,
+  CPU_REG_X15,
+  CPU_REG_A5 = CPU_REG_X15,
+  CPU_REG_X16,
+  CPU_REG_A6 = CPU_REG_X16,
+  CPU_REG_X17,
+  CPU_REG_A7 = CPU_REG_X17,
+  CPU_REG_X18,
+  CPU_REG_S2 = CPU_REG_X18,
+  CPU_REG_X19,
+  CPU_REG_S3 = CPU_REG_X19,
+  CPU_REG_X20,
+  CPU_REG_S4 = CPU_REG_X20,
+  CPU_REG_X21,
+  CPU_REG_S5 = CPU_REG_X21,
+  CPU_REG_X22,
+  CPU_REG_S6 = CPU_REG_X22,
+  CPU_REG_X23,
+  CPU_REG_S7 = CPU_REG_X23,
+  CPU_REG_X24,
+  CPU_REG_S8 = CPU_REG_X24,
+  CPU_REG_X25,
+  CPU_REG_S9 = CPU_REG_X25,
+  CPU_REG_X26,
+  CPU_REG_S10 = CPU_REG_X26,
+  CPU_REG_X27,
+  CPU_REG_S11 = CPU_REG_X27,
+  CPU_REG_X28,
+  CPU_REG_T3 = CPU_REG_X28,
+  CPU_REG_X29,
+  CPU_REG_T4 = CPU_REG_X29,
+  CPU_REG_X30,
+  CPU_REG_T5 = CPU_REG_X30,
+  CPU_REG_X31,
+  CPU_REG_T6 = CPU_REG_X31,
+  CPU_REG_PC
+};
+
+static inline uint32_t sext32(uint32_t x, int amt)
+{
+  amt = amt % 32;
+  if (amt == 0)
+    return x;
+  
+  uint32_t unsValue = (uint32_t)x;
+  if (x & (uint32_t)((uint32_t)1 << (amt - 1))) {
+    uint32_t ext = (uint32_t)-1 << amt;
+    unsValue |= ext;
+  }
+  return unsValue;
+}
+
+static inline uint32_t sra32(uint32_t x, int amt)
+{
+  amt = amt % 32;
+  uint32_t shifted = (uint32_t)((uint32_t)x >> amt);
+  return sext32(shifted, 32 - amt);
+}
+
+static inline uint32_t bits32(uint32_t x, int a, int b)
+{
+  uint32_t mask = (uint32_t)((uint32_t)1 << (b - a)) - 1;
+  return (uint32_t)(x >> a) & mask;
+}
+
+#define SRA(x, amt) (sra32(x, amt))
+#define SEXT(x, s) (sext32(x, s))
+#define BITS(x, a, b) (bits32(x, a, b))
 
 #define ISA_INST_OPCODE(x) BITS(x, 0, 7)
 #define ISA_INST_RD(x) BITS(x, 7, 12)

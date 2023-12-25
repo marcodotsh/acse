@@ -7,7 +7,7 @@
 t_ldrError ldrLoadBinary(
     const char *path, t_memAddress baseAddr, t_memAddress entry)
 {
-  size_t size;
+  t_memSize size;
   uint8_t *buf;
   FILE *fp;
 
@@ -19,11 +19,12 @@ t_ldrError ldrLoadBinary(
 
   if (fseek(fp, 0, SEEK_END) < 0)
     return LDR_FILE_ERROR;
-  size = ftello(fp);
-  if (size < 0) {
+  off_t fpos = ftello(fp);
+  if (fpos < 0 || fpos > (size_t)0x8000000) {
     fclose(fp);
     return LDR_FILE_ERROR;
   }
+  size = (t_memSize)fpos;
   if (fseek(fp, 0, SEEK_SET) < 0) {
     fclose(fp);
     return LDR_FILE_ERROR;
@@ -114,7 +115,6 @@ t_ldrError ldrLoadELF(const char *path)
   FILE *fp = NULL;
   Elf32_Ehdr header;
   Elf32_Phdr segment;
-  off_t phi, phnum, phoff, phentsize, readsz;
   uint8_t *buf;
 
   dbgPrintf("Loading ELF file \"%s\"\n", path);
@@ -135,10 +135,10 @@ t_ldrError ldrLoadELF(const char *path)
   if (header.e_machine != EM_RISCV)
     goto invalid_arch;
 
-  phnum = header.e_phnum;
-  phoff = header.e_phoff;
-  phentsize = header.e_phentsize;
-  for (phi = 0; phi < phnum; phi++) {
+  off_t phnum = header.e_phnum;
+  off_t phoff = header.e_phoff;
+  off_t phentsize = header.e_phentsize;
+  for (off_t phi = 0; phi < phnum; phi++) {
     fseeko(fp, phoff + phi * phentsize, SEEK_SET);
     if (fread(&segment, sizeof(Elf32_Phdr), 1, fp) < 1)
       goto read_error;
@@ -156,7 +156,7 @@ t_ldrError ldrLoadELF(const char *path)
         goto mem_error;
       if (segment.p_filesz > 0) {
         fseeko(fp, (off_t)segment.p_offset, SEEK_SET);
-        readsz = MIN(segment.p_memsz, segment.p_filesz);
+        size_t readsz = MIN(segment.p_memsz, segment.p_filesz);
         if (fread(buf, readsz, 1, fp) < 1)
           goto read_error;
       }

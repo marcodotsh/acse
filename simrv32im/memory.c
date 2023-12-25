@@ -92,7 +92,7 @@ t_memError memRead16(t_memAddress addr, uint16_t *out)
   if (!area)
     return MEM_MAPPING_ERROR;
   uint8_t *bufBasePtr = area->buffer + (size_t)(addr - area->baseAddress);
-  *out = bufBasePtr[0] + (bufBasePtr[1] << 8);
+  *out = (uint16_t)bufBasePtr[0] + (uint16_t)((uint16_t)bufBasePtr[1] << 8);
   return MEM_NO_ERROR;
 }
 
@@ -102,8 +102,8 @@ t_memError memRead32(t_memAddress addr, uint32_t *out)
   if (!area)
     return MEM_MAPPING_ERROR;
   uint8_t *bufBasePtr = area->buffer + (size_t)(addr - area->baseAddress);
-  *out = bufBasePtr[0] + (bufBasePtr[1] << 8) + (bufBasePtr[2] << 16) +
-      (bufBasePtr[3] << 24);
+  *out = (uint32_t)bufBasePtr[0] + (uint32_t)((uint32_t)bufBasePtr[1] << 8) + (uint32_t)((uint32_t)bufBasePtr[2] << 16) +
+      (uint32_t)((uint32_t)bufBasePtr[3] << 24);
   return MEM_NO_ERROR;
 }
 
@@ -133,7 +133,7 @@ uint16_t memDebugRead16(t_memAddress addr, int *mapped)
   uint8_t *bufBasePtr = area->buffer + (size_t)(addr - area->baseAddress);
   if (mapped)
     *mapped = 1;
-  return bufBasePtr[0] + (bufBasePtr[1] << 8);
+  return (uint16_t)bufBasePtr[0] + (uint16_t)((uint16_t)bufBasePtr[1] << 8);
 }
 
 uint32_t memDebugRead32(t_memAddress addr, int *mapped)
@@ -147,8 +147,8 @@ uint32_t memDebugRead32(t_memAddress addr, int *mapped)
   uint8_t *bufBasePtr = area->buffer + (size_t)(addr - area->baseAddress);
   if (mapped)
     *mapped = 1;
-  return bufBasePtr[0] + (bufBasePtr[1] << 8) + (bufBasePtr[2] << 16) +
-      (bufBasePtr[3] << 24);
+  return (uint32_t)bufBasePtr[0] + ((uint32_t)bufBasePtr[1] << 8) + ((uint32_t)bufBasePtr[2] << 16) +
+      ((uint32_t)bufBasePtr[3] << 24);
 }
 
 

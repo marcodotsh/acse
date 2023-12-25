@@ -270,7 +270,7 @@ void dbgCmdHelp(void)
 void dbgCmdStepOver(void)
 {
   t_cpuURegValue pc;
-  t_isaUInt inst;
+  uint32_t inst;
 
   pc = cpuGetRegister(CPU_REG_PC);
   inst = memDebugRead32(pc, NULL);
@@ -342,7 +342,7 @@ void dbgCmdPrintCpuStatus(void)
 {
   t_cpuRegID r;
   t_cpuURegValue pc;
-  t_isaUInt inst;
+  uint32_t inst;
   char buffer[80];
 
   pc = cpuGetRegister(CPU_REG_PC);
@@ -377,7 +377,7 @@ void dbgCmdDisassemble(char *args)
   }
 
   for (int i = 0; i < len; i++) {
-    t_memAddress curaddr = addr + 4 * i;
+    t_memAddress curaddr = (t_memAddress)addr + (t_memAddress)(4 * i);
     uint32_t instr = memDebugRead32(curaddr, NULL);
     isaDisassemble(instr, buffer, 80);
     fprintf(
@@ -406,7 +406,7 @@ void dbgCmdMemDump(char *args)
   if (len > 0) {
     fprintf(stderr, "%08" PRIx32 ": ", (t_memAddress)addr);
     for (int i = 0; i < len; i++) {
-      t_memAddress curaddr = addr + i;
+      t_memAddress curaddr = (t_memAddress)addr + (t_memAddress)i;
       uint8_t byte = memDebugRead8(curaddr, NULL);
       fprintf(stderr, "%02" PRIx8, byte);
       if ((i + 1) % 16 == 0 || (i + 1) == len)
