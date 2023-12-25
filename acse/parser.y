@@ -233,23 +233,7 @@ assign_statement: var_id LSQUARE exp RSQUARE ASSIGN exp
                 }
                 | var_id ASSIGN exp
                 {
-                  /* in order to assign a value to a variable, we have to know
-                   * where the variable is located (i.e. in which register).
-                   * the function `getRegLocationOfVariable' is used in order
-                   * to retrieve the register location assigned to
-                   * a given identifier.
-                   * `getRegLocationOfVariable' perform a query on the list
-                   * of variables in order to discover the correct location of
-                   * the variable with $1 as identifier */
-
-                  /* get the location of the variable with the given ID. */
-                  t_regID location = getRegLocationOfVariable(program, $1);
-
-                  /* update the value of location */
-                  if ($3.type == CONSTANT)
-                    genLIInstruction(program, location, $3.immediate);
-                  else
-                    genADDIInstruction(program, location, $3.registerId, 0);
+                  genStoreVariable(program, $1, $3);
                 }
 ;
         
@@ -361,16 +345,9 @@ return_statement: RETURN
 
 read_statement: READ LPAR var_id RPAR 
               {
-                /* read from standard input an integer value and assign
-                 * it to a variable associated with the given identifier */
-                /* get the location of the variable with the given ID */
-                
-                /* lookup the variable table and fetch the register location
-                 * associated with the IDENTIFIER $3. */
-                t_regID location = getRegLocationOfVariable(program, $3);
-      
-                /* insert a read instruction */
-                genReadIntSyscall(program, location);
+                t_regID r_tmp = getNewRegister(program);
+                genReadIntSyscall(program, r_tmp);
+                genStoreVariable(program, $3, registerExpressionValue(r_tmp));
               }
 ;
         
@@ -401,11 +378,8 @@ exp : NUMBER
     }
     | var_id 
     {
-      /* get the location of the symbol with the given ID */
-      t_regID variableReg = getRegLocationOfVariable(program, $1);
-
-      /* return that register as the expression value */
-      $$ = registerExpressionValue(variableReg);
+      t_regID r_value = genLoadVariable(program, $1);
+      $$ = registerExpressionValue(r_value);
     }
     | var_id LSQUARE exp RSQUARE
     {

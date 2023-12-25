@@ -17,14 +17,12 @@ typedef enum {
 /** A structure that represents the properties of a given symbol in the source
  *  code */
 typedef struct t_symbol {
-  t_symbolType type; ///< A valid data type
-  char *ID;          ///< Symbol name (should never be a NULL pointer or an
-                     ///  empty string "")
-  t_regID reg_location;///< For scalar variables only, the register ID associated
-                     ///  to the variable.
-  int arraySize;     ///< For arrays only, the size of the array.
-  t_label *label;    ///< For arrays only, a label that refers to the location
-                     ///  of the variable inside the data segment
+  t_symbolType type;  ///< A valid data type
+  char *ID;           ///< Symbol name (should never be a NULL pointer or an
+                      ///  empty string "")
+  t_label *label;     ///< A label that refers to the location of the variable
+                      ///  inside the data segment
+  int arraySize;      ///< For arrays only, the size of the array.
 } t_symbol;
 
 
@@ -55,23 +53,8 @@ t_symbol *getSymbol(t_program *program, char *ID);
 bool isArray(t_symbol *symbol);
 
 
-/** Given a scalar variable symbol object, return the ID of the register where
- * the value of the variable is stored in the compiled program.
- * @param program The program where the variable belongs.
- * @param var     The symbol object of the variable.
- * @returns The register identifier of the variable or, if an error occurs,
- *          REG_INVALID. */
-t_regID getRegLocationOfVariable(t_program *program, t_symbol *var);
-
-/** Generate instructions that load the address of an element of an array in a
- * register.
- * @param program The program where the array belongs.
- * @param array   The symbol object that refers to an array.
- * @param index   An expression that refers to a specific element of the array.
- * @returns The identifier of the register that (at runtime) will contain the
- *          address of the array element at position `index'. */
-t_regID genLoadArrayAddress(
-    t_program *program, t_symbol *array, t_expressionValue index);
+t_regID genLoadVariable(t_program *program, t_symbol *var);
+void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val);
 
 /** Generate instructions that load the content of an element of an array in a
  * register.

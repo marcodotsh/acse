@@ -602,15 +602,14 @@ void dumpProgram(t_program *program, FILE *fout)
 
     if (var->type == TYPE_INT) {
       fprintf(fout, "   type = int\n");
-      fprintf(fout, "   temporary register = t%d\n", var->reg_location);
     } else if (var->type == TYPE_INT_ARRAY) {
       fprintf(fout, "   type = int[%d]\n", var->arraySize);
-      char *labelName = getLabelName(var->label);
-      fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
-      free(labelName);
     } else {
       fprintf(fout, "   type = invalid\n");
     }
+    char *labelName = getLabelName(var->label);
+    fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
+    free(labelName);
 
     cur_var = cur_var->next;
   }

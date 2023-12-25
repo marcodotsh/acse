@@ -10,7 +10,7 @@
 
 
 /* create and initialize an instance of `t_symbol' */
-t_symbol *newVariable(char *ID, t_symbolType type, int arraySize)
+t_symbol *newSymbol(char *ID, t_symbolType type, int arraySize)
 {
   t_symbol *result;
 
@@ -24,7 +24,6 @@ t_symbol *newVariable(char *ID, t_symbolType type, int arraySize)
   result->arraySize = arraySize;
   result->ID = ID;
   result->label = NULL;
-  result->reg_location = REG_INVALID;
 
   /* return the just created and initialized instance of t_symbol */
   return result;
@@ -32,64 +31,60 @@ t_symbol *newVariable(char *ID, t_symbolType type, int arraySize)
 
 
 /* finalize an instance of `t_symbol' */
-void deleteVariable(t_symbol *variable)
+void deleteSymbol(t_symbol *s)
 {
-  free(variable);
+  free(s);
 }
 
 
 t_symbol *createSymbol(
     t_program *program, char *ID, t_symbolType type, int arraySize)
 {
-  t_symbol *var, *variableFound;
   int sizeofElem;
   char *lblName;
 
-  /* test the preconditions */
+  // Test the preconditions
   assert(program != NULL);
   assert(ID != NULL);
-
   if (type != TYPE_INT && type != TYPE_INT_ARRAY)
     fatalError(ERROR_INVALID_TYPE);
 
-  /* check if another variable already exists with the same ID */
-  variableFound = getSymbol(program, ID);
-  if (variableFound != NULL) {
+  // Check if another symbol already exists with the same ID
+  t_symbol *existingSym = getSymbol(program, ID);
+  if (existingSym != NULL) {
     emitError(ERROR_VARIABLE_ALREADY_DECLARED);
     return NULL;
   }
 
-  /* check if the array size is valid */
-  if (type == TYPE_INT_ARRAY && arraySize <= 0) {
-    emitError(ERROR_INVALID_ARRAY_SIZE);
-    return NULL;
-  }
+  // Allocate and initialize a new symbol object
+  t_symbol *res = newSymbol(ID, type, arraySize);
 
-  /* initialize a new variable */
-  var = newVariable(ID, type, arraySize);
+  // Reserve a new label for the variable
+  lblName = calloc(strlen(ID) + 8, sizeof(char));
+  if (!lblName)
+    fatalError(ERROR_OUT_OF_MEMORY);
+  sprintf(lblName, "l_%s", ID);
+  res->label = createLabel(program);
+  setLabelName(program, res->label, lblName);
+  free(lblName);
 
+  // Insert a static declaration for the symbol
+  int sizeOfVar;
   if (type == TYPE_INT_ARRAY) {
-    /* arrays are stored in memory and need a variable location */
-    lblName = calloc(strlen(ID) + 8, sizeof(char));
-    if (!lblName)
-      fatalError(ERROR_OUT_OF_MEMORY);
-    sprintf(lblName, "l_%s", ID);
-    var->label = createLabel(program);
-    setLabelName(program, var->label, lblName);
-    free(lblName);
-
-    /* statically declare the memory for the array */
-    sizeofElem = 4 / TARGET_PTR_GRANULARITY;
-    genDataDirective(
-        program, DIR_SPACE, var->arraySize * sizeofElem, var->label);
+    // Check if the array size is valid
+    if (arraySize <= 0) {
+      emitError(ERROR_INVALID_ARRAY_SIZE);
+      return NULL;
+    }
+    sizeOfVar = (4 / TARGET_PTR_GRANULARITY) * arraySize;
   } else {
-    /* scalars are stored in registers */
-    var->reg_location = getNewRegister(program);
+    sizeOfVar = 4 / TARGET_PTR_GRANULARITY;
   }
+  genDataDirective(program, DIR_SPACE, sizeOfVar, res->label);
 
-  /* now we can add the new variable to the program */
-  program->variables = addElement(program->variables, var, -1);
-  return var;
+  // Now we can add the new variable to the program
+  program->variables = addElement(program->variables, res, -1);
+  return res;
 }
 
 
@@ -172,36 +167,76 @@ t_symbol *getSymbol(t_program *program, char *ID)
 }
 
 
-t_regID getRegLocationOfVariable(t_program *program, t_symbol *var)
+t_regID genLoadVariable(t_program *program, t_symbol *var)
 {
-  t_regID location;
-
-  /* preconditions: ID and program shouldn't be NULL pointer */
-  assert(var != NULL);
-  assert(program != NULL);
-
-  if (isArray(var)) {
-    emitError(ERROR_VARIABLE_TYPE_MISMATCH);
-    return REG_INVALID;
-  }
-
-  location = var->reg_location;
-  return location;
+  // Check if the symbol is an array; in that case bail out
+  if (isArray(var))
+    fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
+  // Generate a LW from the address specified by the label
+  t_regID reg = getNewRegister(program);
+  genLWGlobalInstruction(program, reg, var->label);
+  return reg;
 }
 
 
-t_label *getMemLocationOfArray(t_program *program, t_symbol *array)
+void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
 {
-  assert(array != NULL);
-  assert(program != NULL);
+  // Check if the symbol is an array; in that case bail out
+  if (isArray(var))
+    fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
+  // Materialize the expression value
+  t_regID r_val = genConvertExpValueToRegister(program, val);
+  // Reserve a new register which is a temporary required
+  // by the pseudo-instruction
+  t_regID r_temp = getNewRegister(program);
+  // Generate a SW to the address specified by the label
+  genSWGlobalInstruction(program, r_val, var->label, r_temp);
+}
 
-  if (!isArray(array)) {
-    emitError(ERROR_VARIABLE_TYPE_MISMATCH);
-    return NULL;
+
+/** Generate instructions that load the address of an element of an array in a
+ * register.
+ * @param program The program where the array belongs.
+ * @param array   The symbol object that refers to an array.
+ * @param index   An expression that refers to a specific element of the array.
+ * @returns The identifier of the register that (at runtime) will contain the
+ *          address of the array element at position `index'. */
+t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue index)
+{
+  // Retrieve the label associated with the given identifier
+  if (!isArray(array))
+    fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
+  t_label *label = array->label;
+
+  // Generate a load of the base address using LA
+  t_regID mova_register = getNewRegister(program);
+  genLAInstruction(program, mova_register, label);
+
+  /* We are making the following assumption:
+   * the type can only be an INTEGER_TYPE */
+  int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
+
+  if (index.type == CONSTANT) {
+    if (index.immediate != 0) {
+      genADDIInstruction(
+          program, mova_register, mova_register, index.immediate * sizeofElem);
+    }
+  } else {
+    t_regID idxReg;
+    assert(index.type == REGISTER);
+
+    idxReg = index.registerId;
+    if (sizeofElem != 1) {
+      idxReg = getNewRegister(program);
+      genMULIInstruction(program, idxReg, index.registerId, sizeofElem);
+    }
+
+    genADDInstruction(program, mova_register, mova_register, idxReg);
   }
-  assert(array->label != NULL);
 
-  return array->label;
+  /* return the identifier of the register that contains
+   * the value of the array slot */
+  return mova_register;
 }
 
 
@@ -238,56 +273,4 @@ t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_expressionVal
 
   /* return the register ID that holds the required data */
   return load_register;
-}
-
-
-t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue index)
-{
-  t_regID mova_register;
-  int sizeofElem;
-  t_label *label;
-
-  /* preconditions */
-  assert(program != NULL);
-  assert(array != NULL);
-
-  /* retrieve the label associated with the given
-   * identifier */
-  label = getMemLocationOfArray(program, array);
-
-  /* test if an error occurred */
-  if (label == NULL)
-    return REG_INVALID;
-
-  /* get a new register */
-  mova_register = getNewRegister(program);
-
-  /* generate the MOVA instruction */
-  genLAInstruction(program, mova_register, label);
-
-  /* We are making the following assumption:
-   * the type can only be an INTEGER_TYPE */
-  sizeofElem = 4 / TARGET_PTR_GRANULARITY;
-
-  if (index.type == CONSTANT) {
-    if (index.immediate != 0) {
-      genADDIInstruction(
-          program, mova_register, mova_register, index.immediate * sizeofElem);
-    }
-  } else {
-    t_regID idxReg;
-    assert(index.type == REGISTER);
-
-    idxReg = index.registerId;
-    if (sizeofElem != 1) {
-      idxReg = getNewRegister(program);
-      genMULIInstruction(program, idxReg, index.registerId, sizeofElem);
-    }
-
-    genADDInstruction(program, mova_register, mova_register, idxReg);
-  }
-
-  /* return the identifier of the register that contains
-   * the value of the array slot */
-  return mova_register;
 }
