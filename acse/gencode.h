@@ -7,270 +7,844 @@
 #include "program.h"
 
 
-/*----------------------------------------------------
- *                   ARITHMETIC
- *---------------------------------------------------*/
+/// @name Register-Register Arithmetic Instructions
+/// @{
 
-t_instruction *genADDInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSUBInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genANDInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genORInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genXORInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genMULInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genDIVInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSLLInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSRLInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSRAInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
+/** Add a new ADD instruction at the end of the instruction list of the
+ *  specified program. At runtime, an ADD instruction sums the values in the
+ *  two source registers, and places the result in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (first addend)
+ *  @param rs2 Identifier of the second source register (second addend)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genADD(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/*----------------------------------------------------
- *                   ARITHMETIC WITH CONSTANT
- *---------------------------------------------------*/
+/** Add a new SUB instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SUB instruction subtracts the value in the
+ *  second source register from the value in the first source register,
+ *  and places the result in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (minuend)
+ *  @param rs2 Identifier of the second source register (subtrahend)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSUB(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * an ADDI instruction. The semantic of an ADDI instruction
- * is the following: ADDI r_dest, r_source1, immediate. `RDest' is a register
- * location identifier: the result of the ADDI instruction will be
- * stored in that register. Using an RTL (Register Transfer Language)
- * representation we can say that an ADDI instruction of the form:
- * ADDI R1 R2 #IMM can be represented in the following manner: R1 <-- R2 + IMM.
- * `Rsource1' and `#IMM' are the two operands of the binary numeric
- * operation. `r_dest' is a register location, `immediate' is an immediate
- * value. The content of `r_source1' is added to the value of `immediate'
- * and the result is then stored into the register `RDest'. */
-t_instruction *genADDIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new AND instruction at the end of the instruction list of the
+ *  specified program. At runtime, an AND instruction computes the bitwise
+ *  AND (&) of the values in the source registers, and places the result in the
+ *  destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genAND(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * a SUBI instruction. The semantic of an SUBI instruction
- * is the following: SUBI r_dest, r_source1, immediate. `RDest' is a register
- * location identifier: the result of the SUBI instruction will be
- * stored in that register. Using an RTL representation we can say
- * that a SUBI instruction of the form: SUBI R1 R2 #IMM can be represented
- * in the following manner: R1 <-- R2 - IMM.
- * `Rsource1' and `#IMM' are the two operands of the binary numeric
- * operation. `r_dest' is a register location, `immediate' is an immediate
- * value. The content of `r_source1' is subtracted to the value of `immediate'
- * and the result is then stored into the register `RDest'. */
-t_instruction *genSUBIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new OR instruction at the end of the instruction list of the
+ *  specified program. At runtime, an OR instruction computes the bitwise
+ *  OR (|) of the values in the source registers, and places the result in the
+ *  destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genOR(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * an ANDBI instruction. An example RTL representation of ANDBI R1 R2 #IMM is:
- * R1 <-- R2 & IMM (bitwise AND).
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genANDIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new XOR instruction at the end of the instruction list of the
+ *  specified program. At runtime, a XOR instruction computes the bitwise
+ *  XOR (^) of the values in the source registers, and places the result in the
+ *  destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genXOR(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * an ORBI instruction. An example RTL representation of ORBI R1 R2 #IMM is:
- * R1 <-- R2 | IMM.
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genORIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new MUL instruction at the end of the instruction list of the
+ *  specified program. At runtime, a MUL instruction multiplies the values in
+ *  the source registers, and places the result in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (first factor)
+ *  @param rs2 Identifier of the second source register (second factor)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genMUL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * a EORBI instruction. An example RTL representation of EORBI R1 R2 #IMM is:
- * R1 <-- R2 ^ IMM.
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genXORIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new DIV instruction at the end of the instruction list of the
+ *  specified program. At runtime, a DIV instruction divides the value in
+ *  the first source register with the value in the second source register,
+ *  and places the result in the destination register. All the registers are
+ *  assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (dividend)
+ *  @param rs2 Identifier of the second source register (divisor)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genDIV(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * a MULI instruction. An example RTL representation of MULI is:
- * R1 <-- R2 * IMM.
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genMULIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new SLL instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SLL instruction shifts the binary value
+ *  in the first source register to the left by the number of places
+ *  specified by the value of the second source register.
+ *    The shift amount is modulo 32; in other words, only the 5 least
+ *  significant bits of the second source register are considered.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (value to shift)
+ *  @param rs2 Identifier of the second source register (shift amount)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * a DIVI instruction. An example RTL representation of DIVI R1 R2 #IMM is:
- * R1 <-- R2 / IMM.
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genDIVIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new SRL instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SRL instruction shifts the binary value
+ *  in the first source register to the right by the number of places
+ *  specified by the value of the second source register.
+ *    The shift amount is modulo 32; in other words, only the 5 least
+ *  significant bits of the second source register are considered. Additionally,
+ *  the first source register is assumed to contain an unsigned integer.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (value to shift)
+ *  @param rs2 Identifier of the second source register (shift amount)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSRL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-/* Used in order to create and assign to the current `program'
- * a SHLI instruction. An example RTL representation of SHLI R1 R2 #IMM is:
- * R1 <-- R2 / IMM.
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genSLLIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new SRA instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SRA instruction shifts the binary value
+ *  in the first source register to the right by the number of places
+ *  specified by the value of the second source register.
+ *    The shift amount is modulo 32; in other words, only the 5 least
+ *  significant bits of the second source register are considered. Additionally,
+ *  the first source register is assumed to contain a signed integer.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (value to shift)
+ *  @param rs2 Identifier of the second source register (shift amount)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSRA(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-t_instruction *genSRLIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-
-/* Used in order to create and assign to the current `program'
- * a SHRI instruction. An example RTL representation of SHRI R1 R2 #IMM is:
- * R1 <-- R2 / IMM.
- * `r_source1' and `immediate' are the two operands of the binary numeric
- * comparison. `r_dest' is a register location, `immediate' is an immediate
- * value. */
-t_instruction *genSRAIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-
-
-/*----------------------------------------------------
- *                   COMPARISON
- *---------------------------------------------------*/
-
-t_instruction *genSEQInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSNEInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSLTInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSLTUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSGEInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSGEUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSGTInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSGTUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSLEInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
-t_instruction *genSLEUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2);
+/// @}
 
 
-/*----------------------------------------------------
- *                   COMPARISON WITH CONSTANT
- *---------------------------------------------------*/
+/// @name Register-Constant Arithmetic Instructions
+/// @{
 
-t_instruction *genSEQIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSNEIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSLTIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSLTIUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSGEIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSGEIUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSGTIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSGTIUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSLEIInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
-t_instruction *genSLEIUInstruction(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate);
+/** Add a new ADDI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an ADDI instruction sums the values in the
+ *  source register with a constant, and places the result in the destination
+ *  register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (first addend)
+ *  @param immediate The constant operand (second addend)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genADDI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SUBI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SUBI instruction subtracts a constant
+ *  from the value in the source register, and places the result in the
+ *  destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (minuend)
+ *  @param immediate The constant operand (subtrahend)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSUBI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new ANDI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an ANDI instruction computes the bitwise
+ *  AND (&) of the value in the source register and a constant, and places the
+ *  result in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genANDI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new ORI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an ORI instruction computes the bitwise
+ *  OR (|) of the value in the source register and a constant, and places the
+ *  result in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genORI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new XORI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a XORI instruction computes the bitwise
+ *  XOR (^) of the value in the source register and a constant, and places the
+ *  result in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genXORI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new MULI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a MULI instruction multiplies the value in
+ *  the source register with a constant, and places the result in the
+ *  destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (first factor)
+ *  @param immediate The constant operand (second factor)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genMULI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new DIVI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a DIVI instruction divides the value in
+ *  the first source register with a signed integer constant, and places the
+ *  result in the destination register. The source register is assumed to
+ *  contain a signed integer.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (dividend)
+ *  @param immediate The constant operand (divisor)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genDIVI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SLLI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SLLI instruction shifts the binary value
+ *  in the source register to the left by the number of places specified by a
+ *  constant amount.
+ *    The shift amount is modulo 32; in other words, only the 5 least
+ *  significant bits of the constant are considered.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (value to shift)
+ *  @param immediate The constant operand (shift amount)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLLI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SRLI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SRLI instruction shifts the binary value
+ *  in the source register to the right by the number of places specified by a
+ *  constant amount.
+ *    The shift amount is modulo 32; in other words, only the 5 least
+ *  significant bits of the constant are considered. Additionally, the source
+ *  register is assumed to contain an unsigned integer.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (value to shift)
+ *  @param immediate The constant operand (shift amount)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSRLI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SRAI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SRAI instruction shifts the binary value
+ *  in the source register to the right by the number of places specified
+ *  by a constant amount.
+ *    The shift amount is modulo 32; in other words, only the 5 least
+ *  significant bits of the constant are considered. Additionally, the source
+ *  register is assumed to contain a signed integer.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register (value to shift)
+ *  @param immediate The constant operand (shift amount)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSRAI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/// @}
 
 
-/*----------------------------------------------------
- *                   JUMP
- *---------------------------------------------------*/
+/// @name Register-Register Comparison Instructions
+/// @{
 
-t_instruction *genJInstruction(t_program *program, t_label *label);
+/** Add a new SEQ instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SEQ instruction sets the destination
+ *  register to 1 if the values in the source registers are equal
+ *  (src1 == src2).
+ *  Otherwise, the destination register is set to zero.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSEQ(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
-t_instruction *genBEQInstruction(
+/** Add a new SNE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SNE instruction sets the destination
+ *  register to 1 if the values in the source registers are different
+ *  (src1 != src2).
+ *  Otherwise, the destination register is set to zero.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSNE(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SLT instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SLT instruction sets the destination
+ *  register to 1 if the value in the first source register is less than the
+ *  value in the second source register (src1 < src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLT(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SLTU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SLTU instruction sets the destination
+ *  register to 1 if the value in the first source register is less than the
+ *  value in the second source register (src1 < src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLTU(
+    t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SGE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SGE instruction sets the destination
+ *  register to 1 if the value in the first source register is greater or equal
+ *  than the value in the second source register (src1 >= src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGE(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SGEU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SGEU instruction sets the destination
+ *  register to 1 if the value in the first source register is greater or equal
+ *  than the value in the second source register (src1 >= src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGEU(
+    t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SGT instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SGT instruction sets the destination
+ *  register to 1 if the value in the first source register is greater
+ *  than the value in the second source register (src1 > src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGT(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SGTU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SGTU instruction sets the destination
+ *  register to 1 if the value in the first source register is greater
+ *  than the value in the second source register (src1 > src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGTU(
+    t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SLE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SLE instruction sets the destination
+ *  register to 1 if the value in the first source register is lesser or equal
+ *  than the value in the second source register (src1 <= src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLE(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new SLEU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a SLEU instruction sets the destination
+ *  register to 1 if the value in the first source register is lesser or equal
+ *  than the value in the second source register (src1 <= src2).
+ *  Otherwise, the destination register is set to zero.
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLEU(
+    t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/// @}
+
+
+/// @name Register-Constant Comparison Instructions
+/// @{
+
+/** Add a new SEQI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SEQI instruction sets the destination
+ *  register to 1 if the value in the source register is equal to a constant
+ *  (src1 == immediate).
+ *  Otherwise, the destination register is set to zero.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSEQI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SNEI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SNEI instruction sets the destination
+ *  register to 1 if the value in the source register is different from a
+ *  constant (src1 != immediate).
+ *  Otherwise, the destination register is set to zero.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSNEI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SLTI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SLTI instruction sets the destination
+ *  register to 1 if the value in the source register is less than a constant
+ *  (src1 < immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be signed.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLTI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SLTIU instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SLTIU instruction sets the destination
+ *  register to 1 if the value in the source register is less than a constant
+ *  (src1 < immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be unsigned.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLTIU(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SGEI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SGEI instruction sets the destination
+ *  register to 1 if the value in the source register is greater or equal than
+ *  a constant (src1 >= immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be signed.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGEI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SGEIU instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SGEIU instruction sets the destination
+ *  register to 1 if the value in the source register is greater or equal than
+ *  a constant (src1 >= immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be unsigned.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGEIU(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SGTI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SGTI instruction sets the destination
+ *  register to 1 if the value in the source register is greater than a constant
+ *  (src1 > immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be signed.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGTI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SGTIU instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SGTIU instruction sets the destination
+ *  register to 1 if the value in the source register is greater than a constant
+ *  (src1 >= immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be unsigned.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSGTIU(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SLEI instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SLEI instruction sets the destination
+ *  register to 1 if the value in the source register is lesser or equal than a
+ *  constant (src1 <= immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be signed.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLEI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new SLEIU instruction at the end of the instruction list of the
+ *  specified program. At runtime, an SLEIU instruction sets the destination
+ *  register to 1 if the value in the source register is lesser or equal than a
+ *  constant (src1 <= immediate).
+ *  Otherwise, the destination register is set to zero.
+ *    The source register and the constant are assumed to be unsigned.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the source register
+ *  @param immediate The constant operand
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genSLEIU(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/// @}
+
+
+/// @name Jump and Branch Instructions
+/// @{
+
+/** Add a new J instruction at the end of the instruction list of the
+ *  specified program. At runtime, a J instruction unconditionally transfers the
+ *  control flow to the instruction identified by a given label
+ *  (in brief, jumps or branches to the label).
+ *  @param program The program where the instruction will be added
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genJ(t_program *program, t_label *label);
+
+/** Add a new BEQ instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BEQ instruction branches to the given label
+ *  if and only if the two source registers are equal.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBEQ(
     t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBEQInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBNEInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBLTInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBLTUInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBGEInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBGEUInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBGTInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBGTUInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBLEInstruction(
-    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
-t_instruction *genBLEUInstruction(
+
+/** Add a new BNE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BNE instruction branches to the given label
+ *  if and only if the two source registers are not equal.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBNE(
     t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 
+/** Add a new BLT instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BLT instruction branches to the given label
+ *  if and only if the value in the first source register is less than the
+ *  value in the second source register (src1 < src2).
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBLT(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 
-/*----------------------------------------------------
- *                  LOAD/STORE
- *---------------------------------------------------*/
+/** Add a new BLTU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BLTU instruction branches to the given
+ *  label if and only if the value in the first source register is less than the
+ *  value in the second source register (src1 < src2).
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBLTU(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 
-t_instruction *genLIInstruction(t_program *program, t_regID r_dest, int immediate);
+/** Add a new BGE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BGE instruction branches to the given
+ *  label if and only if the value in the first source register is greater or
+ *  equal than the value in the second source register (src1 >= src2).
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBGE(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 
-/* A MOVA instruction copies an address value into a register.
- * An address can be either an instance of `t_label'
- * or a number (numeric address) */
-t_instruction *genLAInstruction(t_program *program, t_regID r_dest, t_label *label);
+/** Add a new BGEU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BGEU instruction branches to the given
+ *  label if and only if the value in the first source register is greater or
+ *  equal than the value in the second source register (src1 >= src2).
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBGEU(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
 
-t_instruction *genLWInstruction(
-    t_program *program, t_regID r_dest, int immediate, t_regID rs1);
-t_instruction *genSWInstruction(
+/** Add a new BGT instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BGT instruction branches to the given
+ *  label if and only if the value in the first source register is greater
+ *  than the value in the second source register (src1 > src2).
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBGT(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
+
+/** Add a new BGTU instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BGTU instruction branches to the given
+ *  label if and only if the value in the first source register is greater
+ *  than the value in the second source register (src1 > src2).
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBGTU(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
+
+/** Add a new BLE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BLE instruction branches to the given
+ *  label if and only if the value in the first source register is lesser or
+ *  equal than the value in the second source register (src1 <= src2).
+ *    The source registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBLE(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
+
+/** Add a new BLE instruction at the end of the instruction list of the
+ *  specified program. At runtime, a BLE instruction branches to the given
+ *  label if and only if the value in the first source register is lesser or
+ *  equal than the value in the second source register (src1 <= src2).
+ *    The source registers are assumed to contain unsigned integers.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the first source register
+ *  @param rs2 Identifier of the second source register
+ *  @param label The label where to jump at runtime
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genBLEU(
+    t_program *program, t_regID rs1, t_regID rs2, t_label *label);
+
+/// @}
+
+
+/// @name Memory Load/Store Instructions
+/// @{
+
+/** Add a new LI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a LI instruction loads a specified constant
+ *  in the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param immediate The constant to load
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genLI(t_program *program, t_regID rd, int immediate);
+
+/** Add a new LA instruction at the end of the instruction list of the
+ *  specified program. At runtime, a LA instruction loads the address specified
+ *  by a label into the destination register
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param label The label whose address needs to be loaded
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genLA(t_program *program, t_regID rd, t_label *label);
+
+/** Add a new LW instruction at the end of the instruction list of the
+ *  specified program. At runtime, a LW instruction loads a 32-bit word stored
+ *  in memory at the address specified by the source register plus an offset
+ *  given by a constant (thus the address is rs1 + immediate).
+ *  The loaded value is put into the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param immediate The constant operand (address offset)
+ *  @param rs1 Identifier of the source register (base address)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genLW(
+    t_program *program, t_regID rd, int immediate, t_regID rs1);
+
+/** Add a new LW instruction at the end of the instruction list of the
+ *  specified program. At runtime, a LW instruction stores the 32-bit word
+ *  contained in the second source register to memory.
+ *  The destination address is specified by the first source register, plus an
+ *  offset given by a constant (thus the address is rs1 + immediate).
+ *  @param program The program where the instruction will be added
+ *  @param rs2 Identifier of the second source register (value to store)
+ *  @param immediate The constant operand (address offset)
+ *  @param rs1 Identifier of the first source register (base address)
+ *  @returns the instruction object added to the instruction list
+ *  @note The order of the registers in the function signature is inverted with
+ *        respect to the actual encoding, just like in the assembly listing
+ *        format as described by the RISC-V specification. */
+t_instruction *genSW(
     t_program *program, t_regID rs2, int immediate, t_regID rs1);
 
-t_instruction *genLWGlobalInstruction(
-    t_program *program, t_regID r_dest, t_label *label);
-t_instruction *genSWGlobalInstruction(
-    t_program *program, t_regID rs1, t_label *label, t_regID r_temp);
+/** Add a new "global LW" instruction at the end of the instruction list of the
+ *  specified program. At runtime, a "global LW" instruction loads a 32-bit
+ *  word at the address specified by a label to the destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param label The label (points to a 32-bit word)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genLWGlobal(t_program *program, t_regID rd, t_label *label);
+
+/** Add a new "global SW" instruction at the end of the instruction list of the
+ *  specified program. At runtime, a "global SW" instruction stores the 32-bit
+ *  word contained in the first source register to the address specified by a
+ *  label.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the source register (value to store)
+ *  @param label The label (points to a 32-bit word)
+ *  @param rtemp Identifier of an otherwise unused register whose value will be
+ *               modified by the instruction during its operation.
+ *  @returns the instruction object added to the instruction list
+ *  @note At assembly time, the "global SW" instruction translates to a sequence
+ *        of multiple instructions which use rtemp to store the address of the
+ *        label. This is the reason why rtemp is needed. */
+t_instruction *genSWGlobal(
+    t_program *program, t_regID rs1, t_label *label, t_regID rtemp);
+
+/// @}
 
 
-/*----------------------------------------------------
- *                   OTHER
- *---------------------------------------------------*/
+/// @name System Calls
+/// @{
 
-/* By calling this function, a new NOP instruction will be added
- * to `program'. A NOP instruction doesn't make use of
- * any kind of parameter */
-t_instruction *genNOPInstruction(t_program *program);
-
-t_instruction *genECALLInstruction(t_program *program);
-t_instruction *genEBREAKInstruction(t_program *program);
-
-
-/*----------------------------------------------------
- *                  SYSTEM CALLS
- *---------------------------------------------------*/
-
-/* By calling this function, a new HALT instruction will be added
- * to `program'. An HALT instruction doesn't require
- * any kind of parameter */
+/** Add a new Exit0 syscall instruction at the end of the instruction list of
+ *  the specified program. At runtime, this instruction terminates the program
+ *  with an exit code of zero.
+ *  @param program The program where the instruction will be added
+ *  @returns the instruction object added to the instruction list
+ *  @note During the target-specific transformation passes, ACSE replaces
+ *        syscall instructions with a sequence of lower-level instructions that
+ *        use ECALL to transfer control to the supervisor/operating system. */
 t_instruction *genExit0Syscall(t_program *program);
 
-/* A READ instruction requires only one parameter:
- * A destination register (where the value
- * read from standard input will be loaded). */
-t_instruction *genReadIntSyscall(t_program *program, t_regID r_dest);
+/** Add a new ReadInt syscall instruction at the end of the instruction list of
+ *  the specified program. At runtime, this instruction reads an integer from
+ *  standard input, storing that integer in the given destination register.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @returns the instruction object added to the instruction list
+ *  @note During the target-specific transformation passes, ACSE replaces
+ *        syscall instructions with a sequence of lower-level instructions that
+ *        use ECALL to transfer control to the supervisor/operating system. */
+t_instruction *genReadIntSyscall(t_program *program, t_regID rd);
 
-/* A WRITE instruction requires only one parameter:
- * A destination register (where the value
- * that will be written to the standard output is located). */
-t_instruction *genPrintIntSyscall(t_program *program, t_regID r_src1);
+/** Add a new PrintInt syscall instruction at the end of the instruction list of
+ *  the specified program. At runtime, this instruction writes the integer
+ *  currently stored in the source register to the standard output stream.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the source register (integer to print)
+ *  @returns the instruction object added to the instruction list
+ *  @note During the target-specific transformation passes, ACSE replaces
+ *        syscall instructions with a sequence of lower-level instructions that
+ *        use ECALL to transfer control to the supervisor/operating system. */
+t_instruction *genPrintIntSyscall(t_program *program, t_regID rs1);
 
-/* A WRITE instruction requires only one parameter:
- * A destination register (where the value
- * that will be written to the standard output is located). */
-t_instruction *genPrintCharSyscall(t_program *program, t_regID r_src1);
+/** Add a new PrintChar syscall instruction at the end of the instruction list
+ *  of the specified program. At runtime, this instruction writes a character
+ *  whose ASCII encoding is stored in the source register to the standard output
+ *  stream.
+ *  @param program The program where the instruction will be added
+ *  @param rs1 Identifier of the source register (ASCII character to print)
+ *  @returns the instruction object added to the instruction list
+ *  @note During the target-specific transformation passes, ACSE replaces
+ *        syscall instructions with a sequence of lower-level instructions that
+ *        use ECALL to transfer control to the supervisor/operating system. */
+t_instruction *genPrintCharSyscall(t_program *program, t_regID rs1);
+
+/// @}
+
+
+/// @name Other Instructions
+/// @{
+
+/** Add a new NOP instruction at the end of the instruction list of the
+ *  specified program. At runtime, a NOP instruction doesn't do anything (apart
+ *  from incrementing the program counter like any other instruction).
+ *  @param program The program where the instruction will be added
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genNOP(t_program *program);
+
+/** Add a new ECALL instruction at the end of the instruction list of the
+ *  specified program. At runtime, a ECALL instruction temporarily transfers
+ *  program control to a supervisor or operating system.
+ *  @param program The program where the instruction will be added
+ *  @returns the instruction object added to the instruction list
+ *  @note This function is only used internally by the target-specific
+ *        transformation pass, it is not useful outside of that context. */
+t_instruction *genECALL(t_program *program);
+
+/** Add a new EBREAK instruction at the end of the instruction list of the
+ *  specified program. At runtime, a EBREAK instruction temporarily stops
+ *  program execution for debugging purposes.
+ *  @param program The program where the instruction will be added
+ *  @returns the instruction object added to the instruction list
+ *  @note This function is only used internally by the target-specific
+ *        transformation pass, it is not useful outside of that context. */
+t_instruction *genEBREAK(t_program *program);
+
+/// @}
 
 
 #endif

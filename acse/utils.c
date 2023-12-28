@@ -37,7 +37,7 @@ t_regID genConvertExpValueToRegister(t_program *program, t_expressionValue exp)
   if (exp.type == REGISTER)
     return exp.registerId;
   t_regID res = getNewRegister(program);
-  genLIInstruction(program, res, exp.immediate);
+  genLI(program, res, exp.immediate);
   return res;
 }
 
@@ -46,7 +46,7 @@ t_expressionValue genNormalizeBooleanExpValue(t_program *program, t_expressionVa
   if (exp.type == CONSTANT)
     return constantExpressionValue(exp.immediate ? 1 : 0);
   t_regID res = getNewRegister(program);
-  genSLTUInstruction(program, res, REG_0, exp.registerId);
+  genSLTU(program, res, REG_0, exp.registerId);
   return registerExpressionValue(res);
 }
 

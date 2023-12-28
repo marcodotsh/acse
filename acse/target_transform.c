@@ -150,7 +150,7 @@ void fixUnsupportedImmediates(t_program *program)
     if (instr->opcode == OPC_ADDI && instr->reg_src1->ID == REG_0) {
       if (!isInt12(instr->immediate)) {
         curi = addInstrAfter(
-            program, curi, genLIInstruction(NULL, RD(instr), IMM(instr)));
+            program, curi, genLI(NULL, RD(instr), IMM(instr)));
         removeInstructionAt(program, transformedInstrLnk);
       }
 
@@ -159,7 +159,7 @@ void fixUnsupportedImmediates(t_program *program)
       t_regID reg = getNewRegister(program);
       int newOpc = getMatchingNonImmediateOpcode(instr->opcode);
       curi =
-          addInstrAfter(program, curi, genLIInstruction(NULL, reg, IMM(instr)));
+          addInstrAfter(program, curi, genLI(NULL, reg, IMM(instr)));
       curi = addInstrAfter(program, curi,
           genInstruction(NULL, newOpc, RD(instr), RS1(instr), reg, NULL, 0));
       removeInstructionAt(program, transformedInstrLnk);
@@ -190,21 +190,21 @@ void fixPseudoInstructions(t_program *program)
         instr->opcode == OPC_SEQI || instr->opcode == OPC_SNEI) {
       if (instr->opcode == OPC_SEQ || instr->opcode == OPC_SNE)
         curi = addInstrAfter(program, curi,
-            genSUBInstruction(NULL, RD(instr), RS1(instr), RS2(instr)));
+            genSUB(NULL, RD(instr), RS1(instr), RS2(instr)));
       else
         curi = addInstrAfter(program, curi,
-            genADDIInstruction(NULL, RD(instr), RS1(instr), -IMM(instr)));
+            genADDI(NULL, RD(instr), RS1(instr), -IMM(instr)));
       if (instr->opcode == OPC_SEQ || instr->opcode == OPC_SEQI)
         curi = addInstrAfter(
-            program, curi, genSLTIUInstruction(NULL, RD(instr), RD(instr), 1));
+            program, curi, genSLTIU(NULL, RD(instr), RD(instr), 1));
       else
         curi = addInstrAfter(program, curi,
-            genSLTUInstruction(NULL, RD(instr), REG_0, RD(instr)));
+            genSLTU(NULL, RD(instr), REG_0, RD(instr)));
       removeInstructionAt(program, transformedInstrLnk);
 
     } else if ((instr->opcode == OPC_SGTI && IMM(instr) == INT32_MAX) ||
         (instr->opcode == OPC_SGTIU && (uint32_t)IMM(instr) == UINT32_MAX)) {
-      curi = addInstrAfter(program, curi, genLIInstruction(NULL, RD(instr), 0));
+      curi = addInstrAfter(program, curi, genLI(NULL, RD(instr), 0));
       removeInstructionAt(program, transformedInstrLnk);
 
     } else if (instr->opcode == OPC_SGE || instr->opcode == OPC_SGEU ||
@@ -235,11 +235,11 @@ void fixPseudoInstructions(t_program *program)
           instr->opcode = OPC_SLTU;
       }
       curi = addInstrAfter(
-          program, curi, genXORIInstruction(NULL, RD(instr), RD(instr), 1));
+          program, curi, genXORI(NULL, RD(instr), RD(instr), 1));
 
     } else if ((instr->opcode == OPC_SLEI && IMM(instr) == INT32_MAX) ||
         (instr->opcode == OPC_SLEIU && (uint32_t)IMM(instr) == UINT32_MAX)) {
-      curi = addInstrAfter(program, curi, genLIInstruction(NULL, RD(instr), 1));
+      curi = addInstrAfter(program, curi, genLI(NULL, RD(instr), 1));
       removeInstructionAt(program, transformedInstrLnk);
 
     } else if (instr->opcode == OPC_SLEI) {
@@ -316,12 +316,12 @@ void fixSyscalls(t_program *program)
     else // if (instr->opcode == OPC_CALL_PRINT_CHAR)
       func = SYSCALL_ID_PRINT_CHAR;
     r_func = getNewRegister(program);
-    curi = addInstrAfter(program, curi, genLIInstruction(NULL, r_func, func));
+    curi = addInstrAfter(program, curi, genLI(NULL, r_func, func));
 
     /* load argument in a0, if there is one */
     if (instr->reg_src1) {
       r_arg = getNewRegister(program);
-      tmp = genADDIInstruction(NULL, r_arg, RS1(instr), 0);
+      tmp = genADDI(NULL, r_arg, RS1(instr), 0);
       curi = addInstrAfter(program, curi, tmp);
     } else {
       r_arg = REG_INVALID;
@@ -344,7 +344,7 @@ void fixSyscalls(t_program *program)
     /* move a0 (result) to the destination reg. if needed */
     if (instr->reg_dest)
       curi = addInstrAfter(
-          program, curi, genADDIInstruction(NULL, RD(instr), r_dest, 0));
+          program, curi, genADDI(NULL, RD(instr), r_dest, 0));
 
     /* remove the old call instruction */
     removeInstructionAt(program, transformedInstrLnk);

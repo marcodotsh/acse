@@ -509,7 +509,7 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
       /* generate a nop if there was no next instruction or if the next
        * instruction is already labeled */
       if (!nextInst || (nextInst->label)) {
-        nextInst = genNOPInstruction(NULL);
+        nextInst = genNOP(NULL);
         program->instructions =
             addAfter(program->instructions, instrLi, nextInst);
       }

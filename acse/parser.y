@@ -208,7 +208,7 @@ statements: statements statement  { /* does nothing */ }
 statement : assign_statement SEMI     { /* does nothing */ }
           | control_statement         { /* does nothing */ }
           | read_write_statement SEMI { /* does nothing */ }
-          | SEMI                      { genNOPInstruction(program); }
+          | SEMI                      { genNOP(program); }
 ;
 
 control_statement : if_statement            { /* does nothing */ }
@@ -249,7 +249,7 @@ if_statement: if_stmt
               $2 = createLabel(program);
 
               /* exit from the if-else */
-              genJInstruction(program, $2);
+              genJ(program, $2);
 
               /* fix the `label_else' */
               assignLabel(program, $1);
@@ -271,10 +271,10 @@ if_stmt : IF
         {
           if ($4.type == CONSTANT) {
             if ($4.immediate == 0)
-              genJInstruction(program, $1);
+              genJ(program, $1);
           } else {
             /* if `exp' returns FALSE, jump to the label $1 */
-            genBEQInstruction(program, $4.registerId, REG_0, $1);
+            genBEQ(program, $4.registerId, REG_0, $1);
           }
         }
         code_block
@@ -297,18 +297,17 @@ while_statement : WHILE
 
                   if ($4.type == CONSTANT) {
                     if ($4.immediate == 0)
-                      genJInstruction(program, $1.label_end);
+                      genJ(program, $1.label_end);
                   } else {
                     /* if `exp' returns FALSE, jump to the label 
                      * $1.label_end */
-                    genBEQInstruction(program, $4.registerId, REG_0, 
-                                $1.label_end);
+                    genBEQ(program, $4.registerId, REG_0, $1.label_end);
                   }
                 }
                 code_block
                 {
                   /* jump to the beginning of the loop */
-                  genJInstruction(program, $1.label_condition);
+                  genJ(program, $1.label_condition);
 
                   /* fix the label `label_end' */
                   assignLabel(program, $1.label_end);
@@ -328,10 +327,10 @@ do_while_statement: DO
                   {
                     if ($6.type == CONSTANT) {
                       if ($6.immediate != 0)
-                        genJInstruction(program, $1);
+                        genJ(program, $1);
                     } else {
                       /* if `exp' returns TRUE, jump to the label $1 */
-                      genBNEInstruction(program, $6.registerId, REG_0, $1);
+                      genBNE(program, $6.registerId, REG_0, $1);
                     }
                   }
 ;
@@ -358,7 +357,7 @@ write_statement : WRITE LPAR exp RPAR
                     /* load `immediate' into a new register. Returns the new
                      * register identifier or REG_INVALID if an error occurs */
                     location = getNewRegister(program);
-                    genLIInstruction(program, location, $3.immediate);
+                    genLI(program, location, $3.immediate);
                   } else {
                     location = $3.registerId;
                   }
@@ -367,7 +366,7 @@ write_statement : WRITE LPAR exp RPAR
 
                   /* write a newline to standard output */
                   location = getNewRegister(program);
-                  genLIInstruction(program, location, '\n');
+                  genLI(program, location, '\n');
                   genPrintCharSyscall(program, location);
                 }
 ;
@@ -406,7 +405,7 @@ exp : NUMBER
 
         /* Generate a SUBI instruction which will store the negated
           * logic value into the register we reserved */
-        genSEQInstruction(program, res_reg, $2.registerId, REG_0);
+        genSEQ(program, res_reg, $2.registerId, REG_0);
 
         /* Return a REGISTER expression with the result register */
         $$ = registerExpressionValue(res_reg);
@@ -418,7 +417,7 @@ exp : NUMBER
         $$ = constantExpressionValue(-($2.immediate));
       } else {
         t_regID res = getNewRegister(program);
-        genSUBInstruction(program, res, REG_0, $2.registerId);
+        genSUB(program, res, REG_0, $2.registerId);
         $$ = registerExpressionValue(res);
       }
     }
@@ -430,9 +429,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genANDInstruction(program, rd, rs1, $3.registerId);
+          genAND(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genANDIInstruction(program, rd, rs1, $3.immediate);
+          genANDI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -445,9 +444,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genORInstruction(program, rd, rs1, $3.registerId);
+          genOR(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genORIInstruction(program, rd, rs1, $3.immediate);
+          genORI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -460,9 +459,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genADDInstruction(program, rd, rs1, $3.registerId);
+          genADD(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genADDIInstruction(program, rd, rs1, $3.immediate);
+          genADDI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -475,9 +474,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSUBInstruction(program, rd, rs1, $3.registerId);
+          genSUB(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSUBIInstruction(program, rd, rs1, $3.immediate);
+          genSUBI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -490,9 +489,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genMULInstruction(program, rd, rs1, $3.registerId);
+          genMUL(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genMULIInstruction(program, rd, rs1, $3.immediate);
+          genMULI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -513,9 +512,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genDIVInstruction(program, rd, rs1, $3.registerId);
+          genDIV(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genDIVIInstruction(program, rd, rs1, $3.immediate);
+          genDIVI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -528,9 +527,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSLTInstruction(program, rd, rs1, $3.registerId);
+          genSLT(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSLTIInstruction(program, rd, rs1, $3.immediate);
+          genSLTI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -543,9 +542,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSGTInstruction(program, rd, rs1, $3.registerId);
+          genSGT(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSGTIInstruction(program, rd, rs1, $3.immediate);
+          genSGTI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -558,9 +557,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSEQInstruction(program, rd, rs1, $3.registerId);
+          genSEQ(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSEQIInstruction(program, rd, rs1, $3.immediate);
+          genSEQI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -573,9 +572,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSNEInstruction(program, rd, rs1, $3.registerId);
+          genSNE(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSNEIInstruction(program, rd, rs1, $3.immediate);
+          genSNEI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -588,9 +587,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSLEInstruction(program, rd, rs1, $3.registerId);
+          genSLE(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSLEIInstruction(program, rd, rs1, $3.immediate);
+          genSLEI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -603,9 +602,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSGEInstruction(program, rd, rs1, $3.registerId);
+          genSGE(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSGEIInstruction(program, rd, rs1, $3.immediate);
+          genSGEI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -621,9 +620,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSLLInstruction(program, rd, rs1, $3.registerId);
+          genSLL(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSLLIInstruction(program, rd, rs1, $3.immediate);
+          genSLLI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -640,9 +639,9 @@ exp : NUMBER
         t_regID rd = getNewRegister(program);
         t_regID rs1 = genConvertExpValueToRegister(program, $1);
         if ($3.type == REGISTER) {
-          genSRAInstruction(program, rd, rs1, $3.registerId);
+          genSRA(program, rd, rs1, $3.registerId);
         } else if ($3.type == CONSTANT) {
-          genSRAIInstruction(program, rd, rs1, $3.immediate);
+          genSRAI(program, rd, rs1, $3.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -657,9 +656,9 @@ exp : NUMBER
         t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
         t_regID rs1 = genConvertExpValueToRegister(program, normLhs);
         if (normRhs.type == REGISTER) {
-          genANDInstruction(program, rd, rs1, normRhs.registerId);
+          genAND(program, rd, rs1, normRhs.registerId);
         } else if (normRhs.type == CONSTANT) {
-          genANDIInstruction(program, rd, rs1, normRhs.immediate);
+          genANDI(program, rd, rs1, normRhs.immediate);
         }
         $$ = registerExpressionValue(rd);
       }
@@ -674,9 +673,9 @@ exp : NUMBER
         t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
         t_regID rs1 = genConvertExpValueToRegister(program, normLhs);
         if (normRhs.type == REGISTER) {
-          genORInstruction(program, rd, rs1, normRhs.registerId);
+          genOR(program, rd, rs1, normRhs.registerId);
         } else if (normRhs.type == CONSTANT) {
-          genORIInstruction(program, rd, rs1, normRhs.immediate);
+          genORI(program, rd, rs1, normRhs.immediate);
         }
         $$ = registerExpressionValue(rd);
       }

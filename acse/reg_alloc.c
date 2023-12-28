@@ -804,7 +804,7 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
   assert(tlabel != NULL);
 
   /* create a store instruction */
-  storeInstr = genSWGlobalInstruction(NULL, selected_register, tlabel->label, REG_T6);
+  storeInstr = genSWGlobal(NULL, selected_register, tlabel->label, REG_T6);
 
   /* create a node for the load instruction */
   storeNode = cfgCreateNode(graph, storeInstr);
@@ -841,7 +841,7 @@ int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
   assert(tlabel != NULL);
 
   /* create a load instruction */
-  loadInstr = genLWGlobalInstruction(NULL, selected_register, tlabel->label);
+  loadInstr = genLWGlobal(NULL, selected_register, tlabel->label);
 
   /* create a node for the load instruction */
   loadNode = cfgCreateNode(graph, loadInstr);

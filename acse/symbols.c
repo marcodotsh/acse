@@ -174,7 +174,7 @@ t_regID genLoadVariable(t_program *program, t_symbol *var)
     fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
   // Generate a LW from the address specified by the label
   t_regID reg = getNewRegister(program);
-  genLWGlobalInstruction(program, reg, var->label);
+  genLWGlobal(program, reg, var->label);
   return reg;
 }
 
@@ -190,7 +190,7 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
   // by the pseudo-instruction
   t_regID r_temp = getNewRegister(program);
   // Generate a SW to the address specified by the label
-  genSWGlobalInstruction(program, r_val, var->label, r_temp);
+  genSWGlobal(program, r_val, var->label, r_temp);
 }
 
 
@@ -201,7 +201,8 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
  * @param index   An expression that refers to a specific element of the array.
  * @returns The identifier of the register that (at runtime) will contain the
  *          address of the array element at position `index'. */
-t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionValue index)
+t_regID genLoadArrayAddress(
+    t_program *program, t_symbol *array, t_expressionValue index)
 {
   // Retrieve the label associated with the given identifier
   if (!isArray(array))
@@ -210,7 +211,7 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionVal
 
   // Generate a load of the base address using LA
   t_regID mova_register = getNewRegister(program);
-  genLAInstruction(program, mova_register, label);
+  genLA(program, mova_register, label);
 
   /* We are making the following assumption:
    * the type can only be an INTEGER_TYPE */
@@ -218,7 +219,7 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionVal
 
   if (index.type == CONSTANT) {
     if (index.immediate != 0) {
-      genADDIInstruction(
+      genADDI(
           program, mova_register, mova_register, index.immediate * sizeofElem);
     }
   } else {
@@ -228,10 +229,10 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionVal
     idxReg = index.registerId;
     if (sizeofElem != 1) {
       idxReg = getNewRegister(program);
-      genMULIInstruction(program, idxReg, index.registerId, sizeofElem);
+      genMULI(program, idxReg, index.registerId, sizeofElem);
     }
 
-    genADDInstruction(program, mova_register, mova_register, idxReg);
+    genADD(program, mova_register, mova_register, idxReg);
   }
 
   /* return the identifier of the register that contains
@@ -240,25 +241,26 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_expressionVal
 }
 
 
-void genStoreArrayElement(t_program *program, t_symbol *array, t_expressionValue index,
-    t_expressionValue data)
+void genStoreArrayElement(t_program *program, t_symbol *array,
+    t_expressionValue index, t_expressionValue data)
 {
   t_regID address = genLoadArrayAddress(program, array, index);
 
   if (data.type == REGISTER) {
     /* load the value indirectly into `mova_register' */
-    genSWInstruction(program, data.registerId, 0, address);
+    genSW(program, data.registerId, 0, address);
   } else {
     t_regID imm_register = getNewRegister(program);
-    genLIInstruction(program, imm_register, data.immediate);
+    genLI(program, imm_register, data.immediate);
 
     /* load the value indirectly into `load_register' */
-    genSWInstruction(program, imm_register, 0, address);
+    genSW(program, imm_register, 0, address);
   }
 }
 
 
-t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_expressionValue index)
+t_regID genLoadArrayElement(
+    t_program *program, t_symbol *array, t_expressionValue index)
 {
   t_regID load_register, address;
 
@@ -269,7 +271,7 @@ t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_expressionVal
   load_register = getNewRegister(program);
 
   /* load the value into `load_register' */
-  genLWInstruction(program, load_register, 0, address);
+  genLW(program, load_register, 0, address);
 
   /* return the register ID that holds the required data */
   return load_register;
