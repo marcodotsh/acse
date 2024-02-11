@@ -555,7 +555,7 @@ t_global *genDataDirective(
   return res;
 }
 
-void setProgramEnd(t_program *program)
+void genProgramEpilog(t_program *program)
 {
   assert(program != NULL);
 

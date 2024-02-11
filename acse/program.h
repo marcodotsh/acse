@@ -140,7 +140,7 @@ t_global *genDataDirective(
 
 /* Notify the end of the program. This function is directly called
  * from the parser when the parsing process is ended */
-void setProgramEnd(t_program *program);
+void genProgramEpilog(t_program *program);
 
 /* print information about the program in the specified file */
 void dumpProgram(t_program *program, FILE *fout);

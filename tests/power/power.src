@@ -15,7 +15,9 @@ if (power < 0)
   power = -power;
 }
 else
+{
   negative = 0;
+}
 
 result = value;
 while (power > 1)
@@ -25,7 +27,9 @@ while (power > 1)
 }
 
 if (negative == 1)
+{
   result = 1 / result;
+}
 
 write(result);
 
