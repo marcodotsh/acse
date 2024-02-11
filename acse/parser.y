@@ -55,7 +55,10 @@ int yylex(void);
 
 /* yyerror() is a function defined later in this file used by the bison-
  * generated parser to notify that a syntax error occurred. */
-void yyerror(const char*);
+void yyerror(const char *msg)
+{
+  emitSyntaxError(msg);
+}
 
 %}
 
@@ -76,6 +79,7 @@ void yyerror(const char*);
   t_expressionValue expr;
   t_listNode *list;
   t_label *label;
+  t_ifStatement if_stmt;
   t_whileStatement while_stmt;
 }
 
@@ -96,13 +100,12 @@ void yyerror(const char*);
 %token ANDAND OROR
 %token TYPE
 %token RETURN
-%token READ WRITE
+%token READ WRITE ELSE
 
 // These are the tokens with a semantic value of the given type.
-%token <label> DO
+%token <if_stmt> IF
 %token <while_stmt> WHILE
-%token <label> IF
-%token <label> ELSE
+%token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
 
@@ -116,7 +119,6 @@ void yyerror(const char*);
 
 %type <var> var_id
 %type <expr> exp
-%type <label> if_stmt
 
 /******************************************************************************
  * OPERATOR PRECEDENCE AND ASSOCIATIVITY
@@ -125,8 +127,6 @@ void yyerror(const char*);
  * specific keyword used (%left, %right).
  ******************************************************************************/
 
-%left COMMA
-%left ASSIGN
 %left OROR
 %left ANDAND
 %left OR_OP
@@ -134,7 +134,7 @@ void yyerror(const char*);
 %left EQ NOTEQ
 %left LT GT LTEQ GTEQ
 %left SHL_OP SHR_OP
-%left MINUS PLUS
+%left PLUS MINUS
 %left MUL_OP DIV_OP
 %right NOT_OP
 
@@ -149,10 +149,8 @@ void yyerror(const char*);
 
 /* `program' is the starting non-terminal of the grammar.
  * A program is composed by:
- *   1. declarations (zero or more);
- *   2. A list of instructions (zero or more).
- * When the rule associated with the non-terminal `program' is executed,
- * the parser notifies it to the `program' singleton instance. */
+ *   1. Declarations (zero or more),
+ *   2. A list of instructions (zero or more). */
 program
   : var_declarations statements EOF_TOK
   {
@@ -164,21 +162,27 @@ program
   }
 ;
 
+/* This non-terminal appears at the beginning of the program and represents
+ * all the declarations. */
 var_declarations
   : var_declarations var_declaration
   | /* empty */
 ;
 
+/* Each declaration consists of a type, a list of declarators, and a
+ * terminating semicolon. */
 var_declaration
-  : TYPE declaration_list SEMI
+  : TYPE declarator_list SEMI
 ;
 
-declaration_list
-  : declaration_list COMMA declaration
-  | declaration
+declarator_list
+  : declarator_list COMMA declarator
+  | declarator
 ;
 
-declaration
+/* A declarator specifies either a scalar variable name or an array name
+ * and size. */
+declarator
   : IDENTIFIER
   {
     createSymbol(program, $1, TYPE_INT, 0);
@@ -189,12 +193,11 @@ declaration
   }
 ;
 
-// A block of code is a list of statements enclosed between braces
+/* A block of code is a list of statements enclosed between braces */
 code_block
   : LBRACE statements RBRACE
 ;
 
-// Zero or more statements
 statements
   : statements statement
   | /* empty */
@@ -211,133 +214,120 @@ statement
   | SEMI
 ;
 
+/* An assignment statement stores the value of an expression in the memory
+ * location of a given scalar variable or array element. */
 assign_statement
-  : var_id LSQUARE exp RSQUARE ASSIGN exp
-  {
-    /* Notify to `program' that the value $6
-     * have to be assigned to the location
-     * addressed by $1[$3]. Where $1 is obviously
-     * the array/pointer object, $3 is an expression
-     * that holds an integer value. That value will be
-     * used as an index for the array $1 */
-    genStoreArrayElement(program, $1, $3, $6);
-  }
-  | var_id ASSIGN exp
+  : var_id ASSIGN exp
   {
     genStoreVariable(program, $1, $3);
   }
+  | var_id LSQUARE exp RSQUARE ASSIGN exp
+  {
+    genStoreArrayElement(program, $1, $3, $6);
+  }
 ;
-        
+
+/* An if statements first computes the expression, then jumps to the `else' part
+ * if the expression is equal to zero. Otherwise the `then' part is executed.
+ * After the `then' part the `else' part needs to be jumped over. */
 if_statement
-  : if_stmt
+  : IF LPAR exp RPAR
   {
-    /* fix the `label_else' */
-    assignLabel(program, $1);
-  }
-  | if_stmt ELSE
-  {
-    /* reserve a new label that points to the address where to
-     * jump if `exp' is verified */
-    $2 = createLabel(program);
-
-    /* exit from the if-else */
-    genJ(program, $2);
-
-    /* fix the `label_else' */
-    assignLabel(program, $1);
-  }
-  code_block
-  {
-    /* fix the `label_else' */
-    assignLabel(program, $2);
-  }
-;
-        
-if_stmt
-  : IF
-  {
-    /* the label that points to the address where to jump if
-     * `exp' is not verified */
-    $1 = createLabel(program);
-  }
-  LPAR exp RPAR
-  {
-    if ($4.type == CONSTANT) {
-      if ($4.immediate == 0)
-        genJ(program, $1);
+    // Generate a jump to the else part if the expression is equal to zero.
+    $1.l_else = createLabel(program);
+    if ($3.type == REGISTER) {
+      genBEQ(program, $3.registerId, REG_0, $1.l_else);
     } else {
-      /* if `exp' returns FALSE, jump to the label $1 */
-      genBEQ(program, $4.registerId, REG_0, $1);
+      // If the expression was constant, check the condition at compile time.
+      if ($3.immediate == 0)
+        genJ(program, $1.l_else);
     }
   }
   code_block
   {
-    $$ = $1;
+    // After the `then' part, generate a jump to the end of the statement
+    $1.l_exit = createLabel(program);
+    genJ(program, $1.l_exit);
+    // Assign the label which points to the first instruction of the else part
+    assignLabel(program, $1.l_else);
+  }
+  else_part
+  {
+    // Assign the label to the end of the statement
+    assignLabel(program, $1.l_exit);
   }
 ;
 
+/* The `else' part may be missing, in that case no code is generated. */
+else_part
+  : ELSE code_block
+  | /* empty */
+;
+
+/* A while statement repeats the execution of its code block as long as the
+ * expression is different than zero. The expression is computed at the
+ * beginning of each loop iteration. */
 while_statement
   : WHILE
   {
-    /* reserve and fix a new label */
-    $1.label_condition = assignNewLabel(program);
+    // Assign a label at the beginning of the loop for the back-edge
+    $1.l_loop = assignNewLabel(program);
   }
   LPAR exp RPAR
   {
-    /* reserve a new label. This new label will point
-     * to the first instruction after the while code
-     * block */
-    $1.label_end = createLabel(program);
-
-    if ($4.type == CONSTANT) {
-      if ($4.immediate == 0)
-        genJ(program, $1.label_end);
+    // Generate a jump out of the loop if the condition is equal to zero
+    $1.l_exit = createLabel(program);
+    if ($4.type == REGISTER) {
+      genBEQ(program, $4.registerId, REG_0, $1.l_exit);
     } else {
-      /* if `exp' returns FALSE, jump to the label 
-       * $1.label_end */
-      genBEQ(program, $4.registerId, REG_0, $1.label_end);
+      // If the expression was constant, check the condition at compile time.
+      if ($4.immediate == 0)
+        genJ(program, $1.l_exit);
     }
   }
   code_block
   {
-    /* jump to the beginning of the loop */
-    genJ(program, $1.label_condition);
-
-    /* fix the label `label_end' */
-    assignLabel(program, $1.label_end);
+    // Generate a jump back to the beginning of the loop after its body
+    genJ(program, $1.l_loop);
+    // Assign the label to the end of the loop
+    assignLabel(program, $1.l_exit);
   }
 ;
-            
+
+/* A do-while statement repeats the execution of its code block as long as the
+ * expression is different than zero. The expression is computed at the
+ * end of each loop iteration. */
 do_while_statement
   : DO
   {
-    /* the label that points to the address where to jump if
-     * `exp' is not verified */
-    $1 = createLabel(program);
-
-    /* fix the label */
-    assignLabel(program, $1);
+    // Assign a label at the beginning of the loop for the back-edge
+    $1 = assignNewLabel(program);
   }
   code_block WHILE LPAR exp RPAR
   {
-    if ($6.type == CONSTANT) {
+    // Generate a jump to the beginning of the loop to repeat the code block
+    // if the condition is not equal to zero
+    if ($6.type == REGISTER) {
+      genBNE(program, $6.registerId, REG_0, $1);
+    } else {
+      // If the expression was constant, check the condition at compile time.
       if ($6.immediate != 0)
         genJ(program, $1);
-    } else {
-      /* if `exp' returns TRUE, jump to the label $1 */
-      genBNE(program, $6.registerId, REG_0, $1);
     }
   }
 ;
 
+/* A return statement simply exits from the program, and hence translates to a
+ * call to the `exit' syscall. */
 return_statement
   : RETURN
   {
-    /* insert an HALT instruction */
     genExit0Syscall(program);
   }
 ;
 
+/* A read statement translates to a ReadInt syscall. The value it returns is
+ * then stored in the appropriate variable. */
 read_statement
   : READ LPAR var_id RPAR 
   {
@@ -346,29 +336,28 @@ read_statement
     genStoreVariable(program, $3, registerExpressionValue(r_tmp));
   }
 ;
-        
+
+/* A read statement translates to a PrintInt syscall, followed by a PrintChar
+ * syscall which prints a newline. */  
 write_statement 
   : WRITE LPAR exp RPAR 
   {
-    t_regID location;
-    if ($3.type == CONSTANT) {
-      /* load `immediate' into a new register. Returns the new
-       * register identifier or REG_INVALID if an error occurs */
-      location = getNewRegister(program);
-      genLI(program, location, $3.immediate);
-    } else {
-      location = $3.registerId;
-    }
-    /* write to standard output an integer value */
-    genPrintIntSyscall(program, location);
-
-    /* write a newline to standard output */
-    location = getNewRegister(program);
-    genLI(program, location, '\n');
-    genPrintCharSyscall(program, location);
+    // If necessary generate code to materialize the expression to a register,
+    // and then generate a call to the PrintInt syscall.
+    t_regID r_temp = genConvertExpValueToRegister(program, $3);
+    genPrintIntSyscall(program, r_temp);
+    // Also generate code to print a newline after the integer
+    genLI(program, r_temp, '\n');
+    genPrintCharSyscall(program, r_temp);
   }
 ;
 
+/* The exp rule represents the syntax of expressions. The semantic value of
+ * the rule is a struct of type `t_expressionValue', which wraps either a
+ * integer representing a compile-time constant or a register ID.
+ *   All semantic actions which implement expression operators must handle both
+ * the case in which the operands are constants or register IDs.
+ */
 exp
   : NUMBER
   { 
@@ -376,78 +365,23 @@ exp
   }
   | var_id 
   {
-    t_regID r_value = genLoadVariable(program, $1);
-    $$ = registerExpressionValue(r_value);
+    $$ = registerExpressionValue(genLoadVariable(program, $1));
   }
   | var_id LSQUARE exp RSQUARE
   {
-    /* load the value IDENTIFIER[exp]
-      * into `arrayElement' */
-    t_regID reg = genLoadArrayElement(program, $1, $3);
-
-    /* create a new expression */
-    $$ = registerExpressionValue(reg);
+    $$ = registerExpressionValue(genLoadArrayElement(program, $1, $3));
   }
-  | NOT_OP exp
+  | LPAR exp RPAR
   {
-    if ($2.type == CONSTANT) {
-      /* CONSTANT (constant) expression: compute the value at
-        * compile-time and place the result in a new CONSTANT
-        * expression */
-      $$ = constantExpressionValue(!($2.immediate));
-    } else {
-      /* REGISTER expression: generate the code that will compute
-       * the result at compile time */
-
-      /* Reserve a new register for the result */
-      t_regID res_reg = getNewRegister(program);
-
-      /* Generate a SUBI instruction which will store the negated
-        * logic value into the register we reserved */
-      genSEQ(program, res_reg, $2.registerId, REG_0);
-
-      /* Return a REGISTER expression with the result register */
-      $$ = registerExpressionValue(res_reg);
-    }
+    $$ = $2;
   }
   | MINUS exp
   {
     if ($2.type == CONSTANT) {
       $$ = constantExpressionValue(-($2.immediate));
     } else {
-      t_regID res = getNewRegister(program);
-      genSUB(program, res, REG_0, $2.registerId);
-      $$ = registerExpressionValue(res);
-    }
-  }
-  | exp AND_OP exp 
-  {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpressionValue($1.immediate & $3.immediate);
-    } else {
-      t_regID rd = getNewRegister(program);
-      t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genAND(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genANDI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
-    }
-  }
-  | exp OR_OP exp
-  {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpressionValue($1.immediate | $3.immediate);
-    } else {
-      t_regID rd = getNewRegister(program);
-      t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genOR(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genORI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      $$ = registerExpressionValue(getNewRegister(program));
+      genSUB(program, $$.registerId, REG_0, $2.registerId);
     }
   }
   | exp PLUS exp
@@ -455,14 +389,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate + $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genADD(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genADDI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genADD(program, $$.registerId, rs1, rs2);
     }
   }
   | exp MINUS exp
@@ -470,14 +400,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate - $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSUB(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSUBI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSUB(program, $$.registerId, rs1, rs2);
     }
   }
   | exp MUL_OP exp
@@ -485,14 +411,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate * $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genMUL(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genMULI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genMUL(program, $$.registerId, rs1, rs2);
     }
   }
   | exp DIV_OP exp
@@ -504,18 +426,62 @@ exp
       } else if ($1.immediate == INT_MIN && $3.immediate == -1) {
         emitWarning(WARN_OVERFLOW);
         $$ = constantExpressionValue(INT_MIN);
-      } else {
+      } else
         $$ = constantExpressionValue($1.immediate / $3.immediate);
-      }
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genDIV(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genDIVI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genDIV(program, $$.registerId, rs1, rs2);
+    }
+  }
+  | exp AND_OP exp 
+  {
+    if ($1.type == CONSTANT && $3.type == CONSTANT) {
+      $$ = constantExpressionValue($1.immediate & $3.immediate);
+    } else {
+      $$ = registerExpressionValue(getNewRegister(program));
+      t_regID rs1 = genConvertExpValueToRegister(program, $1);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genAND(program, $$.registerId, rs1, rs2);
+    }
+  }
+  | exp OR_OP exp
+  {
+    if ($1.type == CONSTANT && $3.type == CONSTANT) {
+      $$ = constantExpressionValue($1.immediate | $3.immediate);
+    } else {
+      $$ = registerExpressionValue(getNewRegister(program));
+      t_regID rs1 = genConvertExpValueToRegister(program, $1);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genOR(program, $$.registerId, rs1, rs2);
+    }
+  }
+  | exp SHL_OP exp
+  {
+    if ($1.type == CONSTANT && $3.type == CONSTANT) {
+      if ($3.immediate < 0 || $3.immediate >= 32)
+        emitWarning(WARN_INVALID_SHIFT_AMOUNT);
+      $$ = constantExpressionValue($1.immediate << ($3.immediate & 0x1F));
+    } else {
+      $$ = registerExpressionValue(getNewRegister(program));
+      t_regID rs1 = genConvertExpValueToRegister(program, $1);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSLL(program, $$.registerId, rs1, rs2);
+    }
+  }
+  | exp SHR_OP exp
+  {
+    if ($1.type == CONSTANT && $3.type == CONSTANT) {
+      if ($3.immediate < 0 || $3.immediate >= 32)
+        emitWarning(WARN_INVALID_SHIFT_AMOUNT);
+      int constRes = SHIFT_RIGHT_ARITH($1.immediate, $3.immediate & 0x1F);
+      $$ = constantExpressionValue(constRes);
+    } else {
+      $$ = registerExpressionValue(getNewRegister(program));
+      t_regID rs1 = genConvertExpValueToRegister(program, $1);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSRA(program, $$.registerId, rs1, rs2);
     }
   }
   | exp LT exp
@@ -523,14 +489,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate < $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSLT(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSLTI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSLT(program, $$.registerId, rs1, rs2);
     }
   }
   | exp GT exp
@@ -538,14 +500,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate > $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSGT(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSGTI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSGT(program, $$.registerId, rs1, rs2);
     }
   }
   | exp EQ exp
@@ -553,14 +511,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate == $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSEQ(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSEQI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSEQ(program, $$.registerId, rs1, rs2);
     }
   }
   | exp NOTEQ exp
@@ -568,14 +522,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate != $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSNE(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSNEI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSNE(program, $$.registerId, rs1, rs2);
     }
   }
   | exp LTEQ exp
@@ -583,14 +533,10 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate <= $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSLE(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSLEI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSLE(program, $$.registerId, rs1, rs2);
     }
   }
   | exp GTEQ exp
@@ -598,90 +544,46 @@ exp
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       $$ = constantExpressionValue($1.immediate >= $3.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSGE(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSGEI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, $3);
+      genSGE(program, $$.registerId, rs1, rs2);
     }
   }
-  | exp SHL_OP exp
+  | NOT_OP exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      if ($3.immediate < 0 || $3.immediate >= 32) {
-        emitWarning(WARN_INVALID_SHIFT_AMOUNT);
-      }
-      $$ = constantExpressionValue($1.immediate << ($3.immediate & 0x1F));
+    if ($2.type == CONSTANT) {
+      $$ = constantExpressionValue(!($2.immediate));
     } else {
-      t_regID rd = getNewRegister(program);
-      t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSLL(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSLLI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
-    }
-  }
-  | exp SHR_OP exp
-  {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      if ($3.immediate < 0 || $3.immediate >= 32) {
-        emitWarning(WARN_INVALID_SHIFT_AMOUNT);
-      }
-      int constRes = SHIFT_RIGHT_ARITH($1.immediate, $3.immediate & 0x1F);
-      $$ = constantExpressionValue(constRes);
-    } else {
-      t_regID rd = getNewRegister(program);
-      t_regID rs1 = genConvertExpValueToRegister(program, $1);
-      if ($3.type == REGISTER) {
-        genSRA(program, rd, rs1, $3.registerId);
-      } else if ($3.type == CONSTANT) {
-        genSRAI(program, rd, rs1, $3.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      $$ = registerExpressionValue(getNewRegister(program));
+      genSEQ(program, $$.registerId, $2.registerId, REG_0);
     }
   }
   | exp ANDAND exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpressionValue($1.immediate && $3.immediate);
+    t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
+    t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
+    if (normLhs.type == CONSTANT && normRhs.type == CONSTANT) {
+      $$ = constantExpressionValue(normLhs.immediate & normRhs.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
-      t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
-      t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, normLhs);
-      if (normRhs.type == REGISTER) {
-        genAND(program, rd, rs1, normRhs.registerId);
-      } else if (normRhs.type == CONSTANT) {
-        genANDI(program, rd, rs1, normRhs.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, normRhs);
+      genAND(program, $$.registerId, rs1, rs2);
     }
   }
   | exp OROR exp
   {
+    t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
+    t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpressionValue($1.immediate || $3.immediate);
+      $$ = constantExpressionValue(normLhs.immediate | normRhs.immediate);
     } else {
-      t_regID rd = getNewRegister(program);
-      t_expressionValue normLhs = genNormalizeBooleanExpValue(program, $1);
-      t_expressionValue normRhs = genNormalizeBooleanExpValue(program, $3);
+      $$ = registerExpressionValue(getNewRegister(program));
       t_regID rs1 = genConvertExpValueToRegister(program, normLhs);
-      if (normRhs.type == REGISTER) {
-        genOR(program, rd, rs1, normRhs.registerId);
-      } else if (normRhs.type == CONSTANT) {
-        genORI(program, rd, rs1, normRhs.immediate);
-      }
-      $$ = registerExpressionValue(rd);
+      t_regID rs2 = genConvertExpValueToRegister(program, normRhs);
+      genOR(program, $$.registerId, rs1, rs2);
     }
-  }
-  | LPAR exp RPAR
-  {
-    $$ = $2;
   }
 ;
 
@@ -780,12 +682,4 @@ int main(int argc, char *argv[])
 
   debugPrintf("Done.\n");
   return 0;
-}
-
-/******************************************************************************
- * YYERROR
- ******************************************************************************/
-void yyerror(const char* msg)
-{
-  emitSyntaxError(msg);
 }

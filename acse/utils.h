@@ -20,12 +20,16 @@
 #define SHIFT_RIGHT_ARITH(x, y) \
     (((x) >> (y)) | ((x) < 0 ? (((1 << (y)) - 1) << MAX(32 - (y), 0)) : 0))
 
+/** Utility structure used to store information about an if statement. */
+typedef struct {
+  t_label *l_else;  ///< Label to the else part
+  t_label *l_exit;  ///< Label to the first instruction after the statement
+} t_ifStatement;
+
 /** Utility structure used to store information about a while statement. */
 typedef struct t_whileStatement {
-  t_label *label_condition; /* this label points to the expression
-                             * that is used as loop condition */
-  t_label *label_end;       /* this label points to the instruction
-                             * that follows the while construct */
+  t_label *l_loop;  ///< Label to the beginning of the loop
+  t_label *l_exit;  ///< Label to the first instruction after the loop
 } t_whileStatement;
 
 /* EXPRESSION TYPES */
