@@ -5,7 +5,7 @@
 #include "target_asm_print.h"
 #include "target_info.h"
 #include "target_transform.h"
-#include "options.h"
+#include "acse.h"
 
 #define BUF_LENGTH 256
 
@@ -573,26 +573,12 @@ int translateDataSegment(t_program *program, FILE *fp)
 }
 
 
-void writeAssembly(t_program *program)
+void writeAssembly(t_program *program, FILE *fp)
 {
-  const char *output_file;
-  FILE *fp;
-
-  /* test the preconditions */
-  assert(program != NULL);
-
-  output_file = compilerOptions.outputFileName;
-
-  debugPrintf(" -> Output file name: \"%s\"\n", output_file);
   debugPrintf(" -> Code segment size: %d instructions\n",
       getLength(program->instructions));
   debugPrintf(" -> Data segment size: %d elements\n", getLength(program->data));
   debugPrintf(" -> Number of labels: %d\n", getLength(program->labels));
-
-  /* open a new file */
-  fp = fopen(output_file, "w");
-  if (fp == NULL)
-    fatalError(ERROR_FOPEN_ERROR);
 
   if (translateForwardDeclarations(program, fp) < 0)
     fatalError(ERROR_FWRITE_ERROR);

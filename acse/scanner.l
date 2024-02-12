@@ -6,14 +6,8 @@
 #include "utils.h"
 #include "list.h"
 #include "symbols.h"
+#include "parser.h"
 #include "parser.tab.h"
-
-/* Variables declared in the lexer for error tracking */
-extern int line_num;
-extern int num_error;
-
-/* extern declaration of function yyerror */
-void yyerror(const char*);
 
 %}
 
@@ -86,6 +80,5 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
                     return NUMBER; }
 
 .                 { yyerror("unexpected token");
-                    num_error++;
                     return -1; /* invalid token */ }
 <INITIAL><<EOF>>  { return EOF_TOK; }

@@ -6,11 +6,10 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "program.h"
-#include "errors.h"
+#include "acse.h"
 #include "gencode.h"
 #include "target_info.h"
 #include "target_asm_print.h"
-#include "options.h"
 #include "symbols.h"
 
 /* global line number (defined in Acse.y) */

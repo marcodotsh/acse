@@ -8,8 +8,7 @@
 #include "gencode.h"
 #include "cflow_graph.h"
 #include "reg_alloc.h"
-#include "options.h"
-#include "errors.h"
+#include "acse.h"
 #include "target_info.h"
 #include "symbols.h"
 

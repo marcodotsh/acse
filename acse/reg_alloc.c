@@ -4,15 +4,13 @@
 #include <stdbool.h>
 #include "reg_alloc.h"
 #include "target_info.h"
-#include "errors.h"
+#include "acse.h"
 #include "utils.h"
 #include "gencode.h"
 #include "program.h"
 #include "list.h"
 #include "cflow_graph.h"
-#include "options.h"
 #include "target_asm_print.h"
-#include "errors.h"
 
 #define MAX_INSTR_ARGS 3
 

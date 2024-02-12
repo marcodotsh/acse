@@ -1,8 +1,10 @@
-/// @file errors.h
-/// @brief Error handling
+/// @file acse.h
+/// @brief Main file of the ACSE compiler
 
-#ifndef ERRORS_H
-#define ERRORS_H
+#ifndef ACSE_H
+#define ACSE_H
+
+#include <stdio.h>
 
 /* Warnings */
 #define WARN_DIVISION_BY_ZERO 1
@@ -28,7 +30,10 @@
 #define ERROR_INVALID_REG_ALLOC 24
 #define ERROR_REG_ALLOC_ERROR 25
 #define ERROR_VARIABLE_TYPE_MISMATCH 28
-#define ERROR_VARIABLE_NOT_DECLARED 29
+
+extern int num_error;
+
+char *getLogFileName(const char *logType);
 
 /** Prints a warning message depending on the given code.
  * @param warningcode The code of the warning. */

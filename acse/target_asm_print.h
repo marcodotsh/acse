@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 #include "program.h"
-#include "errors.h"
+#include "acse.h"
 
 /** Convert an opcode ID to a string. */
 const char *opcodeToString(int opcode);
@@ -19,6 +19,6 @@ char *registerIDToString(t_regID regID, bool machineRegIDs);
 int printInstruction(t_instruction *inst, FILE *fp, bool machineRegIDs);
 
 /** write the assembly for the given program */
-void writeAssembly(t_program *program);
+void writeAssembly(t_program *program, FILE *fp);
 
 #endif
