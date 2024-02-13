@@ -84,10 +84,8 @@ typedef struct t_spillState {
 t_liveInterval *newLiveInterval(
     t_regID varID, t_listNode *mcRegs, int startPoint, int endPoint)
 {
-  t_liveInterval *result;
-
   /* create a new instance of `t_liveInterval' */
-  result = malloc(sizeof(t_liveInterval));
+  t_liveInterval *result = malloc(sizeof(t_liveInterval));
   if (result == NULL)
     fatalError("out of memory");
 
@@ -266,26 +264,25 @@ void getLiveIntervals(t_cfg *graph, t_listNode **result)
   cfgIterateNodes(graph, (void *)result, getLiveIntervalsNodeCallback);
 }
 
-/* Insert a live interval in the register allocator. Returns 0 on success,
- * -1 if the interval was already inserted in the list. */
-int insertLiveInterval(t_regAllocator *RA, t_liveInterval *interval)
+/* Insert a live interval in the register allocator. Returns true on success,
+ * false if the interval was already inserted in the list. */
+bool insertLiveInterval(t_regAllocator *RA, t_liveInterval *interval)
 {
-  /* test the preconditions */
+  // test the preconditions
   assert(RA != NULL);
   assert(interval != NULL);
 
-  /* test if an interval for the requested variable is already inserted */
+  // test if an interval for the requested variable is already inserted
   if (findElementWithCallback(
           RA->live_intervals, interval, compareLiveIntIDs) != NULL) {
-    return -1;
+    return false;
   }
 
-  /* add the given interval to the list of intervals,
-   * in order of starting point */
+  // add the given interval to the list, in order of starting point
   RA->live_intervals =
       addSorted(RA->live_intervals, interval, compareLiveIntStartPoints);
 
-  return 0;
+  return true;
 }
 
 /* Insert all elements of the intervals list into
@@ -307,8 +304,8 @@ void insertListOfIntervals(t_regAllocator *RA, t_listNode *intervals)
     assert(interval != NULL);
 
     /* insert a new live interval */
-    ra_errorcode = insertLiveInterval(RA, interval);
-    assert(ra_errorcode == 0 && "bug: at least one duplicate live interval");
+    bool ok = insertLiveInterval(RA, interval);
+    assert(ok && "bug: at least one duplicate live interval");
   }
 }
 
@@ -1223,9 +1220,7 @@ void doRegisterAllocation(t_program *program)
   assert(program != NULL);
 
   /* create the control flow graph */
-  graph = programToCFG(program, &error);
-  if (graph == NULL)
-    fatalError("CFG construction failed with code %d", error);
+  graph = programToCFG(program);
 
 #ifndef NDEBUG
   logFileName = getLogFileName("controlFlow");

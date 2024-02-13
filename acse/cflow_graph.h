@@ -18,11 +18,12 @@
 #define CFG_MAX_USES 3
 
 /* Error codes */
+typedef int t_cfgError;
 enum {
-  ERROR_CFG_INVALID_NODE = 1000,
-  ERROR_CFG_INVALID_LABEL_FOUND,
-  ERROR_CFG_NODE_ALREADY_INSERTED,
-  ERROR_CFG_BBLOCK_ALREADY_INSERTED
+  CFG_NO_ERROR = 0,
+  CFG_ERROR_INVALID_NODE = 1000,
+  CFG_ERROR_NODE_ALREADY_INSERTED,
+  CFG_ERROR_BBLOCK_ALREADY_INSERTED
 };
 
 /* Special variables */
@@ -62,12 +63,15 @@ typedef struct t_basicBlock {
   t_listNode *nodes; /* an ordered list of instructions */
 } t_basicBlock;
 
-/* a control flow graph */
+/** Data structure describing a control flow graph */
 typedef struct t_cfg {
-  t_basicBlock *startingBlock; /* the starting basic block of code */
-  t_basicBlock *endingBlock;   /* the last block of the graph */
-  t_listNode *blocks;          /* an ordered list of all the basic blocks */
-  t_listNode *cflow_variables; /* a list of all the variable identifiers */
+  /// List of all the basic blocks, in program order.
+  t_listNode *blocks;
+  /// Unique final basic block. The control flow must eventually reach here.
+  /// This block is always empty, and is not part of the 'blocks' list.
+  t_basicBlock *endingBlock;
+  /// List of all temporary identifiers
+  t_listNode *cflow_variables;
 } t_cfg;
 
 
@@ -95,30 +99,38 @@ void deleteBasicBlock(t_basicBlock *block);
 /** Adds a predecessor to a basic block.
  *  @param block The successor block.
  *  @param pred The predecessor block. */
-void bbSetPred(t_basicBlock *block, t_basicBlock *pred);
+void bbAddPred(t_basicBlock *block, t_basicBlock *pred);
 /** Adds a successor to a basic block.
  *  @param block The predecessor block.
  *  @param pred The successor block. */
-void bbSetSucc(t_basicBlock *block, t_basicBlock *succ);
+void bbAddSucc(t_basicBlock *block, t_basicBlock *succ);
 
 /** Inserts a new node at the end of a block.
  *  @param block The block where to insert the node.
  *  @param node The node to insert.
- *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-int bbInsertNode(t_basicBlock *block, t_cfgNode *node);
+ *  @returns CFG_NO_ERROR if the operation succeeded, otherwise
+ *           CFG_ERROR_NODE_ALREADY_INSERTED if the node to insert is already
+ *           present in the block. */
+t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *node);
 /** Inserts a new node before another inside a basic block.
  *  @param block The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
  *  @param new_node The node to insert.
- *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-int bbInsertNodeBefore(
+ *  @returns CFG_NO_ERROR if the operation succeeded, otherwise
+ *           CFG_ERROR_INVALID_NODE if after_node does not belong to the
+ *           given basic block, or CFG_ERROR_NODE_ALREADY_INSERTED if the node
+ *           to insert is already present in the block. */
+t_cfgError bbInsertNodeBefore(
     t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node);
 /** Inserts a new node after another inside a basic block.
- *  @param block The block where to insert the node.
+ *  @param block       The block where to insert the node.
  *  @param before_node The node at the insertion point. Must not be NULL.
- *  @param new_node The node to insert.
- *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-int bbInsertNodeAfter(
+ *  @param new_node    The node to insert.
+ *  @returns CFG_NO_ERROR if the operation succeeded, otherwise
+ *           CFG_ERROR_INVALID_NODE if after_node does not belong to the
+ *           given basic block, or CFG_ERROR_NODE_ALREADY_INSERTED if the node
+ *           to insert is already present in the block. */
+t_cfgError bbInsertNodeAfter(
     t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
 
 
@@ -129,18 +141,20 @@ int bbInsertNodeAfter(
  *  @param error Points to a variable that will be set to an error
  *               code if an error occurs.
  *  @returns The new control flow graph, or NULL in case of error. */
-t_cfg *programToCFG(t_program *program, int *error);
+t_cfg *programToCFG(t_program *program);
 /** Frees a control flow graph.
  *  @param graph The graph to be freed. */
 void deleteCFG(t_cfg *graph);
 
 /** Inserts a new block in a control flow graph. Before invoking this function,
- *  the block must be linked to the others in the graph with bbSetPred and
- *  bbSetSucc.
+ *  the block must be linked to the others in the graph with bbAddPred and
+ *  bbAddSucc.
  *  @param graph The graph where the block must be added.
  *  @param block The block to add.
- *  @returns NO_ERROR if the operation succeeded, otherwise an error code. */
-int cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
+ *  @returns NO_ERROR if the operation succeeded, otherwise
+ *           CFG_ERROR_BBLOCK_ALREADY_INSERTED if the block was already inserted
+ *           in the graph. */
+t_cfgError cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
 
 /** Iterates through the nodes in a control flow graph.
  *  @param graph The graph that must be iterated over.

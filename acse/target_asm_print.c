@@ -269,7 +269,7 @@ char *registerIDToString(t_regID regID, bool machineRegIDs)
   if (regID < 0)
     return strdup("invalid_reg");
   buf = calloc(24, sizeof(char));
-  snprintf(buf, 24, "x%d", regID);
+  snprintf(buf, 24, "t%d", regID);
   return buf;
 }
 
