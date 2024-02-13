@@ -319,7 +319,7 @@ int instructionToString(
     int n = labelToString(NULL, 0, instr->addressParam, 0);
     address = calloc((size_t)n + 1, sizeof(char));
     if (!address)
-      fatalError(ERROR_OUT_OF_MEMORY);
+      fatalError("out of memory");
     labelToString(address, n + 1, instr->addressParam, 0);
   }
   imm = instr->immediate;
@@ -328,52 +328,52 @@ int instructionToString(
   switch (format) {
     case FORMAT_OP:
       if (!instr->reg_dest || !instr->reg_src1 || !instr->reg_src2)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rd, rs1, rs2);
       break;
     case FORMAT_OPIMM:
       if (!instr->reg_dest || !instr->reg_src1)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %d", opc, rd, rs1, imm);
       break;
     case FORMAT_LOAD:
       if (!instr->reg_dest || !instr->reg_src1)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rd, imm, rs1);
       break;
     case FORMAT_LOAD_GL:
       if (!instr->reg_dest || !instr->addressParam)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
       break;
     case FORMAT_STORE:
       if (!instr->reg_src2 || !instr->reg_src1)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
       break;
     case FORMAT_STORE_GL:
       if (!instr->reg_dest || !instr->reg_src1 || !instr->addressParam)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, address, rd);
       break;
     case FORMAT_BRANCH:
       if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, rs2, address);
       break;
     case FORMAT_JUMP:
       if (!instr->addressParam)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s", opc, address);
       break;
     case FORMAT_LI:
       if (!instr->reg_dest)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d", opc, rd, imm);
       break;
     case FORMAT_LA:
       if (!instr->reg_dest || !instr->addressParam)
-        fatalError(ERROR_INVALID_INSTRUCTION);
+        fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
       break;
     case FORMAT_SYSTEM:
@@ -485,7 +485,7 @@ int translateCodeSegment(t_program *program, FILE *fp)
     /* retrieve the current instruction */
     current_instr = (t_instruction *)current_element->data;
     if (current_instr == NULL)
-      fatalError(ERROR_INVALID_INSTRUCTION);
+      fatalError("NULL instruction found in the program");
 
     /* print label, instruction and comment */
     if (printInstruction(current_instr, fp, true) < 0)
@@ -525,7 +525,7 @@ int printDirective(t_global *data, FILE *fp)
         return -1;
       break;
     default:
-      fatalError(ERROR_INVALID_DATA_FORMAT);
+      fatalError("invalid data type found in the program");
   }
 
   return 0;
@@ -557,7 +557,7 @@ int translateDataSegment(t_program *program, FILE *fp)
 
     /* assertions */
     if (current_data == NULL)
-      fatalError(ERROR_INVALID_DATA_FORMAT);
+      fatalError("invalid data record found in the program");
 
     /* print label and directive */
     if (printDirective(current_data, fp) < 0)
@@ -581,17 +581,17 @@ void writeAssembly(t_program *program, FILE *fp)
   debugPrintf(" -> Number of labels: %d\n", getLength(program->labels));
 
   if (translateForwardDeclarations(program, fp) < 0)
-    fatalError(ERROR_FWRITE_ERROR);
+    fatalError("error writing to the assembly output file");
 
   /* print the data segment */
   if (translateDataSegment(program, fp) < 0)
-    fatalError(ERROR_FWRITE_ERROR);
+    fatalError("error writing to the assembly output file");
 
   /* print the code segment */
   if (translateCodeSegment(program, fp) < 0)
-    fatalError(ERROR_FWRITE_ERROR);
+    fatalError("error writing to the assembly output file");
 
   /* close the file and return */
   if (fclose(fp) == EOF)
-    fatalError(ERROR_FCLOSE_ERROR);
+    fatalError("error writing to the assembly output file");
 }

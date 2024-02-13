@@ -35,7 +35,7 @@ t_cfgVar *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs
   /* alloc memory for a variable information */
   result = malloc(sizeof(t_cfgVar));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* update the value of result */
   result->ID = identifier;
@@ -141,7 +141,7 @@ t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr)
   /* create a new instance of type `t_cflow_node' */
   result = malloc(sizeof(t_cfgNode));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize result */
   for (i = 0; i < CFG_MAX_DEFS; i++)
@@ -181,7 +181,7 @@ t_basicBlock *newBasicBlock(void)
 {
   t_basicBlock *result = malloc(sizeof(t_basicBlock));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize result */
   result->pred = NULL;
@@ -311,7 +311,7 @@ static t_cfg *newCFG(void)
 {
   t_cfg *result = malloc(sizeof(t_cfg));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize `result' */
   result->startingBlock = NULL;

@@ -6,6 +6,16 @@
 
 #include "program.h"
 
+/** 
+ * @defgroup gencode Code Generation Functions
+ * In ACSE, the semantic actions in the parser directly translate the source 
+ * code into intermediate assembly by appending new instructions inside the
+ * `program' structure.
+ *
+ * The functions defined here are helpers that add a specific instruction code
+ * with given parameters to the end of the program.
+ * @{
+ */
 
 /// @name Register-Register Arithmetic Instructions
 /// @{
@@ -845,6 +855,10 @@ t_instruction *genECALL(t_program *program);
 t_instruction *genEBREAK(t_program *program);
 
 /// @}
+
+/**
+ * @}
+ */
 
 
 #endif

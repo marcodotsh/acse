@@ -6,30 +6,25 @@
 
 #include <stdio.h>
 
-/* Warnings */
-#define WARN_DIVISION_BY_ZERO 1
-#define WARN_INVALID_SHIFT_AMOUNT 2
-#define WARN_OVERFLOW 3
+/**
+ * \mainpage ACSE: Advanced Compiler System for Education
+ * 
+ * ACSE (Advanced Compiler System for Education) is a simple compiler
+ * developed for educational purposes for the course "Formal Languages and
+ * Compilers". ACSE, together with its supporting tools, aims to be a
+ * representative example of a complete computing system – albeit simplified –
+ * in order to illustrate what happens behind the scenes when a program is
+ * compiled and then executed.
+ * 
+ * This compiler which accepts a program in a simplified C-like language called
+ * LANCE (Language for Compiler Education), and produces a compiled program in
+ * standard RISC-V RV32IM assembly language.
+ */
 
 /* Errors */
 #define NO_ERROR 0
-#define ERROR_OUT_OF_MEMORY 1
-#define ERROR_INVALID_REGISTER_IDENTIFIER 2
-#define ERROR_INVALID_INSTRUCTION 3
-#define ERROR_VARIABLE_ALREADY_DECLARED 5
-#define ERROR_INVALID_TYPE 6
-#define ERROR_FOPEN_ERROR 7
-#define ERROR_FCLOSE_ERROR 8
-#define ERROR_FWRITE_ERROR 10
-#define ERROR_INVALID_DATA_FORMAT 11
-#define ERROR_INVALID_OPCODE 12
-#define ERROR_INVALID_ARRAY_SIZE 15
-#define ERROR_INVALID_EXPRESSION 18
-#define ERROR_LABEL_ALREADY_ASSIGNED 20
 #define ERROR_INVALID_CFLOW_GRAPH 23
-#define ERROR_INVALID_REG_ALLOC 24
 #define ERROR_REG_ALLOC_ERROR 25
-#define ERROR_VARIABLE_TYPE_MISMATCH 28
 
 extern int num_error;
 
@@ -37,19 +32,15 @@ char *getLogFileName(const char *logType);
 
 /** Prints a warning message depending on the given code.
  * @param warningcode The code of the warning. */
-void emitWarning(int warningcode);
+void emitWarning(const char *format, ...);
 
 /** Prints an error message depending on the given code.
  * Does not terminate the program.
  * @param errorcode The error code. */
-void emitError(int errorcode);
-
-/** Prints the given syntax error message.
- * @param message A description of the specific syntax error. */
-void emitSyntaxError(const char *message);
+void emitError(const char *format, ...);
 
 /** Prints the specified error message and terminates the program.
  * @param errorcode The error code. */
-__attribute__((noreturn)) void fatalError(int errorcode);
+__attribute__((noreturn)) void fatalError(const char *format, ...);
 
 #endif

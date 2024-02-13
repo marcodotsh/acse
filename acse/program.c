@@ -25,7 +25,7 @@ static t_label *newLabel(unsigned int value)
   /* create an instance of t_label */
   result = (t_label *)malloc(sizeof(t_label));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the internal value of `result' */
   result->labelID = value;
@@ -52,7 +52,7 @@ t_instrArg *newInstrArg(t_regID ID)
   /* create an instance of `t_instrArg' */
   result = (t_instrArg *)malloc(sizeof(t_instrArg));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the new label */
   result->ID = ID;
@@ -70,7 +70,7 @@ t_instruction *newInstruction(int opcode)
   /* create an instance of `t_global' */
   result = (t_instruction *)malloc(sizeof(t_instruction));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* ininitialize the fields of `result' */
   result->opcode = opcode;
@@ -94,7 +94,7 @@ t_global *newGlobal(int directiveType, int value, t_label *label)
   /* create an instance of `t_global' */
   result = (t_global *)malloc(sizeof(t_global));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the new directive */
   result->directiveType = directiveType;
@@ -216,7 +216,7 @@ t_program *newProgram(void)
   /* initialize the local variable `result' */
   result = (t_program *)malloc(sizeof(t_program));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the new instance of `result' */
   result->variables = NULL;
@@ -273,7 +273,7 @@ t_label *createLabel(t_program *program)
   /* initialize a new label */
   result = newLabel(program->current_label_ID);
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* update the value of `current_label_ID' */
   program->current_label_ID++;
@@ -370,7 +370,7 @@ t_label *assignLabel(t_program *program, t_label *label)
   for (li = program->instructions; li != NULL; li = li->next) {
     t_instruction *instr = li->data;
     if (instr->label && compareLabels(instr->label, label))
-      fatalError(ERROR_LABEL_ALREADY_ASSIGNED);
+      fatalError("compiler bug, label already assigned");
   }
 
   /* test if the next instruction already has a label */

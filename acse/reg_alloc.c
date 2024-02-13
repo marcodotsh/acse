@@ -89,7 +89,7 @@ t_liveInterval *newLiveInterval(
   /* create a new instance of `t_liveInterval' */
   result = malloc(sizeof(t_liveInterval));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the new instance */
   result->varID = varID;
@@ -583,7 +583,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   /* allocate memory for a new instance of `t_regAllocator' */
   result = (t_regAllocator *)calloc(1, sizeof(t_regAllocator));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the register allocator informations */
 
@@ -609,7 +609,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   /*alloc memory for the array of bindings */
   result->bindings = malloc(sizeof(t_regID) * (size_t)result->varNum);
   if (result->bindings == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the array of bindings */
   for (counter = 0; counter < result->varNum; counter++)
@@ -712,7 +712,7 @@ t_tempLabel *newTempLabel(t_label *label, t_regID regID)
 {
   t_tempLabel *result = malloc(sizeof(t_tempLabel));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the temp label */
   result->label = label;
@@ -1225,7 +1225,7 @@ void doRegisterAllocation(t_program *program)
   /* create the control flow graph */
   graph = programToCFG(program, &error);
   if (graph == NULL)
-    fatalError(error);
+    fatalError("CFG construction failed with code %d", error);
 
 #ifndef NDEBUG
   logFileName = getLogFileName("controlFlow");
@@ -1264,7 +1264,7 @@ void doRegisterAllocation(t_program *program)
    * of the register allocation process */
   error = materializeRegisterAllocation(program, graph, RA);
   if (error != NO_ERROR)
-    fatalError(error);
+    fatalError("register allocation failed with code %d", error);
 
   deleteRegAllocator(RA);
   deleteCFG(graph);

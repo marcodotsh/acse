@@ -15,7 +15,7 @@ t_listNode *newElement(void *data)
 
   /* verify the out of memory condition */
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* set the internal value of the just created t_listNode element */
   result->data = data;

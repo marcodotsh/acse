@@ -28,7 +28,7 @@ typedef struct t_symbol {
 
 /** Add a symbol to the program.
  * @param program    The program where to add the symbol.
- * @param ID         The name (or identifier) of the new symbol.
+ * @param ID         The identifier (name) of the new symbol.
  * @param type       The data type of the variable associated to the symbol.
  * @param arraySize  For arrays, the size of the array.
  * @returns A pointer to the newly created symbol object. */
@@ -39,7 +39,7 @@ t_symbol *createSymbol(
  * @param symbols The list of `t_symbol's to be deleted. */
 void deleteSymbols(t_listNode *symbols);
 
-/** Get information about a previously added symbol.
+/** Lookup a previously added symbol.
  * @param program The program where the symbol belongs.
  * @param ID      The identifier of the symbol.
  * @returns A pointer to the corresponding symbol object, or NULL if the symbol
@@ -53,7 +53,18 @@ t_symbol *getSymbol(t_program *program, char *ID);
 bool isArray(t_symbol *symbol);
 
 
+/** Generate instructions that load the content of a scalar variable in a
+ * register.
+ * @param program The program where the variable belongs
+ * @param var     The symbol object that refers to the variable
+ * @returns The identifier of the register that (at runtime) will contain the
+ *          value of the variable loaded from memory. */
 t_regID genLoadVariable(t_program *program, t_symbol *var);
+
+/** Generate instructions that store an expression value into a variable.
+ * @param program The program where the variable belongs
+ * @param var     The symbol object that refers to the variable
+ * @param val     The expression value that needs to be assigned */
 void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val);
 
 /** Generate instructions that load the content of an element of an array in a
@@ -62,11 +73,11 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val);
  * @param array   The symbol object that refers to an array.
  * @param index   An expression that refers to a specific element of the array.
  * @returns The identifier of the register that (at runtime) will contain the
- *          value of the array element at position `index'. */
+ *          value of the array element at position `index' loaded from memory.*/
 t_regID genLoadArrayElement(
     t_program *program, t_symbol *array, t_expressionValue index);
 
-/** Generate instructions that store a value into a given array element.
+/** Generate instructions that store an expression value into an array element.
  * @param program The program where the array belongs.
  * @param array   The symbol object that refers to an array
  * @param index   An expression that refers to a specific element of the array.

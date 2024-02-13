@@ -338,11 +338,11 @@ write_statement
  * the rule is a struct of type `t_expressionValue', which wraps either a
  * integer representing a compile-time constant or a register ID.
  *   All semantic actions which implement expression operators must handle both
- * the case in which the operands are constants or register IDs.
- */
+ * the case in which the operands are expression values representing constants
+ * or register IDs. */
 exp
   : NUMBER
-  { 
+  {
     $$ = constantExpressionValue($1);
   }
   | var_id 
@@ -403,10 +403,10 @@ exp
   {
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       if ($3.immediate == 0) {
-        emitWarning(WARN_DIVISION_BY_ZERO);
+        emitWarning("division by zero");
         $$ = constantExpressionValue(INT_MAX);
       } else if ($1.immediate == INT_MIN && $3.immediate == -1) {
-        emitWarning(WARN_OVERFLOW);
+        emitWarning("overflow");
         $$ = constantExpressionValue(INT_MIN);
       } else
         $$ = constantExpressionValue($1.immediate / $3.immediate);
@@ -443,7 +443,7 @@ exp
   {
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       if ($3.immediate < 0 || $3.immediate >= 32)
-        emitWarning(WARN_INVALID_SHIFT_AMOUNT);
+        emitWarning("shift amount is less than 0 or greater than 31");
       $$ = constantExpressionValue($1.immediate << ($3.immediate & 0x1F));
     } else {
       $$ = registerExpressionValue(getNewRegister(program));
@@ -456,7 +456,7 @@ exp
   {
     if ($1.type == CONSTANT && $3.type == CONSTANT) {
       if ($3.immediate < 0 || $3.immediate >= 32)
-        emitWarning(WARN_INVALID_SHIFT_AMOUNT);
+        emitWarning("shift amount is less than 0 or greater than 31");
       int constRes = SHIFT_RIGHT_ARITH($1.immediate, $3.immediate & 0x1F);
       $$ = constantExpressionValue(constRes);
     } else {
@@ -586,10 +586,10 @@ var_id
 
 void yyerror(const char *msg)
 {
-  emitSyntaxError(msg);
+  emitError("%s", msg);
 }
 
-int parseProgram(t_program *program, FILE *fp)
+int parseProgram(FILE *fp)
 {
   /* Initialize all the global variables */
   line_num = 1;

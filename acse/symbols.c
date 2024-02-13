@@ -17,7 +17,7 @@ t_symbol *newSymbol(char *ID, t_symbolType type, int arraySize)
   /* allocate memory for the new variable */
   result = (t_symbol *)malloc(sizeof(t_symbol));
   if (result == NULL)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
 
   /* initialize the content of `result' */
   result->type = type;
@@ -47,12 +47,12 @@ t_symbol *createSymbol(
   assert(program != NULL);
   assert(ID != NULL);
   if (type != TYPE_INT && type != TYPE_INT_ARRAY)
-    fatalError(ERROR_INVALID_TYPE);
+    fatalError("invalid type"); // TODO: not fatal
 
   // Check if another symbol already exists with the same ID
   t_symbol *existingSym = getSymbol(program, ID);
   if (existingSym != NULL) {
-    emitError(ERROR_VARIABLE_ALREADY_DECLARED);
+    emitError("variable '%s' already declared", ID);
     return NULL;
   }
 
@@ -62,7 +62,7 @@ t_symbol *createSymbol(
   // Reserve a new label for the variable
   lblName = calloc(strlen(ID) + 8, sizeof(char));
   if (!lblName)
-    fatalError(ERROR_OUT_OF_MEMORY);
+    fatalError("out of memory");
   sprintf(lblName, "l_%s", ID);
   res->label = createLabel(program);
   setLabelName(program, res->label, lblName);
@@ -73,7 +73,7 @@ t_symbol *createSymbol(
   if (type == TYPE_INT_ARRAY) {
     // Check if the array size is valid
     if (arraySize <= 0) {
-      emitError(ERROR_INVALID_ARRAY_SIZE);
+      emitError("invalid size %d for array %s", arraySize, ID);
       return NULL;
     }
     sizeOfVar = (4 / TARGET_PTR_GRANULARITY) * arraySize;
@@ -171,7 +171,7 @@ t_regID genLoadVariable(t_program *program, t_symbol *var)
 {
   // Check if the symbol is an array; in that case bail out
   if (isArray(var))
-    fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
+    fatalError("'%s' is an array", var->ID); // TODO not fatal
   // Generate a LW from the address specified by the label
   t_regID reg = getNewRegister(program);
   genLWGlobal(program, reg, var->label);
@@ -183,7 +183,7 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
 {
   // Check if the symbol is an array; in that case bail out
   if (isArray(var))
-    fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
+    fatalError("'%s' is a scalar", var->ID); // TODO not fatal
   // Materialize the expression value
   t_regID r_val = genConvertExpValueToRegister(program, val);
   // Reserve a new register which is a temporary required
@@ -206,7 +206,7 @@ t_regID genLoadArrayAddress(
 {
   // Retrieve the label associated with the given identifier
   if (!isArray(array))
-    fatalError(ERROR_VARIABLE_TYPE_MISMATCH);
+    fatalError("'%s' is a scalar", array->ID);
   t_label *label = array->label;
 
   // Generate a load of the base address using LA
