@@ -154,15 +154,15 @@ bool compareLiveIntIDs(void *varA, void *varB)
   return liA->varID == liB->varID;
 }
 
-/* Update the liveness interval for the variable 'id', used or defined
+/* Update the liveness interval for the variable 'ID', used or defined
  * at position 'counter'. Returns an error code. */
-void updateVarInterval(t_cfgVar *var, int counter, t_listNode **intervals)
+void updateVarInterval(t_cfgReg *var, int counter, t_listNode **intervals)
 {
   t_listNode *element_found;
   t_liveInterval *interval_found;
   t_liveInterval pattern;
 
-  if (var->ID == RA_EXCLUDED_VARIABLE || var->ID == VAR_PSW)
+  if (var->ID == RA_EXCLUDED_VARIABLE)
     return;
 
   pattern.varID = var->ID;
@@ -190,7 +190,7 @@ void updateListOfIntervals(
     t_listNode **result, t_cfgNode *current_node, int counter)
 {
   t_listNode *current_element;
-  t_cfgVar *current_var;
+  t_cfgReg *current_var;
   int i;
 
   if (current_node == NULL)
@@ -198,7 +198,7 @@ void updateListOfIntervals(
 
   current_element = current_node->in;
   while (current_element != NULL) {
-    current_var = (t_cfgVar *)current_element->data;
+    current_var = (t_cfgReg *)current_element->data;
 
     updateVarInterval(current_var, counter, result);
 
@@ -208,7 +208,7 @@ void updateListOfIntervals(
 
   current_element = current_node->out;
   while (current_element != NULL) {
-    current_var = (t_cfgVar *)current_element->data;
+    current_var = (t_cfgReg *)current_element->data;
 
     updateVarInterval(current_var, counter, result);
 
@@ -570,7 +570,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   t_regAllocator *result; /* the register allocator */
   t_listNode *intervals;
   t_listNode *current_cflow_var;
-  t_cfgVar *cflow_var;
+  t_cfgReg *cflow_var;
   t_regID max_var_ID;
   int counter;
 
@@ -589,7 +589,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   current_cflow_var = graph->cflow_variables;
   while (current_cflow_var != NULL) {
     /* fetch the data informations about a variable */
-    cflow_var = (t_cfgVar *)current_cflow_var->data;
+    cflow_var = (t_cfgReg *)current_cflow_var->data;
     assert(cflow_var != NULL);
 
     /* update the value of max_var_ID */

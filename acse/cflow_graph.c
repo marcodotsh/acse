@@ -11,8 +11,8 @@
 
 static bool compareCFGVariables(void *a, void *b)
 {
-  t_cfgVar *varA = (t_cfgVar *)a;
-  t_cfgVar *varB = (t_cfgVar *)b;
+  t_cfgReg *varA = (t_cfgReg *)a;
+  t_cfgReg *varB = (t_cfgReg *)b;
 
   if (a == NULL && b == NULL)
     return true;
@@ -25,12 +25,12 @@ static bool compareCFGVariables(void *a, void *b)
 /* Alloc a new control flow graph variable object. If a variable object
  * referencing the same identifier already exists, returns the pre-existing
  * object. */
-t_cfgVar *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs)
+t_cfgReg *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs)
 {
   assert(graph != NULL);
 
   // alloc memory for a variable information
-  t_cfgVar *result = malloc(sizeof(t_cfgVar));
+  t_cfgReg *result = malloc(sizeof(t_cfgReg));
   if (result == NULL)
     fatalError("out of memory");
 
@@ -47,7 +47,7 @@ t_cfgVar *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs
     graph->cflow_variables = addElement(graph->cflow_variables, result, -1);
   } else {
     free(result);
-    result = (t_cfgVar *)elementFound->data;
+    result = (t_cfgReg *)elementFound->data;
     assert(result != NULL);
     assert(result->ID == identifier);
   }
@@ -74,7 +74,6 @@ t_cfgVar *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs
   return result;
 }
 
-/* set the def-use values for the current node */
 void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 {
   // preconditions
@@ -86,10 +85,9 @@ void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
   t_instruction *instr = node->instr;
 
   // initialize the values of varDest, varSource1 and varSource2 
-  t_cfgVar *varDest = NULL;
-  t_cfgVar *varSource1 = NULL;
-  t_cfgVar *varSource2 = NULL;
-  t_cfgVar *varPSW = cfgCreateVariable(graph, VAR_PSW, NULL);
+  t_cfgReg *varDest = NULL;
+  t_cfgReg *varSource1 = NULL;
+  t_cfgReg *varSource2 = NULL;
 
   // update the values of the variables 
   if (instr->reg_dest != NULL) {
@@ -110,15 +108,11 @@ void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 
   if (varDest)
     node->defs[def_i++] = varDest;
-  if (instructionDefinesPSW(instr))
-    node->defs[def_i++] = varPSW;
 
   if (varSource1)
     node->uses[use_i++] = varSource1;
   if (varSource1)
     node->uses[use_i++] = varSource2;
-  if (instructionUsesPSW(instr))
-    node->uses[use_i++] = varPSW;
 }
 
 t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr)
@@ -141,12 +135,12 @@ t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr)
   // set the def-uses for the current node 
   cfgComputeDefUses(graph, result);
 
-  // set the list of variables that are live in
+  // initialize the list of variables that are live in
   // and live out from the current node
   result->in = NULL;
   result->out = NULL;
 
-  // return the node 
+  // return the node
   return result;
 }
 
@@ -304,7 +298,7 @@ void deleteCFG(t_cfg *graph)
   if (graph->cflow_variables != NULL) {
     t_listNode *current_element = graph->cflow_variables;
     while (current_element != NULL) {
-      t_cfgVar *current_variable = (t_cfgVar *)current_element->data;
+      t_cfgReg *current_variable = (t_cfgReg *)current_element->data;
 
       if (current_variable != NULL) {
         freeList(current_variable->mcRegWhitelist);
@@ -610,8 +604,8 @@ t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
   return set;
 }
 
-t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFG_MAX_DEFS],
-    t_cfgVar *uses[CFG_MAX_USES], t_listNode *liveOut)
+t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
+    t_cfgReg *uses[CFG_MAX_USES], t_listNode *liveOut)
 {
   // Initialize live in set as equal to live out set
   t_listNode *liveIn = cloneList(liveOut);
@@ -620,10 +614,8 @@ t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFG_MAX_DEFS],
   for (int i = 0; i < CFG_MAX_USES; i++) {
     if (uses[i] == NULL)
       continue;
-#ifdef CFG_T0_ALWAYS_LIVE
-    if (uses[i]->ID == REG_0)
+    if (TARGET_REG_ZERO_IS_CONST && uses[i]->ID == REG_0)
       continue;
-#endif
     liveIn = addElementToSet(liveIn, uses[i], NULL, NULL);
   }
 
@@ -634,10 +626,8 @@ t_listNode *computeLiveInSetEquation(t_cfgVar *defs[CFG_MAX_DEFS],
 
     if (defs[def_i] == NULL)
       continue;
-#ifdef CFG_T0_ALWAYS_LIVE
-    if (defs[def_i]->ID == REG_0)
+    if (TARGET_REG_ZERO_IS_CONST && defs[def_i]->ID == REG_0)
       continue;
-#endif
 
     for (int use_i = 0; use_i < CFG_MAX_USES && !found; use_i++) {
       if (uses[use_i] && uses[use_i]->ID == defs[def_i]->ID)
@@ -753,11 +743,9 @@ void cfgComputeLiveness(t_cfg *graph)
   } while (modified);
 }
 
-void dumpCFlowGraphVariable(t_cfgVar *var, FILE *fout)
+void dumpCFlowGraphVariable(t_cfgReg *var, FILE *fout)
 {
-  if (var->ID == VAR_PSW) {
-    fprintf(fout, "PSW");
-  } else if (var->ID == VAR_UNDEFINED) {
+  if (var->ID == REG_INVALID) {
     fprintf(fout, "<!UNDEF!>");
   } else {
     char *reg = registerIDToString(var->ID, false);
@@ -766,7 +754,7 @@ void dumpCFlowGraphVariable(t_cfgVar *var, FILE *fout)
   }
 }
 
-static void dumpArrayOfVariables(t_cfgVar **array, int size, FILE *fout)
+static void dumpArrayOfVariables(t_cfgReg **array, int size, FILE *fout)
 {
   int foundVariables = 0;
   int i;
@@ -788,7 +776,7 @@ static void dumpArrayOfVariables(t_cfgVar **array, int size, FILE *fout)
 static void dumpListOfVariables(t_listNode *variables, FILE *fout)
 {
   t_listNode *current_element;
-  t_cfgVar *current_variable;
+  t_cfgReg *current_variable;
 
   if (variables == NULL)
     return;
@@ -797,7 +785,7 @@ static void dumpListOfVariables(t_listNode *variables, FILE *fout)
 
   current_element = variables;
   while (current_element != NULL) {
-    current_variable = (t_cfgVar *)current_element->data;
+    current_variable = (t_cfgReg *)current_element->data;
     dumpCFlowGraphVariable(current_variable, fout);
     if (current_element->next != NULL)
       fprintf(fout, ", ");
@@ -899,17 +887,17 @@ void cfgDump(t_cfg *graph, FILE *fout, bool verbose)
   fprintf(fout, "%s",
       "NOTE: Temporary registers are considered as variables of the\n"
       "intermediate language.\n");
-#ifdef CFG_T0_ALWAYS_LIVE
-  fprintf(fout, "%s",
-      "  Variable \'x0\' (which refers to the physical register \'zero\') "
-      "is\n"
-      "always considered LIVE-IN for each node of a basic block.\n"
-      "Thus, in the following control flow graph, \'x0\' will never appear\n"
-      "as LIVE-IN or LIVE-OUT variable for a statement.\n"
-      "  If you want to consider \'x0\' as a normal variable, you have to\n"
-      "un-define the macro CFG_T0_ALWAYS_LIVE in \"cflow_graph.h\"."
-      "\n\n");
-#endif
+  if (TARGET_REG_ZERO_IS_CONST) {
+    fprintf(fout, "%s",
+        "  Variable \'x0\' (which refers to the physical register \'zero\') "
+        "is\n"
+        "always considered LIVE-IN for each node of a basic block.\n"
+        "Thus, in the following control flow graph, \'x0\' will never appear\n"
+        "as LIVE-IN or LIVE-OUT variable for a statement.\n"
+        "  If you want to consider \'x0\' as a normal variable, you have to\n"
+        "un-define the macro TARGET_REG_ZERO_IS_CONST in \"cflow_graph.h\"."
+        "\n\n");
+  }
 
   fprintf(fout, "--------------\n");
   fprintf(fout, "  STATISTICS\n");

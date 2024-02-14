@@ -1,5 +1,5 @@
 /// @file cflow_graph.h
-/// @brief Control-Flow-Graph generation and related analyses
+/// @brief Control Flow Graph generation and related analyses
 
 #ifndef CFLOW_GRAPH_H
 #define CFLOW_GRAPH_H
@@ -9,15 +9,27 @@
 #include "program.h"
 #include "list.h"
 
-/* If this macro is defined, the control flow analysis will always consider
- * x0 as a LIVE IN temporary register (i.e. variable) */
-#define CFG_T0_ALWAYS_LIVE
+/** 
+ * @defgroup cflow_graph Control Flow Graph
+ * @brief Control Flow Graph generation and related analyses
+ * 
+ * Once the program has been translated to an initial assembly-like intermediate
+ * language, the compiler needs to allocate each temporary register to a
+ * physical register. However, the register allocation process requires
+ * computing the liveness intervals of all temporary registers, which in
+ * turn requires building the Control Flow Graph (CFG). These functions
+ * and data structures are used to perform the construction of the graph and
+ * the liveness analysis.
+ * @{
+ */
 
-/* Max number of defs and uses for each cfg node */
-#define CFG_MAX_DEFS 2
-#define CFG_MAX_USES 3
 
-/* Error codes */
+/// Maximum number of temporary register definitions for each node
+#define CFG_MAX_DEFS 1
+/// Maximum number of temporary register uses for each node
+#define CFG_MAX_USES 2
+
+/// Type for error codes returned by the CFG construction subsystem
 typedef int t_cfgError;
 enum {
   CFG_NO_ERROR = 0,
@@ -26,41 +38,39 @@ enum {
   CFG_ERROR_BBLOCK_ALREADY_INSERTED
 };
 
-/* Special variables */
-#define VAR_UNDEFINED (REG_INVALID)
-#define VAR_PSW       ((t_regID)(-2))
 
-
-/* A variable of the intermediate code */
-typedef struct t_cfgVar {
-  /* Variable identifier. Negative IDs are reserved for artificial
-   * variables which are not part of the code */
+/** Data structure which uniquely identifies a register used or defined by a
+ * node in a basic block */
+typedef struct {
+  /// Register identifier
   t_regID ID;
-  /* Physical register whitelist */
+  /// Physical register whitelist. Used by the register allocator.
   t_listNode *mcRegWhitelist;
-} t_cfgVar;
+} t_cfgReg;
 
-/* A Node exists only in a basic block. It defines a list of
- * def-uses and it is associated with a specific instruction
- * inside the code */
-typedef struct t_cfgNode {
-  /* set of variables defined by this node */
-  t_cfgVar *defs[CFG_MAX_DEFS];
-  /* set of variables that will be used by this node */
-  t_cfgVar *uses[CFG_MAX_USES];
-  /* a pointer to the instruction associated with this node */
+/** Node in a basic block. Represents an instruction, the temporary registers
+ * it uses and/or defines, and live temporary registers in/out of the node. */
+typedef struct {
+  /// Pointer to the instruction associated with this node
   t_instruction *instr;
-  /* variables that are live-in the current node */
+  /// Set of registers defined by this node ('def' set). NULL slots are ignored.
+  t_cfgReg *defs[CFG_MAX_DEFS];
+  /// Set of registers used by this node ('use' set). NULL slots are ignored
+  t_cfgReg *uses[CFG_MAX_USES];
+  /// Set of registers live at the entry of the node ('in' set).
   t_listNode *in;
-  /* variables that are live-out the current node */
+  /// Set of registers live at the exit of the node ('out' set).
   t_listNode *out;
 } t_cfgNode;
 
-/* an ordered list of nodes with only one predecessor and one successor */
-typedef struct t_basicBlock {
-  t_listNode *pred;  /* predecessors : a list of basic blocks */
-  t_listNode *succ;  /* successors : a list of basic blocks */
-  t_listNode *nodes; /* an ordered list of instructions */
+/** Structure representing a basic block, i.e. a segment of contiguous
+ * instructions with no branches in the middle. The use of basic blocks allows
+ * -- without loss of generality -- to minimize the number of edges in the
+ * Control Flow Graph, increasing the performance of code analysis. */
+typedef struct {
+  t_listNode *pred;  /// List of predecessors to this basic block.
+  t_listNode *succ;  /// List of successors to this basic block.
+  t_listNode *nodes; /// List of instructions in the block.
 } t_basicBlock;
 
 /** Data structure describing a control flow graph */
@@ -75,7 +85,8 @@ typedef struct t_cfg {
 } t_cfg;
 
 
-/* Nodes */
+/// @name Instruction Nodes 
+/// @{
 
 /** Allocate a new node for a given Control Flow Graph.
  *  @param graph The Control Flow Graph where the node will be put.
@@ -86,8 +97,11 @@ t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr);
  *  @param node The node to be freed. */
 void deleteCFGNode(t_cfgNode *node);
 
+/// @}
 
-/* Basic Blocks */
+
+/// @name Basic Blocks
+/// @{
 
 /** Allocate a new empty basic block
  *  @returns The new block. */
@@ -133,8 +147,11 @@ t_cfgError bbInsertNodeBefore(
 t_cfgError bbInsertNodeAfter(
     t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
 
+/// @}
 
-/* Control Flow Graph */
+
+/// @name Control Flow Graph construction
+/// @{
 
 /** Creates a new control flow graph (CFG) from a program.
  *  @param program The program to be analyzed and converted into a CFG.
@@ -174,8 +191,11 @@ int cfgIterateNodes(t_cfg *graph, void *context,
  *         new program. */
 void cfgToProgram(t_program *program, t_cfg *graph);
 
+/// @}
 
-/* Data Flow Analysis */
+
+/// @name Data Flow Analysis
+/// @{
 
 /** Computes graph-level liveness information of the variables.
  *  @param graph The control flow graph. */
@@ -194,8 +214,11 @@ t_listNode *bbGetLiveInVars(t_basicBlock *bblock);
  *          freed. */
 t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
 
+/// @}
 
-/* Utilities */
+
+/// @name Utilities
+/// @{
 
 /** Print debug information about the control flow graph.
  * @param graph The graph to log information about.
@@ -203,5 +226,12 @@ t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
  * @param verbose Pass a non-zero value to also print additional information
  *        about the liveness of the variables. */
 void cfgDump(t_cfg *graph, FILE *fout, bool verbose);
+
+/// @}
+
+
+/** 
+ * @}
+ */
 
 #endif

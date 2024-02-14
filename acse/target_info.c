@@ -44,18 +44,6 @@ bool isCallInstruction(t_instruction *instr)
 }
 
 
-bool instructionUsesPSW(t_instruction *instr)
-{
-  return false;
-}
-
-
-bool instructionDefinesPSW(t_instruction *instr)
-{
-  return false;
-}
-
-
 t_regID getSpillRegister(int i)
 {
   assert(i < NUM_SPILL_REGS);

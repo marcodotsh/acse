@@ -13,6 +13,8 @@
 /** Number of bytes for each memory address */
 #define TARGET_PTR_GRANULARITY 1
 
+#define TARGET_REG_ZERO_IS_CONST true
+
 /* Number of general-purpose registers usable by the register allocator. */
 #define NUM_GP_REGS 23
 
@@ -158,13 +160,6 @@ bool isHaltOrRetInstruction(t_instruction *instr);
 
 /** Returns true if `instr` is a function call instruction. */
 bool isCallInstruction(t_instruction *instr);
-
-
-/** Returns true if the instruction uses/defines the PSW (flags) register, 0
- * otherwise. Always returns zero on architectures that do not have a
- * flags register. */
-bool instructionUsesPSW(t_instruction *instr);
-bool instructionDefinesPSW(t_instruction *instr);
 
 
 /** Returns a register ID suitable for spill operations. The maximum index
