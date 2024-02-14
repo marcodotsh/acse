@@ -24,7 +24,7 @@
 t_listNode *addInstrAfter(
     t_program *program, t_listNode *prev, t_instruction *instr)
 {
-  program->instructions = addAfter(program->instructions, prev, (void *)instr);
+  program->instructions = listInsertAfter(program->instructions, prev, (void *)instr);
   if (prev == NULL)
     return program->instructions;
   return prev->next;
@@ -40,13 +40,13 @@ void setMCRegisterWhitelist(t_instrArg *regObj, ...)
   va_start(args, regObj);
   cur = va_arg(args, t_regID);
   while (cur != REG_INVALID) {
-    res = addElement(res, INT_TO_LIST_DATA(cur), -1);
+    res = listInsert(res, INT_TO_LIST_DATA(cur), -1);
     cur = va_arg(args, t_regID);
   }
   va_end(args);
 
   if (regObj->mcRegWhitelist)
-    freeList(regObj->mcRegWhitelist);
+    deleteList(regObj->mcRegWhitelist);
   regObj->mcRegWhitelist = res;
 }
 

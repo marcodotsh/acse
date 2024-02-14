@@ -59,7 +59,7 @@ t_listNode *getListOfGenPurposeRegisters(void)
   t_listNode *res = NULL;
 
   for (int i = NUM_GP_REGS - 1; i >= 0; i--) {
-    res = addElement(res, INT_TO_LIST_DATA(regs[i]), 0);
+    res = listInsert(res, INT_TO_LIST_DATA(regs[i]), 0);
   }
   return res;
 }
@@ -68,7 +68,7 @@ t_listNode *getListOfRegisters(void)
 {
   t_listNode *res = NULL;
   for (int i = 1; i < NUM_REGISTERS; i++) {
-    res = addElement(res, INT_TO_LIST_DATA(i), 0);
+    res = listInsert(res, INT_TO_LIST_DATA(i), 0);
   }
   return res;
 }
@@ -81,7 +81,7 @@ t_listNode *getListOfCallerSaveRegisters(void)
   t_listNode *res = NULL;
 
   for (int i = 0; regs[i] != REG_INVALID; i++) {
-    res = addElement(res, INT_TO_LIST_DATA(regs[i]), 0);
+    res = listInsert(res, INT_TO_LIST_DATA(regs[i]), 0);
   }
   return res;
 }

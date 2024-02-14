@@ -91,7 +91,7 @@ t_liveInterval *newLiveInterval(
 
   /* initialize the new instance */
   result->varID = varID;
-  result->mcRegConstraints = cloneList(mcRegs);
+  result->mcRegConstraints = listClone(mcRegs);
   result->startPoint = startPoint;
   result->endPoint = endPoint;
 
@@ -168,7 +168,7 @@ void updateVarInterval(t_cfgReg *var, int counter, t_listNode **intervals)
   pattern.varID = var->ID;
   /* search for the current live interval */
   element_found =
-      findElementWithCallback(*intervals, &pattern, compareLiveIntIDs);
+      listFindWithCallback(*intervals, &pattern, compareLiveIntIDs);
   if (element_found != NULL) {
     interval_found = (t_liveInterval *)element_found->data;
     /* update the interval informations */
@@ -180,7 +180,7 @@ void updateVarInterval(t_cfgReg *var, int counter, t_listNode **intervals)
     /* we have to add a new live interval */
     interval_found =
         newLiveInterval(var->ID, var->mcRegWhitelist, counter, counter);
-    *intervals = addElement(*intervals, interval_found, -1);
+    *intervals = listInsert(*intervals, interval_found, -1);
   }
 }
 
@@ -253,7 +253,7 @@ void deleteLiveIntervals(t_listNode *intervals)
   }
 
   /* deallocate the list of intervals */
-  freeList(intervals);
+  deleteList(intervals);
 }
 
 /* Perform live intervals computation. Returns an error code. */
@@ -273,14 +273,14 @@ bool insertLiveInterval(t_regAllocator *RA, t_liveInterval *interval)
   assert(interval != NULL);
 
   // test if an interval for the requested variable is already inserted
-  if (findElementWithCallback(
+  if (listFindWithCallback(
           RA->live_intervals, interval, compareLiveIntIDs) != NULL) {
     return false;
   }
 
   // add the given interval to the list, in order of starting point
   RA->live_intervals =
-      addSorted(RA->live_intervals, interval, compareLiveIntStartPoints);
+      listInsertSorted(RA->live_intervals, interval, compareLiveIntStartPoints);
 
   return true;
 }
@@ -312,7 +312,7 @@ void insertListOfIntervals(t_regAllocator *RA, t_listNode *intervals)
 t_listNode *subtractRegisterSets(t_listNode *a, t_listNode *b)
 {
   for (; b; b = b->next) {
-    a = removeElementWithData(a, b->data);
+    a = listFindAndRemove(a, b->data);
   }
   return a;
 }
@@ -323,9 +323,9 @@ t_listNode *optimizeRegisterSet(t_listNode *a, t_listNode *b)
 {
   for (; b; b = b->next) {
     t_listNode *old;
-    if ((old = findElement(a, b->data))) {
-      a = removeElement(a, old);
-      a = addElement(a, b->data, 0);
+    if ((old = listFind(a, b->data))) {
+      a = listRemoveNode(a, old);
+      a = listInsert(a, b->data, 0);
     }
   }
   return a;
@@ -434,10 +434,10 @@ t_regID assignRegister(t_regAllocator *RA, t_listNode *constraints)
     t_listNode *freeReg;
 
     regID = (t_regID)LIST_DATA_TO_INT(i->data);
-    freeReg = findElementWithCallback(
+    freeReg = listFindWithCallback(
         RA->freeRegisters, INT_TO_LIST_DATA(regID), compareFreeRegListNodes);
     if (freeReg) {
-      RA->freeRegisters = removeElement(RA->freeRegisters, freeReg);
+      RA->freeRegisters = listRemoveNode(RA->freeRegisters, freeReg);
       return regID;
     }
   }
@@ -462,21 +462,21 @@ t_listNode *spillAtInterval(
     return active_intervals;
   }
 
-  last_element = getLastElement(active_intervals);
+  last_element = listGetLastNode(active_intervals);
   last_interval = (t_liveInterval *)last_element->data;
 
   /* If the current interval ends before the last one, spill
    * the last one, otherwise spill the current interval. */
   if (last_interval->endPoint > interval->endPoint) {
     t_regID attempt = RA->bindings[last_interval->varID];
-    if (findElement(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
+    if (listFind(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
       RA->bindings[interval->varID] = RA->bindings[last_interval->varID];
       RA->bindings[last_interval->varID] = RA_SPILL_REQUIRED;
 
-      active_intervals = removeElementWithData(active_intervals, last_interval);
+      active_intervals = listFindAndRemove(active_intervals, last_interval);
 
       active_intervals =
-          addSorted(active_intervals, interval, compareLiveIntEndPoints);
+          listInsertSorted(active_intervals, interval, compareLiveIntEndPoints);
       return active_intervals;
     }
   }
@@ -522,10 +522,10 @@ t_listNode *expireOldIntervals(
       t_regID curIntReg = RA->bindings[current_interval->varID];
       if (curIntReg >= 0) {
         t_listNode *allocated =
-            addElement(NULL, INT_TO_LIST_DATA(curIntReg), 0);
+            listInsert(NULL, INT_TO_LIST_DATA(curIntReg), 0);
         interval->mcRegConstraints =
             optimizeRegisterSet(interval->mcRegConstraints, allocated);
-        freeList(allocated);
+        deleteList(allocated);
       }
     }
 
@@ -534,10 +534,10 @@ t_listNode *expireOldIntervals(
 
     /* Remove the current element from the list */
     active_intervals =
-        removeElementWithData(active_intervals, current_interval);
+        listFindAndRemove(active_intervals, current_interval);
 
     /* Free all the registers associated with the removed interval */
-    RA->freeRegisters = addElement(RA->freeRegisters,
+    RA->freeRegisters = listInsert(RA->freeRegisters,
         INT_TO_LIST_DATA(RA->bindings[current_interval->varID]), 0);
 
     /* Step to the next interval */
@@ -559,7 +559,7 @@ void deleteRegAllocator(t_regAllocator *RA)
 
   /* Free memory used for the variable/register bindings */
   free(RA->bindings);
-  freeList(RA->freeRegisters);
+  deleteList(RA->freeRegisters);
 
   free(RA);
 }
@@ -586,7 +586,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
 
   /* retrieve the max identifier from each live interval */
   max_var_ID = 0;
-  current_cflow_var = graph->cflow_variables;
+  current_cflow_var = graph->registers;
   while (current_cflow_var != NULL) {
     /* fetch the data informations about a variable */
     cflow_var = (t_cfgReg *)current_cflow_var->data;
@@ -621,7 +621,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
     insertListOfIntervals(result, intervals);
     /* deallocate memory used to hold the results of the
      * liveness analysis */
-    freeList(intervals);
+    deleteList(intervals);
   } else {
     result->live_intervals = NULL;
   }
@@ -678,13 +678,13 @@ void executeLinearScan(t_regAllocator *RA)
 
       /* Add the current interval to the list of active intervals, in
        * order of ending points (to allow easier expire management) */
-      active_intervals = addSorted(
+      active_intervals = listInsertSorted(
           active_intervals, current_interval, compareLiveIntEndPoints);
     }
   }
 
   /* free the list of active intervals */
-  freeList(active_intervals);
+  deleteList(active_intervals);
 }
 
 
@@ -736,7 +736,7 @@ void deleteListOfTempLabels(t_listNode *tempLabels)
   }
 
   /* free the list links */
-  freeList(tempLabels);
+  deleteList(tempLabels);
 }
 
 /* For each spilled variable, this function statically allocates memory for
@@ -772,7 +772,7 @@ t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
     genDataDirective(program, DIR_WORD, 0, axe_label);
 
     /* add the current tlabel to the list of labelbindings */
-    result = addElement(result, tlabel, -1);
+    result = listInsert(result, tlabel, -1);
   }
 
   return result;
@@ -790,7 +790,7 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
 
   pattern.regID = temp_register;
   elementFound =
-      findElementWithCallback(labelBindings, &pattern, compareTempLabels);
+      listFindWithCallback(labelBindings, &pattern, compareTempLabels);
 
   if (elementFound == NULL)
     return ERROR_INVALID_CFLOW_GRAPH;
@@ -827,7 +827,7 @@ int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
 
   pattern.regID = temp_register;
   elementFound =
-      findElementWithCallback(labelBindings, &pattern, compareTempLabels);
+      listFindWithCallback(labelBindings, &pattern, compareTempLabels);
 
   if (elementFound == NULL)
     return ERROR_INVALID_CFLOW_GRAPH;

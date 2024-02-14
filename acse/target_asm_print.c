@@ -1,6 +1,7 @@
 /// @file target_asm_print.c
 
 #include <assert.h>
+#include <string.h>
 #include "utils.h"
 #include "target_asm_print.h"
 #include "target_info.h"
@@ -576,9 +577,9 @@ int translateDataSegment(t_program *program, FILE *fp)
 void writeAssembly(t_program *program, FILE *fp)
 {
   debugPrintf(" -> Code segment size: %d instructions\n",
-      getLength(program->instructions));
-  debugPrintf(" -> Data segment size: %d elements\n", getLength(program->data));
-  debugPrintf(" -> Number of labels: %d\n", getLength(program->labels));
+      listLength(program->instructions));
+  debugPrintf(" -> Data segment size: %d elements\n", listLength(program->data));
+  debugPrintf(" -> Number of labels: %d\n", listLength(program->labels));
 
   if (translateForwardDeclarations(program, fp) < 0)
     fatalError("error writing to the assembly output file");

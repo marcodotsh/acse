@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 #include "symbols.h"
 #include "gencode.h"
 #include "utils.h"
@@ -83,7 +84,7 @@ t_symbol *createSymbol(
   genDataDirective(program, DIR_SPACE, sizeOfVar, res->label);
 
   // Now we can add the new variable to the program
-  program->variables = addElement(program->variables, res, -1);
+  program->variables = listInsert(program->variables, res, -1);
   return res;
 }
 
@@ -111,7 +112,7 @@ void deleteSymbols(t_listNode *variables)
   }
 
   /* free the list of variables */
-  freeList(variables);
+  deleteList(variables);
 }
 
 
@@ -156,7 +157,7 @@ t_symbol *getSymbol(t_program *program, char *ID)
   search_pattern.ID = ID;
 
   /* search inside the list of variables */
-  elementFound = findElementWithCallback(
+  elementFound = listFindWithCallback(
       program->variables, &search_pattern, compareVariables);
 
   /* if the element is found return it to the caller. Otherwise return NULL. */

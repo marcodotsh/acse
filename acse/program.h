@@ -5,9 +5,9 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include "list.h"
 #include <limits.h>
-
+#include <stdio.h>
+#include "list.h"
 
 typedef int t_regID;
 

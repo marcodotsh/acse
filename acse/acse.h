@@ -19,6 +19,23 @@
  * This compiler which accepts a program in a simplified C-like language called
  * LANCE (Language for Compiler Education), and produces a compiled program in
  * standard RISC-V RV32IM assembly language.
+ * 
+ * ## Function naming conventions
+ * 
+ * ACSE follows a consistent naming convention for all functions, in order
+ * to introduce a simple form of namespacing and group functions with a similar
+ * role. Specifically:
+ *  - Functions that allocate and initialize a structure are named starting
+ *    with "new"
+ *  - Functions that allocate and initialize a structure, and then add it to
+ *    a parent object are named starting with "create"
+ *  - Functions that deinitialize and deallocate a structure are named
+ *    starting with "delete"
+ *  - Functions that operate on a given structure type are named with a prefix
+ *    that represent the structure. Exception is made for functions that
+ *    modify a t_program structure, which may have no specific prefix.
+ *  - Functions that add instructions to the program are named starting with
+ *    "gen".
  */
 
 /* Errors */

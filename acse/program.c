@@ -114,15 +114,15 @@ void deleteInstruction(t_instruction *inst)
 
   /* free memory */
   if (inst->reg_dest != NULL) {
-    freeList(inst->reg_dest->mcRegWhitelist);
+    deleteList(inst->reg_dest->mcRegWhitelist);
     free(inst->reg_dest);
   }
   if (inst->reg_src1 != NULL) {
-    freeList(inst->reg_src1->mcRegWhitelist);
+    deleteList(inst->reg_src1->mcRegWhitelist);
     free(inst->reg_src1);
   }
   if (inst->reg_src2 != NULL) {
-    freeList(inst->reg_src2->mcRegWhitelist);
+    deleteList(inst->reg_src2->mcRegWhitelist);
     free(inst->reg_src2);
   }
   if (inst->user_comment != NULL) {
@@ -159,7 +159,7 @@ void deleteGlobals(t_listNode *dataDirectives)
   }
 
   /* free the list of instructions */
-  freeList(dataDirectives);
+  deleteList(dataDirectives);
 }
 
 void deleteInstructions(t_listNode *instructions)
@@ -182,7 +182,7 @@ void deleteInstructions(t_listNode *instructions)
   }
 
   /* free the list of instructions */
-  freeList(instructions);
+  deleteList(instructions);
 }
 
 void deleteLabels(t_listNode *labels)
@@ -204,7 +204,7 @@ void deleteLabels(t_listNode *labels)
     current_element = current_element->next;
   }
 
-  freeList(labels);
+  deleteList(labels);
 }
 
 /* initialize an instance of `t_program' */
@@ -279,7 +279,7 @@ t_label *createLabel(t_program *program)
   program->current_label_ID++;
 
   /* add the new label to the list of labels */
-  program->labels = addElement(program->labels, result, -1);
+  program->labels = listInsert(program->labels, result, -1);
 
   /* return the new label */
   return result;
@@ -457,7 +457,7 @@ void addInstruction(t_program *program, t_instruction *instr)
   prev_line_num = line_num;
 
   /* update the list of instructions */
-  program->instructions = addElement(program->instructions, instr, -1);
+  program->instructions = listInsert(program->instructions, instr, -1);
 }
 
 t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
@@ -510,7 +510,7 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
       if (!nextInst || (nextInst->label)) {
         nextInst = genNOP(NULL);
         program->instructions =
-            addAfter(program->instructions, instrLi, nextInst);
+            listInsertAfter(program->instructions, instrLi, nextInst);
       }
       nextInst->label = instrToRemove->label;
       instrToRemove->label = NULL;
@@ -524,7 +524,7 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
   }
 
   /* remove the instruction */
-  program->instructions = removeElement(program->instructions, instrLi);
+  program->instructions = listRemoveNode(program->instructions, instrLi);
   deleteInstruction(instrToRemove);
 }
 
@@ -550,7 +550,7 @@ t_global *genDataDirective(
   assert(program);
 
   res = newGlobal(type, value, label);
-  program->data = addElement(program->data, res, -1);
+  program->data = listInsert(program->data, res, -1);
   return res;
 }
 
@@ -568,7 +568,7 @@ void genProgramEpilog(t_program *program)
     t_listNode *last_element;
 
     /* get the last element of the list */
-    last_element = getLastElement(program->instructions);
+    last_element = listGetLastNode(program->instructions);
     assert(last_element != NULL);
 
     /* retrieve the last instruction */

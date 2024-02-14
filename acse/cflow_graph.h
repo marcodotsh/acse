@@ -80,8 +80,8 @@ typedef struct t_cfg {
   /// Unique final basic block. The control flow must eventually reach here.
   /// This block is always empty, and is not part of the 'blocks' list.
   t_basicBlock *endingBlock;
-  /// List of all temporary identifiers
-  t_listNode *cflow_variables;
+  /// List of all temporary registers used in the program
+  t_listNode *registers;
 } t_cfg;
 
 
@@ -155,8 +155,6 @@ t_cfgError bbInsertNodeAfter(
 
 /** Creates a new control flow graph (CFG) from a program.
  *  @param program The program to be analyzed and converted into a CFG.
- *  @param error Points to a variable that will be set to an error
- *               code if an error occurs.
  *  @returns The new control flow graph, or NULL in case of error. */
 t_cfg *programToCFG(t_program *program);
 /** Frees a control flow graph.
