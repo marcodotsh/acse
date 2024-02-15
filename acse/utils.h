@@ -27,7 +27,7 @@ typedef struct {
 } t_ifStatement;
 
 /** Utility structure used to store information about a while statement. */
-typedef struct t_whileStatement {
+typedef struct {
   t_label *l_loop;  ///< Label to the beginning of the loop
   t_label *l_exit;  ///< Label to the first instruction after the loop
 } t_whileStatement;
@@ -36,7 +36,7 @@ typedef struct t_whileStatement {
 #define CONSTANT 0
 #define REGISTER 1
 
-typedef struct t_expressionValue {
+typedef struct {
   int type;       /* REGISTER or CONSTANT */
   int immediate;  /* an immediate value (only when type is CONSTANT) */
   t_regID registerId; /* a register ID (only when type is REGISTER) */

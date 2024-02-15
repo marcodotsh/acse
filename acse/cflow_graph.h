@@ -23,7 +23,6 @@
  * @{
  */
 
-
 /// Maximum number of temporary register definitions for each node
 #define CFG_MAX_DEFS 1
 /// Maximum number of temporary register uses for each node
