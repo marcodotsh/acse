@@ -177,7 +177,7 @@ t_listNode *listRemoveNode(t_listNode *list, t_listNode *element)
       element->next->prev = element->prev;
   } else {
     // head of the list
-    assert(list == element);
+    assert(list == element && "element to remove not belonging to the list");
 
     if (element->next != NULL) {
       element->next->prev = NULL;

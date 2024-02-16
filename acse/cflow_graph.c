@@ -9,17 +9,14 @@
 #include "target_asm_print.h"
 
 
-static bool compareCFGVariables(void *a, void *b)
+static bool compareCFGVarAndRegID(void *a, void *b)
 {
-  t_cfgReg *varA = (t_cfgReg *)a;
-  t_cfgReg *varB = (t_cfgReg *)b;
+  t_cfgReg *cfgReg = (t_cfgReg *)a;
+  t_regID id = *((t_regID *)b);
 
-  if (a == NULL && b == NULL)
-    return true;
-  if (a == NULL || b == NULL)
+  if (cfgReg == NULL)
     return false;
-
-  return varA->ID == varB->ID;
+  return cfgReg->ID == id;
 }
 
 /* Alloc a new control flow graph variable object. If a variable object
@@ -27,29 +24,23 @@ static bool compareCFGVariables(void *a, void *b)
  * object. */
 t_cfgReg *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs)
 {
-  assert(graph != NULL);
-
-  // alloc memory for a variable information
-  t_cfgReg *result = malloc(sizeof(t_cfgReg));
-  if (result == NULL)
-    fatalError("out of memory");
-
-  // update the value of result
-  result->ID = identifier;
-  result->mcRegWhitelist = NULL;
-
-  // test if a variable with the same identifier was already present
+  // Test if a variable with the same identifier is already present.
   t_listNode *elementFound = listFindWithCallback(
-      graph->registers, result, compareCFGVariables);
+      graph->registers, &identifier, compareCFGVarAndRegID);
 
-  if (elementFound == NULL) {
-    // update the set of variables
-    graph->registers = listInsert(graph->registers, result, -1);
-  } else {
-    free(result);
+  t_cfgReg *result;
+  if (elementFound) {
+    // It's there: just use it
     result = (t_cfgReg *)elementFound->data;
-    assert(result != NULL);
-    assert(result->ID == identifier);
+  } else {
+    // If it's not there it needs to be created
+    result = malloc(sizeof(t_cfgReg));
+    if (result == NULL)
+      fatalError("out of memory");
+    result->ID = identifier;
+    result->mcRegWhitelist = NULL;
+    // Insert it in the list of registers
+    graph->registers = listInsert(graph->registers, result, -1);
   }
 
   // copy the machine register allocation constraint, or compute the
@@ -67,7 +58,8 @@ t_cfgReg *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs
         }
         thisReg = nextReg;
       }
-      assert(result->mcRegWhitelist);
+      if (result->mcRegWhitelist == NULL)
+        fatalError("unsatisfiable register constraints on t%d", identifier);
     }
   }
 
@@ -76,20 +68,12 @@ t_cfgReg *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs
 
 void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 {
-  // preconditions
-  assert(graph != NULL);
-  assert(node != NULL);
-  assert(node->instr != NULL);
-
-  // update the value of `instr' 
   t_instruction *instr = node->instr;
 
-  // initialize the values of varDest, varSource1 and varSource2 
+  // Create or lookup CFG register objects for all arguments
   t_cfgReg *varDest = NULL;
   t_cfgReg *varSource1 = NULL;
   t_cfgReg *varSource2 = NULL;
-
-  // update the values of the variables 
   if (instr->reg_dest != NULL) {
     varDest = cfgCreateVariable(
         graph, (instr->reg_dest)->ID, instr->reg_dest->mcRegWhitelist);
@@ -103,12 +87,11 @@ void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
         graph, (instr->reg_src2)->ID, instr->reg_src2->mcRegWhitelist);
   }
 
+  // Fill the def/use sets for this node
   int def_i = 0;
-  int use_i = 0;
-
   if (varDest)
     node->defs[def_i++] = varDest;
-
+  int use_i = 0;
   if (varSource1)
     node->uses[use_i++] = varSource1;
   if (varSource1)
@@ -117,30 +100,19 @@ void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 
 t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr)
 {
-  assert(graph != NULL);
-  assert(instr != NULL);
-
-  // create a new instance of type `t_cflow_node' 
   t_cfgNode *result = malloc(sizeof(t_cfgNode));
   if (result == NULL)
     fatalError("out of memory");
 
-  // initialize result 
   for (int i = 0; i < CFG_MAX_DEFS; i++)
     result->defs[i] = NULL;
   for (int i = 0; i < CFG_MAX_USES; i++)
     result->uses[i] = NULL;
   result->instr = instr;
-
-  // set the def-uses for the current node 
-  cfgComputeDefUses(graph, result);
-
-  // initialize the list of variables that are live in
-  // and live out from the current node
   result->in = NULL;
   result->out = NULL;
+  cfgComputeDefUses(graph, result);
 
-  // return the node
   return result;
 }
 
@@ -193,9 +165,6 @@ void deleteBasicBlock(t_basicBlock *block)
 
 void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 {
-  assert(block != NULL);
-  assert(pred != NULL);
-
   // do not insert if the block is already inserted in the list of predecessors 
   if (listFind(block->pred, pred) == NULL) {
     block->pred = listInsert(block->pred, pred, -1);
@@ -205,9 +174,6 @@ void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 
 void bbAddSucc(t_basicBlock *block, t_basicBlock *succ)
 {
-  assert(block != NULL);
-  assert(succ != NULL);
-
   // do not insert if the node is already inserted in the list of successors 
   if (listFind(block->succ, succ) == NULL) {
     block->succ = listInsert(block->succ, succ, -1);
@@ -217,9 +183,6 @@ void bbAddSucc(t_basicBlock *block, t_basicBlock *succ)
 
 t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *node)
 {
-  assert(block != NULL);
-  assert(node != NULL && node->instr != NULL);
-
   if (listFind(block->nodes, node) != NULL)
     return CFG_ERROR_NODE_ALREADY_INSERTED;
   
@@ -230,9 +193,6 @@ t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *node)
 t_cfgError bbInsertNodeBefore(
     t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node)
 {
-  assert(block != NULL);
-  assert(new_node != NULL && new_node->instr != NULL && before_node != NULL);
-
   t_listNode *before_node_elem = listFind(block->nodes, before_node);
   if (before_node_elem == NULL)
     return CFG_ERROR_INVALID_NODE;
@@ -248,9 +208,6 @@ t_cfgError bbInsertNodeBefore(
 t_cfgError bbInsertNodeAfter(
     t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node)
 {
-  assert(block != NULL);
-  assert(new_node != NULL && new_node->instr != NULL && after_node != NULL);
-
   t_listNode *after_node_elem = listFind(block->nodes, after_node);
   if (after_node_elem == NULL)
     return CFG_ERROR_INVALID_NODE;
@@ -284,7 +241,6 @@ void deleteCFG(t_cfg *graph)
   t_listNode *current_element = graph->blocks;
   while (current_element != NULL) {
     t_basicBlock *current_block = (t_basicBlock *)current_element->data;
-    assert(current_block != NULL);
 
     deleteBasicBlock(current_block);
 
@@ -317,7 +273,6 @@ void deleteCFG(t_cfg *graph)
 /* look up for a label inside the graph */
 static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
 {
-  assert(graph != NULL);
   if (label == NULL)
     return NULL;
 
@@ -325,13 +280,10 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
   t_listNode *current_element = graph->blocks;
   while (current_element != NULL) {
     bblock = (t_basicBlock *)current_element->data;
-    assert(bblock != NULL);
-    assert(bblock->nodes != NULL);
 
     // Check the first node of the basic block. If its instruction has a label,
     // check if it's the label we are searching fore.
     t_cfgNode *current_node = (t_cfgNode *)bblock->nodes->data;
-    assert(current_node != NULL);
     if ((current_node->instr)->label != NULL) {
       if ((current_node->instr)->label->labelID == label->labelID)
         // Found!
@@ -347,22 +299,17 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
 /* test if the current instruction `instr' is a labelled instruction */
 bool instrIsStartingNode(t_instruction *instr)
 {
-  assert(instr != NULL);
   return instr->label != NULL;
 }
 
 /* test if the current instruction will end a basic block */
 bool instrIsEndingNode(t_instruction *instr)
 {
-  assert(instr != NULL);
   return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
 }
 
 t_cfgError cfgInsertBlock(t_cfg *graph, t_basicBlock *block)
 {
-  assert(graph != NULL);
-  assert(block != NULL);
-
   if (listFind(graph->blocks, block) != NULL)
     return CFG_ERROR_BBLOCK_ALREADY_INSERTED;
 
@@ -381,16 +328,11 @@ static void cfgComputeTransitions(t_cfg *graph)
   t_listNode *current_element = graph->blocks;
   while (current_element != NULL) {
     t_basicBlock *current_block = (t_basicBlock *)current_element->data;
-    assert(current_block != NULL);
-    assert(current_block->nodes != NULL);
 
     // Get the last instruction in the basic block
     t_listNode *last_element = listGetLastNode(current_block->nodes);
-    assert(last_element != NULL);
     t_cfgNode *last_node = (t_cfgNode *)last_element->data;
-    assert(last_node != NULL);
     t_instruction *last_instruction = last_node->instr;
-    assert(last_instruction != NULL);
 
     // If the instruction is return-like of exit-like, by definition the next
     // block is the ending block because it stops the program/subroutine.
@@ -422,7 +364,6 @@ static void cfgComputeTransitions(t_cfg *graph)
       if (next_element != NULL) {
         // The current basic block has a successor in the list, all is fine
         t_basicBlock *nextBlock = next_element->data;
-        assert(nextBlock != NULL);
         bbAddSucc(current_block, nextBlock);
         bbAddPred(nextBlock, current_block);
       } else {
@@ -439,7 +380,6 @@ static void cfgComputeTransitions(t_cfg *graph)
 
 t_cfg *programToCFG(t_program *program)
 {
-  assert(program != NULL);
   t_listNode *instructions = program->instructions;
 
   // alloc memory for a new control flow graph
@@ -459,7 +399,6 @@ t_cfg *programToCFG(t_program *program)
   t_listNode *current_element = instructions;
   while (current_element != NULL) {
     t_instruction *current_instr = (t_instruction *)current_element->data;
-    assert(current_instr != NULL);
 
     // create the next node to insert in the block
     t_cfgNode *current_node = cfgCreateNode(result, current_instr);
@@ -522,9 +461,6 @@ int cfgIterateNodes(t_cfg *graph, void *context,
 
 void cfgToProgram(t_program *program, t_cfg *graph)
 {
-  assert(program != NULL);
-  assert(graph != NULL);
-
   // Erase the old code segment
   program->instructions = deleteList(program->instructions);
 
@@ -555,8 +491,6 @@ t_listNode *bbGetLiveOutVars(t_basicBlock *bblock)
 
   t_listNode *last = listGetLastNode(bblock->nodes);
   t_cfgNode *lastNode = (t_cfgNode *)last->data;
-  assert(lastNode != NULL);
-
   return listClone(lastNode->out);
 }
 
@@ -568,8 +502,6 @@ t_listNode *bbGetLiveInVars(t_basicBlock *bblock)
     return NULL;
 
   t_cfgNode *firstNode = (t_cfgNode *)bblock->nodes->data;
-  assert(firstNode != NULL);
-
   return listClone(firstNode->in);
 }
 
@@ -646,15 +578,11 @@ t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
  *   out(block) = union in(block') for all successor block' */
 t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 {
-  assert(block != NULL);
-  assert(graph != NULL);
-
   // Iterate through all the successor blocks
   t_listNode *result = NULL;
   t_listNode *current_elem = block->succ;
   while (current_elem != NULL) {
     t_basicBlock *current_succ = (t_basicBlock *)current_elem->data;
-    assert(current_succ != NULL);
 
     if (current_succ != graph->endingBlock) {
       // Update our block's 'out' set by adding all variables 'in' to the
@@ -672,8 +600,6 @@ t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 
 static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
 {
-  assert(bblock != NULL && bblock->nodes != NULL);
-
   // Keep track of whether we modified something or not
   int modified = 0;
 
@@ -687,7 +613,6 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
   while (curLI != NULL) {
     // Get the current CFG node
     t_cfgNode *curNode = (t_cfgNode *)curLI->data;
-    assert(curNode != NULL);
 
     // Live out of a block is equal to the union of the live in sets of the
     // successors
@@ -717,14 +642,10 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
 
 static bool cfgPerformLivenessIteration(t_cfg *graph)
 {
-  assert(graph != NULL);
-  assert(graph->endingBlock != NULL);
-
   bool modified = false;
   t_listNode *current_element = listGetLastNode(graph->blocks);
   while (current_element != NULL) {
     t_basicBlock *current_bblock = (t_basicBlock *)current_element->data;
-    assert(current_bblock != NULL);
 
     // update the liveness informations for the current bblock
     if (cfgUpdateLivenessOfNodesInBlock(graph, current_bblock))

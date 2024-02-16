@@ -123,6 +123,8 @@ t_listNode *listFind(t_listNode *list, void *data);
  * @param compareFunc   A function that is used to determine if two data
  *                      pointers are equal or not. Shall return true only if
  *                      the two data items are considered equal.
+ *                      The first argument is always a data item from the list,
+ *                      the second is always equal to the 'data' argument.
  * @returns The first list element that satisfies the comparison function,
  *          or NULL if no such element is in the list. */
 t_listNode *listFindWithCallback(
