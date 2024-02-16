@@ -5,26 +5,32 @@
 #define TARGET_INFO_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "program.h"
 
-/** Name of the target architecture */
+/// Signed data type with the same size of a target register
+typedef int32_t t_regInt;
+
+/// Name of the target architecture
 #define TARGET_NAME "RISC-V_RV32IM"
 
-/** Number of bytes for each memory address */
+/// Number of bytes for each memory address
 #define TARGET_PTR_GRANULARITY 1
 
+/// Defined to 'true' if the target has a 'zero' register whose value is always
+/// the constant zero.
 #define TARGET_REG_ZERO_IS_CONST true
 
-/* Number of general-purpose registers usable by the register allocator. */
+/// Number of general-purpose registers usable by the register allocator.
 #define NUM_GP_REGS 23
 
-/* Number of registers available for spilled temporaries. Should be equal to
- * the maximum number of unique register operands in a single instruction. */
+/// Number of registers available for spilled temporaries. Should be equal to
+/// the maximum number of unique register operands in a single instruction.
 #define NUM_SPILL_REGS 3
 
-/** Register names */
+/// Register names
 enum {
-  REG_ZERO = REG_0,
+  REG_ZERO = 0,
   REG_RA,
   REG_SP,
   REG_GP,
@@ -59,11 +65,12 @@ enum {
   NUM_REGISTERS
 };
 
-/** Opcode IDs used internally by ACSE to identify the various instructions.
- *   Some opcodes are labeled "pseudo" if they need to be transformed to a
+/** @brief Opcode IDs used internally by ACSE to identify the various
+ * instructions.
+ * 
+ * Some opcodes are labeled "pseudo" if they need to be transformed to a
  * sequence of other non-pseudo opcodes before emitting the output assembly
- * file.
- *   Other pseudo opcodes are handled by the assembler, those are not
+ * file. Other pseudo opcodes are handled by the assembler, those are not
  * marked as "pseudo" here. */
 enum {
   // Arithmetic

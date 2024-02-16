@@ -502,13 +502,13 @@ int translateCodeSegment(t_program *program, FILE *fp)
 }
 
 
-int printDirective(t_global *data, FILE *fp)
+int printDirective(t_data *data, FILE *fp)
 {
   char buf[BUF_LENGTH];
 
   /* print the label */
-  if (data->labelID != NULL) {
-    labelToString(buf, BUF_LENGTH, data->labelID, 1);
+  if (data->label != NULL) {
+    labelToString(buf, BUF_LENGTH, data->label, 1);
   } else {
     buf[0] = '\0';
   }
@@ -516,12 +516,12 @@ int printDirective(t_global *data, FILE *fp)
     return -1;
 
   /* print the directive */
-  switch (data->directiveType) {
-    case DIR_WORD:
+  switch (data->type) {
+    case DATA_WORD:
       if (fprintf(fp, ".word %d", data->value) < 0)
         return -1;
       break;
-    case DIR_SPACE:
+    case DATA_SPACE:
       if (fprintf(fp, ".space %d", data->value) < 0)
         return -1;
       break;
@@ -536,7 +536,7 @@ int printDirective(t_global *data, FILE *fp)
 int translateDataSegment(t_program *program, FILE *fp)
 {
   t_listNode *current_element;
-  t_global *current_data;
+  t_data *current_data;
 
   /* preconditions */
   assert(fp != NULL);
@@ -554,7 +554,7 @@ int translateDataSegment(t_program *program, FILE *fp)
   current_element = program->data;
   while (current_element != NULL) {
     /* retrieve the current data element */
-    current_data = (t_global *)current_element->data;
+    current_data = (t_data *)current_element->data;
 
     /* assertions */
     if (current_data == NULL)

@@ -67,7 +67,7 @@ t_instruction *newInstruction(int opcode)
 {
   t_instruction *result;
 
-  /* create an instance of `t_global' */
+  /* create an instance of `t_data' */
   result = (t_instruction *)malloc(sizeof(t_instruction));
   if (result == NULL)
     fatalError("out of memory");
@@ -86,20 +86,20 @@ t_instruction *newInstruction(int opcode)
   return result;
 }
 
-/* create and initialize an instance of `t_global' */
-t_global *newGlobal(int directiveType, int value, t_label *label)
+/* create and initialize an instance of `t_data' */
+t_data *newGlobal(int type, int value, t_label *label)
 {
-  t_global *result;
+  t_data *result;
 
-  /* create an instance of `t_global' */
-  result = (t_global *)malloc(sizeof(t_global));
+  /* create an instance of `t_data' */
+  result = (t_data *)malloc(sizeof(t_data));
   if (result == NULL)
     fatalError("out of memory");
 
   /* initialize the new directive */
-  result->directiveType = directiveType;
+  result->type = type;
   result->value = value;
-  result->labelID = label;
+  result->label = label;
 
   /* return the new data */
   return result;
@@ -133,7 +133,7 @@ void deleteInstruction(t_instruction *inst)
 }
 
 /* finalize a data info. */
-void deleteGlobal(t_global *data)
+void deleteGlobal(t_data *data)
 {
   if (data != NULL)
     free(data);
@@ -142,7 +142,7 @@ void deleteGlobal(t_global *data)
 void deleteGlobals(t_listNode *dataDirectives)
 {
   t_listNode *current_element;
-  t_global *current_data;
+  t_data *current_data;
 
   /* nothing to finalize */
   if (dataDirectives == NULL)
@@ -151,7 +151,7 @@ void deleteGlobals(t_listNode *dataDirectives)
   current_element = dataDirectives;
   while (current_element != NULL) {
     /* retrieve the current instruction */
-    current_data = (t_global *)current_element->data;
+    current_data = (t_data *)current_element->data;
     if (current_data != NULL)
       deleteGlobal(current_data);
 
@@ -253,16 +253,6 @@ void deleteProgram(t_program *program)
   free(program);
 }
 
-int compareLabels(t_label *labelA, t_label *labelB)
-{
-  if ((labelA == NULL) || (labelB == NULL))
-    return 0;
-
-  if (labelA->labelID == labelB->labelID)
-    return 1;
-  return 0;
-}
-
 t_label *createLabel(t_program *program)
 {
   t_label *result;
@@ -357,7 +347,7 @@ void setLabelName(t_program *program, t_label *label, const char *name)
 }
 
 /* assign a new label identifier to the next instruction */
-t_label *assignLabel(t_program *program, t_label *label)
+void assignLabel(t_program *program, t_label *label)
 {
   t_listNode *li;
 
@@ -369,7 +359,7 @@ t_label *assignLabel(t_program *program, t_label *label)
   /* check if this label has already been assigned */
   for (li = program->instructions; li != NULL; li = li->next) {
     t_instruction *instr = li->data;
-    if (instr->label && compareLabels(instr->label, label))
+    if (instr->label && instr->label->labelID == label->labelID)
       fatalError("compiler bug, label already assigned");
   }
 
@@ -403,23 +393,9 @@ t_label *assignLabel(t_program *program, t_label *label)
     label->isAlias = 1;
 
     free(name);
-  } else
+  } else {
     program->label_to_assign = label;
-
-  /* all went good */
-  return label;
-}
-
-/* reserve a new label identifier */
-t_label *assignNewLabel(t_program *program)
-{
-  t_label *reserved_label;
-
-  /* reserve a new label */
-  reserved_label = createLabel(program);
-
-  /* fix the label */
-  return assignLabel(program, reserved_label);
+  }
 }
 
 char *getLabelName(t_label *label)
@@ -542,10 +518,10 @@ t_regID getNewRegister(t_program *program)
   return result;
 }
 
-t_global *genDataDirective(
+t_data *genDataDeclaration(
     t_program *program, int type, int value, t_label *label)
 {
-  t_global *res;
+  t_data *res;
 
   assert(program);
 

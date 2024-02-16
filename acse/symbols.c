@@ -81,7 +81,7 @@ t_symbol *createSymbol(
   } else {
     sizeOfVar = 4 / TARGET_PTR_GRANULARITY;
   }
-  genDataDirective(program, DIR_SPACE, sizeOfVar, res->label);
+  genDataDeclaration(program, DATA_SPACE, sizeOfVar, res->label);
 
   // Now we can add the new variable to the program
   program->variables = listInsert(program->variables, res, -1);

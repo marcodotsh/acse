@@ -769,7 +769,7 @@ t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
 
     /* statically allocate some room for the spilled variable by
      * creating a new .WORD directive and making the label point to it. */
-    genDataDirective(program, DIR_WORD, 0, axe_label);
+    genDataDeclaration(program, DATA_WORD, 0, axe_label);
 
     /* add the current tlabel to the list of labelbindings */
     result = listInsert(result, tlabel, -1);

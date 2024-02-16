@@ -333,7 +333,7 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
     t_cfgNode *current_node = (t_cfgNode *)bblock->nodes->data;
     assert(current_node != NULL);
     if ((current_node->instr)->label != NULL) {
-      if (compareLabels((current_node->instr)->label, label))
+      if ((current_node->instr)->label->labelID == label->labelID)
         // Found!
         break;
     }

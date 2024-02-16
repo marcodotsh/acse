@@ -7,143 +7,209 @@
 
 #include <limits.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "list.h"
 
+/**
+ * @defgroup program Program Intermediate Representation
+ * @brief Definitions and functions for handling the compiler IR.
+ * 
+ * During the compilation process, the program is built instruction by
+ * instruction by the code in the syntactic-directed translator in parser.y.
+ * The contents of the program are stored in an intermediate data structure of
+ * type t_program.
+ * 
+ * In successive compilation steps, the instructions and data declarations
+ * in the program intermediate representation are modified to make them conform
+ * to the requirements of the target machine, and at the end they are
+ * written to the output assembly file (see target_asm_print.h).
+ * @{
+ */
+
+/// Type for register identifiers.
 typedef int t_regID;
 
+/// Constant used for invalid register identifiers.
 #define REG_INVALID ((t_regID)(-1))
+/// Constant identifying a register whose value is always zero.
 #define REG_0       ((t_regID)(0))
 
+/// Constant used to identify .word static declarations
+#define DATA_WORD 0
+/// Constant used to identify .space static declarations
+#define DATA_SPACE 1
 
-typedef struct t_label {
-  unsigned int labelID; /* Unique identifier for the label */
-  char *name;           /* Name of the label. If NULL, the name will be
-                         * automatically generated in the form L<ID>. */
-  int global;           /* zero for local labels, non-zero for global labels.*/
-  int isAlias;
+/** Object representing a label in the output assembly file.
+ * @note A label object does not uniquely identify a label, its labelID field
+ * does. This is used for aliasing multiple label objects to the same
+ * physical label if more than one label is assigned to an instruction. */
+typedef struct {
+  unsigned int labelID; ///< Unique numeric identifier for the label.
+  char *name;           ///< Name of the label. If NULL, the name will be
+                        ///  automatically generated in the form L<ID>.
+  bool global;          ///< True if the label will be defined as 'global'.
+  bool isAlias;         ///< True if this label object is an alias to another
+                        ///  one with the same labelID.
 } t_label;
 
-
-typedef struct t_instrArg {
-  t_regID ID;                 /* an identifier of the register */
-  t_listNode *mcRegWhitelist; /* the list of machine registers where this
-                               * variable can be allocated. NULL if any
-                               * register is allowed. */
+/** Object representing a register argument to an instruction. */
+typedef struct {
+  t_regID ID;                 ///< The register identifier
+  t_listNode *mcRegWhitelist; ///< the list of machine registers where this
+                              ///  argument may be allocated. NULL if any
+                              ///  machine register is allowed.
 } t_instrArg;
 
-/* a symbolic assembly instruction */
-typedef struct t_instruction {
-  t_label *label;        /* a label associated with the current
-                          * instruction */
-  int opcode;            /* instruction opcode (for example: ADD) */
-  t_instrArg *reg_dest;  /* destination register */
-  t_instrArg *reg_src1;  /* first source register */
-  t_instrArg *reg_src2;  /* second source register */
-  int immediate;         /* immediate value */
-  t_label *addressParam; /* an address operand */
-  char *user_comment;    /* if defined it is set to the source code
-                          * instruction that generated the current
-                          * assembly. This string will be written
-                          * into the output code as a comment */
+/** Object representing a symbolic assembly instruction. */
+typedef struct {
+  t_label *label;        ///< Label associated with the instruction, or NULL
+  int opcode;            ///< Instruction opcode
+  t_instrArg *reg_dest;  ///< Destination argument (or NULL if none)
+  t_instrArg *reg_src1;  ///< First source argument (or NULL if none)
+  t_instrArg *reg_src2;  ///< Second source argument (or NULL if none)
+  int immediate;         ///< Immediate argument
+  t_label *addressParam; ///< Address argument
+  char *user_comment;    ///< A comment string associated with the instruction,
+                         ///  or NULL if none.
 } t_instruction;
 
-/* DIRECTIVE TYPES */
-#define DIR_WORD 0
-#define DIR_SPACE 1
+/** Object representing a single data declaration in the compiled code.
+ * After the assembly process, these declaration form the data segment of the
+ * executable program. */
+typedef struct {
+  int type;       ///< Type of declaration (DATA_WORD or DATA_SPACE)
+  int value;      ///< A generic value associated with the declaration
+  t_label *label; ///< Label to the data
+} t_data;
 
-/* this structure is used in order to define assembler directives.
- * Directives are used in many cases such the definition of variables
- * inside the data segment. Every instance `t_global' contains
- * all the informations about a single directive.
- * An example is the directive .word that is required when the assembler
- * must reserve a word of data inside the data segment. */
-typedef struct t_global {
-  int directiveType; /* the type of the current directive
-                      * (for example: DIR_WORD) */
-  int value;         /* the value associated with the directive */
-  t_label *labelID;  /* label associated with the current data */
-} t_global;
-
+/** Object containing the program's intermediate representation during the
+ * compilation process. */
 typedef struct t_program {
-  t_listNode *labels;
-  t_listNode *instructions;
-  t_listNode *data;
-  t_listNode *variables;
-  t_regID current_register;
-  unsigned int current_label_ID;
-  t_label *label_to_assign;
+  t_listNode *labels;            ///< List of all labels
+  t_listNode *data;              ///< List of static data declarations
+  t_listNode *instructions;      ///< List of instructions
+  t_listNode *variables;         ///< Symbol table
+  t_regID current_register;      ///< Next unused register ID
+  unsigned int current_label_ID; ///< Next unused label ID
+  t_label *label_to_assign;      ///< Next pending label to assign
 } t_program;
 
 
-/* Program */
+/// @name Construction/destruction of a program
+/// @{
 
-/* initialize the informations associated with the program. This function is
- * called at the beginning of the translation process. This function
- * is called once: its only purpouse is to initialize an instance of the struct
- * `t_program' that will contain all the informations about the program
- * that will be compiled */
+/** Create a new empty program object. */
 t_program *newProgram(void);
 
-/* finalize all the data structures associated with `program' */
+/** Delete a program object. 
+ * @param The program object to delete. */
 void deleteProgram(t_program *program);
 
+/// @}
 
-/* Labels */
 
-/* reserve a new label identifier and return the identifier to the caller */
+/// @name Handling of labels
+/// @{
+
+/** Reserve a new label object, unassigned to any instruction.
+ * @param program The program where the label belongs
+ * @returns The new label object. */
 t_label *createLabel(t_program *program);
 
-/* assign the given label identifier to the next instruction. Returns
- * the label assigned; otherwise (an error occurred) NULL */
-t_label *assignLabel(t_program *program, t_label *label);
+/** Assign the given label object to the next instruction to be generated.
+ * @param program The program where the label belongs
+ * @param label   The label to be assigned */
+void assignLabel(t_program *program, t_label *label);
 
-/* reserve and fix a new label. It returns either the label assigned or
- * NULL if an error occurred */
-t_label *assignNewLabel(t_program *program);
-
-/* Sets the name of a label to the specified string. Note: if another label
- * with the same name already exists, the name assigned to this label will be
- * modified to remove any ambiguity. */
+/** Sets the name of a label to the specified string.
+ * @param program The program where the label belongs
+ * @param label   The label whose name to set
+ * @param name    The string which will be used as label name
+ * @note If another label with the same name already exists, the name assigned
+ * to this label will be modified to remove any ambiguity. */
 void setLabelName(t_program *program, t_label *label, const char *name);
 
-/* Returns a dynamically allocated string that contains the name of the given
- * label. */
+/** Obtain the name of a given label
+ * @param label The label
+ * @returns A dynamically allocated string. The caller owns the string and is
+ *          responsible for freeing it. */
 char *getLabelName(t_label *label);
 
-/* return TRUE if the two labels hold the same identifier */
-int compareLabels(t_label *labelA, t_label *labelB);
+/// @}
 
 
-/* Instructions */
+/// @name Generation of instructions
+/// @{
 
-/* get a register still not used. This function returns
- * the ID of the register found*/
+/** Obtain a currently unused temporary register identifier.
+ * @param program The program where the register will be used.
+ * @returns The identifier of the register. */
 t_regID getNewRegister(t_program *program);
 
-/* add a new instruction to the current program. This function is directly
- * called by all the functions defined in `gencode.h' */
+/** Add a new instruction at the end the current program's list of instructions.
+ * @param program   The program where to add the instruction
+ * @param opcode    Identifier for the operation performed by the instruction
+ * @param r_dest    Identifier of the destination register argument,
+ *                  or REG_INVALID if none
+ * @param r_src1    Identifier of the first source register argument,
+ *                  or REG_INVALID if none
+ * @param r_src2    Identifier of the second source register argument,
+ *                  or REG_INVALID if none
+ * @param label     Label object representing the label argument,
+ *                  or NULL if none
+ * @param immediate Immediate argument to the instruction, if needed
+ * @warning This is a low-level primitive for generating instructions. This
+ *          function is not aware of the semantic meaning of each operation
+ *          code, and performs no parameter checking. As a result using this
+ *          function directly may result in the generation of invalid
+ *          instructions.
+ *          Use the helper functions in gencode.h instead for generating
+ *          instructions. */
 t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
     t_regID r_src1, t_regID r_src2, t_label *label, int immediate);
 
-/* remove an instruction from the program, given its link in the instruction
- * list. */
+/** Remove an instruction from the program, given its node in the instruction
+ * list.
+ * @param program The program where to remove the instruction
+ * @param instrLi Node in the instruction list to remove */
 void removeInstructionAt(t_program *program, t_listNode *instrLi);
 
+/// @}
 
-/* Directives */
 
-t_global *genDataDirective(
+/// @name Generation of data declarations
+/// @{
+
+/** Create a new data declaration in a program. 
+ * @param program The program where to add the declaration
+ * @param type    The declaration type (either DATA_WORD or DATA_SPACE)
+ * @param value   The value of the declaration, i.e. the word to store for
+ *                DATA_WORD or a byte amount to reserve for DATA_SPACE
+ * @param label   A newly created label which will be assigned to the
+ *                declaration.
+ * @returns The data declaration object created. */
+t_data *genDataDeclaration(
     t_program *program, int type, int value, t_label *label);
 
+/// @}
 
-/* Utility */
 
-/* Notify the end of the program. This function is directly called
- * from the parser when the parsing process is ended */
+/// @name Utility functions
+/// @{
+
+/** Generates the final instruction sequence required at the end of a program.
+ * @param program The program to be modified. */
 void genProgramEpilog(t_program *program);
 
-/* print information about the program in the specified file */
+/** Dumps the current state of a program object in the specified file.
+ * @param program The program which will be dumped
+ * @param fout    The file where to print the dump */
 void dumpProgram(t_program *program, FILE *fout);
 
+/// @}
+
+/**
+ * @}
+ */
 
 #endif

@@ -253,7 +253,8 @@ while_statement
   : WHILE
   {
     // Assign a label at the beginning of the loop for the back-edge
-    $1.l_loop = assignNewLabel(program);
+    $1.l_loop = createLabel(program);
+    assignLabel(program, $1.l_loop);
   }
   LPAR exp RPAR
   {
@@ -283,7 +284,8 @@ do_while_statement
   : DO
   {
     // Assign a label at the beginning of the loop for the back-edge
-    $1 = assignNewLabel(program);
+    $1 = createLabel(program);
+    assignLabel(program, $1);
   }
   code_block WHILE LPAR exp RPAR
   {
