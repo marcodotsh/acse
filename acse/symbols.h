@@ -8,6 +8,11 @@
 #include "utils.h"
 #include <stdbool.h>
 
+/**
+ * @addtogroup program
+ * @{
+ */
+
 /** Supported data types */
 typedef enum {
   TYPE_INT,      ///< `int' scalar type
@@ -25,6 +30,9 @@ typedef struct t_symbol {
   int arraySize;      ///< For arrays only, the size of the array.
 } t_symbol;
 
+
+/// @name Handling of symbols
+/// @{
 
 /** Add a symbol to the program.
  * @param program    The program where to add the symbol.
@@ -52,6 +60,20 @@ t_symbol *getSymbol(t_program *program, char *ID);
  *          returns `false'. */
 bool isArray(t_symbol *symbol);
 
+/// @}
+
+/**
+ * @}
+ */
+
+
+/**
+ * @addtogroup gencode
+ * @{
+ */
+
+/// @name Variable/array accesses
+/// @{
 
 /** Generate instructions that load the content of a scalar variable in a
  * register.
@@ -86,5 +108,10 @@ t_regID genLoadArrayElement(
 void genStoreArrayElement(t_program *program, t_symbol *array,
     t_expressionValue index, t_expressionValue data);
 
+/// @}
+
+/**
+ * @}
+ */
 
 #endif

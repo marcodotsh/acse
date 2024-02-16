@@ -38,6 +38,11 @@
  *    "gen".
  */
 
+/**
+ * @defgroup pipeline Compilation Pipeline
+ * @brief Top-level functions that drive the compilation process
+ */
+
 /* Errors */
 #define NO_ERROR 0
 #define ERROR_INVALID_CFLOW_GRAPH 23

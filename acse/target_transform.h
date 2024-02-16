@@ -7,8 +7,17 @@
 
 #include "program.h"
 
+/**
+ * @addtogroup pipeline
+ * @{
+ */
+
 /** Perform lowering of the program to a subset of the IR which can be
  * represented as instructions of the target architecture. */
 void doTargetSpecificTransformations(t_program *program);
+
+/**
+ * @}
+ */
 
 #endif

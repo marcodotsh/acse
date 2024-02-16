@@ -7,6 +7,11 @@
 #include <stdio.h>
 #include "program.h"
 
+/**
+ * @addtogroup pipeline
+ * @{
+ */
+
 /** The global object representing the current intermediate compilation
  * outputs. */
 extern t_program *program;
@@ -21,6 +26,10 @@ extern int line_num;
  * @param fp The source code file being compiled
  * @returns The number of syntax errors encountered. */
 int parseProgram(FILE *fp);
+
+/**
+ * @}
+ */
 
 /* yyerror() is a function defined later in this file used by the bison-
  * generated parser to notify that a syntax error occurred. */

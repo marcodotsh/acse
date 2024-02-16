@@ -8,6 +8,12 @@
 #include "program.h"
 #include "list.h"
 
+/**
+ * @defgroup utils Utilities
+ * @brief Generally useful definitions
+ * @{
+ */
+
 /** Maximum between two values. */
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
@@ -15,10 +21,25 @@
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
 
 /** Arithmetic shift to the right.
- *  The C language does not guarantee the a right shift of a signed value is an
+ *  The C language does not guarantee the right shift of a signed value is an
  *  arithmetic shift, so we need to use this macro. */
 #define SHIFT_RIGHT_ARITH(x, y) \
     (((x) >> (y)) | ((x) < 0 ? (((1 << (y)) - 1) << MAX(32 - (y), 0)) : 0))
+
+/** In debug builds (NDEBUG not defined), prints a message on the standard
+ * output like `printf'. Otherwise, does nothing and returns zero. */
+int debugPrintf(const char *fmt, ...);
+
+/**
+ * @}
+ */
+
+
+/**
+ * @defgroup semdef Semantic Definitions
+ * @brief Structure definitions used for semantic analysis
+ * @{
+ */
 
 /** Utility structure used to store information about an if statement. */
 typedef struct {
@@ -31,6 +52,17 @@ typedef struct {
   t_label *l_loop;  ///< Label to the beginning of the loop
   t_label *l_exit;  ///< Label to the first instruction after the loop
 } t_whileStatement;
+
+/**
+ * @}
+ */
+
+
+/**
+ * @defgroup expval Expression Values
+ * @brief Generalized abstraction for a value that may or may not be constant
+ * @{
+ */
 
 /* EXPRESSION TYPES */
 #define CONSTANT 0
@@ -53,8 +85,8 @@ t_regID genConvertExpValueToRegister(t_program *program, t_expressionValue exp);
 
 t_expressionValue genNormalizeBooleanExpValue(t_program *program, t_expressionValue exp);
 
-/** In debug builds (NDEBUG not defined), prints a message on the standard
- * output like `printf'. Otherwise, does nothing and returns zero. */
-int debugPrintf(const char *fmt, ...);
+/**
+ * @}
+ */
 
 #endif

@@ -18,7 +18,16 @@ char *registerIDToString(t_regID regID, bool machineRegIDs);
 /** Print the specified instruction to a file */
 int printInstruction(t_instruction *inst, FILE *fp, bool machineRegIDs);
 
+/**
+ * @addtogroup pipeline
+ * @{
+ */
+
 /** write the assembly for the given program */
 void writeAssembly(t_program *program, FILE *fp);
+
+/**
+ * @}
+ */
 
 #endif
