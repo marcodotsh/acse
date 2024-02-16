@@ -1,6 +1,5 @@
 /// @file mace_transform.h
 
-#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include "target_transform.h"

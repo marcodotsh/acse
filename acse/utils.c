@@ -1,6 +1,5 @@
 /// @file utils.c
 
-#include <assert.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdarg.h>

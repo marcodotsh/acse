@@ -1,6 +1,5 @@
 /// @file engine.c
 
-#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -187,15 +186,10 @@ void deleteInstructions(t_listNode *instructions)
 
 void deleteLabels(t_listNode *labels)
 {
-  t_listNode *current_element;
-  t_label *current_label;
-
-  current_element = labels;
-
+  t_listNode *current_element = labels;
   while (current_element != NULL) {
     /* retrieve the current label */
-    current_label = (t_label *)current_element->data;
-    assert(current_label != NULL);
+    t_label *current_label = (t_label *)current_element->data;
 
     /* free the memory associated with the current label */
     deleteLabel(current_label);
@@ -203,7 +197,6 @@ void deleteLabels(t_listNode *labels)
     /* fetch the next label */
     current_element = current_element->next;
   }
-
   deleteList(labels);
 }
 
@@ -255,13 +248,8 @@ void deleteProgram(t_program *program)
 
 t_label *createLabel(t_program *program)
 {
-  t_label *result;
-
-  /* preconditions: program must be different from NULL */
-  assert(program != NULL);
-
   /* initialize a new label */
-  result = newLabel(program->current_label_ID);
+  t_label *result = newLabel(program->current_label_ID);
   if (result == NULL)
     fatalError("out of memory");
 
@@ -349,15 +337,8 @@ void setLabelName(t_program *program, t_label *label, const char *name)
 /* assign a new label identifier to the next instruction */
 void assignLabel(t_program *program, t_label *label)
 {
-  t_listNode *li;
-
-  /* test the preconditions */
-  assert(program != NULL);
-  assert(label != NULL);
-  assert(label->labelID < program->current_label_ID);
-
   /* check if this label has already been assigned */
-  for (li = program->instructions; li != NULL; li = li->next) {
+  for (t_listNode *li = program->instructions; li != NULL; li = li->next) {
     t_instruction *instr = li->data;
     if (instr->label && instr->label->labelID == label->labelID)
       fatalError("compiler bug, label already assigned");
@@ -415,10 +396,6 @@ char *getLabelName(t_label *label)
 /* add an instruction at the tail of the list `program->instructions'. */
 void addInstruction(t_program *program, t_instruction *instr)
 {
-  /* test the preconditions */
-  assert(program != NULL);
-  assert(instr != NULL);
-
   /* assign the currently pending label if there is one */
   instr->label = program->label_to_assign;
   program->label_to_assign = NULL;
@@ -506,12 +483,7 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
 
 t_regID getNewRegister(t_program *program)
 {
-  t_regID result;
-
-  /* test the preconditions */
-  assert(program != NULL);
-
-  result = program->current_register;
+  t_regID result = program->current_register;
   program->current_register++;
 
   /* return the current label identifier */
@@ -521,35 +493,24 @@ t_regID getNewRegister(t_program *program)
 t_data *genDataDeclaration(
     t_program *program, int type, int value, t_label *label)
 {
-  t_data *res;
-
-  assert(program);
-
-  res = newGlobal(type, value, label);
+  t_data *res = newGlobal(type, value, label);
   program->data = listInsert(program->data, res, -1);
   return res;
 }
 
 void genProgramEpilog(t_program *program)
 {
-  assert(program != NULL);
-
   if (program->label_to_assign != NULL) {
     genExit0Syscall(program);
     return;
   }
 
   if (program->instructions != NULL) {
-    t_instruction *last_instr;
-    t_listNode *last_element;
-
     /* get the last element of the list */
-    last_element = listGetLastNode(program->instructions);
-    assert(last_element != NULL);
+    t_listNode *last_element = listGetLastNode(program->instructions);
 
     /* retrieve the last instruction */
-    last_instr = (t_instruction *)last_element->data;
-    assert(last_instr != NULL);
+    t_instruction *last_instr = (t_instruction *)last_element->data;
 
     if (last_instr->opcode == OPC_CALL_EXIT_0)
       return;

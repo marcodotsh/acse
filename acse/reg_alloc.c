@@ -268,10 +268,6 @@ void getLiveIntervals(t_cfg *graph, t_listNode **result)
  * false if the interval was already inserted in the list. */
 bool insertLiveInterval(t_regAllocator *RA, t_liveInterval *interval)
 {
-  // test the preconditions
-  assert(RA != NULL);
-  assert(interval != NULL);
-
   // test if an interval for the requested variable is already inserted
   if (listFindWithCallback(
           RA->live_intervals, interval, compareLiveIntIDs) != NULL) {
@@ -289,19 +285,10 @@ bool insertLiveInterval(t_regAllocator *RA, t_liveInterval *interval)
  * the register allocator data structure. */
 void insertListOfIntervals(t_regAllocator *RA, t_listNode *intervals)
 {
-  t_listNode *current_element;
-  t_liveInterval *interval;
-  int ra_errorcode;
-
-  /* preconditions */
-  assert(RA != NULL);
-  assert(intervals != NULL);
-
-  for (current_element = intervals; current_element != NULL;
+  for (t_listNode *current_element = intervals; current_element != NULL;
        current_element = current_element->next) {
     /* Get the current live interval */
-    interval = (t_liveInterval *)current_element->data;
-    assert(interval != NULL);
+    t_liveInterval *interval = (t_liveInterval *)current_element->data;
 
     /* insert a new live interval */
     bool ok = insertLiveInterval(RA, interval);
@@ -490,22 +477,15 @@ t_listNode *spillAtInterval(
 t_listNode *expireOldIntervals(
     t_regAllocator *RA, t_listNode *active_intervals, t_liveInterval *interval)
 {
-  t_listNode *current_element;
-  t_listNode *next_element;
-  t_liveInterval *current_interval;
-
-  assert(RA != NULL);
-  assert(interval != NULL);
-
   /* No active intervals, bail out! */
   if (active_intervals == NULL)
     return NULL;
 
   /* Iterate over the set of active intervals */
-  current_element = active_intervals;
+  t_listNode *current_element = active_intervals;
   while (current_element != NULL) {
     /* Get the live interval */
-    current_interval = (t_liveInterval *)current_element->data;
+    t_liveInterval *current_interval = (t_liveInterval *)current_element->data;
 
     /* If the considered interval ends before the beginning of
      * the current live interval, we don't need to keep track of
@@ -530,7 +510,7 @@ t_listNode *expireOldIntervals(
     }
 
     /* Get the next live interval */
-    next_element = current_element->next;
+    t_listNode *next_element = current_element->next;
 
     /* Remove the current element from the list */
     active_intervals =
@@ -567,30 +547,17 @@ void deleteRegAllocator(t_regAllocator *RA)
 /* Allocate and initialize the register allocator */
 t_regAllocator *newRegAllocator(t_cfg *graph)
 {
-  t_regAllocator *result; /* the register allocator */
-  t_listNode *intervals;
-  t_listNode *current_cflow_var;
-  t_cfgReg *cflow_var;
-  t_regID max_var_ID;
-  int counter;
-
-  /* Check preconditions: the cfg must exist */
-  assert(graph != NULL);
-
   /* allocate memory for a new instance of `t_regAllocator' */
-  result = (t_regAllocator *)calloc(1, sizeof(t_regAllocator));
+  t_regAllocator *result = (t_regAllocator *)calloc(1, sizeof(t_regAllocator));
   if (result == NULL)
     fatalError("out of memory");
 
-  /* initialize the register allocator informations */
-
   /* retrieve the max identifier from each live interval */
-  max_var_ID = 0;
-  current_cflow_var = graph->registers;
+  t_regID max_var_ID = 0;
+  t_listNode *current_cflow_var = graph->registers;
   while (current_cflow_var != NULL) {
     /* fetch the data informations about a variable */
-    cflow_var = (t_cfgReg *)current_cflow_var->data;
-    assert(cflow_var != NULL);
+    t_cfgReg *cflow_var = (t_cfgReg *)current_cflow_var->data;
 
     /* update the value of max_var_ID */
     max_var_ID = MAX(max_var_ID, cflow_var->ID);
@@ -609,10 +576,11 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
     fatalError("out of memory");
 
   /* initialize the array of bindings */
-  for (counter = 0; counter < result->varNum; counter++)
+  for (int counter = 0; counter < result->varNum; counter++)
     result->bindings[counter] = RA_REGISTER_INVALID;
 
   /* Liveness analysis: compute the list of live intervals */
+  t_listNode *intervals;
   getLiveIntervals(graph, &intervals);
 
   /* Copy the liveness info into the register allocator, sorting it in the
@@ -640,32 +608,25 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
 /* Main register allocation function */
 void executeLinearScan(t_regAllocator *RA)
 {
-  t_listNode *current_element;
-  t_liveInterval *current_interval;
-  t_listNode *active_intervals;
-  t_regID reg;
-
-  /* test the preconditions */
-  assert(RA != NULL);
   /* Liveness analysis ready? */
   if (RA->live_intervals == NULL)
     return;
 
   /* initialize the list of active intervals */
-  active_intervals = NULL;
+  t_listNode *active_intervals = NULL;
 
   /* Iterate over the list of live intervals */
-  for (current_element = RA->live_intervals; current_element != NULL;
+  for (t_listNode *current_element = RA->live_intervals; current_element != NULL;
        current_element = current_element->next) {
     /* Get the live interval */
-    current_interval = (t_liveInterval *)current_element->data;
+    t_liveInterval *current_interval = (t_liveInterval *)current_element->data;
 
     /* Check which intervals are ended and remove
      * them from the active set, thus freeing registers */
     active_intervals =
         expireOldIntervals(RA, active_intervals, current_interval);
 
-    reg = assignRegister(RA, current_interval->mcRegConstraints);
+    t_regID reg = assignRegister(RA, current_interval->mcRegConstraints);
 
     /* If all registers are busy, perform a spill */
     if (reg == RA_SPILL_REQUIRED) {
@@ -692,17 +653,14 @@ void executeLinearScan(t_regAllocator *RA)
  * Materialization
  */
 
-bool compareTempLabels(void *valA, void *valB)
+bool compareTempLabelWithRegId(void *a, void *b)
 {
-  t_tempLabel *tlA = (t_tempLabel *)valA;
-  t_tempLabel *tlB = (t_tempLabel *)valB;
+  t_tempLabel *lab = (t_tempLabel *)a;
+  t_regID reg = *((t_regID *)b);
 
-  if (valA == NULL)
+  if (lab == NULL)
     return 0;
-  if (valB == NULL)
-    return 0;
-
-  return tlA->regID == tlB->regID;
+  return lab->regID == reg;
 }
 
 t_tempLabel *newTempLabel(t_label *label, t_regID regID)
@@ -745,26 +703,17 @@ void deleteListOfTempLabels(t_listNode *tempLabels)
  * Returns an error code. */
 t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
 {
-  t_regID counter;
-  t_listNode *result;
-  t_tempLabel *tlabel;
-  t_label *axe_label;
-
-  /* preconditions */
-  assert(program != NULL);
-  assert(RA != NULL);
-
   /* initialize the local variable `result' */
-  result = NULL;
-  tlabel = NULL;
+  t_listNode *result = NULL;
+  t_tempLabel *tlabel = NULL;
 
   /* allocate some memory for all spilled temporary variables */
-  for (counter = 0; counter < RA->varNum; counter++) {
+  for (t_regID counter = 0; counter < RA->varNum; counter++) {
     if (RA->bindings[counter] != RA_SPILL_REQUIRED)
       continue;
 
     /* retrieve a new label */
-    axe_label = createLabel(program);
+    t_label *axe_label = createLabel(program);
     tlabel = newTempLabel(axe_label, counter);
 
     /* statically allocate some room for the spilled variable by
@@ -782,27 +731,16 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
     t_cfg *graph, t_basicBlock *current_block, t_cfgNode *current_node,
     t_listNode *labelBindings, int before)
 {
-  t_instruction *storeInstr;
-  t_cfgNode *storeNode = NULL;
-  t_listNode *elementFound;
-  t_tempLabel pattern;
-  t_tempLabel *tlabel;
-
-  pattern.regID = temp_register;
-  elementFound =
-      listFindWithCallback(labelBindings, &pattern, compareTempLabels);
-
+  t_listNode *elementFound =
+      listFindWithCallback(labelBindings, &temp_register, compareTempLabelWithRegId);
   if (elementFound == NULL)
     return ERROR_INVALID_CFLOW_GRAPH;
 
-  tlabel = (t_tempLabel *)elementFound->data;
-  assert(tlabel != NULL);
+  t_tempLabel *tlabel = (t_tempLabel *)elementFound->data;
 
   /* create a store instruction */
-  storeInstr = genSWGlobal(NULL, selected_register, tlabel->label, REG_T6);
-
-  /* create a node for the load instruction */
-  storeNode = cfgCreateNode(graph, storeInstr);
+  t_instruction *storeInstr = genSWGlobal(NULL, selected_register, tlabel->label, REG_T6);
+  t_cfgNode *storeNode = cfgCreateNode(graph, storeInstr);
 
   /* test if we have to insert the node `storeNode' before `current_node'
    * inside the basic block */
@@ -819,27 +757,16 @@ int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
     t_cfg *graph, t_basicBlock *block, t_cfgNode *current_node,
     t_listNode *labelBindings, int before)
 {
-  t_instruction *loadInstr;
-  t_cfgNode *loadNode = NULL;
-  t_listNode *elementFound;
-  t_tempLabel pattern;
-  t_tempLabel *tlabel;
-
-  pattern.regID = temp_register;
-  elementFound =
-      listFindWithCallback(labelBindings, &pattern, compareTempLabels);
-
+  t_listNode *elementFound =
+      listFindWithCallback(labelBindings, &temp_register, compareTempLabelWithRegId);
   if (elementFound == NULL)
     return ERROR_INVALID_CFLOW_GRAPH;
 
-  tlabel = (t_tempLabel *)elementFound->data;
-  assert(tlabel != NULL);
+  t_tempLabel *tlabel = (t_tempLabel *)elementFound->data;
 
   /* create a load instruction */
-  loadInstr = genLWGlobal(NULL, selected_register, tlabel->label);
-
-  /* create a node for the load instruction */
-  loadNode = cfgCreateNode(graph, loadInstr);
+  t_instruction *loadInstr = genLWGlobal(NULL, selected_register, tlabel->label);
+  t_cfgNode *loadNode = cfgCreateNode(graph, loadInstr);
 
   if (before) {
     /* insert the node `loadNode' before `current_node' */
@@ -1003,28 +930,24 @@ int materializeRegAllocInBBForInstructionNode(t_cfg *graph,
 int materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
     t_regAllocator *RA, t_listNode *label_bindings)
 {
-  int error, counter, bbHasTermInstr;
-  t_listNode *current_nd_element;
-  t_cfgNode *current_node;
   t_spillState state;
 
-  assert(current_block != NULL);
-
   /* initialize the state for this block */
-  for (counter = 0; counter < NUM_SPILL_REGS; counter++) {
+  for (int counter = 0; counter < NUM_SPILL_REGS; counter++) {
     state.regs[counter].assignedVar = REG_INVALID;
     state.regs[counter].needsWB = 0;
   }
 
   /* iterate through the instructions in the block */
-  current_nd_element = current_block->nodes;
+  t_cfgNode *current_node;
+  t_listNode *current_nd_element = current_block->nodes;
   while (current_nd_element != NULL) {
     current_node = (t_cfgNode *)current_nd_element->data;
 
     /* Change the register IDs of the argument of the instruction accoring
      * to the given register allocation. Generate load and stores for spilled
      * registers */
-    error = materializeRegAllocInBBForInstructionNode(
+    int error = materializeRegAllocInBBForInstructionNode(
         graph, current_block, &state, current_node, RA, label_bindings);
     if (error)
       return error;
@@ -1032,15 +955,15 @@ int materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
     current_nd_element = current_nd_element->next;
   }
 
-  bbHasTermInstr = current_block->nodes &&
+  bool bbHasTermInstr = current_block->nodes &&
       (isJumpInstruction(current_node->instr) ||
           isHaltOrRetInstruction(current_node->instr));
 
   /* writeback everything at the end of the basic block */
-  for (counter = 0; counter < NUM_SPILL_REGS; counter++) {
+  for (int counter = 0; counter < NUM_SPILL_REGS; counter++) {
     if (state.regs[counter].needsWB == 0)
       continue;
-    error = genStoreSpillVariable(state.regs[counter].assignedVar,
+    int error = genStoreSpillVariable(state.regs[counter].assignedVar,
         getSpillRegister(counter), graph, current_block, current_node,
         label_bindings, bbHasTermInstr);
     if (error)
@@ -1056,18 +979,11 @@ int materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
 int materializeRegAllocInCFG(
     t_cfg *graph, t_regAllocator *RA, t_listNode *label_bindings)
 {
-  int error;
-  t_listNode *current_bb_element;
-
-  /* preconditions */
-  assert(graph != NULL);
-  assert(RA != NULL);
-
-  current_bb_element = graph->blocks;
+  t_listNode *current_bb_element = graph->blocks;
   while (current_bb_element != NULL) {
     t_basicBlock *current_block = (t_basicBlock *)current_bb_element->data;
 
-    error = materializeRegAllocInBB(graph, current_block, RA, label_bindings);
+    int error = materializeRegAllocInBB(graph, current_block, RA, label_bindings);
     if (error)
       return error;
 
@@ -1086,15 +1002,12 @@ int materializeRegAllocInCFG(
 int materializeRegisterAllocation(
     t_program *program, t_cfg *graph, t_regAllocator *RA)
 {
-  t_listNode *label_bindings;
-  int error;
-
   /* retrieve a list of t_templabels for the given RA infos and
    * update the content of the data segment. */
-  label_bindings = materializeSpillMemory(program, RA);
+  t_listNode *label_bindings = materializeSpillMemory(program, RA);
 
   /* update the control flow graph with the reg-alloc infos. */
-  error = materializeRegAllocInCFG(graph, RA, label_bindings);
+  int error = materializeRegAllocInCFG(graph, RA, label_bindings);
   deleteListOfTempLabels(label_bindings);
   if (error != NO_ERROR)
     return error;
@@ -1211,16 +1124,11 @@ void dumpRegAllocInfos(t_regAllocator *RA, FILE *fout)
 
 void doRegisterAllocation(t_program *program)
 {
-  t_cfg *graph = NULL;
-  t_regAllocator *RA = NULL;
-  int error = NO_ERROR;
   char *logFileName;
   FILE *logFile;
 
-  assert(program != NULL);
-
   /* create the control flow graph */
-  graph = programToCFG(program);
+  t_cfg *graph = programToCFG(program);
 
 #ifndef NDEBUG
   logFileName = getLogFileName("controlFlow");
@@ -1243,7 +1151,7 @@ void doRegisterAllocation(t_program *program)
 #endif
 
   /* execute the linear scan algorithm */
-  RA = newRegAllocator(graph);
+  t_regAllocator *RA = newRegAllocator(graph);
   executeLinearScan(RA);
 
 #ifndef NDEBUG
@@ -1257,7 +1165,7 @@ void doRegisterAllocation(t_program *program)
 
   /* apply changes to the program informations by using the informations
    * of the register allocation process */
-  error = materializeRegisterAllocation(program, graph, RA);
+  int error = materializeRegisterAllocation(program, graph, RA);
   if (error != NO_ERROR)
     fatalError("register allocation failed with code %d", error);
 

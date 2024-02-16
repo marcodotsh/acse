@@ -5,7 +5,6 @@
 %{
 #include <stdio.h>     
 #include <stdlib.h>
-#include <assert.h>
 #include <limits.h>
 #include "program.h"
 #include "acse.h"

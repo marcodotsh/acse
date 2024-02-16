@@ -41,14 +41,9 @@ void deleteSymbol(t_symbol *s)
 t_symbol *createSymbol(
     t_program *program, char *ID, t_symbolType type, int arraySize)
 {
-  int sizeofElem;
-  char *lblName;
-
   // Test the preconditions
-  assert(program != NULL);
-  assert(ID != NULL);
   if (type != TYPE_INT && type != TYPE_INT_ARRAY)
-    fatalError("invalid type"); // TODO: not fatal
+    fatalError("invalid type");
 
   // Check if another symbol already exists with the same ID
   t_symbol *existingSym = getSymbol(program, ID);
@@ -61,7 +56,7 @@ t_symbol *createSymbol(
   t_symbol *res = newSymbol(ID, type, arraySize);
 
   // Reserve a new label for the variable
-  lblName = calloc(strlen(ID) + 8, sizeof(char));
+  char *lblName = calloc(strlen(ID) + 8, sizeof(char));
   if (!lblName)
     fatalError("out of memory");
   sprintf(lblName, "l_%s", ID);
@@ -125,40 +120,18 @@ bool isArray(t_symbol *symbol)
 }
 
 
-bool compareVariables(void *Var_A, void *Var_B)
+static bool compareVariableWithIDString(void *a, void *b)
 {
-  t_symbol *va;
-  t_symbol *vb;
-
-  if (Var_A == NULL)
-    return Var_B == NULL;
-
-  if (Var_B == NULL)
-    return false;
-
-  va = (t_symbol *)Var_A;
-  vb = (t_symbol *)Var_B;
-
-  /* test if the name is the same */
-  return strcmp(va->ID, vb->ID) == 0;
+  t_symbol *var = (t_symbol *)a;
+  char *str = (char *)b;
+  return strcmp(var->ID, str) == 0;
 }
-
 
 t_symbol *getSymbol(t_program *program, char *ID)
 {
-  t_symbol search_pattern;
-  t_listNode *elementFound;
-
-  /* preconditions */
-  assert(program != NULL);
-  assert(ID != NULL);
-
-  /* initialize the pattern */
-  search_pattern.ID = ID;
-
   /* search inside the list of variables */
-  elementFound = listFindWithCallback(
-      program->variables, &search_pattern, compareVariables);
+  t_listNode *elementFound = listFindWithCallback(
+      program->variables, ID, compareVariableWithIDString);
 
   /* if the element is found return it to the caller. Otherwise return NULL. */
   if (elementFound != NULL)

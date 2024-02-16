@@ -1,6 +1,5 @@
 /// @file target_asm_print.c
 
-#include <assert.h>
 #include <string.h>
 #include "utils.h"
 #include "target_asm_print.h"
@@ -406,16 +405,9 @@ int instructionToString(
 
 int translateForwardDeclarations(t_program *program, FILE *fp)
 {
-  t_listNode *li;
-  t_label *nextLabel;
-
-  /* preconditions */
-  assert(fp != NULL);
-  assert(program != NULL);
-
   /* print declarations for all global labels */
-  for (li = program->labels; li != NULL; li = li->next) {
-    nextLabel = li->data;
+  for (t_listNode *li = program->labels; li != NULL; li = li->next) {
+    t_label *nextLabel = li->data;
 
     if (nextLabel->isAlias)
       continue;
@@ -465,13 +457,6 @@ int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
 
 int translateCodeSegment(t_program *program, FILE *fp)
 {
-  t_listNode *current_element;
-  t_instruction *current_instr;
-
-  /* preconditions */
-  assert(fp != NULL);
-  assert(program != NULL);
-
   /* if the instruction list is empty, there is nothing to print, exit */
   if (!program->instructions)
     return 0;
@@ -481,10 +466,10 @@ int translateCodeSegment(t_program *program, FILE *fp)
     return -1;
 
   /* iterate through the instruction list */
-  current_element = program->instructions;
+  t_listNode *current_element = program->instructions;
   while (current_element != NULL) {
     /* retrieve the current instruction */
-    current_instr = (t_instruction *)current_element->data;
+    t_instruction *current_instr = (t_instruction *)current_element->data;
     if (current_instr == NULL)
       fatalError("NULL instruction found in the program");
 
@@ -535,13 +520,6 @@ int printDirective(t_data *data, FILE *fp)
 
 int translateDataSegment(t_program *program, FILE *fp)
 {
-  t_listNode *current_element;
-  t_data *current_data;
-
-  /* preconditions */
-  assert(fp != NULL);
-  assert(program != NULL);
-
   /* if the list of directives is empty, there is nothing to print */
   if (program->data == NULL)
     return 0;
@@ -551,10 +529,10 @@ int translateDataSegment(t_program *program, FILE *fp)
     return -1;
 
   /* iterate over all data directives */
-  current_element = program->data;
+  t_listNode *current_element = program->data;
   while (current_element != NULL) {
     /* retrieve the current data element */
-    current_data = (t_data *)current_element->data;
+    t_data *current_data = (t_data *)current_element->data;
 
     /* assertions */
     if (current_data == NULL)
