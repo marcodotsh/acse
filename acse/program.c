@@ -88,10 +88,8 @@ t_instruction *newInstruction(int opcode)
 /* create and initialize an instance of `t_data' */
 t_data *newGlobal(int type, int value, t_label *label)
 {
-  t_data *result;
-
   /* create an instance of `t_data' */
-  result = (t_data *)malloc(sizeof(t_data));
+  t_data *result = (t_data *)malloc(sizeof(t_data));
   if (result == NULL)
     fatalError("out of memory");
 

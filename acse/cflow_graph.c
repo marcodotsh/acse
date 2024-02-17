@@ -1,15 +1,13 @@
 /// @file cflow_graph.c
 
 #include <assert.h>
+#include "utils.h"
 #include "cflow_graph.h"
-#include "list.h"
-#include "utils.h"
-#include "utils.h"
 #include "target_info.h"
 #include "target_asm_print.h"
 
 
-static bool compareCFGVarAndRegID(void *a, void *b)
+static bool compareCFGRegAndRegID(void *a, void *b)
 {
   t_cfgReg *cfgReg = (t_cfgReg *)a;
   t_regID id = *((t_regID *)b);
@@ -19,14 +17,15 @@ static bool compareCFGVarAndRegID(void *a, void *b)
   return cfgReg->ID == id;
 }
 
-/* Alloc a new control flow graph variable object. If a variable object
+/* Alloc a new control flow graph register object. If a register object
  * referencing the same identifier already exists, returns the pre-existing
  * object. */
-t_cfgReg *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs)
+static t_cfgReg *createCFGRegister(
+    t_cfg *graph, t_regID identifier, t_listNode *mcRegs)
 {
-  // Test if a variable with the same identifier is already present.
+  // Test if a register with the same identifier is already present.
   t_listNode *elementFound = listFindWithCallback(
-      graph->registers, &identifier, compareCFGVarAndRegID);
+      graph->registers, &identifier, compareCFGRegAndRegID);
 
   t_cfgReg *result;
   if (elementFound) {
@@ -66,39 +65,39 @@ t_cfgReg *cfgCreateVariable(t_cfg *graph, t_regID identifier, t_listNode *mcRegs
   return result;
 }
 
-void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
+static void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 {
   t_instruction *instr = node->instr;
 
   // Create or lookup CFG register objects for all arguments
-  t_cfgReg *varDest = NULL;
-  t_cfgReg *varSource1 = NULL;
-  t_cfgReg *varSource2 = NULL;
+  t_cfgReg *regDest = NULL;
+  t_cfgReg *regSource1 = NULL;
+  t_cfgReg *regSource2 = NULL;
   if (instr->reg_dest != NULL) {
-    varDest = cfgCreateVariable(
+    regDest = createCFGRegister(
         graph, (instr->reg_dest)->ID, instr->reg_dest->mcRegWhitelist);
   }
   if (instr->reg_src1 != NULL) {
-    varSource1 = cfgCreateVariable(
+    regSource1 = createCFGRegister(
         graph, (instr->reg_src1)->ID, instr->reg_src1->mcRegWhitelist);
   }
   if (instr->reg_src2 != NULL) {
-    varSource2 = cfgCreateVariable(
+    regSource2 = createCFGRegister(
         graph, (instr->reg_src2)->ID, instr->reg_src2->mcRegWhitelist);
   }
 
   // Fill the def/use sets for this node
   int def_i = 0;
-  if (varDest)
-    node->defs[def_i++] = varDest;
+  if (regDest)
+    node->defs[def_i++] = regDest;
   int use_i = 0;
-  if (varSource1)
-    node->uses[use_i++] = varSource1;
-  if (varSource1)
-    node->uses[use_i++] = varSource2;
+  if (regSource1)
+    node->uses[use_i++] = regSource1;
+  if (regSource2)
+    node->uses[use_i++] = regSource2;
 }
 
-t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr)
+t_cfgNode *createCFGNode(t_cfg *graph, t_instruction *instr)
 {
   t_cfgNode *result = malloc(sizeof(t_cfgNode));
   if (result == NULL)
@@ -121,13 +120,10 @@ void deleteCFGNode(t_cfgNode *node)
   if (node == NULL)
     return;
 
-  // free the two lists `in' and `out' 
   if (node->in != NULL)
     deleteList(node->in);
   if (node->out != NULL)
     deleteList(node->out);
-
-  // free the current node 
   free(node);
 }
 
@@ -165,7 +161,7 @@ void deleteBasicBlock(t_basicBlock *block)
 
 void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 {
-  // do not insert if the block is already inserted in the list of predecessors 
+  // do not insert if the block is already inserted in the list of predecessors
   if (listFind(block->pred, pred) == NULL) {
     block->pred = listInsert(block->pred, pred, -1);
     pred->succ = listInsert(pred->succ, block, -1);
@@ -174,7 +170,7 @@ void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 
 void bbAddSucc(t_basicBlock *block, t_basicBlock *succ)
 {
-  // do not insert if the node is already inserted in the list of successors 
+  // do not insert if the node is already inserted in the list of successors
   if (listFind(block->succ, succ) == NULL) {
     block->succ = listInsert(block->succ, succ, -1);
     succ->pred = listInsert(succ->pred, block, -1);
@@ -185,7 +181,7 @@ t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *node)
 {
   if (listFind(block->nodes, node) != NULL)
     return CFG_ERROR_NODE_ALREADY_INSERTED;
-  
+
   block->nodes = listInsert(block->nodes, node, -1);
   return CFG_NO_ERROR;
 }
@@ -254,11 +250,11 @@ void deleteCFG(t_cfg *graph)
   if (graph->registers != NULL) {
     t_listNode *current_element = graph->registers;
     while (current_element != NULL) {
-      t_cfgReg *current_variable = (t_cfgReg *)current_element->data;
+      t_cfgReg *currentRegister = (t_cfgReg *)current_element->data;
 
-      if (current_variable != NULL) {
-        deleteList(current_variable->mcRegWhitelist);
-        free(current_variable);
+      if (currentRegister != NULL) {
+        deleteList(currentRegister->mcRegWhitelist);
+        free(currentRegister);
       }
 
       current_element = current_element->next;
@@ -296,14 +292,14 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
   return bblock;
 }
 
-/* test if the current instruction `instr' is a labelled instruction */
-bool instrIsStartingNode(t_instruction *instr)
+/* test if 'instr' is a labelled instruction */
+static bool instrIsStartingNode(t_instruction *instr)
 {
   return instr->label != NULL;
 }
 
-/* test if the current instruction will end a basic block */
-bool instrIsEndingNode(t_instruction *instr)
+/* test if 'instr' must appear at the end of a basic block */
+static bool instrIsEndingNode(t_instruction *instr)
 {
   return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
 }
@@ -347,7 +343,8 @@ static void cfgComputeTransitions(t_cfg *graph)
     if (isJumpInstruction(last_instruction)) {
       if (last_instruction->addressParam == NULL)
         fatalError("malformed jump instruction with no label in CFG");
-      t_basicBlock *jumpBlock = cfgSearchLabel(graph, last_instruction->addressParam);
+      t_basicBlock *jumpBlock =
+          cfgSearchLabel(graph, last_instruction->addressParam);
       if (jumpBlock == NULL)
         fatalError("malformed jump instruction with invalid label in CFG");
       bbAddPred(jumpBlock, current_block);
@@ -401,7 +398,7 @@ t_cfg *programToCFG(t_program *program)
     t_instruction *current_instr = (t_instruction *)current_element->data;
 
     // create the next node to insert in the block
-    t_cfgNode *current_node = cfgCreateNode(result, current_instr);
+    t_cfgNode *current_node = createCFGNode(result, current_instr);
 
     // If the instruction node needs to be at the beginning of a basic block
     // (= is labeled) or if `bblock' is NULL (because the last instruction was
@@ -482,7 +479,7 @@ void cfgToProgram(t_program *program, t_cfg *graph)
   }
 }
 
-t_listNode *bbGetLiveOutVars(t_basicBlock *bblock)
+t_listNode *bbGetLiveOut(t_basicBlock *bblock)
 {
   if (bblock == NULL)
     return NULL;
@@ -494,7 +491,7 @@ t_listNode *bbGetLiveOutVars(t_basicBlock *bblock)
   return listClone(lastNode->out);
 }
 
-t_listNode *bbGetLiveInVars(t_basicBlock *bblock)
+t_listNode *bbGetLiveIn(t_basicBlock *bblock)
 {
   if (bblock == NULL)
     return NULL;
@@ -505,8 +502,8 @@ t_listNode *bbGetLiveInVars(t_basicBlock *bblock)
   return listClone(firstNode->in);
 }
 
-t_listNode *addElementToSet(t_listNode *set, void *element,
-    bool (*compareFunc)(void *a, void *b), int *modified)
+static t_listNode *addElementToSet(t_listNode *set, void *element,
+    bool (*compareFunc)(void *a, void *b), bool *modified)
 {
   if (element == NULL)
     return set;
@@ -515,14 +512,14 @@ t_listNode *addElementToSet(t_listNode *set, void *element,
   if (listFindWithCallback(set, element, compareFunc) == NULL) {
     set = listInsert(set, element, -1);
     if (modified != NULL)
-      (*modified) = 1;
+      (*modified) = true;
   }
 
   return set;
 }
 
-t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
-    bool (*compareFunc)(void *a, void *b), int *modified)
+static t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
+    bool (*compareFunc)(void *a, void *b), bool *modified)
 {
   // Add all the elements to the set one by one
   t_listNode *current_element = elements;
@@ -536,7 +533,7 @@ t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
   return set;
 }
 
-t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
+static t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
     t_cfgReg *uses[CFG_MAX_USES], t_listNode *liveOut)
 {
   // Initialize live in set as equal to live out set
@@ -573,10 +570,10 @@ t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
   return liveIn;
 }
 
-/* Re-computes the variables live out of a block by applying the standard
+/* Re-computes the live registers out of a block by applying the standard
  * flow equation:
  *   out(block) = union in(block') for all successor block' */
-t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
+static t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 {
   // Iterate through all the successor blocks
   t_listNode *result = NULL;
@@ -585,11 +582,11 @@ t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
     t_basicBlock *current_succ = (t_basicBlock *)current_elem->data;
 
     if (current_succ != graph->endingBlock) {
-      // Update our block's 'out' set by adding all variables 'in' to the
+      // Update our block's 'out' set by adding all registers 'in' to the
       // current successor
-      t_listNode *liveINVars = bbGetLiveInVars(current_succ);
-      result = addElementsToSet(result, liveINVars, NULL, NULL);
-      deleteList(liveINVars);
+      t_listNode *liveINRegs = bbGetLiveIn(current_succ);
+      result = addElementsToSet(result, liveINRegs, NULL, NULL);
+      deleteList(liveINRegs);
     }
 
     current_elem = current_elem->next;
@@ -601,7 +598,7 @@ t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
 {
   // Keep track of whether we modified something or not
-  int modified = 0;
+  bool modified = false;
 
   // Start with the last node in the basic block, we will proceed upwards
   // from there.
@@ -621,7 +618,7 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
     deleteList(successorsLiveIn);
 
     // Compute the live in set of the block using the set of definition,
-    // uses and live out variables of the block
+    // uses and live out registers of the block
     t_listNode *liveIn =
         computeLiveInSetEquation(curNode->defs, curNode->uses, curNode->out);
     curNode->in = addElementsToSet(curNode->in, liveIn, NULL, &modified);
@@ -637,7 +634,7 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
   deleteList(successorsLiveIn);
 
   // Return a non-zero value if anything was modified
-  return !!modified;
+  return modified;
 }
 
 static bool cfgPerformLivenessIteration(t_cfg *graph)
@@ -664,54 +661,53 @@ void cfgComputeLiveness(t_cfg *graph)
   } while (modified);
 }
 
-void dumpCFlowGraphVariable(t_cfgReg *var, FILE *fout)
+static void dumpCFGRegister(t_cfgReg *reg, FILE *fout)
 {
-  if (var->ID == REG_INVALID) {
+  if (reg->ID == REG_INVALID) {
     fprintf(fout, "<!UNDEF!>");
   } else {
-    char *reg = registerIDToString(var->ID, false);
-    fprintf(fout, "%s", reg);
-    free(reg);
+    char *regName = registerIDToString(reg->ID, false);
+    fprintf(fout, "%s", regName);
+    free(regName);
   }
 }
 
-static void dumpArrayOfVariables(t_cfgReg **array, int size, FILE *fout)
+static void dumpArrayOfCFGRegisters(t_cfgReg **array, int size, FILE *fout)
 {
-  int foundVariables = 0;
-  int i;
+  int foundRegs = 0;
 
-  for (i = 0; i < size; i++) {
+  for (int i = 0; i < size; i++) {
     if (!(array[i]))
       continue;
 
-    if (foundVariables > 0)
+    if (foundRegs > 0)
       fprintf(fout, ", ");
 
-    dumpCFlowGraphVariable(array[i], fout);
-    foundVariables++;
+    dumpCFGRegister(array[i], fout);
+    foundRegs++;
   }
 
   fflush(fout);
 }
 
-static void dumpListOfVariables(t_listNode *variables, FILE *fout)
+static void dumpListOfCFGRegisters(t_listNode *regs, FILE *fout)
 {
-  t_listNode *current_element;
-  t_cfgReg *current_variable;
+  t_listNode *currentListNode;
+  t_cfgReg *currentRegister;
 
-  if (variables == NULL)
+  if (regs == NULL)
     return;
   if (fout == NULL)
     return;
 
-  current_element = variables;
-  while (current_element != NULL) {
-    current_variable = (t_cfgReg *)current_element->data;
-    dumpCFlowGraphVariable(current_variable, fout);
-    if (current_element->next != NULL)
+  currentListNode = regs;
+  while (currentListNode != NULL) {
+    currentRegister = (t_cfgReg *)currentListNode->data;
+    dumpCFGRegister(currentRegister, fout);
+    if (currentListNode->next != NULL)
       fprintf(fout, ", ");
 
-    current_element = current_element->next;
+    currentListNode = currentListNode->next;
   }
   fflush(fout);
 }
@@ -746,17 +742,17 @@ static void dumpBBList(t_cfg *cfg, t_listNode *list, FILE *fout)
   }
 }
 
-void cfgDumpBB(t_cfg *cfg, t_basicBlock *block, FILE *fout, bool verbose)
+static void cfgDumpBB(t_cfg *cfg, t_basicBlock *block, FILE *fout, bool verbose)
 {
   if (block == NULL)
     return;
   if (fout == NULL)
     return;
 
-  fprintf(fout, "Predecessors: {");
+  fprintf(fout, "  Predecessor blocks: {");
   dumpBBList(cfg, block->pred, fout);
   fprintf(fout, "}\n");
-  fprintf(fout, "Successors:   {");
+  fprintf(fout, "  Successor blocks:   {");
   dumpBBList(cfg, block->succ, fout);
   fprintf(fout, "}\n");
 
@@ -765,7 +761,7 @@ void cfgDumpBB(t_cfg *cfg, t_basicBlock *block, FILE *fout, bool verbose)
   while (elem != NULL) {
     t_cfgNode *current_node = (t_cfgNode *)elem->data;
 
-    fprintf(fout, "%4d. ", count);
+    fprintf(fout, "  Node %4d: ", count);
     if (current_node->instr == NULL)
       fprintf(fout, "(null)");
     else
@@ -773,18 +769,18 @@ void cfgDumpBB(t_cfg *cfg, t_basicBlock *block, FILE *fout, bool verbose)
     fprintf(fout, "\n");
 
     if (verbose) {
-      fprintf(fout, "      DEFS     = {");
-      dumpArrayOfVariables(current_node->defs, CFG_MAX_DEFS, fout);
+      fprintf(fout, "    def = {");
+      dumpArrayOfCFGRegisters(current_node->defs, CFG_MAX_DEFS, fout);
       fprintf(fout, "}\n");
-      fprintf(fout, "      USES     = {");
-      dumpArrayOfVariables(current_node->uses, CFG_MAX_USES, fout);
+      fprintf(fout, "    use = {");
+      dumpArrayOfCFGRegisters(current_node->uses, CFG_MAX_USES, fout);
       fprintf(fout, "}\n");
 
-      fprintf(fout, "      LIVE IN  = {");
-      dumpListOfVariables(current_node->in, fout);
+      fprintf(fout, "    in  = {");
+      dumpListOfCFGRegisters(current_node->in, fout);
       fprintf(fout, "}\n");
-      fprintf(fout, "      LIVE OUT = {");
-      dumpListOfVariables(current_node->out, fout);
+      fprintf(fout, "    out = {");
+      dumpListOfCFGRegisters(current_node->out, fout);
       fprintf(fout, "}\n");
     }
 
@@ -801,42 +797,26 @@ void cfgDump(t_cfg *graph, FILE *fout, bool verbose)
   if (fout == NULL)
     return;
 
-  fprintf(fout, "*************************\n");
-  fprintf(fout, "    CONTROL FLOW GRAPH   \n");
-  fprintf(fout, "*************************\n\n");
+  fprintf(fout, "# Control Flow Graph dump\n\n");
 
-  fprintf(fout, "%s",
-      "NOTE: Temporary registers are considered as variables of the\n"
-      "intermediate language.\n");
   if (TARGET_REG_ZERO_IS_CONST) {
     fprintf(fout, "%s",
-        "  Variable \'x0\' (which refers to the physical register \'zero\') "
-        "is\n"
-        "always considered LIVE-IN for each node of a basic block.\n"
-        "Thus, in the following control flow graph, \'x0\' will never appear\n"
-        "as LIVE-IN or LIVE-OUT variable for a statement.\n"
-        "  If you want to consider \'x0\' as a normal variable, you have to\n"
-        "un-define the macro TARGET_REG_ZERO_IS_CONST in \"cflow_graph.h\"."
-        "\n\n");
+        "Note: Temporary register \'t0\' refers to the physical register "
+        "\'zero\', whose\nvalue is immutable. As a result, it does not appear"
+        "in the liveness sets.\n\n");
   }
 
-  fprintf(fout, "--------------\n");
-  fprintf(fout, "  STATISTICS\n");
-  fprintf(fout, "--------------\n\n");
-
   fprintf(fout, "Number of basic blocks:   %d\n", listLength(graph->blocks));
-  fprintf(fout, "Number of used variables: %d\n\n",
-      listLength(graph->registers));
+  fprintf(
+      fout, "Number of used registers: %d\n\n", listLength(graph->registers));
 
-  fprintf(fout, "----------------\n");
-  fprintf(fout, "  BASIC BLOCKS\n");
-  fprintf(fout, "----------------\n\n");
+  fprintf(fout, "## Basic Blocks\n\n");
 
   int counter = 1;
   t_listNode *current_element = graph->blocks;
   while (current_element != NULL) {
     t_basicBlock *current_bblock = (t_basicBlock *)current_element->data;
-    fprintf(fout, "[BLOCK %d]\n", counter);
+    fprintf(fout, "Block %d:\n", counter);
     cfgDumpBB(graph, current_bblock, fout, verbose);
     fprintf(fout, "\n");
 

@@ -740,7 +740,7 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
 
   /* create a store instruction */
   t_instruction *storeInstr = genSWGlobal(NULL, selected_register, tlabel->label, REG_T6);
-  t_cfgNode *storeNode = cfgCreateNode(graph, storeInstr);
+  t_cfgNode *storeNode = createCFGNode(graph, storeInstr);
 
   /* test if we have to insert the node `storeNode' before `current_node'
    * inside the basic block */
@@ -766,7 +766,7 @@ int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
 
   /* create a load instruction */
   t_instruction *loadInstr = genLWGlobal(NULL, selected_register, tlabel->label);
-  t_cfgNode *loadNode = cfgCreateNode(graph, loadInstr);
+  t_cfgNode *loadNode = createCFGNode(graph, loadInstr);
 
   if (before) {
     /* insert the node `loadNode' before `current_node' */

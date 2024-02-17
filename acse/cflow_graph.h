@@ -9,10 +9,10 @@
 #include "program.h"
 #include "list.h"
 
-/** 
+/**
  * @defgroup cflow_graph Control Flow Graph
  * @brief Control Flow Graph generation and related analyses
- * 
+ *
  * Once the program has been translated to an initial assembly-like intermediate
  * language, the compiler needs to allocate each temporary register to a
  * physical register. However, the register allocation process requires
@@ -73,7 +73,7 @@ typedef struct {
 } t_basicBlock;
 
 /** Data structure describing a control flow graph */
-typedef struct t_cfg {
+typedef struct {
   /// List of all the basic blocks, in program order.
   t_listNode *blocks;
   /// Unique final basic block. The control flow must eventually reach here.
@@ -84,14 +84,14 @@ typedef struct t_cfg {
 } t_cfg;
 
 
-/// @name Instruction Nodes 
+/// @name Instruction Nodes
 /// @{
 
 /** Allocate a new node for a given Control Flow Graph.
  *  @param graph The Control Flow Graph where the node will be put.
  *  @param instr The instruction which will be represented by the node.
  *  @returns The new node. */
-t_cfgNode *cfgCreateNode(t_cfg *graph, t_instruction *instr);
+t_cfgNode *createCFGNode(t_cfg *graph, t_instruction *instr);
 /** Free a given Control Flow Graph node.
  *  @param node The node to be freed. */
 void deleteCFGNode(t_cfgNode *node);
@@ -126,25 +126,25 @@ void bbAddSucc(t_basicBlock *block, t_basicBlock *succ);
  *           present in the block. */
 t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *node);
 /** Inserts a new node before another inside a basic block.
- *  @param block The block where to insert the node.
- *  @param before_node The node at the insertion point. Must not be NULL.
- *  @param new_node The node to insert.
+ *  @param block    The block where to insert the node.
+ *  @param ip       The node at the insertion point. Must not be NULL.
+ *  @param newNode  The node to insert.
  *  @returns CFG_NO_ERROR if the operation succeeded, otherwise
- *           CFG_ERROR_INVALID_NODE if after_node does not belong to the
+ *           CFG_ERROR_INVALID_NODE if ip does not belong to the
  *           given basic block, or CFG_ERROR_NODE_ALREADY_INSERTED if the node
  *           to insert is already present in the block. */
 t_cfgError bbInsertNodeBefore(
-    t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node);
+    t_basicBlock *block, t_cfgNode *ip, t_cfgNode *newNode);
 /** Inserts a new node after another inside a basic block.
- *  @param block       The block where to insert the node.
- *  @param before_node The node at the insertion point. Must not be NULL.
- *  @param new_node    The node to insert.
+ *  @param block    The block where to insert the node.
+ *  @param ip       The node at the insertion point. Must not be NULL.
+ *  @param newNode  The node to insert.
  *  @returns CFG_NO_ERROR if the operation succeeded, otherwise
- *           CFG_ERROR_INVALID_NODE if after_node does not belong to the
+ *           CFG_ERROR_INVALID_NODE if ip does not belong to the
  *           given basic block, or CFG_ERROR_NODE_ALREADY_INSERTED if the node
  *           to insert is already present in the block. */
 t_cfgError bbInsertNodeAfter(
-    t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node);
+    t_basicBlock *block, t_cfgNode *ip, t_cfgNode *newNode);
 
 /// @}
 
@@ -194,22 +194,22 @@ void cfgToProgram(t_program *program, t_cfg *graph);
 /// @name Data Flow Analysis
 /// @{
 
-/** Computes graph-level liveness information of the variables.
+/** Computes graph-level liveness information of temporary registers.
  *  @param graph The control flow graph. */
 void cfgComputeLiveness(t_cfg *graph);
 
-/** Retrieve the list of live variables entering the given block. Only valid
- *  after calling cfgComputeLiveness() on the graph.
- *  @param bblock The basic block.
- *  @return The list of variables. The list is dynamically allocated and must be
- *          freed. */
-t_listNode *bbGetLiveInVars(t_basicBlock *bblock);
-/** Retrieve the list of live variables when exiting the given block. Only valid
- *  after calling cfgComputeLiveness() on the graph.
- *  @param bblock The basic block.
- *  @return The list of variables. The list is dynamically allocated and must be
- *          freed. */
-t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
+/** Retrieve the list of live temporary registers entering the given block.
+ * Only valid after calling cfgComputeLiveness() on the graph.
+ * @param bblock The basic block.
+ * @return The list of registers. The list is dynamically allocated and the
+ *         caller is responsible for freeing it. */
+t_listNode *bbGetLiveIn(t_basicBlock *bblock);
+/** Retrieve the list of live temporary registers exiting the given block. Only
+ * valid after calling cfgComputeLiveness() on the graph.
+ * @param bblock The basic block.
+ * @return The list of registers. The list is dynamically allocated and the
+ *         caller is responsible for freeing it. */
+t_listNode *bbGetLiveOut(t_basicBlock *bblock);
 
 /// @}
 
@@ -221,13 +221,13 @@ t_listNode *bbGetLiveOutVars(t_basicBlock *bblock);
  * @param graph The graph to log information about.
  * @param fout The output file.
  * @param verbose Pass a non-zero value to also print additional information
- *        about the liveness of the variables. */
+ *        about the liveness of the registers. */
 void cfgDump(t_cfg *graph, FILE *fout, bool verbose);
 
 /// @}
 
 
-/** 
+/**
  * @}
  */
 
