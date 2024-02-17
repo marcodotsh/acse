@@ -43,11 +43,6 @@
  * @brief Top-level functions that drive the compilation process
  */
 
-/* Errors */
-#define NO_ERROR 0
-#define ERROR_INVALID_CFLOW_GRAPH 23
-#define ERROR_REG_ALLOC_ERROR 25
-
 extern int num_error;
 
 char *getLogFileName(const char *logType);

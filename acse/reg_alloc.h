@@ -11,8 +11,9 @@
  * @{
  */
 
-/* Convert temporary register identifiers to real register identifiers,
- * analyzing the live interval of each temporary register. */
+/** Convert temporary register identifiers to real register identifiers,
+ * analyzing the live interval of each temporary register.
+ * @param program The program where to allocate registers */
 void doRegisterAllocation(t_program *program);
 
 /**

@@ -727,14 +727,14 @@ t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
   return result;
 }
 
-int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
+void genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
     t_cfg *graph, t_basicBlock *current_block, t_cfgNode *current_node,
-    t_listNode *labelBindings, int before)
+    t_listNode *labelBindings, bool before)
 {
   t_listNode *elementFound =
       listFindWithCallback(labelBindings, &temp_register, compareTempLabelWithRegId);
   if (elementFound == NULL)
-    return ERROR_INVALID_CFLOW_GRAPH;
+    fatalError("bug: t%d missing from the spill label list", temp_register);
 
   t_tempLabel *tlabel = (t_tempLabel *)elementFound->data;
 
@@ -749,18 +749,16 @@ int genStoreSpillVariable(t_regID temp_register, t_regID selected_register,
   } else {
     bbInsertNodeAfter(current_block, current_node, storeNode);
   }
-
-  return NO_ERROR;
 }
 
-int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
+void genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
     t_cfg *graph, t_basicBlock *block, t_cfgNode *current_node,
-    t_listNode *labelBindings, int before)
+    t_listNode *labelBindings, bool before)
 {
   t_listNode *elementFound =
       listFindWithCallback(labelBindings, &temp_register, compareTempLabelWithRegId);
   if (elementFound == NULL)
-    return ERROR_INVALID_CFLOW_GRAPH;
+    fatalError("bug: t%d missing from the spill label list", temp_register);
 
   t_tempLabel *tlabel = (t_tempLabel *)elementFound->data;
 
@@ -780,11 +778,9 @@ int genLoadSpillVariable(t_regID temp_register, t_regID selected_register,
   } else {
     bbInsertNodeAfter(block, current_node, loadNode);
   }
-
-  return NO_ERROR;
 }
 
-int materializeRegAllocInBBForInstructionNode(t_cfg *graph,
+void materializeRegAllocInBBForInstructionNode(t_cfg *graph,
     t_basicBlock *current_block, t_spillState *state, t_cfgNode *current_node,
     t_regAllocator *RA, t_listNode *label_bindings)
 {
@@ -882,16 +878,14 @@ int materializeRegAllocInBBForInstructionNode(t_cfg *graph,
     /* If we don't find anything, we don't have enough spill registers!
      * This should never happen, bail out! */
     if (current_row == NUM_SPILL_REGS)
-      return ERROR_REG_ALLOC_ERROR;
+      fatalError("bug: spill slots exhausted");
 
     /* If needed, write back the old variable that was assigned to this
      * slot before reassigning it */
     if (state->regs[current_row].needsWB == 1) {
-      error = genStoreSpillVariable(state->regs[current_row].assignedVar,
+      genStoreSpillVariable(state->regs[current_row].assignedVar,
           getSpillRegister(current_row), graph, current_block, current_node,
-          label_bindings, 1);
-      if (error != NO_ERROR)
-        return error;
+          label_bindings, true);
     }
 
     /* Update the state of this spill slot */
@@ -903,11 +897,9 @@ int materializeRegAllocInBBForInstructionNode(t_cfg *graph,
     /* Load the value of the variable in the spill register if not a
      * destination of the instruction */
     if (!argState[current_arg].isDestination) {
-      error = genLoadSpillVariable(argState[current_arg].reg->ID,
+      genLoadSpillVariable(argState[current_arg].reg->ID,
           getSpillRegister(current_row), graph, current_block, current_node,
-          label_bindings, 1);
-      if (error != NO_ERROR)
-        return error;
+          label_bindings, true);
     }
   }
 
@@ -923,11 +915,9 @@ int materializeRegAllocInBBForInstructionNode(t_cfg *graph,
       curReg->ID = getSpillRegister(argState[current_arg].spillSlot);
     }
   }
-
-  return NO_ERROR;
 }
 
-int materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
+void materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
     t_regAllocator *RA, t_listNode *label_bindings)
 {
   t_spillState state;
@@ -947,10 +937,8 @@ int materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
     /* Change the register IDs of the argument of the instruction accoring
      * to the given register allocation. Generate load and stores for spilled
      * registers */
-    int error = materializeRegAllocInBBForInstructionNode(
+    materializeRegAllocInBBForInstructionNode(
         graph, current_block, &state, current_node, RA, label_bindings);
-    if (error)
-      return error;
 
     current_nd_element = current_nd_element->next;
   }
@@ -963,35 +951,27 @@ int materializeRegAllocInBB(t_cfg *graph, t_basicBlock *current_block,
   for (int counter = 0; counter < NUM_SPILL_REGS; counter++) {
     if (state.regs[counter].needsWB == 0)
       continue;
-    int error = genStoreSpillVariable(state.regs[counter].assignedVar,
+    genStoreSpillVariable(state.regs[counter].assignedVar,
         getSpillRegister(counter), graph, current_block, current_node,
         label_bindings, bbHasTermInstr);
-    if (error)
-      return error;
   }
-
-  return NO_ERROR;
 }
 
 /* update the control flow informations by unsing the result
  * of the register allocation process and a list of bindings
  * between new assembly labels and spilled variables */
-int materializeRegAllocInCFG(
+void materializeRegAllocInCFG(
     t_cfg *graph, t_regAllocator *RA, t_listNode *label_bindings)
 {
   t_listNode *current_bb_element = graph->blocks;
   while (current_bb_element != NULL) {
     t_basicBlock *current_block = (t_basicBlock *)current_bb_element->data;
 
-    int error = materializeRegAllocInBB(graph, current_block, RA, label_bindings);
-    if (error)
-      return error;
+    materializeRegAllocInBB(graph, current_block, RA, label_bindings);
 
     /* retrieve the next basic block element */
     current_bb_element = current_bb_element->next;
   }
-
-  return NO_ERROR;
 }
 
 /* Replace the variable identifiers in the instructions of the CFG with the
@@ -999,7 +979,7 @@ int materializeRegAllocInCFG(
  * variables to the scratch registers. All new instructions are inserted
  * in the CFG. Synchronize the list of instructions with the newly
  * modified program. */
-int materializeRegisterAllocation(
+void materializeRegisterAllocation(
     t_program *program, t_cfg *graph, t_regAllocator *RA)
 {
   /* retrieve a list of t_templabels for the given RA infos and
@@ -1007,15 +987,11 @@ int materializeRegisterAllocation(
   t_listNode *label_bindings = materializeSpillMemory(program, RA);
 
   /* update the control flow graph with the reg-alloc infos. */
-  int error = materializeRegAllocInCFG(graph, RA, label_bindings);
+  materializeRegAllocInCFG(graph, RA, label_bindings);
   deleteListOfTempLabels(label_bindings);
-  if (error != NO_ERROR)
-    return error;
 
   /* update the code segment informations */
   cfgToProgram(program, graph);
-
-  return NO_ERROR;
 }
 
 
@@ -1165,9 +1141,7 @@ void doRegisterAllocation(t_program *program)
 
   /* apply changes to the program informations by using the informations
    * of the register allocation process */
-  int error = materializeRegisterAllocation(program, graph, RA);
-  if (error != NO_ERROR)
-    fatalError("register allocation failed with code %d", error);
+  materializeRegisterAllocation(program, graph, RA);
 
   deleteRegAllocator(RA);
   deleteCFG(graph);
