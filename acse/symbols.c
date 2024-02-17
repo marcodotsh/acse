@@ -143,21 +143,28 @@ t_symbol *getSymbol(t_program *program, char *ID)
 
 t_regID genLoadVariable(t_program *program, t_symbol *var)
 {
-  // Check if the symbol is an array; in that case bail out
-  if (isArray(var))
-    fatalError("'%s' is an array", var->ID); // TODO not fatal
-  // Generate a LW from the address specified by the label
   t_regID reg = getNewRegister(program);
-  genLWGlobal(program, reg, var->label);
+  // Check if the symbol is an array; in that case do not generate any more
+  // code. Calling emitError will eventually stop compilation anyway.
+  if (isArray(var)) {
+    emitError("'%s' is an array", var->ID);
+  } else {
+    // Generate a LW from the address specified by the label
+    genLWGlobal(program, reg, var->label);
+  }
   return reg;
 }
 
 
 void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
 {
-  // Check if the symbol is an array; in that case bail out
-  if (isArray(var))
-    fatalError("'%s' is a scalar", var->ID); // TODO not fatal
+  // Check if the symbol is an array; in that case bail out without generating
+  // any code (but emitting an error that will eventually stop further
+  // compilation)
+  if (isArray(var)) {
+    emitError("'%s' is an array", var->ID);
+    return;
+  }
   // Materialize the expression value
   t_regID r_val = genConvertExpValueToRegister(program, val);
   // Reserve a new register which is a temporary required
@@ -174,13 +181,16 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
  * @param array   The symbol object that refers to an array.
  * @param index   An expression that refers to a specific element of the array.
  * @returns The identifier of the register that (at runtime) will contain the
- *          address of the array element at position `index'. */
+ *          address of the array element at position `index'. If the symbol
+ *          is not of the correct type, REG_0 is returned instead. */
 t_regID genLoadArrayAddress(
     t_program *program, t_symbol *array, t_expressionValue index)
 {
-  // Retrieve the label associated with the given identifier
-  if (!isArray(array))
-    fatalError("'%s' is a scalar", array->ID);
+  if (!isArray(array)) {
+    // If the symbol is not an array, bail out returning a dummy register ID
+    emitError("'%s' is a scalar", array->ID);
+    return REG_0;
+  }
   t_label *label = array->label;
 
   // Generate a load of the base address using LA

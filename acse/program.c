@@ -339,7 +339,7 @@ void assignLabel(t_program *program, t_label *label)
   for (t_listNode *li = program->instructions; li != NULL; li = li->next) {
     t_instruction *instr = li->data;
     if (instr->label && instr->label->labelID == label->labelID)
-      fatalError("compiler bug, label already assigned");
+      fatalError("bug: label already assigned");
   }
 
   /* test if the next instruction already has a label */

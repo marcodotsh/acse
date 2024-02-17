@@ -11,7 +11,7 @@ void validateRegisterId(t_program *program, t_regID r)
     return;
   if (r >= 0 && r < program->current_register)
     return;
-  fatalError("compiler bug, invalid register identifier %d", r);
+  fatalError("bug: invalid register identifier %d", r);
 }
 
 
