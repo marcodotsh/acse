@@ -165,7 +165,7 @@ void deleteCFG(t_cfg *graph);
  *  bbAddSucc.
  *  @param graph The graph where the block must be added.
  *  @param block The block to add.
- *  @returns NO_ERROR if the operation succeeded, otherwise
+ *  @returns CFG_NO_ERROR if the operation succeeded, otherwise
  *           CFG_ERROR_BBLOCK_ALREADY_INSERTED if the block was already inserted
  *           in the graph. */
 t_cfgError cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
