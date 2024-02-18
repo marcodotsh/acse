@@ -45,7 +45,9 @@ typedef struct {
   /// Temporary registers allocated to a spill location are marked by the
   /// RA_SPILL_REQUIRED virtual register ID.
   t_regID *bindings;
-  /// List of currently free physical registers.
+  /// List of currently active intervals during the allocation process.
+  t_listNode *activeIntervals;
+  /// List of currently free physical registers during the allocation process.
   t_listNode *freeRegisters;
 } t_regAllocator;
 
@@ -236,31 +238,6 @@ int getLiveIntervalsNodeCallback(
   return 0;
 }
 
-void deleteLiveIntervals(t_listNode *intervals)
-{
-  t_listNode *current_element;
-  t_liveInterval *current_interval;
-
-  if (intervals == NULL)
-    return;
-
-  /* finalize the memory blocks associated with all
-   * the live intervals */
-  for (current_element = intervals; current_element != NULL;
-       current_element = current_element->next) {
-    /* fetch the current interval */
-    current_interval = (t_liveInterval *)current_element->data;
-    if (current_interval != NULL) {
-      /* finalize the memory block associated with
-       * the current interval */
-      deleteLiveInterval(current_interval);
-    }
-  }
-
-  /* deallocate the list of intervals */
-  deleteList(intervals);
-}
-
 /* Collect a list of live intervals from the in/out sets in the CFG */
 t_listNode *getLiveIntervals(t_cfg *graph)
 {
@@ -268,38 +245,6 @@ t_listNode *getLiveIntervals(t_cfg *graph)
   t_listNode *result = NULL;
   cfgIterateNodes(graph, (void *)&result, getLiveIntervalsNodeCallback);
   return result;
-}
-
-/* Insert a live interval in the register allocator. Returns true on success,
- * false if the interval was already inserted in the list. */
-bool insertLiveInterval(t_regAllocator *RA, t_liveInterval *interval)
-{
-  // test if an interval for the requested variable is already inserted
-  if (listFindWithCallback(
-          RA->liveIntervals, interval, compareLiveIntIDs) != NULL) {
-    return false;
-  }
-
-  // add the given interval to the list, in order of starting point
-  RA->liveIntervals =
-      listInsertSorted(RA->liveIntervals, interval, compareLiveIntStartPoints);
-
-  return true;
-}
-
-/* Insert all elements of the intervals list into
- * the register allocator data structure. */
-void insertListOfIntervals(t_regAllocator *RA, t_listNode *intervals)
-{
-  for (t_listNode *current_element = intervals; current_element != NULL;
-       current_element = current_element->next) {
-    /* Get the current live interval */
-    t_liveInterval *interval = (t_liveInterval *)current_element->data;
-
-    /* insert a new live interval */
-    bool ok = insertLiveInterval(RA, interval);
-    assert(ok && "bug: at least one duplicate live interval");
-  }
 }
 
 t_listNode *subtractRegisterSets(t_listNode *a, t_listNode *b)
@@ -409,147 +354,6 @@ void handleCallerSaveRegisters(t_regAllocator *ra, t_cfg *cfg)
   cfgIterateNodes(cfg, (void *)ra, handleCallerSaveRegistersNodeCallback);
 }
 
-bool compareFreeRegListNodes(void *freeReg, void *constraintReg)
-{
-  return INT_TO_LIST_DATA(constraintReg) == INT_TO_LIST_DATA(freeReg);
-}
-
-/* Get a new register from the free list */
-t_regID assignRegister(t_regAllocator *RA, t_listNode *constraints)
-{
-  t_regID tempRegID;
-  t_listNode *i;
-
-  if (constraints == NULL)
-    return RA_SPILL_REQUIRED;
-
-  for (i = constraints; i; i = i->next) {
-    t_listNode *freeReg;
-
-    tempRegID = (t_regID)LIST_DATA_TO_INT(i->data);
-    freeReg = listFindWithCallback(
-        RA->freeRegisters, INT_TO_LIST_DATA(tempRegID), compareFreeRegListNodes);
-    if (freeReg) {
-      RA->freeRegisters = listRemoveNode(RA->freeRegisters, freeReg);
-      return tempRegID;
-    }
-  }
-
-  return RA_SPILL_REQUIRED;
-}
-
-/* Perform a spill that allows the allocation of the given
- * interval, given the list of active live intervals */
-t_listNode *spillAtInterval(
-    t_regAllocator *RA, t_listNode *active_intervals, t_liveInterval *interval)
-{
-  t_listNode *last_element;
-  t_liveInterval *last_interval;
-
-  /* get the last element of the list of active intervals */
-  /* Precondition: if the list of active intervals is empty
-   * we are working on a machine with 0 registers available
-   * for the register allocation */
-  if (active_intervals == NULL) {
-    RA->bindings[interval->tempRegID] = RA_SPILL_REQUIRED;
-    return active_intervals;
-  }
-
-  last_element = listGetLastNode(active_intervals);
-  last_interval = (t_liveInterval *)last_element->data;
-
-  /* If the current interval ends before the last one, spill
-   * the last one, otherwise spill the current interval. */
-  if (last_interval->endPoint > interval->endPoint) {
-    t_regID attempt = RA->bindings[last_interval->tempRegID];
-    if (listFind(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
-      RA->bindings[interval->tempRegID] = RA->bindings[last_interval->tempRegID];
-      RA->bindings[last_interval->tempRegID] = RA_SPILL_REQUIRED;
-
-      active_intervals = listFindAndRemove(active_intervals, last_interval);
-
-      active_intervals =
-          listInsertSorted(active_intervals, interval, compareLiveIntEndPoints);
-      return active_intervals;
-    }
-  }
-
-  RA->bindings[interval->tempRegID] = RA_SPILL_REQUIRED;
-  return active_intervals;
-}
-
-/* Remove from active_intervals all the live intervals that end before the
- * beginning of the current live interval */
-t_listNode *expireOldIntervals(
-    t_regAllocator *RA, t_listNode *active_intervals, t_liveInterval *interval)
-{
-  /* No active intervals, bail out! */
-  if (active_intervals == NULL)
-    return NULL;
-
-  /* Iterate over the set of active intervals */
-  t_listNode *current_element = active_intervals;
-  while (current_element != NULL) {
-    /* Get the live interval */
-    t_liveInterval *current_interval = (t_liveInterval *)current_element->data;
-
-    /* If the considered interval ends before the beginning of
-     * the current live interval, we don't need to keep track of
-     * it anymore; otherwise, this is the first interval we must
-     * still take into account when assigning registers. */
-    if (current_interval->endPoint > interval->startPoint)
-      return active_intervals;
-
-    /* when current_interval->endPoint == interval->startPoint,
-     * the variable associated to current_interval is being used by the
-     * instruction that defines interval. As a result, we can allocate
-     * interval to the same reg as current_interval. */
-    if (current_interval->endPoint == interval->startPoint) {
-      t_regID curIntReg = RA->bindings[current_interval->tempRegID];
-      if (curIntReg >= 0) {
-        t_listNode *allocated =
-            listInsert(NULL, INT_TO_LIST_DATA(curIntReg), 0);
-        interval->mcRegConstraints =
-            optimizeRegisterSet(interval->mcRegConstraints, allocated);
-        deleteList(allocated);
-      }
-    }
-
-    /* Get the next live interval */
-    t_listNode *next_element = current_element->next;
-
-    /* Remove the current element from the list */
-    active_intervals =
-        listFindAndRemove(active_intervals, current_interval);
-
-    /* Free all the registers associated with the removed interval */
-    RA->freeRegisters = listInsert(RA->freeRegisters,
-        INT_TO_LIST_DATA(RA->bindings[current_interval->tempRegID]), 0);
-
-    /* Step to the next interval */
-    current_element = next_element;
-  }
-
-  /* Return the updated list of active intervals */
-  return active_intervals;
-}
-
-/* Deallocate the register allocator data structures */
-void deleteRegAllocator(t_regAllocator *RA)
-{
-  if (RA == NULL)
-    return;
-
-  /* Free the live intervals */
-  deleteLiveIntervals(RA->liveIntervals);
-
-  /* Free memory used for the variable/register bindings */
-  free(RA->bindings);
-  deleteList(RA->freeRegisters);
-
-  free(RA);
-}
-
 /* Allocate and initialize the register allocator */
 t_regAllocator *newRegAllocator(t_cfg *graph)
 {
@@ -583,9 +387,8 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
 
   // Compute the list of live intervals, then insert it into the register
   // allocator, sorting it in the process.
-  t_listNode *intervals = getLiveIntervals(graph);
-  insertListOfIntervals(result, intervals);
-  deleteList(intervals);
+  result->liveIntervals = getLiveIntervals(graph);
+  result->liveIntervals = listSort(result->liveIntervals, compareLiveIntStartPoints);
 
   // Create the list of free physical (machine) registers
   result->freeRegisters = getListOfMachineRegisters();
@@ -598,12 +401,128 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   return result;
 }
 
+bool compareFreeRegListNodes(void *freeReg, void *constraintReg)
+{
+  return INT_TO_LIST_DATA(constraintReg) == INT_TO_LIST_DATA(freeReg);
+}
+
+/* Remove from RA->activeIntervals all the live intervals that end before the
+ * beginning of the current live interval */
+void expireOldIntervals(t_regAllocator *RA, t_liveInterval *interval)
+{
+  /* No active intervals, bail out! */
+  if (RA->activeIntervals == NULL)
+    return;
+
+  /* Iterate over the set of active intervals */
+  t_listNode *current_element = RA->activeIntervals;
+  while (current_element != NULL) {
+    /* Get the live interval */
+    t_liveInterval *current_interval = (t_liveInterval *)current_element->data;
+
+    /* If the considered interval ends before the beginning of
+     * the current live interval, we don't need to keep track of
+     * it anymore; otherwise, this is the first interval we must
+     * still take into account when assigning registers. */
+    if (current_interval->endPoint > interval->startPoint)
+      return;
+
+    /* when current_interval->endPoint == interval->startPoint,
+     * the variable associated to current_interval is being used by the
+     * instruction that defines interval. As a result, we can allocate
+     * interval to the same reg as current_interval. */
+    if (current_interval->endPoint == interval->startPoint) {
+      t_regID curIntReg = RA->bindings[current_interval->tempRegID];
+      if (curIntReg >= 0) {
+        t_listNode *allocated =
+            listInsert(NULL, INT_TO_LIST_DATA(curIntReg), 0);
+        interval->mcRegConstraints =
+            optimizeRegisterSet(interval->mcRegConstraints, allocated);
+        deleteList(allocated);
+      }
+    }
+
+    /* Get the next live interval */
+    t_listNode *next_element = current_element->next;
+
+    /* Remove the current element from the list */
+    RA->activeIntervals =
+        listFindAndRemove(RA->activeIntervals, current_interval);
+
+    /* Free all the registers associated with the removed interval */
+    RA->freeRegisters = listInsert(RA->freeRegisters,
+        INT_TO_LIST_DATA(RA->bindings[current_interval->tempRegID]), 0);
+
+    /* Step to the next interval */
+    current_element = next_element;
+  }
+}
+
+/* Get a new register from the free list */
+t_regID assignRegister(t_regAllocator *RA, t_listNode *constraints)
+{
+  t_regID tempRegID;
+  t_listNode *i;
+
+  if (constraints == NULL)
+    return RA_SPILL_REQUIRED;
+
+  for (i = constraints; i; i = i->next) {
+    t_listNode *freeReg;
+
+    tempRegID = (t_regID)LIST_DATA_TO_INT(i->data);
+    freeReg = listFindWithCallback(
+        RA->freeRegisters, INT_TO_LIST_DATA(tempRegID), compareFreeRegListNodes);
+    if (freeReg) {
+      RA->freeRegisters = listRemoveNode(RA->freeRegisters, freeReg);
+      return tempRegID;
+    }
+  }
+
+  return RA_SPILL_REQUIRED;
+}
+
+/* Perform a spill that allows the allocation of the given
+ * interval, given the list of active live intervals */
+void spillAtInterval(t_regAllocator *RA, t_liveInterval *interval)
+{
+  t_listNode *last_element;
+  t_liveInterval *last_interval;
+
+  /* get the last element of the list of active intervals */
+  /* Precondition: if the list of active intervals is empty
+   * we are working on a machine with 0 registers available
+   * for the register allocation */
+  if (RA->activeIntervals == NULL) {
+    RA->bindings[interval->tempRegID] = RA_SPILL_REQUIRED;
+    return;
+  }
+
+  last_element = listGetLastNode(RA->activeIntervals);
+  last_interval = (t_liveInterval *)last_element->data;
+
+  /* If the current interval ends before the last one, spill
+   * the last one, otherwise spill the current interval. */
+  if (last_interval->endPoint > interval->endPoint) {
+    t_regID attempt = RA->bindings[last_interval->tempRegID];
+    if (listFind(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
+      RA->bindings[interval->tempRegID] = RA->bindings[last_interval->tempRegID];
+      RA->bindings[last_interval->tempRegID] = RA_SPILL_REQUIRED;
+
+      RA->activeIntervals = listFindAndRemove(RA->activeIntervals, last_interval);
+
+      RA->activeIntervals =
+          listInsertSorted(RA->activeIntervals, interval, compareLiveIntEndPoints);
+      return;
+    }
+  }
+
+  RA->bindings[interval->tempRegID] = RA_SPILL_REQUIRED;
+}
+
 /* Main register allocation function */
 void executeLinearScan(t_regAllocator *RA)
 {
-  /* initialize the list of active intervals */
-  t_listNode *active_intervals = NULL;
-
   /* Iterate over the list of live intervals */
   for (t_listNode *current_element = RA->liveIntervals; current_element != NULL;
        current_element = current_element->next) {
@@ -612,29 +531,57 @@ void executeLinearScan(t_regAllocator *RA)
 
     /* Check which intervals are ended and remove
      * them from the active set, thus freeing registers */
-    active_intervals =
-        expireOldIntervals(RA, active_intervals, current_interval);
+    expireOldIntervals(RA, current_interval);
 
     t_regID reg = assignRegister(RA, current_interval->mcRegConstraints);
 
     /* If all registers are busy, perform a spill */
     if (reg == RA_SPILL_REQUIRED) {
       /* perform a spill */
-      active_intervals =
-          spillAtInterval(RA, active_intervals, current_interval);
+      spillAtInterval(RA, current_interval);
     } else {
       /* Otherwise, assign a new register to the current live interval */
       RA->bindings[current_interval->tempRegID] = reg;
 
       /* Add the current interval to the list of active intervals, in
        * order of ending points (to allow easier expire management) */
-      active_intervals = listInsertSorted(
-          active_intervals, current_interval, compareLiveIntEndPoints);
+      RA->activeIntervals = listInsertSorted(
+          RA->activeIntervals, current_interval, compareLiveIntEndPoints);
     }
   }
 
   /* free the list of active intervals */
-  deleteList(active_intervals);
+  RA->activeIntervals = deleteList(RA->activeIntervals);
+}
+
+/* Deallocate the register allocator data structures */
+void deleteRegAllocator(t_regAllocator *RA)
+{
+  if (RA == NULL)
+    return;
+
+  /* finalize the memory blocks associated with all
+   * the live intervals */
+  for (t_listNode *current_element = RA->liveIntervals; current_element != NULL;
+       current_element = current_element->next) {
+    /* fetch the current interval */
+    t_liveInterval *current_interval = (t_liveInterval *)current_element->data;
+    if (current_interval != NULL) {
+      /* finalize the memory block associated with
+       * the current interval */
+      deleteLiveInterval(current_interval);
+    }
+  }
+
+  /* deallocate the list of intervals */
+  deleteList(RA->liveIntervals);
+
+  /* Free memory used for the variable/register bindings */
+  free(RA->bindings);
+  deleteList(RA->activeIntervals);
+  deleteList(RA->freeRegisters);
+
+  free(RA);
 }
 
 
