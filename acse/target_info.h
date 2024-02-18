@@ -28,7 +28,7 @@ typedef int32_t t_regInt;
 /// the maximum number of unique register operands in a single instruction.
 #define NUM_SPILL_REGS 3
 
-/// Register names
+/// Machine register names
 enum {
   REG_ZERO = 0,
   REG_RA,
@@ -173,17 +173,17 @@ bool isCallInstruction(t_instruction *instr);
  * is always bounded by NUM_SPILL_REGS. 
  * @param i The index of the spill register to return, between 0 and
  *          NUM_SPILL_REGS (excluded). */
-t_regID getSpillRegister(int i);
+t_regID getSpillMachineRegister(int i);
 
 /** Returns the list of register IDs available for the register allocator,
  * sorted in order of priority. */
-t_listNode *getListOfGenPurposeRegisters(void);
+t_listNode *getListOfGenPurposeMachineRegisters(void);
 
-t_listNode *getListOfRegisters(void);
+t_listNode *getListOfMachineRegisters(void);
 
 /** Returns the list of register IDs that can be modified by a given function
  * call instruction, except for input and output parameters. */
-t_listNode *getListOfCallerSaveRegisters(void);
+t_listNode *getListOfCallerSaveMachineRegisters(void);
 
 
 #endif

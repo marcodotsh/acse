@@ -14,7 +14,7 @@ static bool compareCFGRegAndRegID(void *a, void *b)
 
   if (cfgReg == NULL)
     return false;
-  return cfgReg->ID == id;
+  return cfgReg->tempRegID == id;
 }
 
 /* Alloc a new control flow graph register object. If a register object
@@ -36,7 +36,7 @@ static t_cfgReg *createCFGRegister(
     result = malloc(sizeof(t_cfgReg));
     if (result == NULL)
       fatalError("out of memory");
-    result->ID = identifier;
+    result->tempRegID = identifier;
     result->mcRegWhitelist = NULL;
     // Insert it in the list of registers
     graph->registers = listInsert(graph->registers, result, -1);
@@ -543,7 +543,7 @@ static t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
   for (int i = 0; i < CFG_MAX_USES; i++) {
     if (uses[i] == NULL)
       continue;
-    if (TARGET_REG_ZERO_IS_CONST && uses[i]->ID == REG_0)
+    if (TARGET_REG_ZERO_IS_CONST && uses[i]->tempRegID == REG_0)
       continue;
     liveIn = addElementToSet(liveIn, uses[i], NULL, NULL);
   }
@@ -555,11 +555,11 @@ static t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
 
     if (defs[def_i] == NULL)
       continue;
-    if (TARGET_REG_ZERO_IS_CONST && defs[def_i]->ID == REG_0)
+    if (TARGET_REG_ZERO_IS_CONST && defs[def_i]->tempRegID == REG_0)
       continue;
 
     for (int use_i = 0; use_i < CFG_MAX_USES && !found; use_i++) {
-      if (uses[use_i] && uses[use_i]->ID == defs[def_i]->ID)
+      if (uses[use_i] && uses[use_i]->tempRegID == defs[def_i]->tempRegID)
         found = 1;
     }
 
@@ -663,10 +663,10 @@ void cfgComputeLiveness(t_cfg *graph)
 
 static void dumpCFGRegister(t_cfgReg *reg, FILE *fout)
 {
-  if (reg->ID == REG_INVALID) {
+  if (reg->tempRegID == REG_INVALID) {
     fprintf(fout, "<!UNDEF!>");
   } else {
-    char *regName = registerIDToString(reg->ID, false);
+    char *regName = registerIDToString(reg->tempRegID, false);
     fprintf(fout, "%s", regName);
     free(regName);
   }

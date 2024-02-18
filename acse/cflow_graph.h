@@ -42,7 +42,7 @@ enum {
  * node in a basic block */
 typedef struct {
   /// Register identifier
-  t_regID ID;
+  t_regID tempRegID;
   /// Physical register whitelist. Used by the register allocator.
   t_listNode *mcRegWhitelist;
 } t_cfgReg;

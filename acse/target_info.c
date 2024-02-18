@@ -44,14 +44,14 @@ bool isCallInstruction(t_instruction *instr)
 }
 
 
-t_regID getSpillRegister(int i)
+t_regID getSpillMachineRegister(int i)
 {
   assert(i < NUM_SPILL_REGS);
   return (t_regID)i + REG_S9;
 }
 
 
-t_listNode *getListOfGenPurposeRegisters(void)
+t_listNode *getListOfGenPurposeMachineRegisters(void)
 {
   static const int regs[NUM_GP_REGS] = {REG_S0, REG_S1, REG_S2, REG_S3, REG_S4,
       REG_S5, REG_S6, REG_S7, REG_S8, REG_T0, REG_T1, REG_T2, REG_T3, REG_T4,
@@ -64,7 +64,7 @@ t_listNode *getListOfGenPurposeRegisters(void)
   return res;
 }
 
-t_listNode *getListOfRegisters(void)
+t_listNode *getListOfMachineRegisters(void)
 {
   t_listNode *res = NULL;
   for (int i = 1; i < NUM_REGISTERS; i++) {
@@ -73,7 +73,7 @@ t_listNode *getListOfRegisters(void)
   return res;
 }
 
-t_listNode *getListOfCallerSaveRegisters(void)
+t_listNode *getListOfCallerSaveMachineRegisters(void)
 {
   static const t_regID regs[] = {REG_T0, REG_T1, REG_T2, REG_T3, REG_T4, REG_T5,
       REG_A0, REG_A1, REG_A2, REG_A3, REG_A4, REG_A5, REG_A6, REG_A7,
