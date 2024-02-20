@@ -161,13 +161,6 @@ int listLength(t_listNode *list);
  *          in the same order as the given list. */
 t_listNode *listClone(t_listNode *list);
 
-/** Sort a list.
- * @param list          The list to be sorted
- * @param compareFunc   A function for comparing two data pointers. The function
- *                      shall return -1 if a < b, 0 if a == b, and 1 if a > b.
- * @returns A pointer to the new head of the list. */
-t_listNode *listSort(t_listNode *list, int (*compareFunc)(void *a, void *b));
-
 /** Remove all the elements of a list.
  * @param list The list to be deleted.
  * @returns NULL. */

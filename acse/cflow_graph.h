@@ -171,12 +171,17 @@ void deleteCFG(t_cfg *graph);
 t_cfgError cfgInsertBlock(t_cfg *graph, t_basicBlock *block);
 
 /** Iterates through the nodes in a control flow graph.
- *  @param graph The graph that must be iterated over.
- *  @param context The context pointer that will be passed to the callback
- *         function.
+ *  @param graph    The graph that must be iterated over.
+ *  @param context  The context pointer that will be passed to the callback
+ *                  function.
  *  @param callback The callback function that will be called at each node
- *         found. The callback can return a non-zero value to stop the iteration
- *         process.
+ *                  found. The arguments of the callback are as follows:
+ *                   - `block`: the current block
+ *                   - `node`: the current node
+ *                   - `nodeIndex`: an index, increasing at each new node
+ *                   - `context`: the same context passed to cfgIterateNodes
+ *                  The callback can return a non-zero value to stop the
+ *                  iteration process.
  *  @returns The value returned by the last callback invocation. */
 int cfgIterateNodes(t_cfg *graph, void *context,
     int (*callback)(

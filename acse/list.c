@@ -121,17 +121,6 @@ t_listNode *listInsertSorted(
   return listInsertAfter(list, prev_elem, data);
 }
 
-t_listNode *listSort(t_listNode *list, int (*compareFunc)(void *a, void *b))
-{
-  t_listNode *new = NULL;
-  while (list != NULL) {
-    void *data = list->data;
-    list = listRemoveNode(list, list);
-    new = listInsertSorted(new, data, compareFunc);
-  }
-  return new;
-}
-
 
 static bool listDataDefaultCompareFunc(void *a, void *b)
 {

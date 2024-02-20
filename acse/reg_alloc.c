@@ -15,9 +15,9 @@
 /// Maximum amount of arguments to an instruction
 #define MAX_INSTR_ARGS (CFG_MAX_DEFS + CFG_MAX_USES)
 
-/// Fictitious register tempRegID associated to registers to be spilled.
+/// Fictitious register ID associated to registers to be spilled.
 #define RA_SPILL_REQUIRED    ((t_regID)(-2))
-/// Register tempRegID marking currently unallocated temporaries
+/// Fictitious register ID marking currently unallocated temporaries.
 #define RA_REGISTER_INVALID  ((t_regID)(-1))
 
 
@@ -90,10 +90,6 @@ typedef struct {
 } t_spillState;
 
 
-/*
- * Register allocation algorithm
- */
-
 /* Allocate and initialize a live interval data structure with a given
  * temporary register ID, starting and ending points */
 t_liveInterval *newLiveInterval(
@@ -151,109 +147,87 @@ int compareLiveIntEndPoints(void *varA, void *varB)
 }
 
 /* Given two live intervals, check if they refer to the same interval */
-bool compareLiveIntIDs(void *varA, void *varB)
+bool compareLiveIntWithRegID(void *a, void *b)
 {
-  t_liveInterval *liA = (t_liveInterval *)varA;
-  t_liveInterval *liB = (t_liveInterval *)varB;
-
-  if (varA == NULL)
-    return false;
-  if (varB == NULL)
-    return false;
-
-  return liA->tempRegID == liB->tempRegID;
+  t_liveInterval *interval = (t_liveInterval *)a;
+  t_regID tempRegID = *((t_regID *)b);
+  return interval->tempRegID == tempRegID;
 }
 
-/* Update the liveness interval for the variable 'tempRegID', used or defined
- * at position 'counter'. Returns an error code. */
-void updateVarInterval(t_cfgReg *var, int counter, t_listNode **intervals)
+/* Update the liveness interval list to account for the fact that variable 'var'
+ * is live at index 'counter' in the current program.
+ * If the variable already appears in the list, its live interval its prolonged
+ * to include the given counter location.
+ * Otherwise, a new liveness interval is generated for it.*/
+t_listNode *updateIntervalsWithLiveVarAtLocation(t_listNode *intervals, t_cfgReg *var, int counter)
 {
-  t_listNode *element_found;
-  t_liveInterval *interval_found;
-  t_liveInterval pattern;
+  // Search if there's already a liveness interval for the variable
+  t_listNode *element_found = listFindWithCallback(intervals, &(var->tempRegID), compareLiveIntWithRegID);
 
-  pattern.tempRegID = var->tempRegID;
-  // search for the current live interval
-  element_found =
-      listFindWithCallback(*intervals, &pattern, compareLiveIntIDs);
-  if (element_found != NULL) {
-    interval_found = (t_liveInterval *)element_found->data;
-    // update the interval informations
-    if (interval_found->startPoint > counter)
-      interval_found->startPoint = counter;
-    if (interval_found->endPoint < counter)
-      interval_found->endPoint = counter;
-  } else {
-    /* we have to add a new live interval */
-    interval_found =
+  if (!element_found) {
+    // It's not there: add a new interval at the end of the list
+    t_liveInterval *interval =
         newLiveInterval(var->tempRegID, var->mcRegWhitelist, counter, counter);
-    *intervals = listInsert(*intervals, interval_found, -1);
+    intervals = listInsert(intervals, interval, -1);
+  } else {
+    // It's there: update the interval range
+    t_liveInterval *interval_found = (t_liveInterval *)element_found->data;
+    // Counter should always be increasing!
+    assert(interval_found->startPoint <= counter);
+    assert(interval_found->endPoint <= counter);
+    interval_found->endPoint = counter;
   }
+  
+  return intervals;
 }
 
-/* Use liveness information to update the list of live intervals. Returns an
- * error code. */
-void updateListOfIntervals(
-    t_listNode **result, t_cfgNode *current_node, int counter)
+/* Add/augment the live interval list with the variables live at a given
+ * instruction location in the program */
+t_listNode *updateIntervalsWithInstrAtLocation(
+    t_listNode *result, t_cfgNode *node, int counter)
 {
-  t_listNode *current_element;
-  t_cfgReg *current_var;
-  int i;
+  t_listNode *elem;
 
-  if (current_node == NULL)
-    return;
-
-  current_element = current_node->in;
-  while (current_element != NULL) {
-    current_var = (t_cfgReg *)current_element->data;
-
-    updateVarInterval(current_var, counter, result);
-
-    /* fetch the next element in the list of live variables */
-    current_element = current_element->next;
+  elem = node->in;
+  while (elem != NULL) {
+    t_cfgReg *current_var = (t_cfgReg *)elem->data;
+    result = updateIntervalsWithLiveVarAtLocation(result, current_var, counter);
+    elem = elem->next;
   }
 
-  current_element = current_node->out;
-  while (current_element != NULL) {
-    current_var = (t_cfgReg *)current_element->data;
-
-    updateVarInterval(current_var, counter, result);
-
-    /* fetch the next element in the list of live variables */
-    current_element = current_element->next;
+  elem = node->out;
+  while (elem != NULL) {
+    t_cfgReg *current_var = (t_cfgReg *)elem->data;
+    result = updateIntervalsWithLiveVarAtLocation(result, current_var, counter);
+    elem = elem->next;
   }
 
-  for (i = 0; i < CFG_MAX_DEFS; i++) {
-    if (current_node->defs[i]) {
-      updateVarInterval(current_node->defs[i], counter, result);
-    }
+  for (int i = 0; i < CFG_MAX_DEFS; i++) {
+    if (node->defs[i])
+      result = updateIntervalsWithLiveVarAtLocation(result, node->defs[i], counter);
   }
+
+  return result;
 }
 
 int getLiveIntervalsNodeCallback(
     t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context)
 {
   t_listNode **list = (t_listNode **)context;
-  updateListOfIntervals(list, node, nodeIndex);
+  *list = updateIntervalsWithInstrAtLocation(*list, node, nodeIndex);
   return 0;
 }
 
-/* Collect a list of live intervals from the in/out sets in the CFG */
+/* Collect a list of live intervals from the in/out sets in the CFG.
+ * Since cfgIterateNodes passes incrementing counter values to the
+ * callback, the list returned from here is already ordered. */
 t_listNode *getLiveIntervals(t_cfg *graph)
 {
-  // build the list of intervals one instruction at a time
   t_listNode *result = NULL;
   cfgIterateNodes(graph, (void *)&result, getLiveIntervalsNodeCallback);
   return result;
 }
 
-t_listNode *subtractRegisterSets(t_listNode *a, t_listNode *b)
-{
-  for (; b; b = b->next) {
-    a = listFindAndRemove(a, b->data);
-  }
-  return a;
-}
 
 /* Move the elements in list `a` which are also contained in list `b` to the
  * front of the list. */
@@ -269,21 +243,39 @@ t_listNode *optimizeRegisterSet(t_listNode *a, t_listNode *b)
   return a;
 }
 
+t_listNode *subtractRegisterSets(t_listNode *a, t_listNode *b)
+{
+  for (; b; b = b->next) {
+    a = listFindAndRemove(a, b->data);
+  }
+  return a;
+}
+
+/* Create register constraint sets for all temporaries that don't have one.
+ * This is the main function that makes register allocation with constraints
+ * work.
+ *   The idea is that we rely on the fact that all temporaries without
+ * constraints are distinguishable from temporaries with constraints.
+ * When a temporary *without* constraints A is alive at the same time as a
+ * temporary *with* constraints B, we prohibit allocation of A to all the
+ * viable registers for B. This guarantees A won't steal a register needed by B.
+ *   Of course this will stop working as nicely with multiple overlapping
+ * constraints, but in ACSE this doesn't happen.
+ *   The effect of this function is */
 void initializeRegisterConstraints(t_regAllocator *ra)
 {
-  t_listNode *i, *j;
-
-  /* Initialize the register constraint set on all variables that don't have
-   * one. */
-  i = ra->liveIntervals;
+  t_listNode *i = ra->liveIntervals;
   for (; i; i = i->next) {
     t_liveInterval *interval = i->data;
+    // Skip instructions that already have constraints
     if (interval->mcRegConstraints)
       continue;
+    // Initial set consists of all registers.
     interval->mcRegConstraints = getListOfGenPurposeMachineRegisters();
 
-    /* Scan the variables that are alive together with this variable */
-    j = i->next;
+    // Scan the temporary registers that are alive together with this one and
+    // already have constraints.
+    t_listNode *j = i->next;
     for (; j; j = j->next) {
       t_liveInterval *overlappingIval = j->data;
       if (overlappingIval->startPoint > interval->endPoint)
@@ -291,17 +283,17 @@ void initializeRegisterConstraints(t_regAllocator *ra)
       if (!overlappingIval->mcRegConstraints)
         continue;
       if (overlappingIval->startPoint == interval->endPoint) {
-        /* An instruction is using interval as a source and overlappingIval
-         * as a destination. Optimize the constraint order to allow
-         * allocating source and destination to the same register
-         * if possible. */
+        // Some instruction is using our temporary register as a source and the
+        // other temporary register as a destination. Optimize the constraint
+        // order to allow allocating source and destination to the same register
+        // if possible.
         interval->mcRegConstraints = optimizeRegisterSet(
             interval->mcRegConstraints, overlappingIval->mcRegConstraints);
       } else {
-        /* Another variable (defined after this one) wants to be allocated
-         * to a restricted set of registers. Punch a hole in the current
-         * variable's set of allowed registers to ensure that this is
-         * possible. */
+        // Another variable (defined after this one) wants to be allocated
+        // to a restricted set of registers. Punch a hole in the current
+        // variable's set of allowed registers to ensure that this is
+        // possible.
         interval->mcRegConstraints = subtractRegisterSets(
             interval->mcRegConstraints, overlappingIval->mcRegConstraints);
       }
@@ -313,26 +305,23 @@ int handleCallerSaveRegistersNodeCallback(
     t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context)
 {
   t_regAllocator *ra = (t_regAllocator *)context;
-  t_listNode *li_ival;
-  t_listNode *clobbered_regs;
-  int i;
 
   if (!isCallInstruction(node->instr))
     return 0;
 
-  clobbered_regs = getListOfCallerSaveMachineRegisters();
-  for (i = 0; i < CFG_MAX_DEFS; i++) {
+  t_listNode *clobbered_regs = getListOfCallerSaveMachineRegisters();
+  for (int i = 0; i < CFG_MAX_DEFS; i++) {
     if (node->defs[i] != NULL)
       clobbered_regs =
           subtractRegisterSets(clobbered_regs, node->defs[i]->mcRegWhitelist);
   }
-  for (i = 0; i < CFG_MAX_USES; i++) {
+  for (int i = 0; i < CFG_MAX_USES; i++) {
     if (node->uses[i] != NULL)
       clobbered_regs =
           subtractRegisterSets(clobbered_regs, node->uses[i]->mcRegWhitelist);
   }
 
-  li_ival = ra->liveIntervals;
+  t_listNode *li_ival = ra->liveIntervals;
   while (li_ival) {
     t_liveInterval *ival = li_ival->data;
 
@@ -385,10 +374,8 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   if (TARGET_REG_ZERO_IS_CONST)
     result->bindings[REG_0] = REG_0;
 
-  // Compute the list of live intervals, then insert it into the register
-  // allocator, sorting it in the process.
+  // Compute the ordered list of live intervals
   result->liveIntervals = getLiveIntervals(graph);
-  result->liveIntervals = listSort(result->liveIntervals, compareLiveIntStartPoints);
 
   // Create the list of free physical (machine) registers
   result->freeRegisters = getListOfMachineRegisters();
