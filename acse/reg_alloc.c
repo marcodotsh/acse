@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 #include "reg_alloc.h"
 #include "target_info.h"
 #include "acse.h"
@@ -11,6 +12,7 @@
 #include "list.h"
 #include "cflow_graph.h"
 #include "target_asm_print.h"
+#include "symbols.h"
 
 /// Maximum amount of arguments to an instruction
 #define MAX_INSTR_ARGS (CFG_MAX_DEFS + CFG_MAX_USES)
@@ -628,20 +630,17 @@ t_listNode *materializeSpillMemory(t_program *program, t_regAllocator *RA)
 {
   /* initialize the local variable `result' */
   t_listNode *result = NULL;
-  t_spillLocation *tlabel = NULL;
 
   /* allocate some memory for all spilled temporary variables */
   for (t_regID counter = 0; counter < RA->tempRegNum; counter++) {
     if (RA->bindings[counter] != RA_SPILL_REQUIRED)
       continue;
 
-    /* retrieve a new label */
-    t_label *axe_label = createLabel(program);
-    tlabel = newTempLabel(axe_label, counter);
-
-    /* statically allocate some room for the spilled variable by
-     * creating a new .WORD directive and making the label point to it. */
-    genDataDeclaration(program, DATA_WORD, 0, axe_label);
+    /* statically allocate some room for the spilled variable */
+    char name[32];
+    sprintf(name, ".t%d", counter);
+    t_symbol *sym = createSymbol(program, strdup(name), TYPE_INT, 0);
+    t_spillLocation *tlabel = newTempLabel(sym->label, counter);
 
     /* add the current tlabel to the list of labelbindings */
     result = listInsert(result, tlabel, -1);

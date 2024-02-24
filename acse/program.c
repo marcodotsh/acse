@@ -85,23 +85,6 @@ t_instruction *newInstruction(int opcode)
   return result;
 }
 
-/* create and initialize an instance of `t_data' */
-t_data *newGlobal(int type, int value, t_label *label)
-{
-  /* create an instance of `t_data' */
-  t_data *result = (t_data *)malloc(sizeof(t_data));
-  if (result == NULL)
-    fatalError("out of memory");
-
-  /* initialize the new directive */
-  result->type = type;
-  result->value = value;
-  result->label = label;
-
-  /* return the new data */
-  return result;
-}
-
 /* finalize an instruction info. */
 void deleteInstruction(t_instruction *inst)
 {
@@ -127,36 +110,6 @@ void deleteInstruction(t_instruction *inst)
   }
 
   free(inst);
-}
-
-/* finalize a data info. */
-void deleteGlobal(t_data *data)
-{
-  if (data != NULL)
-    free(data);
-}
-
-void deleteGlobals(t_listNode *dataDirectives)
-{
-  t_listNode *current_element;
-  t_data *current_data;
-
-  /* nothing to finalize */
-  if (dataDirectives == NULL)
-    return;
-
-  current_element = dataDirectives;
-  while (current_element != NULL) {
-    /* retrieve the current instruction */
-    current_data = (t_data *)current_element->data;
-    if (current_data != NULL)
-      deleteGlobal(current_data);
-
-    current_element = current_element->next;
-  }
-
-  /* free the list of instructions */
-  deleteList(dataDirectives);
 }
 
 void deleteInstructions(t_listNode *instructions)
@@ -212,7 +165,6 @@ t_program *newProgram(void)
   /* initialize the new instance of `result' */
   result->symbols = NULL;
   result->instructions = NULL;
-  result->data = NULL;
   result->firstUnusedReg = 1; /* we are excluding the register R0 */
   result->labels = NULL;
   result->firstUnusedLblID = 0;
@@ -236,8 +188,6 @@ void deleteProgram(t_program *program)
     deleteSymbols(program->symbols);
   if (program->instructions != NULL)
     deleteInstructions(program->instructions);
-  if (program->data != NULL)
-    deleteGlobals(program->data);
   if (program->labels != NULL)
     deleteLabels(program->labels);
 
@@ -486,14 +436,6 @@ t_regID getNewRegister(t_program *program)
 
   /* return the current label identifier */
   return result;
-}
-
-t_data *genDataDeclaration(
-    t_program *program, int type, int value, t_label *label)
-{
-  t_data *res = newGlobal(type, value, label);
-  program->data = listInsert(program->data, res, -1);
-  return res;
 }
 
 void genProgramEpilog(t_program *program)

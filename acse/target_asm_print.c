@@ -5,6 +5,7 @@
 #include "target_asm_print.h"
 #include "target_info.h"
 #include "target_transform.h"
+#include "symbols.h"
 #include "acse.h"
 
 #define BUF_LENGTH 256
@@ -487,7 +488,7 @@ int translateCodeSegment(t_program *program, FILE *fp)
 }
 
 
-int printDirective(t_data *data, FILE *fp)
+int printGlobalDeclaration(t_symbol *data, FILE *fp)
 {
   char buf[BUF_LENGTH];
 
@@ -501,18 +502,19 @@ int printDirective(t_data *data, FILE *fp)
     return -1;
 
   /* print the directive */
+  int size;
   switch (data->type) {
-    case DATA_WORD:
-      if (fprintf(fp, ".word %d", data->value) < 0)
-        return -1;
+    case TYPE_INT:
+      size = 4 / TARGET_PTR_GRANULARITY;
       break;
-    case DATA_SPACE:
-      if (fprintf(fp, ".space %d", data->value) < 0)
-        return -1;
+    case TYPE_INT_ARRAY:
+      size = (4 / TARGET_PTR_GRANULARITY) * data->arraySize;
       break;
     default:
       fatalError("invalid data type found in the program");
   }
+  if (fprintf(fp, ".space %d", size) < 0)
+    return -1;
 
   return 0;
 }
@@ -520,32 +522,25 @@ int printDirective(t_data *data, FILE *fp)
 
 int translateDataSegment(t_program *program, FILE *fp)
 {
-  /* if the list of directives is empty, there is nothing to print */
-  if (program->data == NULL)
+  // If the symbol table is empty, nothing to do
+  if (program->symbols == NULL)
     return 0;
 
-  /* write the .data directive */
+  // write the .data directive to switch to the data segment
   if (fprintf(fp, "%-8s.data\n", "") < 0)
     return -1;
 
-  /* iterate over all data directives */
-  t_listNode *current_element = program->data;
-  while (current_element != NULL) {
-    /* retrieve the current data element */
-    t_data *current_data = (t_data *)current_element->data;
+  // Print a static declaration for each symbol
+  t_listNode *li = program->symbols;
+  while (li != NULL) {
+    t_symbol *symbol = (t_symbol *)li->data;
 
-    /* assertions */
-    if (current_data == NULL)
-      fatalError("invalid data record found in the program");
-
-    /* print label and directive */
-    if (printDirective(current_data, fp) < 0)
+    if (printGlobalDeclaration(symbol, fp) < 0)
       return -1;
     if (fprintf(fp, "\n") < 0)
       return -1;
 
-    /* advance to the next element */
-    current_element = current_element->next;
+    li = li->next;
   }
 
   return 0;
@@ -556,7 +551,7 @@ void writeAssembly(t_program *program, FILE *fp)
 {
   debugPrintf(" -> Code segment size: %d instructions\n",
       listLength(program->instructions));
-  debugPrintf(" -> Data segment size: %d elements\n", listLength(program->data));
+  debugPrintf(" -> Data segment size: %d elements\n", listLength(program->symbols));
   debugPrintf(" -> Number of labels: %d\n", listLength(program->labels));
 
   if (translateForwardDeclarations(program, fp) < 0)

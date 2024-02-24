@@ -34,11 +34,6 @@ typedef int t_regID;
 /// Constant identifying a register whose value is always zero.
 #define REG_0       ((t_regID)(0))
 
-/// Constant used to identify .word static declarations
-#define DATA_WORD 0
-/// Constant used to identify .space static declarations
-#define DATA_SPACE 1
-
 /** Object representing a label in the output assembly file.
  * @note A label object does not uniquely identify a label, its labelID field
  * does. This is used for aliasing multiple label objects to the same
@@ -73,20 +68,10 @@ typedef struct {
                          ///  or NULL if none.
 } t_instruction;
 
-/** Object representing a single data declaration in the compiled code.
- * After the assembly process, these declaration form the data segment of the
- * executable program. */
-typedef struct {
-  int type;       ///< Type of declaration (DATA_WORD or DATA_SPACE)
-  int value;      ///< A generic value associated with the declaration
-  t_label *label; ///< Label to the data
-} t_data;
-
 /** Object containing the program's intermediate representation during the
  * compilation process. */
 typedef struct {
   t_listNode *labels;            ///< List of all labels
-  t_listNode *data;              ///< List of static data declarations
   t_listNode *instructions;      ///< List of instructions
   t_listNode *symbols;           ///< Symbol table
   t_regID firstUnusedReg;        ///< Next unused register ID
@@ -173,23 +158,6 @@ t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
  * @param program The program where to remove the instruction
  * @param instrLi Node in the instruction list to remove */
 void removeInstructionAt(t_program *program, t_listNode *instrLi);
-
-/// @}
-
-
-/// @name Generation of data declarations
-/// @{
-
-/** Create a new data declaration in a program. 
- * @param program The program where to add the declaration
- * @param type    The declaration type (either DATA_WORD or DATA_SPACE)
- * @param value   The value of the declaration, i.e. the word to store for
- *                DATA_WORD or a byte amount to reserve for DATA_SPACE
- * @param label   A newly created label which will be assigned to the
- *                declaration.
- * @returns The data declaration object created. */
-t_data *genDataDeclaration(
-    t_program *program, int type, int value, t_label *label);
 
 /// @}
 

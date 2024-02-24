@@ -41,9 +41,14 @@ void deleteSymbol(t_symbol *s)
 t_symbol *createSymbol(
     t_program *program, char *ID, t_symbolType type, int arraySize)
 {
-  // Test the preconditions
+  // Check validity of type
   if (type != TYPE_INT && type != TYPE_INT_ARRAY)
     fatalError("invalid type");
+  // Check array size validity
+  if (type == TYPE_INT_ARRAY && arraySize <= 0) {
+    emitError("invalid size %d for array %s", arraySize, ID);
+    return NULL;
+  }
 
   // Check if another symbol already exists with the same ID
   t_symbol *existingSym = getSymbol(program, ID);
@@ -56,27 +61,15 @@ t_symbol *createSymbol(
   t_symbol *res = newSymbol(ID, type, arraySize);
 
   // Reserve a new label for the variable
+  res->label = createLabel(program);
+
+  // Set the name of the label
   char *lblName = calloc(strlen(ID) + 8, sizeof(char));
   if (!lblName)
     fatalError("out of memory");
   sprintf(lblName, "l_%s", ID);
-  res->label = createLabel(program);
   setLabelName(program, res->label, lblName);
   free(lblName);
-
-  // Insert a static declaration for the symbol
-  int sizeOfVar;
-  if (type == TYPE_INT_ARRAY) {
-    // Check if the array size is valid
-    if (arraySize <= 0) {
-      emitError("invalid size %d for array %s", arraySize, ID);
-      return NULL;
-    }
-    sizeOfVar = (4 / TARGET_PTR_GRANULARITY) * arraySize;
-  } else {
-    sizeOfVar = 4 / TARGET_PTR_GRANULARITY;
-  }
-  genDataDeclaration(program, DATA_SPACE, sizeOfVar, res->label);
 
   // Now we can add the new variable to the program
   program->symbols = listInsert(program->symbols, res, -1);
