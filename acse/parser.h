@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include "program.h"
+#include "gencode.h"
 
 /**
  * @defgroup semdef Semantic Definitions
@@ -37,7 +38,7 @@ typedef struct {
 /** During parsing, this variable keeps track of the source code line number.
  * Every time a newline is encountered while scanning the input file, the
  * lexer increases this variable by 1. */
-extern int line_num;
+extern int lineNum;
 
 /** Performs the initial syntactic-driven translation of the source code. The
  * generated code is put into the global `program' data structure.

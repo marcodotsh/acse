@@ -31,8 +31,8 @@ extern const char *axe_version;
 static void printMessage(const char *category, const char *fmt, va_list arg)
 {
   const char *fn = compilerOptions.inputFileName;
-  if (line_num >= 0)
-    fprintf(stderr, "%s:%d: %s: ", fn, line_num, category);
+  if (lineNum >= 0)
+    fprintf(stderr, "%s:%d: %s: ", fn, lineNum, category);
   else
     fprintf(stderr, "%s: ", category);
   vfprintf(stderr, fmt, arg);

@@ -8,6 +8,8 @@
 #include "parser.h"
 #include "parser.tab.h"
 
+int lineNum;
+
 %}
 
 %option noyywrap
@@ -24,60 +26,67 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
  ******************************************************************************/
 %%
 
-"\r\n"                    { ++line_num; }
-"\n"                      { ++line_num; }
+"\r\n"                    { ++lineNum; }
+"\n"                      { ++lineNum; }
 
 [ \t\f\v]+                { /* Ignore whitespace. */ }
 
-"//"[^\n]*                { /* ignore comment lines */ }
+"//"[^\n]*                { /* Ignore comment lines. */ }
 "/*"                      BEGIN(comment);
 
 <comment>[^*\n]*
-<comment>[^*\n]*\n        { ++line_num; }
+<comment>[^*\n]*\n        { ++lineNum; }
 <comment>"*"+[^*/\n]*     
-<comment>"*"+[^*/\n]*\n   { ++line_num; }
+<comment>"*"+[^*/\n]*\n   { ++lineNum; }
 <comment>"*"+"/"          BEGIN(INITIAL);
 
-"{"               { return LBRACE; }
-"}"               { return RBRACE; }
-"["               { return LSQUARE; }
-"]"               { return RSQUARE; }
-"("               { return LPAR; }
-")"               { return RPAR; }
-";"               { return SEMI; }
-"+"               { return PLUS; }
-"-"               { return MINUS; }
-"*"               { return MUL_OP; }
-"/"               { return DIV_OP; }
-"&"               { return AND_OP; }
-"|"               { return OR_OP; }
-"!"               { return NOT_OP; }
-"="               { return ASSIGN; }
-"<"               { return LT; }
-">"               { return GT; }
-"<<"              { return SHL_OP; }
-">>"              { return SHR_OP; }
-"=="              { return EQ; }
-"!="              { return NOTEQ; }
-"<="              { return LTEQ; }
-">="              { return GTEQ; }
-"&&"              { return ANDAND; }
-"||"              { return OROR; }
-","               { return COMMA; }
+"{"                       { return LBRACE; }
+"}"                       { return RBRACE; }
+"["                       { return LSQUARE; }
+"]"                       { return RSQUARE; }
+"("                       { return LPAR; }
+")"                       { return RPAR; }
+";"                       { return SEMI; }
+"+"                       { return PLUS; }
+"-"                       { return MINUS; }
+"*"                       { return MUL_OP; }
+"/"                       { return DIV_OP; }
+"&"                       { return AND_OP; }
+"|"                       { return OR_OP; }
+"!"                       { return NOT_OP; }
+"="                       { return ASSIGN; }
+"<"                       { return LT; }
+">"                       { return GT; }
+"<<"                      { return SHL_OP; }
+">>"                      { return SHR_OP; }
+"=="                      { return EQ; }
+"!="                      { return NOTEQ; }
+"<="                      { return LTEQ; }
+">="                      { return GTEQ; }
+"&&"                      { return ANDAND; }
+"||"                      { return OROR; }
+","                       { return COMMA; }
 
-"do"              { return DO; }
-"else"            { return ELSE; }
-"if"              { return IF; }
-"int"             { return TYPE; }
-"while"           { return WHILE; }
-"return"          { return RETURN; }
-"read"            { return READ; }
-"write"           { return WRITE; }
+"do"                      { return DO; }
+"else"                    { return ELSE; }
+"if"                      { return IF; }
+"int"                     { return TYPE; }
+"while"                   { return WHILE; }
+"return"                  { return RETURN; }
+"read"                    { return READ; }
+"write"                   { return WRITE; }
 
-{ID}              { yylval.string = strdup(yytext); return IDENTIFIER; }
-{DIGIT}+          { yylval.integer = atoi(yytext);
-                    return NUMBER; }
+{ID}                      {
+                            yylval.string = strdup(yytext);
+                            return IDENTIFIER;
+                          }
+{DIGIT}+                  {
+                            yylval.integer = atoi(yytext);
+                            return NUMBER;
+                          }
 
-.                 { yyerror("unexpected token");
-                    return -1; /* invalid token */ }
-<INITIAL><<EOF>>  { return EOF_TOK; }
+.                         {
+                            yyerror("unexpected token");
+                            return -1; /* invalid token */
+                          }
+<INITIAL><<EOF>>          { return EOF_TOK; }

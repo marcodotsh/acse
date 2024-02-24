@@ -4,14 +4,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include "parser.h"
 #include "program.h"
 #include "acse.h"
 #include "gencode.h"
 #include "target_info.h"
 #include "target_asm_print.h"
 
-/* global line number (defined in Acse.y) */
-extern int line_num;
 /* last line number inserted in an instruction as a comment */
 int prev_line_num = -1;
 
@@ -399,13 +398,13 @@ void addInstruction(t_program *program, t_instruction *instr)
   program->pendingLabel = NULL;
 
   /* add a comment with the line number */
-  if (line_num >= 0 && line_num != prev_line_num) {
+  if (lineNum >= 0 && lineNum != prev_line_num) {
     instr->comment = calloc(20, sizeof(char));
     if (instr->comment) {
-      snprintf(instr->comment, 20, "line %d", line_num);
+      snprintf(instr->comment, 20, "line %d", lineNum);
     }
   }
-  prev_line_num = line_num;
+  prev_line_num = lineNum;
 
   /* update the list of instructions */
   program->instructions = listInsert(program->instructions, instr, -1);
