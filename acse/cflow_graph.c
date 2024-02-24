@@ -73,17 +73,17 @@ static void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
   t_cfgReg *regDest = NULL;
   t_cfgReg *regSource1 = NULL;
   t_cfgReg *regSource2 = NULL;
-  if (instr->reg_dest != NULL) {
+  if (instr->rDest != NULL) {
     regDest = createCFGRegister(
-        graph, (instr->reg_dest)->ID, instr->reg_dest->mcRegWhitelist);
+        graph, (instr->rDest)->ID, instr->rDest->mcRegWhitelist);
   }
-  if (instr->reg_src1 != NULL) {
+  if (instr->rSrc1 != NULL) {
     regSource1 = createCFGRegister(
-        graph, (instr->reg_src1)->ID, instr->reg_src1->mcRegWhitelist);
+        graph, (instr->rSrc1)->ID, instr->rSrc1->mcRegWhitelist);
   }
-  if (instr->reg_src2 != NULL) {
+  if (instr->rSrc2 != NULL) {
     regSource2 = createCFGRegister(
-        graph, (instr->reg_src2)->ID, instr->reg_src2->mcRegWhitelist);
+        graph, (instr->rSrc2)->ID, instr->rSrc2->mcRegWhitelist);
   }
 
   // Fill the def/use sets for this node

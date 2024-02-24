@@ -64,12 +64,12 @@ typedef struct {
 typedef struct {
   t_label *label;        ///< Label associated with the instruction, or NULL
   int opcode;            ///< Instruction opcode
-  t_instrArg *reg_dest;  ///< Destination argument (or NULL if none)
-  t_instrArg *reg_src1;  ///< First source argument (or NULL if none)
-  t_instrArg *reg_src2;  ///< Second source argument (or NULL if none)
+  t_instrArg *rDest;     ///< Destination argument (or NULL if none)
+  t_instrArg *rSrc1;     ///< First source argument (or NULL if none)
+  t_instrArg *rSrc2;     ///< Second source argument (or NULL if none)
   int immediate;         ///< Immediate argument
   t_label *addressParam; ///< Address argument
-  char *user_comment;    ///< A comment string associated with the instruction,
+  char *comment;         ///< A comment string associated with the instruction,
                          ///  or NULL if none.
 } t_instruction;
 
@@ -84,14 +84,14 @@ typedef struct {
 
 /** Object containing the program's intermediate representation during the
  * compilation process. */
-typedef struct t_program {
+typedef struct {
   t_listNode *labels;            ///< List of all labels
   t_listNode *data;              ///< List of static data declarations
   t_listNode *instructions;      ///< List of instructions
-  t_listNode *variables;         ///< Symbol table
-  t_regID current_register;      ///< Next unused register ID
-  unsigned int current_label_ID; ///< Next unused label ID
-  t_label *label_to_assign;      ///< Next pending label to assign
+  t_listNode *symbols;           ///< Symbol table
+  t_regID firstUnusedReg;        ///< Next unused register ID
+  unsigned int firstUnusedLblID; ///< Next unused label ID
+  t_label *pendingLabel;         ///< Next pending label to assign
 } t_program;
 
 

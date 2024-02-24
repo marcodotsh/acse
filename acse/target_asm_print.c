@@ -312,9 +312,9 @@ int instructionToString(
   char *address = NULL;
 
   opc = opcodeToString(instr->opcode);
-  rd = registerToString(instr->reg_dest, machineRegIDs);
-  rs1 = registerToString(instr->reg_src1, machineRegIDs);
-  rs2 = registerToString(instr->reg_src2, machineRegIDs);
+  rd = registerToString(instr->rDest, machineRegIDs);
+  rs1 = registerToString(instr->rSrc1, machineRegIDs);
+  rs2 = registerToString(instr->rSrc2, machineRegIDs);
   if (instr->addressParam) {
     int n = labelToString(NULL, 0, instr->addressParam, 0);
     address = calloc((size_t)n + 1, sizeof(char));
@@ -327,37 +327,37 @@ int instructionToString(
   format = opcodeToFormat(instr->opcode);
   switch (format) {
     case FORMAT_OP:
-      if (!instr->reg_dest || !instr->reg_src1 || !instr->reg_src2)
+      if (!instr->rDest || !instr->rSrc1 || !instr->rSrc2)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rd, rs1, rs2);
       break;
     case FORMAT_OPIMM:
-      if (!instr->reg_dest || !instr->reg_src1)
+      if (!instr->rDest || !instr->rSrc1)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %d", opc, rd, rs1, imm);
       break;
     case FORMAT_LOAD:
-      if (!instr->reg_dest || !instr->reg_src1)
+      if (!instr->rDest || !instr->rSrc1)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rd, imm, rs1);
       break;
     case FORMAT_LOAD_GL:
-      if (!instr->reg_dest || !instr->addressParam)
+      if (!instr->rDest || !instr->addressParam)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
       break;
     case FORMAT_STORE:
-      if (!instr->reg_src2 || !instr->reg_src1)
+      if (!instr->rSrc2 || !instr->rSrc1)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
       break;
     case FORMAT_STORE_GL:
-      if (!instr->reg_dest || !instr->reg_src1 || !instr->addressParam)
+      if (!instr->rDest || !instr->rSrc1 || !instr->addressParam)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, address, rd);
       break;
     case FORMAT_BRANCH:
-      if (!instr->reg_src1 || !instr->reg_src2 || !instr->addressParam)
+      if (!instr->rSrc1 || !instr->rSrc2 || !instr->addressParam)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, rs2, address);
       break;
@@ -367,12 +367,12 @@ int instructionToString(
       res = snprintf(buf, bufsz, "%-6s %s", opc, address);
       break;
     case FORMAT_LI:
-      if (!instr->reg_dest)
+      if (!instr->rDest)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d", opc, rd, imm);
       break;
     case FORMAT_LA:
-      if (!instr->reg_dest || !instr->addressParam)
+      if (!instr->rDest || !instr->addressParam)
         fatalError("invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
       break;
@@ -381,14 +381,14 @@ int instructionToString(
       break;
     case FORMAT_FUNC:
     default:
-      if (instr->reg_dest)
+      if (instr->rDest)
         buf += sprintf(buf, "%s = ", rd);
       buf += sprintf(buf, "%s(", opc);
-      if (instr->reg_src1)
+      if (instr->rSrc1)
         buf += sprintf(buf, "%s", rs1);
-      if (instr->reg_src1 && instr->reg_src2)
+      if (instr->rSrc1 && instr->rSrc2)
         buf += sprintf(buf, ", ");
-      if (instr->reg_src2)
+      if (instr->rSrc2)
         buf += sprintf(buf, "%s", rs2);
       buf += sprintf(buf, ")");
       res = (int)(buf - buf0);
@@ -443,8 +443,8 @@ int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
     return -1;
 
   instructionToString(buf, BUF_LENGTH, instr, machineRegIDs);
-  if (instr->user_comment) {
-    res = fprintf(fp, "%-24s# %s", buf, instr->user_comment);
+  if (instr->comment) {
+    res = fprintf(fp, "%-24s# %s", buf, instr->comment);
   } else {
     res = fprintf(fp, "%s", buf);
   }

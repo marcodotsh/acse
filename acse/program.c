@@ -73,13 +73,13 @@ t_instruction *newInstruction(int opcode)
 
   /* ininitialize the fields of `result' */
   result->opcode = opcode;
-  result->reg_dest = NULL;
-  result->reg_src1 = NULL;
-  result->reg_src2 = NULL;
+  result->rDest = NULL;
+  result->rSrc1 = NULL;
+  result->rSrc2 = NULL;
   result->immediate = 0;
   result->label = NULL;
   result->addressParam = NULL;
-  result->user_comment = NULL;
+  result->comment = NULL;
 
   /* return `result' */
   return result;
@@ -110,20 +110,20 @@ void deleteInstruction(t_instruction *inst)
     return;
 
   /* free memory */
-  if (inst->reg_dest != NULL) {
-    deleteList(inst->reg_dest->mcRegWhitelist);
-    free(inst->reg_dest);
+  if (inst->rDest != NULL) {
+    deleteList(inst->rDest->mcRegWhitelist);
+    free(inst->rDest);
   }
-  if (inst->reg_src1 != NULL) {
-    deleteList(inst->reg_src1->mcRegWhitelist);
-    free(inst->reg_src1);
+  if (inst->rSrc1 != NULL) {
+    deleteList(inst->rSrc1->mcRegWhitelist);
+    free(inst->rSrc1);
   }
-  if (inst->reg_src2 != NULL) {
-    deleteList(inst->reg_src2->mcRegWhitelist);
-    free(inst->reg_src2);
+  if (inst->rSrc2 != NULL) {
+    deleteList(inst->rSrc2->mcRegWhitelist);
+    free(inst->rSrc2);
   }
-  if (inst->user_comment != NULL) {
-    free(inst->user_comment);
+  if (inst->comment != NULL) {
+    free(inst->comment);
   }
 
   free(inst);
@@ -210,13 +210,13 @@ t_program *newProgram(void)
     fatalError("out of memory");
 
   /* initialize the new instance of `result' */
-  result->variables = NULL;
+  result->symbols = NULL;
   result->instructions = NULL;
   result->data = NULL;
-  result->current_register = 1; /* we are excluding the register R0 */
+  result->firstUnusedReg = 1; /* we are excluding the register R0 */
   result->labels = NULL;
-  result->current_label_ID = 0;
-  result->label_to_assign = NULL;
+  result->firstUnusedLblID = 0;
+  result->pendingLabel = NULL;
 
   /* Create the start label */
   l_start = createLabel(result);
@@ -232,8 +232,8 @@ void deleteProgram(t_program *program)
 {
   if (program == NULL)
     return;
-  if (program->variables != NULL)
-    deleteSymbols(program->variables);
+  if (program->symbols != NULL)
+    deleteSymbols(program->symbols);
   if (program->instructions != NULL)
     deleteInstructions(program->instructions);
   if (program->data != NULL)
@@ -247,12 +247,12 @@ void deleteProgram(t_program *program)
 t_label *createLabel(t_program *program)
 {
   /* initialize a new label */
-  t_label *result = newLabel(program->current_label_ID);
+  t_label *result = newLabel(program->firstUnusedLblID);
   if (result == NULL)
     fatalError("out of memory");
 
   /* update the value of `current_label_ID' */
-  program->current_label_ID++;
+  program->firstUnusedLblID++;
 
   /* add the new label to the list of labels */
   program->labels = listInsert(program->labels, result, -1);
@@ -343,29 +343,29 @@ void assignLabel(t_program *program, t_label *label)
   }
 
   /* test if the next instruction already has a label */
-  if (program->label_to_assign != NULL) {
+  if (program->pendingLabel != NULL) {
     /* It does: transform the label being assigned into an alias of the
      * label of the next instruction's label
      * All label aliases have the same ID and name. */
 
     /* Decide the name of the alias. If only one label has a name, that name
      * wins. Otherwise the name of the label with the lowest ID wins */
-    char *name = program->label_to_assign->name;
+    char *name = program->pendingLabel->name;
     if (!name ||
-        (label->labelID && label->labelID < program->label_to_assign->labelID))
+        (label->labelID && label->labelID < program->pendingLabel->labelID))
       name = label->name;
     /* copy the name */
     if (name)
       name = strdup(name);
 
     /* Change ID and name */
-    label->labelID = (program->label_to_assign)->labelID;
+    label->labelID = (program->pendingLabel)->labelID;
     setRawLabelName(program, label, name);
 
     /* Promote both labels to global if at least one is global */
     if (label->global)
-      program->label_to_assign->global = 1;
-    else if (program->label_to_assign->global)
+      program->pendingLabel->global = 1;
+    else if (program->pendingLabel->global)
       label->global = 1;
 
     /* mark the label as an alias */
@@ -373,7 +373,7 @@ void assignLabel(t_program *program, t_label *label)
 
     free(name);
   } else {
-    program->label_to_assign = label;
+    program->pendingLabel = label;
   }
 }
 
@@ -395,14 +395,14 @@ char *getLabelName(t_label *label)
 void addInstruction(t_program *program, t_instruction *instr)
 {
   /* assign the currently pending label if there is one */
-  instr->label = program->label_to_assign;
-  program->label_to_assign = NULL;
+  instr->label = program->pendingLabel;
+  program->pendingLabel = NULL;
 
   /* add a comment with the line number */
   if (line_num >= 0 && line_num != prev_line_num) {
-    instr->user_comment = calloc(20, sizeof(char));
-    if (instr->user_comment) {
-      snprintf(instr->user_comment, 20, "line %d", line_num);
+    instr->comment = calloc(20, sizeof(char));
+    if (instr->comment) {
+      snprintf(instr->comment, 20, "line %d", line_num);
     }
   }
   prev_line_num = line_num;
@@ -421,11 +421,11 @@ t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
 
   /* initialize the instruction's registers */
   if (r_dest != REG_INVALID)
-    instr->reg_dest = newInstrArg(r_dest);
+    instr->rDest = newInstrArg(r_dest);
   if (r_src1 != REG_INVALID)
-    instr->reg_src1 = newInstrArg(r_src1);
+    instr->rSrc1 = newInstrArg(r_src1);
   if (r_src2 != REG_INVALID)
-    instr->reg_src2 = newInstrArg(r_src2);
+    instr->rSrc2 = newInstrArg(r_src2);
 
   /* attach an address if needed */
   if (label)
@@ -447,7 +447,7 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
   t_instruction *instrToRemove = (t_instruction *)instrLi->data;
 
   /* move the label and/or the comment to the next instruction */
-  if (instrToRemove->label || instrToRemove->user_comment) {
+  if (instrToRemove->label || instrToRemove->comment) {
     /* find the next instruction, if it exists */
     t_listNode *nextPos = instrLi->next;
     t_instruction *nextInst = NULL;
@@ -468,9 +468,9 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
     }
 
     /* move the comment, if possible; otherwise it will be discarded */
-    if (nextInst && instrToRemove->user_comment && !nextInst->user_comment) {
-      nextInst->user_comment = instrToRemove->user_comment;
-      instrToRemove->user_comment = NULL;
+    if (nextInst && instrToRemove->comment && !nextInst->comment) {
+      nextInst->comment = instrToRemove->comment;
+      instrToRemove->comment = NULL;
     }
   }
 
@@ -481,8 +481,8 @@ void removeInstructionAt(t_program *program, t_listNode *instrLi)
 
 t_regID getNewRegister(t_program *program)
 {
-  t_regID result = program->current_register;
-  program->current_register++;
+  t_regID result = program->firstUnusedReg;
+  program->firstUnusedReg++;
 
   /* return the current label identifier */
   return result;
@@ -498,7 +498,7 @@ t_data *genDataDeclaration(
 
 void genProgramEpilog(t_program *program)
 {
-  if (program->label_to_assign != NULL) {
+  if (program->pendingLabel != NULL) {
     genExit0Syscall(program);
     return;
   }
@@ -529,7 +529,7 @@ void dumpProgram(t_program *program, FILE *fout)
   fprintf(fout, "-----------\n");
   fprintf(fout, " VARIABLES\n");
   fprintf(fout, "-----------\n");
-  cur_var = program->variables;
+  cur_var = program->symbols;
   while (cur_var) {
     t_symbol *var = cur_var->data;
     fprintf(fout, "[%s]\n", var->ID);

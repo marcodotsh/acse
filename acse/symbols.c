@@ -79,7 +79,7 @@ t_symbol *createSymbol(
   genDataDeclaration(program, DATA_SPACE, sizeOfVar, res->label);
 
   // Now we can add the new variable to the program
-  program->variables = listInsert(program->variables, res, -1);
+  program->symbols = listInsert(program->symbols, res, -1);
   return res;
 }
 
@@ -131,7 +131,7 @@ t_symbol *getSymbol(t_program *program, char *ID)
 {
   /* search inside the list of variables */
   t_listNode *elementFound = listFindWithCallback(
-      program->variables, ID, compareVariableWithIDString);
+      program->symbols, ID, compareVariableWithIDString);
 
   /* if the element is found return it to the caller. Otherwise return NULL. */
   if (elementFound != NULL)

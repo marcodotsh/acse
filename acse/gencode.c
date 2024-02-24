@@ -9,7 +9,7 @@ void validateRegisterId(t_program *program, t_regID r)
 {
   if (!program)
     return;
-  if (r >= 0 && r < program->current_register)
+  if (r >= 0 && r < program->firstUnusedReg)
     return;
   fatalError("bug: invalid register identifier %d", r);
 }

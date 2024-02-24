@@ -9,9 +9,9 @@
 #include "target_info.h"
 #include "target_asm_print.h"
 
-#define RD(i) (i->reg_dest->ID)
-#define RS1(i) (i->reg_src1->ID)
-#define RS2(i) (i->reg_src2->ID)
+#define RD(i)  (i->rDest->ID)
+#define RS1(i) (i->rSrc1->ID)
+#define RS2(i) (i->rSrc2->ID)
 #define IMM(i) (i->immediate)
 
 #define SYSCALL_ID_PRINT_INT 1
@@ -146,7 +146,7 @@ void fixUnsupportedImmediates(t_program *program)
       continue;
     }
 
-    if (instr->opcode == OPC_ADDI && instr->reg_src1->ID == REG_0) {
+    if (instr->opcode == OPC_ADDI && instr->rSrc1->ID == REG_0) {
       if (!isInt12(instr->immediate)) {
         curi = addInstrAfter(
             program, curi, genLI(NULL, RD(instr), IMM(instr)));
@@ -225,9 +225,9 @@ void fixPseudoInstructions(t_program *program)
         instr->opcode = OPC_SLTIU;
         instr->immediate += 1;
       } else {
-        t_instrArg *tmp = instr->reg_src1;
-        instr->reg_src1 = instr->reg_src2;
-        instr->reg_src2 = tmp;
+        t_instrArg *tmp = instr->rSrc1;
+        instr->rSrc1 = instr->rSrc2;
+        instr->rSrc2 = tmp;
         if (instr->opcode == OPC_SLE)
           instr->opcode = OPC_SLT;
         else if (instr->opcode == OPC_SLEU)
@@ -265,9 +265,9 @@ void fixPseudoInstructions(t_program *program)
         instr->opcode = OPC_BGE;
       else if (instr->opcode == OPC_BLEU)
         instr->opcode = OPC_BGEU;
-      tmp = instr->reg_src1;
-      instr->reg_src1 = instr->reg_src2;
-      instr->reg_src2 = tmp;
+      tmp = instr->rSrc1;
+      instr->rSrc1 = instr->rSrc2;
+      instr->rSrc2 = tmp;
 
     } else if (instr->opcode == OPC_SW_G) {
       // We always force the temporary argument of SW instructions to be T6.
@@ -278,7 +278,7 @@ void fixPseudoInstructions(t_program *program)
       // the first operand must be different than the register of the temporary
       // operand; by forcing T6 here we avoid the assignment of the two to the
       // same register by construction.
-      setMCRegisterWhitelist(instr->reg_dest, REG_T6, -1);
+      setMCRegisterWhitelist(instr->rDest, REG_T6, -1);
     }
 
     curi = curi->next;
@@ -318,7 +318,7 @@ void fixSyscalls(t_program *program)
     curi = addInstrAfter(program, curi, genLI(NULL, r_func, func));
 
     /* load argument in a0, if there is one */
-    if (instr->reg_src1) {
+    if (instr->rSrc1) {
       r_arg = getNewRegister(program);
       tmp = genADDI(NULL, r_arg, RS1(instr), 0);
       curi = addInstrAfter(program, curi, tmp);
@@ -327,21 +327,21 @@ void fixSyscalls(t_program *program)
     }
 
     /* generate an ECALL */
-    if (instr->reg_dest)
+    if (instr->rDest)
       r_dest = getNewRegister(program);
     else
       r_dest = REG_INVALID;
     ecall = genInstruction(NULL, OPC_ECALL, r_dest, r_func, r_arg, NULL, 0);
     curi = addInstrAfter(program, curi, ecall);
-    if (ecall->reg_dest)
-      setMCRegisterWhitelist(ecall->reg_dest, REG_A0, -1);
-    if (ecall->reg_src1)
-      setMCRegisterWhitelist(ecall->reg_src1, REG_A7, -1);
-    if (ecall->reg_src2)
-      setMCRegisterWhitelist(ecall->reg_src2, REG_A0, -1);
+    if (ecall->rDest)
+      setMCRegisterWhitelist(ecall->rDest, REG_A0, -1);
+    if (ecall->rSrc1)
+      setMCRegisterWhitelist(ecall->rSrc1, REG_A7, -1);
+    if (ecall->rSrc2)
+      setMCRegisterWhitelist(ecall->rSrc2, REG_A0, -1);
 
     /* move a0 (result) to the destination reg. if needed */
-    if (instr->reg_dest)
+    if (instr->rDest)
       curi = addInstrAfter(
           program, curi, genADDI(NULL, RD(instr), r_dest, 0));
 

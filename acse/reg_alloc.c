@@ -724,20 +724,20 @@ void materializeRegAllocInBBForInstructionNode(t_cfg *graph,
 
   /* initialize the array of arguments to the instruction */
   num_args = 0;
-  if (instr->reg_dest) {
-    argState[num_args].reg = instr->reg_dest;
+  if (instr->rDest) {
+    argState[num_args].reg = instr->rDest;
     argState[num_args].isDestination = true;
     argState[num_args].spillSlot = -1;
     num_args++;
   }
-  if (instr->reg_src1) {
-    argState[num_args].reg = instr->reg_src1;
+  if (instr->rSrc1) {
+    argState[num_args].reg = instr->rSrc1;
     argState[num_args].isDestination = false;
     argState[num_args].spillSlot = -1;
     num_args++;
   }
-  if (instr->reg_src2) {
-    argState[num_args].reg = instr->reg_src2;
+  if (instr->rSrc2) {
+    argState[num_args].reg = instr->rSrc2;
     argState[num_args].isDestination = false;
     argState[num_args].spillSlot = -1;
     num_args++;
