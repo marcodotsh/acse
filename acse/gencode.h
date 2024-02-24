@@ -5,6 +5,7 @@
 #define GENCODE_H
 
 #include "program.h"
+#include "utils.h"
 
 /** 
  * @defgroup gencode Code Generation Functions
@@ -17,6 +18,7 @@
  * with given parameters to the end of the program.
  * @{
  */
+
 
 /// @name Register-Register Arithmetic Instructions
 /// @{
@@ -773,6 +775,45 @@ t_instruction *genLWGlobal(t_program *program, t_regID rd, t_label *label);
  *        label. This is the reason why rtemp is needed. */
 t_instruction *genSWGlobal(
     t_program *program, t_regID rs1, t_label *label, t_regID rtemp);
+
+/// @}
+
+
+/// @name Variable/array accesses
+/// @{
+
+/** Generate instructions that load the content of a scalar variable in a
+ * register.
+ * @param program The program where the variable belongs
+ * @param var     The symbol object that refers to the variable
+ * @returns The identifier of the register that (at runtime) will contain the
+ *          value of the variable loaded from memory. */
+t_regID genLoadVariable(t_program *program, t_symbol *var);
+
+/** Generate instructions that store an expression value into a variable.
+ * @param program The program where the variable belongs
+ * @param var     The symbol object that refers to the variable
+ * @param val     The expression value that needs to be assigned */
+void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val);
+
+/** Generate instructions that load the content of an element of an array in a
+ * register.
+ * @param program The program where the array belongs.
+ * @param array   The symbol object that refers to an array.
+ * @param index   An expression that refers to a specific element of the array.
+ * @returns The identifier of the register that (at runtime) will contain the
+ *          value of the array element at position `index' loaded from memory.*/
+t_regID genLoadArrayElement(
+    t_program *program, t_symbol *array, t_expressionValue index);
+
+/** Generate instructions that store an expression value into an array element.
+ * @param program The program where the array belongs.
+ * @param array   The symbol object that refers to an array
+ * @param index   An expression that refers to a specific element of the array.
+ * @param data    An expression that refers to the value to be stored in the
+ *                array element specified by `index'. */
+void genStoreArrayElement(t_program *program, t_symbol *array,
+    t_expressionValue index, t_expressionValue data);
 
 /// @}
 

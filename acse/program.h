@@ -26,13 +26,22 @@
  * @{
  */
 
+
 /// Type for register identifiers.
 typedef int t_regID;
+
 
 /// Constant used for invalid register identifiers.
 #define REG_INVALID ((t_regID)(-1))
 /// Constant identifying a register whose value is always zero.
 #define REG_0       ((t_regID)(0))
+
+/** Supported data types */
+typedef enum {
+  TYPE_INT,      ///< `int' scalar type
+  TYPE_INT_ARRAY ///< `int' array type
+} t_symbolType;
+
 
 /** Object representing a label in the output assembly file.
  * @note A label object does not uniquely identify a label, its labelID field
@@ -67,6 +76,17 @@ typedef struct {
   char *comment;         ///< A comment string associated with the instruction,
                          ///  or NULL if none.
 } t_instruction;
+
+/** A structure that represents the properties of a given symbol in the source
+ * code */
+typedef struct t_symbol {
+  t_symbolType type;  ///< A valid data type
+  char *ID;           ///< Symbol name (should never be a NULL pointer or an
+                      ///  empty string "")
+  t_label *label;     ///< A label that refers to the location of the variable
+                      ///  inside the data segment
+  int arraySize;      ///< For arrays only, the size of the array.
+} t_symbol;
 
 /** Object containing the program's intermediate representation during the
  * compilation process. */
@@ -158,6 +178,34 @@ t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
  * @param program The program where to remove the instruction
  * @param instrLi Node in the instruction list to remove */
 void removeInstructionAt(t_program *program, t_listNode *instrLi);
+
+/// @}
+
+
+/// @name Handling of symbols
+/// @{
+
+/** Add a symbol to the program.
+ * @param program    The program where to add the symbol.
+ * @param ID         The identifier (name) of the new symbol.
+ * @param type       The data type of the variable associated to the symbol.
+ * @param arraySize  For arrays, the size of the array.
+ * @returns A pointer to the newly created symbol object. */
+t_symbol *createSymbol(
+    t_program *program, char *ID, t_symbolType type, int arraySize);
+
+/** Lookup a previously added symbol.
+ * @param program The program where the symbol belongs.
+ * @param ID      The identifier of the symbol.
+ * @returns A pointer to the corresponding symbol object, or NULL if the symbol
+ *          has not been declared yet. */
+t_symbol *getSymbol(t_program *program, char *ID);
+
+/** Checks if the type of the given symbol is an array type.
+ * @param symbol The symbol object.
+ * @returns `true' if the type of the symbol is a kind of array, otherwise
+ *          returns `false'. */
+bool isArray(t_symbol *symbol);
 
 /// @}
 

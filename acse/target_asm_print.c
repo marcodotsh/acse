@@ -5,7 +5,6 @@
 #include "target_asm_print.h"
 #include "target_info.h"
 #include "target_transform.h"
-#include "symbols.h"
 #include "acse.h"
 
 #define BUF_LENGTH 256

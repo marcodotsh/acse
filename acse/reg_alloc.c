@@ -12,7 +12,6 @@
 #include "list.h"
 #include "cflow_graph.h"
 #include "target_asm_print.h"
-#include "symbols.h"
 
 /// Maximum amount of arguments to an instruction
 #define MAX_INSTR_ARGS (CFG_MAX_DEFS + CFG_MAX_USES)

@@ -9,7 +9,6 @@
 #include "gencode.h"
 #include "target_info.h"
 #include "target_asm_print.h"
-#include "symbols.h"
 
 /* global line number (defined in Acse.y) */
 extern int line_num;
@@ -149,6 +148,57 @@ void deleteLabels(t_listNode *labels)
     current_element = current_element->next;
   }
   deleteList(labels);
+}
+
+/* create and initialize an instance of `t_symbol' */
+t_symbol *newSymbol(char *ID, t_symbolType type, int arraySize)
+{
+  t_symbol *result;
+
+  /* allocate memory for the new variable */
+  result = (t_symbol *)malloc(sizeof(t_symbol));
+  if (result == NULL)
+    fatalError("out of memory");
+
+  /* initialize the content of `result' */
+  result->type = type;
+  result->arraySize = arraySize;
+  result->ID = ID;
+  result->label = NULL;
+
+  /* return the just created and initialized instance of t_symbol */
+  return result;
+}
+
+static void deleteSymbol(t_symbol *s)
+{
+  free(s);
+}
+
+static void deleteSymbols(t_listNode *variables)
+{
+  t_listNode *current_element;
+  t_symbol *current_var;
+
+  if (variables == NULL)
+    return;
+
+  /* initialize the `current_element' */
+  current_element = variables;
+  while (current_element != NULL) {
+    current_var = (t_symbol *)current_element->data;
+    if (current_var != NULL) {
+      if (current_var->ID != NULL)
+        free(current_var->ID);
+
+      free(current_var);
+    }
+
+    current_element = current_element->next;
+  }
+
+  /* free the list of variables */
+  deleteList(variables);
 }
 
 /* initialize an instance of `t_program' */
@@ -437,6 +487,76 @@ t_regID getNewRegister(t_program *program)
   /* return the current label identifier */
   return result;
 }
+
+
+t_symbol *createSymbol(
+    t_program *program, char *ID, t_symbolType type, int arraySize)
+{
+  // Check validity of type
+  if (type != TYPE_INT && type != TYPE_INT_ARRAY)
+    fatalError("invalid type");
+  // Check array size validity
+  if (type == TYPE_INT_ARRAY && arraySize <= 0) {
+    emitError("invalid size %d for array %s", arraySize, ID);
+    return NULL;
+  }
+
+  // Check if another symbol already exists with the same ID
+  t_symbol *existingSym = getSymbol(program, ID);
+  if (existingSym != NULL) {
+    emitError("variable '%s' already declared", ID);
+    return NULL;
+  }
+
+  // Allocate and initialize a new symbol object
+  t_symbol *res = newSymbol(ID, type, arraySize);
+
+  // Reserve a new label for the variable
+  res->label = createLabel(program);
+
+  // Set the name of the label
+  char *lblName = calloc(strlen(ID) + 8, sizeof(char));
+  if (!lblName)
+    fatalError("out of memory");
+  sprintf(lblName, "l_%s", ID);
+  setLabelName(program, res->label, lblName);
+  free(lblName);
+
+  // Now we can add the new variable to the program
+  program->symbols = listInsert(program->symbols, res, -1);
+  return res;
+}
+
+
+bool isArray(t_symbol *symbol)
+{
+  // Just check if the type field corresponds to one of the known array types
+  if (symbol->type == TYPE_INT_ARRAY)
+    return true;
+  return false;
+}
+
+
+static bool compareVariableWithIDString(void *a, void *b)
+{
+  t_symbol *var = (t_symbol *)a;
+  char *str = (char *)b;
+  return strcmp(var->ID, str) == 0;
+}
+
+t_symbol *getSymbol(t_program *program, char *ID)
+{
+  /* search inside the list of variables */
+  t_listNode *elementFound = listFindWithCallback(
+      program->symbols, ID, compareVariableWithIDString);
+
+  /* if the element is found return it to the caller. Otherwise return NULL. */
+  if (elementFound != NULL)
+    return (t_symbol *)elementFound->data;
+
+  return NULL;
+}
+
 
 void genProgramEpilog(t_program *program)
 {

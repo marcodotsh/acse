@@ -1,5 +1,6 @@
 /// @file gencode.c
 
+#include <assert.h>
 #include "gencode.h"
 #include "acse.h"
 #include "target_info.h"
@@ -444,4 +445,125 @@ t_instruction *genPrintCharSyscall(t_program *program, t_regID r_src1)
   validateRegisterId(program, r_src1);
   return genInstruction(
       program, OPC_CALL_PRINT_CHAR, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
+}
+
+
+t_regID genLoadVariable(t_program *program, t_symbol *var)
+{
+  t_regID reg = getNewRegister(program);
+  // Check if the symbol is an array; in that case do not generate any more
+  // code. Calling emitError will eventually stop compilation anyway.
+  if (isArray(var)) {
+    emitError("'%s' is an array", var->ID);
+  } else {
+    // Generate a LW from the address specified by the label
+    genLWGlobal(program, reg, var->label);
+  }
+  return reg;
+}
+
+
+void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val)
+{
+  // Check if the symbol is an array; in that case bail out without generating
+  // any code (but emitting an error that will eventually stop further
+  // compilation)
+  if (isArray(var)) {
+    emitError("'%s' is an array", var->ID);
+    return;
+  }
+  // Materialize the expression value
+  t_regID r_val = genConvertExpValueToRegister(program, val);
+  // Reserve a new register which is a temporary required
+  // by the pseudo-instruction
+  t_regID r_temp = getNewRegister(program);
+  // Generate a SW to the address specified by the label
+  genSWGlobal(program, r_val, var->label, r_temp);
+}
+
+
+/** Generate instructions that load the address of an element of an array in a
+ * register.
+ * @param program The program where the array belongs.
+ * @param array   The symbol object that refers to an array.
+ * @param index   An expression that refers to a specific element of the array.
+ * @returns The identifier of the register that (at runtime) will contain the
+ *          address of the array element at position `index'. If the symbol
+ *          is not of the correct type, REG_0 is returned instead. */
+t_regID genLoadArrayAddress(
+    t_program *program, t_symbol *array, t_expressionValue index)
+{
+  if (!isArray(array)) {
+    // If the symbol is not an array, bail out returning a dummy register ID
+    emitError("'%s' is a scalar", array->ID);
+    return REG_0;
+  }
+  t_label *label = array->label;
+
+  // Generate a load of the base address using LA
+  t_regID mova_register = getNewRegister(program);
+  genLA(program, mova_register, label);
+
+  /* We are making the following assumption:
+   * the type can only be an INTEGER_TYPE */
+  int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
+
+  if (index.type == CONSTANT) {
+    if (index.immediate != 0) {
+      genADDI(
+          program, mova_register, mova_register, index.immediate * sizeofElem);
+    }
+  } else {
+    t_regID idxReg;
+    assert(index.type == REGISTER);
+
+    idxReg = index.registerId;
+    if (sizeofElem != 1) {
+      idxReg = getNewRegister(program);
+      genMULI(program, idxReg, index.registerId, sizeofElem);
+    }
+
+    genADD(program, mova_register, mova_register, idxReg);
+  }
+
+  /* return the identifier of the register that contains
+   * the value of the array slot */
+  return mova_register;
+}
+
+
+void genStoreArrayElement(t_program *program, t_symbol *array,
+    t_expressionValue index, t_expressionValue data)
+{
+  t_regID address = genLoadArrayAddress(program, array, index);
+
+  if (data.type == REGISTER) {
+    /* load the value indirectly into `mova_register' */
+    genSW(program, data.registerId, 0, address);
+  } else {
+    t_regID imm_register = getNewRegister(program);
+    genLI(program, imm_register, data.immediate);
+
+    /* load the value indirectly into `load_register' */
+    genSW(program, imm_register, 0, address);
+  }
+}
+
+
+t_regID genLoadArrayElement(
+    t_program *program, t_symbol *array, t_expressionValue index)
+{
+  t_regID load_register, address;
+
+  /* retrieve the address of the array slot */
+  address = genLoadArrayAddress(program, array, index);
+
+  /* get a new register */
+  load_register = getNewRegister(program);
+
+  /* load the value into `load_register' */
+  genLW(program, load_register, 0, address);
+
+  /* return the register ID that holds the required data */
+  return load_register;
 }

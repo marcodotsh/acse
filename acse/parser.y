@@ -11,7 +11,6 @@
 #include "list.h"
 #include "gencode.h"
 #include "utils.h"
-#include "symbols.h"
 #include "parser.h"
 
 // Global Variables

@@ -5,7 +5,6 @@
 #include <string.h>
 #include "utils.h"
 #include "list.h"
-#include "symbols.h"
 #include "parser.h"
 #include "parser.tab.h"
 
