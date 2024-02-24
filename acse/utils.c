@@ -11,40 +11,40 @@
 #include "target_info.h"
 
 
-t_expressionValue constantExpressionValue(int value)
+t_expValue constantExpValue(int value)
 {
-  t_expressionValue exp;
+  t_expValue exp;
   exp.type = CONSTANT;
-  exp.immediate = value;
+  exp.constant = value;
   exp.registerId = REG_INVALID;
   return exp;
 }
 
-t_expressionValue registerExpressionValue(t_regID registerId)
+t_expValue registerExpValue(t_regID registerId)
 {
-  t_expressionValue exp;
+  t_expValue exp;
   exp.type = REGISTER;
-  exp.immediate = 0;
+  exp.constant = 0;
   exp.registerId = registerId;
   return exp;
 }
 
-t_regID genConvertExpValueToRegister(t_program *program, t_expressionValue exp)
+t_regID genExpValueToRegister(t_program *program, t_expValue exp)
 {
   if (exp.type == REGISTER)
     return exp.registerId;
   t_regID res = getNewRegister(program);
-  genLI(program, res, exp.immediate);
+  genLI(program, res, exp.constant);
   return res;
 }
 
-t_expressionValue genNormalizeBooleanExpValue(t_program *program, t_expressionValue exp)
+t_expValue genNormalizeBoolExpValue(t_program *program, t_expValue exp)
 {
   if (exp.type == CONSTANT)
-    return constantExpressionValue(exp.immediate ? 1 : 0);
+    return constantExpValue(exp.constant ? 1 : 0);
   t_regID res = getNewRegister(program);
   genSLTU(program, res, REG_0, exp.registerId);
-  return registerExpressionValue(res);
+  return registerExpValue(res);
 }
 
 

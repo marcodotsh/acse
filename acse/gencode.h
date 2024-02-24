@@ -794,7 +794,7 @@ t_regID genLoadVariable(t_program *program, t_symbol *var);
  * @param program The program where the variable belongs
  * @param var     The symbol object that refers to the variable
  * @param val     The expression value that needs to be assigned */
-void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val);
+void genStoreVariable(t_program *program, t_symbol *var, t_expValue val);
 
 /** Generate instructions that load the content of an element of an array in a
  * register.
@@ -804,7 +804,7 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expressionValue val);
  * @returns The identifier of the register that (at runtime) will contain the
  *          value of the array element at position `index' loaded from memory.*/
 t_regID genLoadArrayElement(
-    t_program *program, t_symbol *array, t_expressionValue index);
+    t_program *program, t_symbol *array, t_expValue index);
 
 /** Generate instructions that store an expression value into an array element.
  * @param program The program where the array belongs.
@@ -813,7 +813,7 @@ t_regID genLoadArrayElement(
  * @param data    An expression that refers to the value to be stored in the
  *                array element specified by `index'. */
 void genStoreArrayElement(t_program *program, t_symbol *array,
-    t_expressionValue index, t_expressionValue data);
+    t_expValue index, t_expValue data);
 
 /// @}
 

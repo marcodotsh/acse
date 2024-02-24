@@ -41,26 +41,27 @@ int debugPrintf(const char *fmt, ...);
  * @{
  */
 
-/* EXPRESSION TYPES */
-#define CONSTANT 0
-#define REGISTER 1
+typedef enum {
+  CONSTANT = 0,
+  REGISTER = 1
+} t_expType;
 
 typedef struct {
-  int type;       /* REGISTER or CONSTANT */
-  int immediate;  /* an immediate value (only when type is CONSTANT) */
+  t_expType type;       /* REGISTER or CONSTANT */
+  int constant;  /* an immediate value (only when type is CONSTANT) */
   t_regID registerId; /* a register ID (only when type is REGISTER) */
-} t_expressionValue;
+} t_expValue;
 
 
 /* create an immediate (constant) expression */
-t_expressionValue constantExpressionValue(int value);
+t_expValue constantExpValue(int value);
 
 /* create a register expression */
-t_expressionValue registerExpressionValue(t_regID registerId);
+t_expValue registerExpValue(t_regID registerId);
 
-t_regID genConvertExpValueToRegister(t_program *program, t_expressionValue exp);
+t_regID genExpValueToRegister(t_program *program, t_expValue exp);
 
-t_expressionValue genNormalizeBooleanExpValue(t_program *program, t_expressionValue exp);
+t_expValue genNormalizeBoolExpValue(t_program *program, t_expValue exp);
 
 /**
  * @}
