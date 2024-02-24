@@ -36,29 +36,6 @@ int debugPrintf(const char *fmt, ...);
 
 
 /**
- * @defgroup semdef Semantic Definitions
- * @brief Structure definitions used for semantic analysis
- * @{
- */
-
-/** Utility structure used to store information about an if statement. */
-typedef struct {
-  t_label *l_else;  ///< Label to the else part
-  t_label *l_exit;  ///< Label to the first instruction after the statement
-} t_ifStatement;
-
-/** Utility structure used to store information about a while statement. */
-typedef struct {
-  t_label *l_loop;  ///< Label to the beginning of the loop
-  t_label *l_exit;  ///< Label to the first instruction after the loop
-} t_whileStatement;
-
-/**
- * @}
- */
-
-
-/**
  * @defgroup expval Expression Values
  * @brief Generalized abstraction for a value that may or may not be constant
  * @{
