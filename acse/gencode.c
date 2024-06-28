@@ -463,7 +463,7 @@ t_regID genLoadVariable(t_program *program, t_symbol *var)
 }
 
 
-void genStoreVariable(t_program *program, t_symbol *var, t_expValue val)
+void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg)
 {
   // Check if the symbol is an array; in that case bail out without generating
   // any code (but emitting an error that will eventually stop further
@@ -472,13 +472,20 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expValue val)
     emitError("'%s' is an array", var->ID);
     return;
   }
-  // Materialize the expression value
-  t_regID r_val = genExpValueToRegister(program, val);
   // Reserve a new register which is a temporary required
   // by the pseudo-instruction
   t_regID r_temp = getNewRegister(program);
   // Generate a SW to the address specified by the label
-  genSWGlobal(program, r_val, var->label, r_temp);
+  genSWGlobal(program, reg, var->label, r_temp);
+}
+
+void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
+{
+  // Generate a copy of the constant value into a register
+  t_regID r_val = getNewRegister(program);
+  genLI(program, r_val, val);
+  // Copy the register value into the variable
+  genStoreRegisterToVariable(program, var, r_val);
 }
 
 
@@ -490,8 +497,7 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expValue val)
  * @returns The identifier of the register that (at runtime) will contain the
  *          address of the array element at position `index'. If the symbol
  *          is not of the correct type, REG_0 is returned instead. */
-t_regID genLoadArrayAddress(
-    t_program *program, t_symbol *array, t_expValue index)
+t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID idxReg)
 {
   if (!isArray(array)) {
     // If the symbol is not an array, bail out returning a dummy register ID
@@ -507,24 +513,10 @@ t_regID genLoadArrayAddress(
   /* We are making the following assumption:
    * the type can only be an INTEGER_TYPE */
   int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
+  if (sizeofElem != 1)
+    genMULI(program, idxReg, idxReg, sizeofElem);
 
-  if (index.type == CONSTANT) {
-    if (index.constant != 0) {
-      genADDI(
-          program, mova_register, mova_register, index.constant * sizeofElem);
-    }
-  } else {
-    t_regID idxReg;
-    assert(index.type == REGISTER);
-
-    idxReg = index.registerId;
-    if (sizeofElem != 1) {
-      idxReg = getNewRegister(program);
-      genMULI(program, idxReg, index.registerId, sizeofElem);
-    }
-
-    genADD(program, mova_register, mova_register, idxReg);
-  }
+  genADD(program, mova_register, mova_register, idxReg);
 
   /* return the identifier of the register that contains
    * the value of the array slot */
@@ -532,26 +524,7 @@ t_regID genLoadArrayAddress(
 }
 
 
-void genStoreArrayElement(t_program *program, t_symbol *array,
-    t_expValue index, t_expValue data)
-{
-  t_regID address = genLoadArrayAddress(program, array, index);
-
-  if (data.type == REGISTER) {
-    /* load the value indirectly into `mova_register' */
-    genSW(program, data.registerId, 0, address);
-  } else {
-    t_regID imm_register = getNewRegister(program);
-    genLI(program, imm_register, data.constant);
-
-    /* load the value indirectly into `load_register' */
-    genSW(program, imm_register, 0, address);
-  }
-}
-
-
-t_regID genLoadArrayElement(
-    t_program *program, t_symbol *array, t_expValue index)
+t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID index)
 {
   t_regID load_register, address;
 
@@ -566,4 +539,22 @@ t_regID genLoadArrayElement(
 
   /* return the register ID that holds the required data */
   return load_register;
+}
+
+
+void genStoreRegisterToArrayElement(t_program *program, t_symbol *array,
+    t_regID index, t_regID data)
+{
+  t_regID address = genLoadArrayAddress(program, array, index);
+
+  /* load the value indirectly into `mova_register' */
+  genSW(program, data, 0, address);
+}
+
+void genStoreConstantToArrayElement(t_program *program, t_symbol *array,
+    t_regID index, int data)
+{
+  t_regID imm_register = getNewRegister(program);
+  genLI(program, imm_register, data);
+  genStoreRegisterToArrayElement(program, array, index, imm_register);
 }

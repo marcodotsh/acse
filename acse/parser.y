@@ -50,7 +50,6 @@ void yyerror(const char *msg)
   int integer;
   char *string;
   t_symbol *var;
-  t_expValue expr;
   t_listNode *list;
   t_label *label;
   t_ifStatement if_stmt;
@@ -92,7 +91,7 @@ void yyerror(const char *msg)
  ******************************************************************************/
 
 %type <var> var_id
-%type <expr> exp
+%type <integer> exp
 
 /******************************************************************************
  * OPERATOR PRECEDENCE AND ASSOCIATIVITY
@@ -193,11 +192,11 @@ statement
 assign_statement
   : var_id ASSIGN exp
   {
-    genStoreVariable(program, $1, $3);
+    genStoreRegisterToVariable(program, $1, $3);
   }
   | var_id LSQUARE exp RSQUARE ASSIGN exp
   {
-    genStoreArrayElement(program, $1, $3, $6);
+    genStoreRegisterToArrayElement(program, $1, $3, $6);
   }
 ;
 
@@ -209,13 +208,7 @@ if_statement
   {
     // Generate a jump to the else part if the expression is equal to zero.
     $1.l_else = createLabel(program);
-    if ($3.type == REGISTER) {
-      genBEQ(program, $3.registerId, REG_0, $1.l_else);
-    } else {
-      // If the expression was constant, check the condition at compile time.
-      if ($3.constant == 0)
-        genJ(program, $1.l_else);
-    }
+    genBEQ(program, $3, REG_0, $1.l_else);
   }
   code_block
   {
@@ -252,13 +245,7 @@ while_statement
   {
     // Generate a jump out of the loop if the condition is equal to zero
     $1.l_exit = createLabel(program);
-    if ($4.type == REGISTER) {
-      genBEQ(program, $4.registerId, REG_0, $1.l_exit);
-    } else {
-      // If the expression was constant, check the condition at compile time.
-      if ($4.constant == 0)
-        genJ(program, $1.l_exit);
-    }
+    genBEQ(program, $4, REG_0, $1.l_exit);
   }
   code_block
   {
@@ -283,13 +270,7 @@ do_while_statement
   {
     // Generate a jump to the beginning of the loop to repeat the code block
     // if the condition is not equal to zero
-    if ($6.type == REGISTER) {
-      genBNE(program, $6.registerId, REG_0, $1);
-    } else {
-      // If the expression was constant, check the condition at compile time.
-      if ($6.constant != 0)
-        genJ(program, $1);
-    }
+    genBNE(program, $6, REG_0, $1);
   }
 ;
 
@@ -309,7 +290,7 @@ read_statement
   {
     t_regID r_tmp = getNewRegister(program);
     genReadIntSyscall(program, r_tmp);
-    genStoreVariable(program, $3, registerExpValue(r_tmp));
+    genStoreRegisterToVariable(program, $3, r_tmp);
   }
 ;
 
@@ -318,34 +299,34 @@ read_statement
 write_statement 
   : WRITE LPAR exp RPAR 
   {
-    // If necessary generate code to materialize the expression to a register,
-    // and then generate a call to the PrintInt syscall.
-    t_regID r_temp = genExpValueToRegister(program, $3);
-    genPrintIntSyscall(program, r_temp);
+    // Generate a call to the PrintInt syscall.
+    genPrintIntSyscall(program, $3);
     // Also generate code to print a newline after the integer
+    t_regID r_temp = getNewRegister(program);
     genLI(program, r_temp, '\n');
     genPrintCharSyscall(program, r_temp);
   }
 ;
 
 /* The exp rule represents the syntax of expressions. The semantic value of
- * the rule is a struct of type `t_expValue', which wraps either a
- * integer representing a compile-time constant or a register ID.
+ * the rule is the register ID that will contain the value of the expression
+ * at runtime.
  *   All semantic actions which implement expression operators must handle both
  * the case in which the operands are expression values representing constants
  * or register IDs. */
 exp
   : NUMBER
   {
-    $$ = constantExpValue($1);
+    $$ = getNewRegister(program);
+    genLI(program, $$, $1);
   }
   | var_id 
   {
-    $$ = registerExpValue(genLoadVariable(program, $1));
+    $$ = genLoadVariable(program, $1);
   }
   | var_id LSQUARE exp RSQUARE
   {
-    $$ = registerExpValue(genLoadArrayElement(program, $1, $3));
+    $$ = genLoadArrayElement(program, $1, $3);
   }
   | LPAR exp RPAR
   {
@@ -353,213 +334,101 @@ exp
   }
   | MINUS exp
   {
-    if ($2.type == CONSTANT) {
-      $$ = constantExpValue(-($2.constant));
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      genSUB(program, $$.registerId, REG_0, $2.registerId);
-    }
+    $$ = getNewRegister(program);
+    genSUB(program, $$, REG_0, $2);
   }
   | exp PLUS exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant + $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genADD(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genADD(program, $$, $1, $3);
   }
   | exp MINUS exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant - $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSUB(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSUB(program, $$, $1, $3);
   }
   | exp MUL_OP exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant * $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genMUL(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genMUL(program, $$, $1, $3);
   }
   | exp DIV_OP exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      if ($3.constant == 0) {
-        emitWarning("division by zero");
-        $$ = constantExpValue(INT_MAX);
-      } else if ($1.constant == INT_MIN && $3.constant == -1) {
-        emitWarning("overflow");
-        $$ = constantExpValue(INT_MIN);
-      } else
-        $$ = constantExpValue($1.constant / $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genDIV(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genDIV(program, $$, $1, $3);
   }
   | exp AND_OP exp 
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant & $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genAND(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genAND(program, $$, $1, $3);
   }
   | exp OR_OP exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant | $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genOR(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genOR(program, $$, $1, $3);
   }
   | exp SHL_OP exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      if ($3.constant < 0 || $3.constant >= 32)
-        emitWarning("shift amount is less than 0 or greater than 31");
-      $$ = constantExpValue($1.constant << ($3.constant & 0x1F));
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSLL(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSLL(program, $$, $1, $3);
   }
   | exp SHR_OP exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      if ($3.constant < 0 || $3.constant >= 32)
-        emitWarning("shift amount is less than 0 or greater than 31");
-      int constRes = SHIFT_RIGHT_ARITH($1.constant, $3.constant & 0x1F);
-      $$ = constantExpValue(constRes);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSRA(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSRA(program, $$, $1, $3);
   }
   | exp LT exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant < $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSLT(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSLT(program, $$, $1, $3);
   }
   | exp GT exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant > $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSGT(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSGT(program, $$, $1, $3);
   }
   | exp EQ exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant == $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSEQ(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSEQ(program, $$, $1, $3);
   }
   | exp NOTEQ exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant != $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSNE(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSNE(program, $$, $1, $3);
   }
   | exp LTEQ exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant <= $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSLE(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSLE(program, $$, $1, $3);
   }
   | exp GTEQ exp
   {
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue($1.constant >= $3.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, $1);
-      t_regID rs2 = genExpValueToRegister(program, $3);
-      genSGE(program, $$.registerId, rs1, rs2);
-    }
+    $$ = getNewRegister(program);
+    genSGE(program, $$, $1, $3);
   }
   | NOT_OP exp
   {
-    if ($2.type == CONSTANT) {
-      $$ = constantExpValue(!($2.constant));
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      genSEQ(program, $$.registerId, $2.registerId, REG_0);
-    }
+    $$ = getNewRegister(program);
+    genSEQ(program, $$, $2, REG_0);
   }
   | exp ANDAND exp
   {
-    t_expValue normLhs = genNormalizeBoolExpValue(program, $1);
-    t_expValue normRhs = genNormalizeBoolExpValue(program, $3);
-    if (normLhs.type == CONSTANT && normRhs.type == CONSTANT) {
-      $$ = constantExpValue(normLhs.constant & normRhs.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, normLhs);
-      t_regID rs2 = genExpValueToRegister(program, normRhs);
-      genAND(program, $$.registerId, rs1, rs2);
-    }
+    t_regID normalizedOp1 = getNewRegister(program);
+    genSNE(program, normalizedOp1, $1, REG_0);
+    t_regID normalizedOp2 = getNewRegister(program);
+    genSNE(program, normalizedOp2, $3, REG_0);
+    $$ = getNewRegister(program);
+    genAND(program, $$, normalizedOp1, normalizedOp2);
   }
   | exp OROR exp
   {
-    t_expValue normLhs = genNormalizeBoolExpValue(program, $1);
-    t_expValue normRhs = genNormalizeBoolExpValue(program, $3);
-    if ($1.type == CONSTANT && $3.type == CONSTANT) {
-      $$ = constantExpValue(normLhs.constant | normRhs.constant);
-    } else {
-      $$ = registerExpValue(getNewRegister(program));
-      t_regID rs1 = genExpValueToRegister(program, normLhs);
-      t_regID rs2 = genExpValueToRegister(program, normRhs);
-      genOR(program, $$.registerId, rs1, rs2);
-    }
+    t_regID normalizedOp1 = getNewRegister(program);
+    genSNE(program, normalizedOp1, $1, REG_0);
+    t_regID normalizedOp2 = getNewRegister(program);
+    genSNE(program, normalizedOp2, $3, REG_0);
+    $$ = getNewRegister(program);
+    genOR(program, $$, normalizedOp1, normalizedOp2);
   }
 ;
 

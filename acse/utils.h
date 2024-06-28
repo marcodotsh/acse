@@ -34,37 +34,4 @@ int debugPrintf(const char *fmt, ...);
  * @}
  */
 
-
-/**
- * @defgroup expval Expression Values
- * @brief Generalized abstraction for a value that may or may not be constant
- * @{
- */
-
-typedef enum {
-  CONSTANT = 0,
-  REGISTER = 1
-} t_expType;
-
-typedef struct {
-  t_expType type;       /* REGISTER or CONSTANT */
-  int constant;  /* an immediate value (only when type is CONSTANT) */
-  t_regID registerId; /* a register ID (only when type is REGISTER) */
-} t_expValue;
-
-
-/* create an immediate (constant) expression */
-t_expValue constantExpValue(int value);
-
-/* create a register expression */
-t_expValue registerExpValue(t_regID registerId);
-
-t_regID genExpValueToRegister(t_program *program, t_expValue exp);
-
-t_expValue genNormalizeBoolExpValue(t_program *program, t_expValue exp);
-
-/**
- * @}
- */
-
 #endif

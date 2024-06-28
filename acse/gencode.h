@@ -790,11 +790,17 @@ t_instruction *genSWGlobal(
  *          value of the variable loaded from memory. */
 t_regID genLoadVariable(t_program *program, t_symbol *var);
 
-/** Generate instructions that store an expression value into a variable.
+/** Generate instructions that store the content of a register into a variable.
  * @param program The program where the variable belongs
  * @param var     The symbol object that refers to the variable
- * @param val     The expression value that needs to be assigned */
-void genStoreVariable(t_program *program, t_symbol *var, t_expValue val);
+ * @param reg     The register whose value needs to be assigned */
+void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg);
+
+/** Generate instructions that store a constant into a variable.
+ * @param program The program where the variable belongs
+ * @param var     The symbol object that refers to the variable
+ * @param val     The constant value which needs to be assigned */
+void genStoreConstantToVariable(t_program *program, t_symbol *var, int val);
 
 /** Generate instructions that load the content of an element of an array in a
  * register.
@@ -803,8 +809,7 @@ void genStoreVariable(t_program *program, t_symbol *var, t_expValue val);
  * @param index   An expression that refers to a specific element of the array.
  * @returns The identifier of the register that (at runtime) will contain the
  *          value of the array element at position `index' loaded from memory.*/
-t_regID genLoadArrayElement(
-    t_program *program, t_symbol *array, t_expValue index);
+t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID index);
 
 /** Generate instructions that store an expression value into an array element.
  * @param program The program where the array belongs.
@@ -812,8 +817,11 @@ t_regID genLoadArrayElement(
  * @param index   An expression that refers to a specific element of the array.
  * @param data    An expression that refers to the value to be stored in the
  *                array element specified by `index'. */
-void genStoreArrayElement(t_program *program, t_symbol *array,
-    t_expValue index, t_expValue data);
+void genStoreRegisterToArrayElement(t_program *program, t_symbol *array,
+    t_regID index, t_regID data);
+
+void genStoreConstantToArrayElement(t_program *program, t_symbol *array,
+    t_regID index, int data);
 
 /// @}
 
