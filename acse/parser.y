@@ -49,6 +49,7 @@ void yyerror(const char *msg)
 %union {
   int integer;
   char *string;
+  t_regID reg;
   t_symbol *var;
   t_listNode *list;
   t_label *label;
@@ -91,7 +92,7 @@ void yyerror(const char *msg)
  ******************************************************************************/
 
 %type <var> var_id
-%type <integer> exp
+%type <reg> exp
 
 /******************************************************************************
  * OPERATOR PRECEDENCE AND ASSOCIATIVITY
