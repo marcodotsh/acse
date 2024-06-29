@@ -20,3 +20,4 @@
 # Code quality
 - as: Transform Token type into struct
 - as: Read entire file into memory in tokenizer?
+- acse: Move log prints to main()?
