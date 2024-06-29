@@ -19,6 +19,17 @@ struct t_lexer {
 };
 
 
+t_tokenID lexNextTokenID(t_lexer *lex);
+char *lexGetLastTokenText(t_lexer *lex);
+int lexGetLastTokenRow(t_lexer *lex);
+int lexGetLastTokenColumn(t_lexer *lex);
+
+t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex);
+t_instrRegID lexGetLastRegisterID(t_lexer *lex);
+int32_t lexGetLastNumberValue(t_lexer *lex);
+char *lexGetLastStringValue(t_lexer *lex);
+
+
 t_lexer *newLexer(FILE *fp)
 {
   t_lexer *lex;
@@ -321,6 +332,8 @@ static t_tokenID lexConsumeCharacterOrString(
   *out = '\0';
 
   if (type == TOK_CHARACTER && (off_t)(out - lex->tokLastString) != 1) {
+    fprintf(stderr, "error at %d,%d: expected a single character\n",
+        lex->row + 1, lex->col);
     return TOK_UNRECOGNIZED;
   }
   return type;
@@ -551,7 +564,7 @@ static t_tokenID lexConsumeIdentifierOrKeyword(t_lexer *lex, char firstChar)
 }
 
 
-t_tokenID lexNextToken(t_lexer *lex)
+t_tokenID lexNextTokenID(t_lexer *lex)
 {
   char next;
 
@@ -652,4 +665,52 @@ int32_t lexGetLastNumberValue(t_lexer *lex)
 char *lexGetLastStringValue(t_lexer *lex)
 {
   return lex->tokLastString;
+}
+
+
+t_token *lexNextToken(t_lexer *lex)
+{
+  t_token *tok = calloc(1, sizeof(t_token));
+  if (tok == NULL) {
+    fprintf(stderr, "error: out of memory\n");
+    abort();
+  }
+  tok->id = lexNextTokenID(lex);
+  tok->row = lex->tokRow;
+  tok->column = lex->tokCol;
+  switch (tok->id) {
+    case TOK_ID:
+      tok->value.id = lexGetLastTokenText(lex);
+      break;
+    case TOK_LOCAL_REF:
+      tok->value.localRef = (int32_t)lex->tokLastData;
+      break;
+    case TOK_NUMBER:
+      tok->value.number = (int32_t)lex->tokLastData;
+      break;
+    case TOK_CHARACTER:
+      tok->value.character = *lexGetLastStringValue(lex);
+      break;
+    case TOK_STRING:
+      tok->value.string = strdup(lexGetLastStringValue(lex));
+      break;
+    case TOK_REGISTER:
+      tok->value.reg = (t_instrRegID)lex->tokLastData;
+      break;
+    case TOK_MNEMONIC:
+      tok->value.mnemonic = (t_instrOpcode)lex->tokLastData;
+      break;
+  }
+  return tok;
+}
+
+
+void deleteToken(t_token *tok)
+{
+  if (!tok)
+    return;
+  if (tok->id == TOK_ID)
+    free(tok->value.id);
+  else if (tok->id == TOK_STRING)
+    free(tok->value.string);
 }

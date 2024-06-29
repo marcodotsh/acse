@@ -36,22 +36,28 @@ enum {
   TOK_MNEMONIC
 };
 
+typedef struct {
+  t_tokenID id;
+  int row;
+  int column;
+  union {
+    char *id;
+    int32_t localRef;
+    int32_t number;
+    char character;
+    char *string;
+    t_instrRegID reg;
+    t_instrOpcode mnemonic;
+  } value;
+} t_token;
+
 typedef struct t_lexer t_lexer;
 
 
 t_lexer *newLexer(FILE *fp);
 void deleteLexer(t_lexer *lex);
 
-char lexGetChar(t_lexer *lex);
-
-t_tokenID lexNextToken(t_lexer *lex);
-char *lexGetLastTokenText(t_lexer *lex);
-int lexGetLastTokenRow(t_lexer *lex);
-int lexGetLastTokenColumn(t_lexer *lex);
-
-t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex);
-t_instrRegID lexGetLastRegisterID(t_lexer *lex);
-int32_t lexGetLastNumberValue(t_lexer *lex);
-char *lexGetLastStringValue(t_lexer *lex);
+t_token *lexNextToken(t_lexer *lex);
+void deleteToken(t_token *tok);
 
 #endif

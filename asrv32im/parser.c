@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdbool.h>
 #include "parser.h"
 
 
@@ -19,18 +20,18 @@ typedef struct t_localLabel {
 
 typedef struct t_parserState {
   t_lexer *lex;
+  t_token *curToken;
+  t_token *lookaheadToken;
   t_object *object;
   t_objSection *curSection;
   int numErrors;
-  int hasLastToken;
-  t_tokenID lastToken;
   t_localLabel *backLabels;
   t_localLabel *forwardLabels;
 } t_parserState;
 
 
 static t_localLabel *parserGetLocalLabel(
-    t_parserState *state, int identifier, int back)
+    t_parserState *state, int identifier, bool back)
 {
   t_localLabel *cur;
   if (back)
@@ -89,47 +90,30 @@ static void deleteLocalLabelList(t_localLabel *head)
 
 static void parserEmitError(t_parserState *state, const char *msg)
 {
-  int r, c;
-
   if (!msg)
     msg = "unexpected token";
-  r = lexGetLastTokenRow(state->lex) + 1;
-  c = lexGetLastTokenColumn(state->lex);
-  fprintf(stderr, "error at %d,%d: %s\n", r, c, msg);
+  int row = state->lookaheadToken->row + 1;
+  int col = state->lookaheadToken->column;
+  fprintf(stderr, "error at %d,%d: %s\n", row, col, msg);
   state->numErrors++;
 }
 
 
-static t_tokenID parserPeekToken(t_parserState *state)
+static void parserNextToken(t_parserState *state)
 {
-  if (state->hasLastToken)
-    return state->lastToken;
-  state->lastToken = lexNextToken(state->lex);
-  state->hasLastToken = 1;
-  return state->lastToken;
-}
-
-static t_tokenID parserConsumeToken(t_parserState *state)
-{
-  t_tokenID res;
-
-  if (!state->hasLastToken) {
-    res = lexNextToken(state->lex);
-  } else {
-    res = state->lastToken;
+  if (state->curToken && state->curToken->id == TOK_EOF) {
+    fprintf(stderr, "BUG: trying to advance past EOF\n");
+    abort();
   }
-  state->hasLastToken = 0;
-  return res;
+  deleteToken(state->curToken);
+  state->curToken = state->lookaheadToken;
+  state->lookaheadToken = lexNextToken(state->lex);
 }
-
 
 static t_parserError parserAccept(t_parserState *state, t_tokenID tok)
 {
-  t_tokenID nextTok;
-
-  nextTok = parserPeekToken(state);
-  if (nextTok == tok) {
-    parserConsumeToken(state);
+  if (state->lookaheadToken->id == tok) {
+    parserNextToken(state);
     return P_ACCEPT;
   }
   return P_REJECT;
@@ -138,21 +122,20 @@ static t_parserError parserAccept(t_parserState *state, t_tokenID tok)
 static t_parserError parserExpect(
     t_parserState *state, t_tokenID tok, const char *msg)
 {
-  int res;
-
-  res = parserAccept(state, tok);
+  t_parserError res = parserAccept(state, tok);
   if (res == P_ACCEPT)
     return res;
   parserEmitError(state, msg);
   return P_SYN_ERROR;
 }
 
+
 static t_parserError expectRegister(
-    t_parserState *state, t_instrRegID *res, int last)
+    t_parserState *state, t_instrRegID *res, bool last)
 {
   if (parserExpect(state, TOK_REGISTER, "expected a register") != P_ACCEPT)
     return P_SYN_ERROR;
-  *res = lexGetLastRegisterID(state->lex);
+  *res = state->curToken->value.reg;
   if (!last &&
       parserExpect(state, TOK_COMMA,
           "register name must be followed by a comma") != P_ACCEPT)
@@ -163,25 +146,26 @@ static t_parserError expectRegister(
 static t_parserError expectNumber(
     t_parserState *state, int32_t *res, int32_t min, int32_t max)
 {
-  int32_t tmp;
-
-  if (parserExpect(state, TOK_NUMBER, "expected a constant") != P_ACCEPT)
-    return P_SYN_ERROR;
-
-  tmp = lexGetLastNumberValue(state->lex);
-  if (tmp < min || tmp > max) {
-    parserEmitError(state, "numeric constant out of bounds");
-    return P_SYN_ERROR;
+  if (state->lookaheadToken->id == TOK_NUMBER) {
+    int32_t value = state->lookaheadToken->value.number;
+    if (min <= value && value <= max) {
+      parserNextToken(state);
+      *res = value;
+      return P_ACCEPT;
+    } else {
+      parserEmitError(state, "numeric constant out of bounds");
+      return P_SYN_ERROR;
+    }
   }
-  *res = tmp;
-  return P_ACCEPT;
+  parserEmitError(state, "expected a constant");
+  return P_SYN_ERROR;
 }
 
 static t_parserError acceptLabel(t_parserState *state, t_instruction *instr)
 {
   if (parserAccept(state, TOK_LOCAL_REF) == P_ACCEPT) {
-    int n = lexGetLastNumberValue(state->lex);
-    int back = n < 0;
+    int n = state->curToken->value.localRef;
+    bool back = n < 0;
     if (back)
       n = -n;
     t_localLabel *ll = parserGetLocalLabel(state, n, back);
@@ -189,9 +173,7 @@ static t_parserError acceptLabel(t_parserState *state, t_instruction *instr)
     return P_ACCEPT;
 
   } else if (parserAccept(state, TOK_ID) == P_ACCEPT) {
-    char *tmp = lexGetLastTokenText(state->lex);
-    instr->label = objGetLabel(state->object, tmp);
-    free(tmp);
+    instr->label = objGetLabel(state->object, state->curToken->value.id);
     return P_ACCEPT;
   }
 
@@ -217,21 +199,9 @@ enum {
 static t_parserError expectImmediate(
     t_parserState *state, t_instruction *instr, t_immSizeClass size)
 {
-  int32_t min, max;
-
-  if (parserAccept(state, TOK_LO) == P_ACCEPT) {
-    instr->immMode = INSTR_IMM_LBL_LO12;
-  } else if (parserAccept(state, TOK_HI) == P_ACCEPT) {
-    instr->immMode = INSTR_IMM_LBL_HI20;
-  } else if (parserAccept(state, TOK_PCREL_LO) == P_ACCEPT) {
-    instr->immMode = INSTR_IMM_LBL_PCREL_LO12;
-  } else if (parserAccept(state, TOK_PCREL_HI) == P_ACCEPT) {
-    instr->immMode = INSTR_IMM_LBL_PCREL_HI20;
-  } else {
+  if (state->lookaheadToken->id == TOK_NUMBER) {
     instr->immMode = INSTR_IMM_CONST;
-  }
-
-  if (instr->immMode == INSTR_IMM_CONST) {
+    int32_t min, max;
     if (size == IMM_SIZE_5) {
       min = 0;
       max = 31;
@@ -241,14 +211,22 @@ static t_parserError expectImmediate(
     } else if (size == IMM_SIZE_20) {
       min = -0x80000;
       max = 0xFFFFF;
-    } else
+    } else {
       assert(0 && "invalid immediate size");
-
+    }
     return expectNumber(state, &instr->constant, min, max);
   }
 
-  if (size < IMM_SIZE_12) {
-    parserEmitError(state, "immediate too large");
+  if (state->lookaheadToken->id == TOK_LO) {
+    instr->immMode = INSTR_IMM_LBL_LO12;
+  } else if (state->lookaheadToken->id == TOK_HI) {
+    instr->immMode = INSTR_IMM_LBL_HI20;
+  } else if (state->lookaheadToken->id == TOK_PCREL_LO) {
+    instr->immMode = INSTR_IMM_LBL_PCREL_LO12;
+  } else if (state->lookaheadToken->id == TOK_PCREL_HI) {
+    instr->immMode = INSTR_IMM_LBL_PCREL_HI20;
+  } else {
+    parserEmitError(state, "expected valid immediate");
     return P_SYN_ERROR;
   }
   if (instr->immMode == INSTR_IMM_LBL_HI20 ||
@@ -257,7 +235,13 @@ static t_parserError expectImmediate(
       parserEmitError(state, "immediate too large");
       return P_SYN_ERROR;
     }
+  } else {
+    if (size < IMM_SIZE_12) {
+      parserEmitError(state, "immediate too large");
+      return P_SYN_ERROR;
+    }
   }
+  parserNextToken(state);
 
   if (parserExpect(state, TOK_LPAR, "expected left parenthesis") != P_ACCEPT)
     return P_SYN_ERROR;
@@ -368,32 +352,29 @@ static t_instrFormat instrOpcodeToFormat(t_instrOpcode opcode)
 }
 
 
-static t_parserError expectInstruction(
-    t_parserState *state, t_tokenID lastToken)
+static t_parserError expectInstruction(t_parserState *state)
 {
-  t_instrFormat format;
   t_immSizeClass immSize;
   t_instruction instr = {0};
 
-  if (lastToken != TOK_MNEMONIC)
-    return P_SYN_ERROR;
-  instr.opcode = lexGetLastMnemonicOpcode(state->lex);
+  parserExpect(state, TOK_MNEMONIC, NULL);
+  instr.opcode = state->curToken->value.mnemonic;
 
-  format = instrOpcodeToFormat(instr.opcode);
+  t_instrFormat format = instrOpcodeToFormat(instr.opcode);
   switch (format) {
     case FORMAT_OP:
-      if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.dest, false) != P_ACCEPT)
         return P_SYN_ERROR;
-      if (expectRegister(state, &instr.src1, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.src1, false) != P_ACCEPT)
         return P_SYN_ERROR;
-      if (expectRegister(state, &instr.src2, 1) != P_ACCEPT)
+      if (expectRegister(state, &instr.src2, true) != P_ACCEPT)
         return P_SYN_ERROR;
       break;
 
     case FORMAT_OPIMM:
-      if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.dest, false) != P_ACCEPT)
         return P_SYN_ERROR;
-      if (expectRegister(state, &instr.src1, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.src1, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (instr.opcode == INSTR_OPC_SLLI || instr.opcode == INSTR_OPC_SRLI ||
           instr.opcode == INSTR_OPC_SRAI) {
@@ -406,7 +387,7 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_LOAD:
-      if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.dest, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (acceptLabel(state, &instr) == P_ACCEPT) {
         instr.opcode = instr.opcode - INSTR_OPC_LB + INSTR_OPC_LB_G;
@@ -416,7 +397,7 @@ static t_parserError expectInstruction(
           return P_SYN_ERROR;
         if (parserExpect(state, TOK_LPAR, "expected parenthesis") != P_ACCEPT)
           return P_SYN_ERROR;
-        if (expectRegister(state, &instr.src1, 1) != P_ACCEPT)
+        if (expectRegister(state, &instr.src1, true) != P_ACCEPT)
           return P_SYN_ERROR;
         if (parserExpect(state, TOK_RPAR, "expected parenthesis") != P_ACCEPT)
           return P_SYN_ERROR;
@@ -424,12 +405,12 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_STORE:
-      if (expectRegister(state, &instr.src2, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.src2, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (acceptLabel(state, &instr) == P_ACCEPT) {
         if (parserExpect(state, TOK_COMMA, "expected comma") != P_ACCEPT)
           return P_SYN_ERROR;
-        if (expectRegister(state, &instr.dest, 1) != P_ACCEPT)
+        if (expectRegister(state, &instr.dest, true) != P_ACCEPT)
           return P_SYN_ERROR;
         instr.opcode = instr.opcode - INSTR_OPC_SB + INSTR_OPC_SB_G;
         instr.immMode = INSTR_IMM_LBL;
@@ -446,7 +427,7 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_LI:
-      if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.dest, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (expectNumber(state, &instr.constant, INT32_MIN, INT32_MAX) !=
           P_ACCEPT)
@@ -454,7 +435,7 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_LUI:
-      if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.dest, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (expectImmediate(state, &instr, IMM_SIZE_20) != P_ACCEPT)
         return P_SYN_ERROR;
@@ -463,9 +444,9 @@ static t_parserError expectInstruction(
     case FORMAT_LA:
     case FORMAT_JAL:
       if (parserAccept(state, TOK_REGISTER) != P_ACCEPT) {
-        instr.dest = 1;
+        instr.dest = 1; // RA (X1) register
       } else {
-        instr.dest = lexGetLastRegisterID(state->lex);
+        instr.dest = state->curToken->value.reg;
         if (parserExpect(state, TOK_COMMA,
                 "register name must be followed by a comma") != P_ACCEPT)
           return P_SYN_ERROR;
@@ -476,10 +457,10 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_JALR:
-      if (expectRegister(state, &instr.dest, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.dest, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (parserAccept(state, TOK_REGISTER) == P_ACCEPT) {
-        instr.src1 = lexGetLastRegisterID(state->lex);
+        instr.src1 = state->curToken->value.reg;
         if (parserExpect(state, TOK_COMMA,
                 "register name must be followed by a comma") != P_ACCEPT)
           return P_SYN_ERROR;
@@ -498,9 +479,9 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_BRANCH:
-      if (expectRegister(state, &instr.src1, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.src1, false) != P_ACCEPT)
         return P_SYN_ERROR;
-      if (expectRegister(state, &instr.src2, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.src2, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (expectLabel(state, &instr) != P_ACCEPT)
         return P_SYN_ERROR;
@@ -508,7 +489,7 @@ static t_parserError expectInstruction(
       break;
 
     case FORMAT_BRANCH_Z:
-      if (expectRegister(state, &instr.src1, 0) != P_ACCEPT)
+      if (expectRegister(state, &instr.src1, false) != P_ACCEPT)
         return P_SYN_ERROR;
       if (expectLabel(state, &instr) != P_ACCEPT)
         return P_SYN_ERROR;
@@ -533,55 +514,52 @@ static t_parserError expectInstruction(
 }
 
 
-static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
+static t_parserError expectData(t_parserState *state)
 {
-  int32_t temp;
   t_data data = {0};
 
-  if (lastToken == TOK_SPACE) {
-    if (!parserExpect(state, TOK_NUMBER, "expected number after \".space\""))
+  if (parserAccept(state, TOK_SPACE)) {
+    if (parserExpect(
+          state, TOK_NUMBER, "expected number after \".space\"") != P_ACCEPT)
       return P_SYN_ERROR;
-    data.dataSize = (uint32_t)lexGetLastNumberValue(state->lex);
+    data.dataSize = (uint32_t)state->curToken->value.number;
     data.initialized = false;
     objSecAppendData(state->curSection, data);
     return P_ACCEPT;
   }
 
-  if (lastToken == TOK_WORD || lastToken == TOK_HALF) {
+  if (parserAccept(state, TOK_WORD) || parserAccept(state, TOK_HALF)) {
+    size_t dataSize = state->curToken->id == TOK_WORD ? 4 : 2;
     do {
       if (!parserExpect(state, TOK_NUMBER, "expected number"))
         return P_SYN_ERROR;
-      temp = lexGetLastNumberValue(state->lex);
-      if (lastToken == TOK_WORD)
-        data.dataSize = 4;
-      else if (lastToken == TOK_HALF)
-        data.dataSize = 2;
+      int32_t value = state->curToken->value.number;
+      data.dataSize = dataSize;
       data.initialized = true;
-      data.data[0] = temp & 0xFF;
-      data.data[1] = (temp >> 8) & 0xFF;
-      if (lastToken == TOK_WORD) {
-        data.data[2] = (temp >> 16) & 0xFF;
-        data.data[3] = (temp >> 24) & 0xFF;
+      data.data[0] = value & 0xFF;
+      data.data[1] = (value >> 8) & 0xFF;
+      if (dataSize == 4) {
+        data.data[2] = (value >> 16) & 0xFF;
+        data.data[3] = (value >> 24) & 0xFF;
       }
       objSecAppendData(state->curSection, data);
     } while (parserAccept(state, TOK_COMMA));
     return P_ACCEPT;
   }
 
-  if (lastToken == TOK_BYTE) {
+  if (parserAccept(state, TOK_BYTE)) {
     do {
       data.dataSize = sizeof(uint8_t);
       data.initialized = true;
       if (parserAccept(state, TOK_NUMBER)) {
-        temp = lexGetLastNumberValue(state->lex);
-        if (temp < -128 || temp > 255) {
+        int32_t value = state->curToken->value.number;
+        if (value < -128 || value > 255) {
           parserEmitError(state, "expected number between -128 and 255");
           return P_SYN_ERROR;
         }
-        data.data[0] = (uint8_t)temp;
+        data.data[0] = (uint8_t)value;
       } else if (parserAccept(state, TOK_CHARACTER)) {
-        char *str = lexGetLastStringValue(state->lex);
-        data.data[0] = (uint8_t)(*str);
+        data.data[0] = (uint8_t)state->curToken->value.character;
       } else {
         parserEmitError(state, "expected numeric or character constant");
         return P_SYN_ERROR;
@@ -591,11 +569,12 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
     return P_ACCEPT;
   }
 
-  if (lastToken == TOK_ASCII) {
+  if (parserAccept(state, TOK_ASCII)) {
     do {
-      if (!parserExpect(state, TOK_STRING, "expected string after \".ascii\""))
+      if (parserExpect(
+            state, TOK_STRING, "expected string after \".ascii\"") != P_ACCEPT)
         return P_SYN_ERROR;
-      char *str = lexGetLastStringValue(state->lex);
+      char *str = state->curToken->value.string;
       data.dataSize = sizeof(char);
       data.initialized = true;
       for (; *str != '\0'; str++) {
@@ -610,22 +589,37 @@ static t_parserError expectData(t_parserState *state, t_tokenID lastToken)
 }
 
 
-static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
+static t_parserError expectAlign(t_parserState *state)
 {
   t_alignData align = {0};
 
-  if (!parserExpect(state, TOK_NUMBER, "expected alignment amount"))
+  t_tokenID alignType;
+  if (parserAccept(state, TOK_ALIGN))
+    alignType = TOK_ALIGN;
+  else if (parserAccept(state, TOK_BALIGN))
+    alignType = TOK_BALIGN;
+  else
     return P_SYN_ERROR;
-  int32_t amt = lexGetLastNumberValue(state->lex);
+
+  if (state->lookaheadToken->id != TOK_NUMBER) {
+    parserEmitError(state, "expected alignment amount");
+    return P_SYN_ERROR;
+  }
+  int32_t amt = state->lookaheadToken->value.number;
   if (amt <= 0) {
     parserEmitError(state, "alignment amount must be a positive integer");
     return P_SYN_ERROR;
   }
-  if (lastToken == TOK_ALIGN)
+  if (alignType == TOK_ALIGN && amt >= 32) {
+    parserEmitError(state, "alignment amount too large");
+    return P_SYN_ERROR;
+  }
+  parserNextToken(state);
+
+  if (alignType == TOK_ALIGN)
     align.alignModulo = 1U << amt;
   else
     align.alignModulo = (size_t)amt;
-
   if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
     if ((align.alignModulo % 4) != 0)
       fprintf(stderr, "%s",
@@ -636,13 +630,9 @@ static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
   }
 
   if (parserAccept(state, TOK_COMMA)) {
-    if (!parserExpect(state, TOK_NUMBER, "expected alignment padding value"))
+    int32_t pad;
+    if (expectNumber(state, &pad, -128, 256) != P_ACCEPT)
       return P_SYN_ERROR;
-    int32_t pad = lexGetLastNumberValue(state->lex);
-    if (pad < -128 || pad >= 256) {
-      parserEmitError(state, "alignment padding must fit in a 8-bit byte");
-      return P_SYN_ERROR;
-    }
     align.nopFill = false;
     align.fillByte = (uint8_t)pad;
   } else {
@@ -656,22 +646,17 @@ static t_parserError expectAlign(t_parserState *state, t_tokenID lastToken)
 
 static t_parserError expectLineContent(t_parserState *state)
 {
-  if (parserAccept(state, TOK_SPACE) == P_ACCEPT)
-    return expectData(state, TOK_SPACE);
-  if (parserAccept(state, TOK_WORD) == P_ACCEPT)
-    return expectData(state, TOK_WORD);
-  if (parserAccept(state, TOK_HALF) == P_ACCEPT)
-    return expectData(state, TOK_HALF);
-  if (parserAccept(state, TOK_BYTE) == P_ACCEPT)
-    return expectData(state, TOK_BYTE);
-  if (parserAccept(state, TOK_ASCII) == P_ACCEPT)
-    return expectData(state, TOK_ASCII);
-  if (parserAccept(state, TOK_ALIGN) == P_ACCEPT)
-    return expectAlign(state, TOK_ALIGN);
-  if (parserAccept(state, TOK_BALIGN) == P_ACCEPT)
-    return expectAlign(state, TOK_BALIGN);
-  if (parserAccept(state, TOK_MNEMONIC) == P_ACCEPT)
-    return expectInstruction(state, TOK_MNEMONIC);
+  if (state->lookaheadToken->id == TOK_MNEMONIC)
+    return expectInstruction(state);
+  if (state->lookaheadToken->id == TOK_SPACE
+      || state->lookaheadToken->id == TOK_WORD
+      || state->lookaheadToken->id == TOK_HALF
+      || state->lookaheadToken->id == TOK_BYTE
+      || state->lookaheadToken->id == TOK_ASCII)
+    return expectData(state);
+  if (state->lookaheadToken->id == TOK_ALIGN
+      || state->lookaheadToken->id == TOK_BALIGN)
+    return expectAlign(state);
   parserEmitError(state, "expected a data directive or an instruction");
   return P_SYN_ERROR;
 }
@@ -696,26 +681,26 @@ static t_parserError expectLine(t_parserState *state)
     return parserExpect(state, TOK_NEWLINE, "expected end of the line");
   }
 
-  if (parserAccept(state, TOK_NUMBER) == P_ACCEPT) {
-    int n = lexGetLastNumberValue(state->lex);
+  if (state->lookaheadToken->id == TOK_NUMBER) {
+    int n = state->lookaheadToken->value.number;
     if (n < 0) {
       parserEmitError(state, "local labels must be positive numbers");
       return P_SYN_ERROR;
     }
+    parserNextToken(state);
     if (parserExpect(state, TOK_COLON,
             "expected colon after number to define a local label") != P_ACCEPT)
       return P_SYN_ERROR;
     t_localLabel *ll = parserGetLocalLabel(state, n, 0);
     parserDeclareLocalLabel(state, ll);
   } else if (parserAccept(state, TOK_ID) == P_ACCEPT) {
-    char *temp = lexGetLastTokenText(state->lex);
+    char *id = state->curToken->value.id;
+    t_objLabel *label = objGetLabel(state->object, id);
     if (parserExpect(state, TOK_COLON, "expected label or valid mnemonic") !=
         P_ACCEPT)
       return P_SYN_ERROR;
-    t_objLabel *label = objGetLabel(state->object, temp);
     if (!objSecDeclareLabel(state->curSection, label))
       parserEmitError(state, "label already declared");
-    free(temp);
   }
 
   if (parserAccept(state, TOK_NEWLINE) == P_ACCEPT)
@@ -737,29 +722,28 @@ t_object *parseObject(t_lexer *lex)
     goto error;
   state.curSection = objGetSection(state.object, OBJ_SECTION_TEXT);
   state.numErrors = 0;
-  state.hasLastToken = 0;
+  state.curToken = NULL;
+  state.lookaheadToken = lexNextToken(lex);
   state.backLabels = NULL;
   state.forwardLabels = NULL;
 
   while (parserAccept(&state, TOK_EOF) != P_ACCEPT) {
     err = expectLine(&state);
     if (err != P_ACCEPT) {
-      t_tokenID tmp;
-
       if (state.numErrors > 10) {
         fprintf(stderr, "too many errors, aborting...\n");
         break;
       }
-
-      /* try to ignore the error and advance to the next line */
-      tmp = parserPeekToken(&state);
-      while (tmp != TOK_NEWLINE && tmp != TOK_EOF) {
-        parserConsumeToken(&state);
-        tmp = parserPeekToken(&state);
+      // try to ignore the error and advance to the next line
+      while (state.lookaheadToken->id != TOK_NEWLINE
+             && state.lookaheadToken->id != TOK_EOF) {
+        parserNextToken(&state);
       }
     }
   }
 
+  deleteToken(state.curToken);
+  deleteToken(state.lookaheadToken);
   deleteLocalLabelList(state.backLabels);
   deleteLocalLabelList(state.forwardLabels);
 
