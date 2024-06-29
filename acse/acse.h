@@ -20,11 +20,12 @@
  * LANCE (Language for Compiler Education), and produces a compiled program in
  * standard RISC-V RV32IM assembly language.
  * 
- * ## Function naming conventions
+ * ## Naming conventions and code style
  * 
- * ACSE follows a consistent naming convention for all functions, in order
- * to introduce a simple form of namespacing and group functions with a similar
- * role. Specifically:
+ * All symbols are in lower camel case. Additionally, ACSE employs a consistent
+ * naming convention for all functions, in order to introduce a simple form of
+ * namespacing which groups together each function based on their role.
+ * Specifically:
  *  - Functions that allocate and initialize a structure are named starting
  *    with "new"
  *  - Functions that allocate and initialize a structure, and then add it to
@@ -32,7 +33,7 @@
  *  - Functions that deinitialize and deallocate a structure are named
  *    starting with "delete"
  *  - Functions that operate on a given structure type are named with a prefix
- *    that represent the structure. Exception is made for functions that
+ *    that represents the structure. Exception is made for functions that
  *    modify a t_program structure, which may have no specific prefix.
  *  - Functions that add instructions to the program are named starting with
  *    "gen".

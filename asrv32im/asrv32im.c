@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     usage(name);
     return 1;
   } else if (argc > 1) {
-    fprintf(stderr, "Cannot assemble more than one file, exiting.\n");
+    fprintf(stderr, "Cannot assemble more than one file, exiting\n");
     return 1;
   }
 

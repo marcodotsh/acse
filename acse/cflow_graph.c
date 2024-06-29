@@ -330,7 +330,7 @@ static void cfgComputeTransitions(t_cfg *graph)
     t_cfgNode *last_node = (t_cfgNode *)last_element->data;
     t_instruction *last_instruction = last_node->instr;
 
-    // If the instruction is return-like of exit-like, by definition the next
+    // If the instruction is return-like or exit-like, by definition the next
     // block is the ending block because it stops the program/subroutine.
     if (isHaltOrRetInstruction(last_instruction)) {
       bbAddSucc(current_block, graph->endingBlock);
@@ -338,7 +338,7 @@ static void cfgComputeTransitions(t_cfg *graph)
       continue;
     }
 
-    // All branch/jump instructions may transfer their control to the code
+    // All branch/jump instructions may transfer control to the code
     // indicated by their label argument, so add edges appropriately.
     if (isJumpInstruction(last_instruction)) {
       if (last_instruction->addressParam == NULL)
