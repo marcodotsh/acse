@@ -51,10 +51,6 @@ int debugPrintf(const char *fmt, ...);
 
 char *getLogFileName(const char *logType);
 
-/** Prints a warning message depending on the given code.
- * @param warningcode The code of the warning. */
-void emitWarning(const char *format, ...);
-
 /** Prints an error message depending on the given code.
  * Does not terminate the program.
  * @param errorcode The error code. */

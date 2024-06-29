@@ -52,14 +52,6 @@ static void printMessage(const char *category, const char *fmt, va_list arg)
   fputc('\n', stderr);
 }
 
-void emitWarning(const char *format, ...)
-{
-  va_list args;
-  va_start(args, format);
-  printMessage("warning", format, args);
-  va_end(args);
-}
-
 void emitError(const char *format, ...)
 {
   va_list args;
