@@ -45,6 +45,10 @@
 
 extern int num_error;
 
+/** In debug builds (NDEBUG not defined), prints a message on the standard
+ * output like `printf'. Otherwise, does nothing and returns zero. */
+int debugPrintf(const char *fmt, ...);
+
 char *getLogFileName(const char *logType);
 
 /** Prints a warning message depending on the given code.

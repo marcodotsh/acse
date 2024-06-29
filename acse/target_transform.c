@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "target_transform.h"
 #include "gencode.h"
-#include "utils.h"
+#include "acse.h"
 #include "list.h"
 #include "target_info.h"
 #include "target_asm_print.h"

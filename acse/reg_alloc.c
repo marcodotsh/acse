@@ -6,7 +6,6 @@
 #include "reg_alloc.h"
 #include "target_info.h"
 #include "acse.h"
-#include "utils.h"
 #include "gencode.h"
 #include "program.h"
 #include "list.h"
@@ -358,7 +357,8 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   t_listNode *current_cflow_var = graph->registers;
   while (current_cflow_var != NULL) {
     t_cfgReg *cflow_var = (t_cfgReg *)current_cflow_var->data;
-    maxTempRegID = MAX(maxTempRegID, cflow_var->tempRegID);
+    if (maxTempRegID < cflow_var->tempRegID)
+      maxTempRegID = cflow_var->tempRegID;
     current_cflow_var = current_cflow_var->next;
   }
   result->tempRegNum = maxTempRegID + 1;

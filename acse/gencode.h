@@ -5,7 +5,6 @@
 #define GENCODE_H
 
 #include "program.h"
-#include "utils.h"
 
 /** 
  * @defgroup gencode Code Generation Functions

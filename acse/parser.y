@@ -10,7 +10,6 @@
 #include "acse.h"
 #include "list.h"
 #include "gencode.h"
-#include "utils.h"
 #include "scanner.h"
 #include "parser.h"
 

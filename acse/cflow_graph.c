@@ -1,7 +1,7 @@
 /// @file cflow_graph.c
 
 #include <assert.h>
-#include "utils.h"
+#include "acse.h"
 #include "cflow_graph.h"
 #include "target_info.h"
 #include "target_asm_print.h"
