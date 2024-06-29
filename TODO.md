@@ -8,6 +8,10 @@
 # Structural coherency
 - Introduce error.c/h to acse/as/sim (essentially the same code)
 - Remove acse.h
+- Replace int with bool where applicable
+  - acse
+  - as
+  - sim
 
 # Code quality
 - as: Transform Token type into struct
