@@ -12,6 +12,10 @@
   - acse
   - as
   - sim
+- Use C99 variable declarations where applicable
+  - acse
+  - as
+  - sim
 
 # Code quality
 - as: Transform Token type into struct
