@@ -18,24 +18,29 @@ $(ASM):
 %.o: %.s $(ASM)
 	$(ASM) $< \
 	  -o $(patsubst %.s,%.o,$<) \
-	  1> $(patsubst %.s,%.stderr.txt,$<) \
-	  2> $(patsubst %.s,%.stdout.txt,$<)
+	  1> $(patsubst %.s,%.stdout.txt,$<) \
+	  2> $(patsubst %.s,%.stderr.txt,$<) || true
 
 .PHONY: %.ck
 %.ck: %.o
-	diff $(patsubst %.ck,%.o,$@) $(patsubst %.ck,%.expected.o,$@)
+	if [ -f $(patsubst %.ck,%.o,$@) ]; then [ -f $(patsubst %.ck,%.expected.o,$@) ]; else [ ! -f $(patsubst %.ck,%.expected.o,$@) ]; fi
+	if [ -f $(patsubst %.ck,%.o,$@) ]; then diff $(patsubst %.ck,%.o,$@) $(patsubst %.ck,%.expected.o,$@); fi
 	diff $(patsubst %.ck,%.stderr.txt,$@) $(patsubst %.ck,%.expected.stderr.txt,$@)
 	diff $(patsubst %.ck,%.stdout.txt,$@) $(patsubst %.ck,%.expected.stdout.txt,$@)
 
 .PHONY: expected
 expected: $(OBJS_EXPECTED)
 
+.PHONY: clean_expected
+clean_expected:
+	rm -f $(OBJS_EXPECTED)
+
 .PRECIOUS: %.expected.o
 %.expected.o: %.s $(ASM)
 	$(ASM) $< \
 	  -o $(patsubst %.s,%.expected.o,$<) \
-	  1> $(patsubst %.s,%.expected.stderr.txt,$<) \
-	  2> $(patsubst %.s,%.expected.stdout.txt,$<)
+	  1> $(patsubst %.s,%.expected.stdout.txt,$<) \
+	  2> $(patsubst %.s,%.expected.stderr.txt,$<) || true
 
 .PHONY: clean
 clean:
