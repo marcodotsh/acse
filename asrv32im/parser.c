@@ -669,16 +669,16 @@ static t_parserError expectLine(t_parserState *state)
 
   if (parserAccept(state, TOK_TEXT) == P_ACCEPT) {
     state->curSection = objGetSection(state->object, OBJ_SECTION_TEXT);
-    return parserExpect(state, TOK_NEWLINE, "expected end of the line");
+    return parserExpect(state, TOK_NEWLINE, ".text does not take arguments");
   } else if (parserAccept(state, TOK_DATA) == P_ACCEPT) {
     state->curSection = objGetSection(state->object, OBJ_SECTION_DATA);
-    return parserExpect(state, TOK_NEWLINE, "expected end of the line");
+    return parserExpect(state, TOK_NEWLINE, ".data does not take arguments");
   }
 
   if (parserAccept(state, TOK_GLOBAL) == P_ACCEPT) {
-    if (parserExpect(state, TOK_ID, "expected label identifier") != P_ACCEPT)
+    if (parserExpect(state, TOK_ID, ".global needs exactly one label argument") != P_ACCEPT)
       return P_SYN_ERROR;
-    return parserExpect(state, TOK_NEWLINE, "expected end of the line");
+    return parserExpect(state, TOK_NEWLINE, ".global cannot have more than one argument");
   }
 
   if (state->lookaheadToken->id == TOK_NUMBER) {
@@ -696,8 +696,9 @@ static t_parserError expectLine(t_parserState *state)
   } else if (parserAccept(state, TOK_ID) == P_ACCEPT) {
     char *id = state->curToken->value.id;
     t_objLabel *label = objGetLabel(state->object, id);
-    if (parserExpect(state, TOK_COLON, "expected label or valid mnemonic") !=
-        P_ACCEPT)
+    if (parserExpect(
+        state, TOK_COLON, "label declaration without trailing comma")
+        != P_ACCEPT)
       return P_SYN_ERROR;
     if (!objSecDeclareLabel(state->curSection, label))
       parserEmitError(state, "label already declared");
