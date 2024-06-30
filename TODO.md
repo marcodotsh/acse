@@ -4,6 +4,7 @@
 - Convert all non-headerdoc comments to line comments
 - Remove explanatory comments before functions in .c
 - Rename all non-camel-case variables
+- License file (gpl-v3)
 
 # Structural coherency
 - Introduce error.c/h to acse/as/sim (essentially the same code)
@@ -21,3 +22,7 @@
 - as: Transform Token type into struct
 - as: Read entire file into memory in tokenizer?
 - acse: Move log prints to main()?
+- Update copyright dates
+- Handle malloc failures as aborts everywhere, not just in acse
+  - as
+  - sim
