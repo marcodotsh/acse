@@ -4,6 +4,8 @@ addi t0, zero, 100
 addi t0, zero, 101
 .balign 8
 addi t0, zero, 102
+.balign 1
+addi t0, zero, 102
 
 .data
 .byte 0x10

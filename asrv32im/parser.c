@@ -607,7 +607,7 @@ static t_parserError expectAlign(t_parserState *state)
   }
   int32_t amt = state->lookaheadToken->value.number;
   if (amt <= 0) {
-    parserEmitError(state, "alignment amount must be a positive integer");
+    parserEmitError(state, "alignment amount must be a positive non-zero integer");
     return P_SYN_ERROR;
   }
   if (alignType == TOK_ALIGN && amt >= 32) {
