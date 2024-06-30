@@ -21,8 +21,6 @@ struct t_lexer {
 
 t_tokenID lexNextTokenID(t_lexer *lex);
 char *lexGetLastTokenText(t_lexer *lex);
-int lexGetLastTokenRow(t_lexer *lex);
-int lexGetLastTokenColumn(t_lexer *lex);
 
 t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex);
 t_instrRegID lexGetLastRegisterID(t_lexer *lex);
@@ -55,7 +53,6 @@ t_lexer *newLexer(FILE *fp)
   return lex;
 }
 
-
 void deleteLexer(t_lexer *lex)
 {
   if (lex == NULL)
@@ -81,7 +78,6 @@ static bool lexExpandBufferIfFull(t_lexer *lex, size_t space)
   lex->bufSize = newSize;
   return true;
 }
-
 
 char lexGetChar(t_lexer *lex)
 {
@@ -636,17 +632,6 @@ char *lexGetLastTokenText(t_lexer *lex)
 }
 
 
-int lexGetLastTokenRow(t_lexer *lex)
-{
-  return lex->tokRow;
-}
-
-int lexGetLastTokenColumn(t_lexer *lex)
-{
-  return lex->tokCol;
-}
-
-
 t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex)
 {
   return (t_instrOpcode)lex->tokLastData;
@@ -703,7 +688,6 @@ t_token *lexNextToken(t_lexer *lex)
   }
   return tok;
 }
-
 
 void deleteToken(t_token *tok)
 {
