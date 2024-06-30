@@ -617,14 +617,14 @@ static t_parserError expectAlign(t_parserState *state)
   parserNextToken(state);
 
   if (alignType == TOK_ALIGN)
-    align.alignModulo = 1U << amt;
+    align.alignModulo = (size_t)1 << amt;
   else
     align.alignModulo = (size_t)amt;
   if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
     if ((align.alignModulo % 4) != 0)
-      fprintf(stderr, "%s",
-          "warning: alignment directive in .text with an amount which is not "
-          "multiple of 4\n");
+      fprintf(stderr, "warning at %d,%d: alignment in .text with an "
+          "amount which is not a multiple of 4\n", state->curToken->row+1, 
+          state->curToken->column);
     else
       align.nopFill = true;
   }
