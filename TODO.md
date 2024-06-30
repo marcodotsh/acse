@@ -26,3 +26,7 @@
 - Handle malloc failures as aborts everywhere, not just in acse
   - as
   - sim
+- clang-format everywhere (should be at least partially already done)
+  - acse
+  - as
+  - sim
