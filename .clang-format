@@ -15,7 +15,6 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortEnumsOnASingleLine: false
 IndentCaseLabels: true
 AlignConsecutiveMacros: false
-AlignEscapedNewlines: true
 AlignTrailingComments: true
 AlignArrayOfStructures: Right
 MaxEmptyLinesToKeep: 2
