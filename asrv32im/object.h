@@ -149,6 +149,7 @@ typedef struct t_objSecItem {
 t_object *newObject(void);
 void deleteObject(t_object *obj);
 
+t_objLabel *objFindLabel(t_object *obj, const char *name);
 t_objLabel *objGetLabel(t_object *obj, const char *name);
 void objDump(t_object *obj);
 

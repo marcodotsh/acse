@@ -96,14 +96,21 @@ void deleteObject(t_object *obj)
 }
 
 
-t_objLabel *objGetLabel(t_object *obj, const char *name)
+t_objLabel *objFindLabel(t_object *obj, const char *name)
 {
   t_objLabel *lbl;
-
   for (lbl = obj->labelList; lbl != NULL; lbl = lbl->next) {
     if (strcmp(lbl->name, name) == 0)
-      return lbl;
+      break;
   }
+  return lbl;
+}
+
+t_objLabel *objGetLabel(t_object *obj, const char *name)
+{
+  t_objLabel *lbl = objFindLabel(obj, name);
+  if (lbl)
+    return lbl;
 
   lbl = malloc(sizeof(t_objLabel));
   if (!lbl)

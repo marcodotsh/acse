@@ -305,7 +305,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
   head.e.e_shnum = SEC_NUM;
   head.e.e_shstrndx = SEC_ID_SYMTAB;
 
-  l_entry = objGetLabel(obj, "_start");
+  l_entry = objFindLabel(obj, "_start");
   if (!l_entry) {
     fprintf(stderr,
         "warning: _start symbol not found, entry will be start of .text "
