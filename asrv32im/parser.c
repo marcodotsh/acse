@@ -519,8 +519,8 @@ static t_parserError expectData(t_parserState *state)
   t_data data = {0};
 
   if (parserAccept(state, TOK_SPACE)) {
-    if (parserExpect(
-          state, TOK_NUMBER, "expected number after \".space\"") != P_ACCEPT)
+    if (parserExpect(state, TOK_NUMBER, "expected number after \".space\"") !=
+        P_ACCEPT)
       return P_SYN_ERROR;
     data.dataSize = (uint32_t)state->curToken->value.number;
     data.initialized = false;
@@ -571,8 +571,8 @@ static t_parserError expectData(t_parserState *state)
 
   if (parserAccept(state, TOK_ASCII)) {
     do {
-      if (parserExpect(
-            state, TOK_STRING, "expected string after \".ascii\"") != P_ACCEPT)
+      if (parserExpect(state, TOK_STRING, "expected string after \".ascii\"") !=
+          P_ACCEPT)
         return P_SYN_ERROR;
       char *str = state->curToken->value.string;
       data.dataSize = sizeof(char);
@@ -607,7 +607,8 @@ static t_parserError expectAlign(t_parserState *state)
   }
   int32_t amt = state->lookaheadToken->value.number;
   if (amt <= 0) {
-    parserEmitError(state, "alignment amount must be a positive non-zero integer");
+    parserEmitError(
+        state, "alignment amount must be a positive non-zero integer");
     return P_SYN_ERROR;
   }
   if (alignType == TOK_ALIGN && amt >= 32) {
@@ -622,9 +623,10 @@ static t_parserError expectAlign(t_parserState *state)
     align.alignModulo = (size_t)amt;
   if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
     if ((align.alignModulo % 4) != 0)
-      fprintf(stderr, "warning at %d,%d: alignment in .text with an "
-          "amount which is not a multiple of 4\n", state->curToken->row+1, 
-          state->curToken->column);
+      fprintf(stderr,
+          "warning at %d,%d: alignment in .text with an "
+          "amount which is not a multiple of 4\n",
+          state->curToken->row + 1, state->curToken->column);
     else
       align.nopFill = true;
   }
@@ -648,14 +650,14 @@ static t_parserError expectLineContent(t_parserState *state)
 {
   if (state->lookaheadToken->id == TOK_MNEMONIC)
     return expectInstruction(state);
-  if (state->lookaheadToken->id == TOK_SPACE
-      || state->lookaheadToken->id == TOK_WORD
-      || state->lookaheadToken->id == TOK_HALF
-      || state->lookaheadToken->id == TOK_BYTE
-      || state->lookaheadToken->id == TOK_ASCII)
+  if (state->lookaheadToken->id == TOK_SPACE ||
+      state->lookaheadToken->id == TOK_WORD ||
+      state->lookaheadToken->id == TOK_HALF ||
+      state->lookaheadToken->id == TOK_BYTE ||
+      state->lookaheadToken->id == TOK_ASCII)
     return expectData(state);
-  if (state->lookaheadToken->id == TOK_ALIGN
-      || state->lookaheadToken->id == TOK_BALIGN)
+  if (state->lookaheadToken->id == TOK_ALIGN ||
+      state->lookaheadToken->id == TOK_BALIGN)
     return expectAlign(state);
   parserEmitError(state, "expected a data directive or an instruction");
   return P_SYN_ERROR;
@@ -676,9 +678,11 @@ static t_parserError expectLine(t_parserState *state)
   }
 
   if (parserAccept(state, TOK_GLOBAL) == P_ACCEPT) {
-    if (parserExpect(state, TOK_ID, ".global needs exactly one label argument") != P_ACCEPT)
+    if (parserExpect(state, TOK_ID,
+            ".global needs exactly one label argument") != P_ACCEPT)
       return P_SYN_ERROR;
-    return parserExpect(state, TOK_NEWLINE, ".global cannot have more than one argument");
+    return parserExpect(
+        state, TOK_NEWLINE, ".global cannot have more than one argument");
   }
 
   if (state->lookaheadToken->id == TOK_NUMBER) {
@@ -696,9 +700,8 @@ static t_parserError expectLine(t_parserState *state)
   } else if (parserAccept(state, TOK_ID) == P_ACCEPT) {
     char *id = state->curToken->value.id;
     t_objLabel *label = objGetLabel(state->object, id);
-    if (parserExpect(
-        state, TOK_COLON, "label declaration without trailing comma")
-        != P_ACCEPT)
+    if (parserExpect(state, TOK_COLON,
+            "label declaration without trailing comma") != P_ACCEPT)
       return P_SYN_ERROR;
     if (!objSecDeclareLabel(state->curSection, label))
       parserEmitError(state, "label already declared");
@@ -736,8 +739,8 @@ t_object *parseObject(t_lexer *lex)
         break;
       }
       // try to ignore the error and advance to the next line
-      while (state.lookaheadToken->id != TOK_NEWLINE
-             && state.lookaheadToken->id != TOK_EOF) {
+      while (state.lookaheadToken->id != TOK_NEWLINE &&
+          state.lookaheadToken->id != TOK_EOF) {
         parserNextToken(&state);
       }
     }
