@@ -3,15 +3,15 @@
 #include "isa.h"
 
 
-int isaDisassembleIllegal(uint32_t instr, char *out, int bufsz);
-int isaDisassembleOP(uint32_t instr, char *out, int bufsz);
-int isaDisassembleOPIMM(uint32_t instr, char *out, int bufsz);
-int isaDisassembleLOAD(uint32_t instr, char *out, int bufsz);
-int isaDisassembleSTORE(uint32_t instr, char *out, int bufsz);
-int isaDisassembleBRANCH(uint32_t instr, char *out, int bufsz);
-int isaDisassembleSYSTEM(uint32_t instr, char *out, int bufsz);
+int isaDisassembleIllegal(uint32_t instr, char *out, size_t bufsz);
+int isaDisassembleOP(uint32_t instr, char *out, size_t bufsz);
+int isaDisassembleOPIMM(uint32_t instr, char *out, size_t bufsz);
+int isaDisassembleLOAD(uint32_t instr, char *out, size_t bufsz);
+int isaDisassembleSTORE(uint32_t instr, char *out, size_t bufsz);
+int isaDisassembleBRANCH(uint32_t instr, char *out, size_t bufsz);
+int isaDisassembleSYSTEM(uint32_t instr, char *out, size_t bufsz);
 
-int isaDisassemble(uint32_t instr, char *out, int bufsz)
+int isaDisassemble(uint32_t instr, char *out, size_t bufsz)
 {
   t_cpuRegID rd, rs1;
   int32_t imm;
@@ -53,12 +53,12 @@ int isaDisassemble(uint32_t instr, char *out, int bufsz)
   return isaDisassembleIllegal(instr, out, bufsz);
 }
 
-int isaDisassembleIllegal(uint32_t instr, char *out, int bufsz)
+int isaDisassembleIllegal(uint32_t instr, char *out, size_t bufsz)
 {
   return snprintf(out, bufsz, "<illegal>");
 }
 
-int isaDisassembleOP(uint32_t instr, char *out, int bufsz)
+int isaDisassembleOP(uint32_t instr, char *out, size_t bufsz)
 {
   t_cpuRegID rd = ISA_INST_RD(instr);
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
@@ -84,7 +84,7 @@ int isaDisassembleOP(uint32_t instr, char *out, int bufsz)
   return isaDisassembleIllegal(instr, out, bufsz);
 }
 
-int isaDisassembleOPIMM(uint32_t instr, char *out, int bufsz)
+int isaDisassembleOPIMM(uint32_t instr, char *out, size_t bufsz)
 {
   t_cpuRegID rd = ISA_INST_RD(instr);
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
@@ -111,7 +111,7 @@ int isaDisassembleOPIMM(uint32_t instr, char *out, int bufsz)
   return snprintf(out, bufsz, "%s x%d, x%d, %" PRId32, mnem, rd, rs1, imm);
 }
 
-int isaDisassembleLOAD(uint32_t instr, char *out, int bufsz)
+int isaDisassembleLOAD(uint32_t instr, char *out, size_t bufsz)
 {
   t_cpuRegID rd = ISA_INST_RD(instr);
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
@@ -126,7 +126,7 @@ int isaDisassembleLOAD(uint32_t instr, char *out, int bufsz)
   return snprintf(out, bufsz, "%s x%d, %" PRId32 "(x%d)", mnem, rd, imm, rs1);
 }
 
-int isaDisassembleSTORE(uint32_t instr, char *out, int bufsz)
+int isaDisassembleSTORE(uint32_t instr, char *out, size_t bufsz)
 {
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   t_cpuRegID rs2 = ISA_INST_RS2(instr);
@@ -141,7 +141,7 @@ int isaDisassembleSTORE(uint32_t instr, char *out, int bufsz)
   return snprintf(out, bufsz, "%s x%d, %" PRId32 "(x%d)", mnem, rs2, imm, rs1);
 }
 
-int isaDisassembleBRANCH(uint32_t instr, char *out, int bufsz)
+int isaDisassembleBRANCH(uint32_t instr, char *out, size_t bufsz)
 {
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   t_cpuRegID rs2 = ISA_INST_RS2(instr);
@@ -157,7 +157,7 @@ int isaDisassembleBRANCH(uint32_t instr, char *out, int bufsz)
   return snprintf(out, bufsz, "%s x%d, x%d, *%+" PRId32, mnem, rs1, rs2, imm);
 }
 
-int isaDisassembleSYSTEM(uint32_t instr, char *out, int bufsz)
+int isaDisassembleSYSTEM(uint32_t instr, char *out, size_t bufsz)
 {
   if (ISA_INST_FUNCT3(instr) != 0)
     return isaDisassembleIllegal(instr, out, bufsz);

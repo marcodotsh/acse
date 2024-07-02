@@ -1,6 +1,7 @@
 #ifndef ISA_H
 #define ISA_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -148,7 +149,7 @@ static inline uint32_t bits32(uint32_t x, int a, int b)
 #define ISA_INST_OPCODE_SYSTEM ISA_INST_OPCODE_CODE(0x1C)
 
 
-int isaDisassemble(uint32_t instr, char *out, int bufsz);
+int isaDisassemble(uint32_t instr, char *out, size_t bufsz);
 
 
 #endif
