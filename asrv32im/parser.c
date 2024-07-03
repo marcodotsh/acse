@@ -621,15 +621,6 @@ static t_parserError expectAlign(t_parserState *state)
     align.alignModulo = (size_t)1 << amt;
   else
     align.alignModulo = (size_t)amt;
-  if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
-    if ((align.alignModulo % 4) != 0)
-      fprintf(stderr,
-          "warning at %d,%d: alignment in .text with an "
-          "amount which is not a multiple of 4\n",
-          state->curToken->row + 1, state->curToken->column);
-    else
-      align.nopFill = true;
-  }
 
   if (parserAccept(state, TOK_COMMA)) {
     int32_t pad;
@@ -638,7 +629,17 @@ static t_parserError expectAlign(t_parserState *state)
     align.nopFill = false;
     align.fillByte = (uint8_t)pad;
   } else {
-    align.fillByte = 0;
+    if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
+      if ((align.alignModulo % 4) != 0)
+        fprintf(stderr,
+            "warning at %d,%d: alignment in .text with an "
+            "amount which is not a multiple of 4\n",
+            state->curToken->row + 1, state->curToken->column);
+      align.nopFill = true;
+    } else {
+      align.nopFill = false;
+      align.fillByte = 0;
+    }
   }
 
   objSecAppendAlignmentData(state->curSection, align);

@@ -1,0 +1,2 @@
+warning at 8,9: alignment in .text with an amount which is not a multiple of 4
+warning: implicit nop-fill alignment in .text not aligned to a multiple of 4 bytes, using zero-fill instead

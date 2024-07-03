@@ -306,6 +306,16 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
         else
           thisSize = alignAmt - (*curAddr % alignAmt);
         itm->body.alignData.effectiveSize = thisSize;
+        if (objSecGetID(sec) == OBJ_SECTION_TEXT) {
+          if (itm->body.alignData.nopFill &&
+              (thisSize % 4 != 0 || itm->address % 4 != 0)) {
+            fprintf(stderr,
+                "warning: implicit nop-fill alignment in .text not aligned to "
+                "a multiple of 4 bytes, using zero-fill instead\n");
+            itm->body.alignData.nopFill = false;
+            itm->body.alignData.fillByte = 0;
+          }
+        }
         break;
       case OBJ_SEC_ITM_CLASS_INSTR:
         thisSize = encGetInstrLength(itm->body.instr);
