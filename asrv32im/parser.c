@@ -607,13 +607,17 @@ static t_parserError expectData(t_parserState *state)
       if (!parserExpect(state, TOK_NUMBER, "expected number"))
         return P_SYN_ERROR;
       int32_t value = state->curToken->value.number;
+      if ((dataSize == 2) && (value < -0x8000 || value > 0xFFFF)) {
+        parserEmitError(state, "expected number between -32768 and 65536");
+        return P_SYN_ERROR;
+      }
       data.dataSize = dataSize;
       data.initialized = true;
-      data.data[0] = value & 0xFF;
-      data.data[1] = (value >> 8) & 0xFF;
+      data.data[0] = (uint32_t)value & 0xFF;
+      data.data[1] = ((uint32_t)value >> 8) & 0xFF;
       if (dataSize == 4) {
-        data.data[2] = (value >> 16) & 0xFF;
-        data.data[3] = (value >> 24) & 0xFF;
+        data.data[2] = ((uint32_t)value >> 16) & 0xFF;
+        data.data[3] = ((uint32_t)value >> 24) & 0xFF;
       }
       objSecAppendData(state->curSection, data);
     } while (parserAccept(state, TOK_COMMA));
