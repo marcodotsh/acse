@@ -241,97 +241,31 @@ static t_tokenID lexConsumeNumber(t_lexer *lex, char firstChar)
 static t_tokenID lexConsumeCharacterOrString(
     t_lexer *lex, t_tokenID type, char firstChar)
 {
-  char delimiter = '"';
-  if (type == TOK_CHARACTER) {
-    delimiter = '\'';
-  }
+  char delimiter = type == TOK_CHARACTER ? '\'' : '"';
 
-  char next = lexGetChar(lex);
-  while (next != delimiter && next != '\n' && next != '\r' && next != '\0') {
+  char next;
+  do {
     next = lexGetChar(lex);
     if (next == '\\') {
+      lexGetChar(lex);
       next = lexGetChar(lex);
     }
-  }
+  } while (next != delimiter && next != '\n' && next != '\r' && next != '\0');
   if (next != delimiter) {
-    fprintf(stderr, "warning at %d,%d: string not properly terminated\n",
+    fprintf(stderr, "error at %d,%d: string not properly terminated\n",
         lex->row + 1, lex->col);
+    return TOK_UNRECOGNIZED;
   }
 
+  // Remove initial and final delimiters
   free(lex->tokLastString);
   lex->tokLastString = lexGetLastTokenText(lex);
   char *in = lex->tokLastString + 1;
   char *out = lex->tokLastString;
-  bool stop = false;
-  while (!stop) {
-    char c = *in++;
-    switch (c) {
-      case '\0':
-      case '\n':
-      case '\r':
-        stop = true;
-        break;
-      case '\\':
-        c = *in++;
-        switch (c) {
-          case '\0':
-            stop = true;
-            break;
-          case 'b':
-            *out++ = '\b';
-            break;
-          case 'f':
-            *out++ = '\f';
-            break;
-          case 'n':
-            *out++ = '\n';
-            break;
-          case 'r':
-            *out++ = '\r';
-            break;
-          case 't':
-            *out++ = '\t';
-            break;
-          case 'v':
-            *out++ = '\013';
-            break;
-          case '\\':
-          case 'x':
-          case 'X':
-            c = (char)strtol(in, &in, 16);
-            *out++ = c;
-            break;
-          default:
-            if (c == delimiter) {
-              *out++ = c;
-            } else if (isdigit(c)) {
-              c = (char)strtol(in, &in, 8);
-              *out++ = c;
-            } else {
-              fprintf(stderr,
-                  "warning at %d,%d: invalid escape character in string\n",
-                  lex->row + 1, lex->col);
-              *out++ = c;
-            }
-            break;
-        }
-        break;
-      default:
-        if (c == delimiter) {
-          stop = true;
-        } else {
-          *out++ = c;
-        }
-        break;
-    }
-  }
+  while (*(in+1) != '\0')
+    *out++ = *in++;
   *out = '\0';
 
-  if (type == TOK_CHARACTER && (off_t)(out - lex->tokLastString) != 1) {
-    fprintf(stderr, "error at %d,%d: expected a single character\n",
-        lex->row + 1, lex->col);
-    return TOK_UNRECOGNIZED;
-  }
   return type;
 }
 
@@ -674,8 +608,6 @@ t_token *lexNextToken(t_lexer *lex)
       tok->value.number = (int32_t)lex->tokLastData;
       break;
     case TOK_CHARACTER:
-      tok->value.character = *lexGetLastStringValue(lex);
-      break;
     case TOK_STRING:
       tok->value.string = strdup(lexGetLastStringValue(lex));
       break;
@@ -695,6 +627,6 @@ void deleteToken(t_token *tok)
     return;
   if (tok->id == TOK_ID)
     free(tok->value.id);
-  else if (tok->id == TOK_STRING)
+  else if (tok->id == TOK_STRING || tok->id == TOK_CHARACTER)
     free(tok->value.string);
 }

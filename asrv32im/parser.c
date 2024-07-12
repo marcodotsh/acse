@@ -514,6 +514,79 @@ static t_parserError expectInstruction(t_parserState *state)
 }
 
 
+/** Replace escape characters in a given string with their non-escaped
+ * equivalent. The string is modified in-place. After the escape removal the
+ * string is no longer null-terminated, the end pointer returned by the
+ * function must be used to determine its length instead.
+ * @param str The null terminated string where to remove escapes.
+ * @returns The end pointer to the string buffer after removing the escapes. */
+static char *performStringEscapes(char *in)
+{
+  char *out = in;
+  bool stop = false;
+  while (!stop) {
+    char c = *in++;
+    switch (c) {
+      case '\0':
+      case '\n':
+      case '\r':
+        stop = true;
+        break;
+      case '\\':
+        c = *in++;
+        switch (c) {
+          case '\0':
+            stop = true;
+            break;
+          case 'b':
+            *out++ = '\b';
+            break;
+          case 'f':
+            *out++ = '\f';
+            break;
+          case 'n':
+            *out++ = '\n';
+            break;
+          case 'r':
+            *out++ = '\r';
+            break;
+          case 't':
+            *out++ = '\t';
+            break;
+          case 'v':
+            *out++ = '\013';
+            break;
+          case '\\':
+          case 'x':
+          case 'X':
+            c = (char)strtol(in, &in, 16);
+            *out++ = c;
+            break;
+          default:
+            if (c == '\'' || c == '"') {
+              *out++ = c;
+            } else if (isdigit(c)) {
+              c = (char)strtol(in-1, &in, 8);
+              *out++ = c;
+            } else {
+              fprintf(stderr, "warning: invalid escape character in string\n");
+              *out++ = c;
+            }
+            break;
+        }
+        break;
+      default:
+        if (c == '\0') {
+          stop = true;
+        } else {
+          *out++ = c;
+        }
+        break;
+    }
+  }
+  return out;
+}
+
 static t_parserError expectData(t_parserState *state)
 {
   t_data data = {0};
@@ -559,7 +632,14 @@ static t_parserError expectData(t_parserState *state)
         }
         data.data[0] = (uint8_t)value;
       } else if (parserAccept(state, TOK_CHARACTER)) {
-        data.data[0] = (uint8_t)state->curToken->value.character;
+        char *bufBegin = state->curToken->value.string;
+        char *bufEnd = performStringEscapes(bufBegin);
+        if (bufEnd - bufBegin != 1) {
+          fprintf(stderr, "error at %d,%d: expected a single character\n",
+              state->curToken->row + 1, state->curToken->column);
+          return P_REJECT;
+        }
+        data.data[0] = (uint8_t)*bufBegin;
       } else {
         parserEmitError(state, "expected numeric or character constant");
         return P_SYN_ERROR;
@@ -574,11 +654,12 @@ static t_parserError expectData(t_parserState *state)
       if (parserExpect(state, TOK_STRING, "expected string after \".ascii\"") !=
           P_ACCEPT)
         return P_SYN_ERROR;
-      char *str = state->curToken->value.string;
+      char *bufBegin = state->curToken->value.string;
+      char *bufEnd = performStringEscapes(bufBegin);
       data.dataSize = sizeof(char);
       data.initialized = true;
-      for (; *str != '\0'; str++) {
-        data.data[0] = (uint8_t)(*str);
+      for (char *p = bufBegin; p != bufEnd; p++) {
+        data.data[0] = (uint8_t)*p;
         objSecAppendData(state->curSection, data);
       }
     } while (parserAccept(state, TOK_COMMA));

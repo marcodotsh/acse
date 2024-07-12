@@ -44,7 +44,6 @@ typedef struct {
     char *id;
     int32_t localRef;
     int32_t number;
-    char character;
     char *string;
     t_instrRegID reg;
     t_instrOpcode mnemonic;
