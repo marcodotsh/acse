@@ -471,7 +471,7 @@ static t_parserError expectInstruction(t_parserState *state)
           return P_SYN_ERROR;
         if (parserExpect(state, TOK_LPAR, "expected parenthesis") != P_ACCEPT)
           return P_SYN_ERROR;
-        if (expectRegister(state, &instr.src1, 1) != P_ACCEPT)
+        if (expectRegister(state, &instr.src1, true) != P_ACCEPT)
           return P_SYN_ERROR;
         if (parserExpect(state, TOK_RPAR, "expected parenthesis") != P_ACCEPT)
           return P_SYN_ERROR;
