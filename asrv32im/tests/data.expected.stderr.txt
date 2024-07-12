@@ -1,0 +1,3 @@
+warning: invalid escape character in string
+warning: invalid escape character in string
+warning: _start symbol not found, entry will be start of .text section
