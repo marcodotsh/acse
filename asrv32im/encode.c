@@ -111,7 +111,7 @@ typedef struct t_encInstrData {
   int funct7; /* also used for immediates */
 } t_encInstrData;
 
-int encPhysicalInstruction(t_instruction instr, uint32_t pc, t_data *res)
+bool encPhysicalInstruction(t_instruction instr, uint32_t pc, t_data *res)
 {
   static const t_encInstrData opInstData[] = {
       {   INSTR_OPC_ADD, 'R',     ENC_OPCODE_OP,  0,      0x00},
@@ -205,7 +205,7 @@ int encPhysicalInstruction(t_instruction instr, uint32_t pc, t_data *res)
   res->data[1] = (buf >> 8) & 0xFF;
   res->data[2] = (buf >> 16) & 0xFF;
   res->data[3] = (buf >> 24) & 0xFF;
-  return 1;
+  return true;
 }
 
 
@@ -366,27 +366,27 @@ int encExpandPseudoInstruction(
 }
 
 
-int encResolveImmediates(t_instruction *instr, uint32_t pc)
+bool encResolveImmediates(t_instruction *instr, uint32_t pc)
 {
   t_objLabel *otherInstrLbl, *actualLbl;
   t_objSecItem *otherInstr;
   int32_t imm;
   uint32_t tgt, otherPc;
-  int tooFar;
+  bool tooFar;
 
   if (instr->immMode == INSTR_IMM_CONST)
-    return 1;
+    return true;
 
   if (!objLabelGetPointedItem(instr->label)) {
     fprintf(stderr, "label \"%s\" used but not defined!\n",
         objLabelGetName(instr->label));
-    return 0;
+    return false;
   }
 
   switch (instr->immMode) {
     case INSTR_IMM_LBL:
       imm = (int32_t)(objLabelGetPointer(instr->label) - pc);
-      tooFar = 0;
+      tooFar = false;
       switch (instr->opcode) {
         case INSTR_OPC_JAL:
           tooFar = imm < -0x100000 || imm > 0xFFFFF;
@@ -406,7 +406,7 @@ int encResolveImmediates(t_instruction *instr, uint32_t pc)
       if (tooFar) {
         fprintf(stderr, "jump to label \"%s\" too far!\n",
             objLabelGetName(instr->label));
-        return 0;
+        return false;
       }
       break;
 
@@ -437,22 +437,22 @@ int encResolveImmediates(t_instruction *instr, uint32_t pc)
       if (!otherInstr) {
         fprintf(stderr, "label \"%s\" used but not defined\n",
             objLabelGetName(otherInstrLbl));
-        return 0;
+        return false;
       } else if (otherInstr->class != OBJ_SEC_ITM_CLASS_INSTR) {
         fprintf(stderr,
             "argument to %%pcrel_lo must be a label to an instruction\n");
-        return 0;
+        return false;
       } else if (otherInstr->body.instr.immMode != INSTR_IMM_LBL_PCREL_HI20) {
         fprintf(stderr,
             "argument to %%pcrel_lo must be a label to an instruction using "
             "%%pcrel_hi\n");
-        return 0;
+        return false;
       }
       actualLbl = otherInstr->body.instr.label;
       if (!objLabelGetPointedItem(actualLbl)) {
         fprintf(stderr, "label \"%s\" used but not defined!\n",
             objLabelGetName(actualLbl));
-        return 0;
+        return false;
       }
       otherPc = otherInstr->address;
       imm = (int32_t)(objLabelGetPointer(actualLbl) - otherPc);
@@ -469,5 +469,5 @@ int encResolveImmediates(t_instruction *instr, uint32_t pc)
   }
 
   instr->constant = imm;
-  return 1;
+  return true;
 }
