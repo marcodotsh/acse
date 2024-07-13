@@ -1,0 +1,10 @@
+error at 2,8: arguments to ".space" must be numbers
+error at 3,7: arguments to ".word" or ".half" must be numbers
+error at 4,15: arguments to ".half" must be numbers between -32768 and 65536
+error at 5,15: arguments to ".half" must be numbers between -32768 and 65536
+error at 6,13: numeric arguments to ".byte" must be between -128 and 255
+error at 7,12: numeric arguments to ".byte" must be between -128 and 255
+error at 8,7: character arguments to ".byte" must be representable in a single byte
+error at 9,7: character arguments to ".byte" must be representable in a single byte
+error at 10,7: arguments to ".byte" must be number or character literals
+error at 11,8: arguments to ".ascii" must be strings
