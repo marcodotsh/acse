@@ -255,19 +255,19 @@ static t_parserError expectImmediate(
 
 typedef int t_instrFormat;
 enum {
-  FORMAT_OP,       // mnemonic rd, rs1, rs2             
-  FORMAT_OPIMM,    // mnemonic rd, rs1, imm             
-  FORMAT_LOAD,     // mnemonic rd, imm(rs1) / label     
+  FORMAT_OP,       // mnemonic rd, rs1, rs2
+  FORMAT_OPIMM,    // mnemonic rd, rs1, imm
+  FORMAT_LOAD,     // mnemonic rd, imm(rs1) / label
   FORMAT_STORE,    // mnemonic rs2, imm(rs1) / label, rd
-  FORMAT_LUI,      // mnemonic rd, imm                  
-  FORMAT_LI,       // mnemonic rd, number               
-  FORMAT_LA,       // mnemonic rd, label                
-  FORMAT_JAL,      // mnemonic rd, label                
-  FORMAT_JALR,     // mnemonic rs1, rs2, imm            
-  FORMAT_BRANCH,   // mnemonic rs1, rs2, label          
-  FORMAT_BRANCH_Z, // mnemonic rs1, label               
-  FORMAT_JUMP,     // mnemonic label                    
-  FORMAT_SYSTEM    // mnemonic                          
+  FORMAT_LUI,      // mnemonic rd, imm
+  FORMAT_LI,       // mnemonic rd, number
+  FORMAT_LA,       // mnemonic rd, label
+  FORMAT_JAL,      // mnemonic rd, label
+  FORMAT_JALR,     // mnemonic rs1, rs2, imm
+  FORMAT_BRANCH,   // mnemonic rs1, rs2, label
+  FORMAT_BRANCH_Z, // mnemonic rs1, label
+  FORMAT_JUMP,     // mnemonic label
+  FORMAT_SYSTEM    // mnemonic
 };
 
 static t_instrFormat instrOpcodeToFormat(t_instrOpcode opcode)
@@ -566,7 +566,7 @@ static char *performStringEscapes(char *in)
             if (c == '\'' || c == '"') {
               *out++ = c;
             } else if (isdigit(c)) {
-              c = (char)strtol(in-1, &in, 8);
+              c = (char)strtol(in - 1, &in, 8);
               *out++ = c;
             } else {
               fprintf(stderr, "warning: invalid escape character in string\n");
@@ -592,8 +592,8 @@ static t_parserError expectData(t_parserState *state)
   t_data data = {0};
 
   if (parserAccept(state, TOK_SPACE)) {
-    if (parserExpect(state, TOK_NUMBER, "arguments to \".space\" must be numbers") !=
-        P_ACCEPT)
+    if (parserExpect(state, TOK_NUMBER,
+            "arguments to \".space\" must be numbers") != P_ACCEPT)
       return P_SYN_ERROR;
     data.dataSize = (uint32_t)state->curToken->value.number;
     data.initialized = false;
@@ -605,12 +605,14 @@ static t_parserError expectData(t_parserState *state)
     size_t dataSize = state->curToken->id == TOK_WORD ? 4 : 2;
     do {
       if (state->lookaheadToken->id != TOK_NUMBER) {
-        parserEmitError(state, "arguments to \".word\" or \".half\" must be numbers");
+        parserEmitError(
+            state, "arguments to \".word\" or \".half\" must be numbers");
         return P_SYN_ERROR;
       }
       int32_t value = state->lookaheadToken->value.number;
       if ((dataSize == 2) && (value < -0x8000 || value > 0xFFFF)) {
-        parserEmitError(state, "arguments to \".half\" must be numbers between -32768 and 65536");
+        parserEmitError(state,
+            "arguments to \".half\" must be numbers between -32768 and 65536");
         return P_SYN_ERROR;
       }
       parserNextToken(state);
@@ -634,7 +636,8 @@ static t_parserError expectData(t_parserState *state)
       if (state->lookaheadToken->id == TOK_NUMBER) {
         int32_t value = state->lookaheadToken->value.number;
         if (value < -128 || value > 255) {
-          parserEmitError(state, "numeric arguments to \".byte\" must be between -128 and 255");
+          parserEmitError(state,
+              "numeric arguments to \".byte\" must be between -128 and 255");
           return P_SYN_ERROR;
         }
         data.data[0] = (uint8_t)value;
@@ -643,13 +646,16 @@ static t_parserError expectData(t_parserState *state)
         char *bufBegin = state->lookaheadToken->value.string;
         char *bufEnd = performStringEscapes(bufBegin);
         if (bufEnd - bufBegin != 1) {
-          parserEmitError(state, "character arguments to \".byte\" must be representable in a single byte");
+          parserEmitError(state,
+              "character arguments to \".byte\" must be representable in a "
+              "single byte");
           return P_SYN_ERROR;
         }
         data.data[0] = (uint8_t)*bufBegin;
         parserNextToken(state);
       } else {
-        parserEmitError(state, "arguments to \".byte\" must be number or character literals");
+        parserEmitError(state,
+            "arguments to \".byte\" must be number or character literals");
         return P_SYN_ERROR;
       }
       objSecAppendData(state->curSection, data);
@@ -659,8 +665,8 @@ static t_parserError expectData(t_parserState *state)
 
   if (parserAccept(state, TOK_ASCII)) {
     do {
-      if (parserExpect(state, TOK_STRING, "arguments to \".ascii\" must be strings") !=
-          P_ACCEPT)
+      if (parserExpect(state, TOK_STRING,
+              "arguments to \".ascii\" must be strings") != P_ACCEPT)
         return P_SYN_ERROR;
       char *bufBegin = state->curToken->value.string;
       char *bufEnd = performStringEscapes(bufBegin);
