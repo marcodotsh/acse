@@ -592,7 +592,7 @@ static t_parserError expectData(t_parserState *state)
   t_data data = {0};
 
   if (parserAccept(state, TOK_SPACE)) {
-    if (parserExpect(state, TOK_NUMBER, "expected number after \".space\"") !=
+    if (parserExpect(state, TOK_NUMBER, "arguments to \".space\" must be numbers") !=
         P_ACCEPT)
       return P_SYN_ERROR;
     data.dataSize = (uint32_t)state->curToken->value.number;
@@ -604,13 +604,16 @@ static t_parserError expectData(t_parserState *state)
   if (parserAccept(state, TOK_WORD) || parserAccept(state, TOK_HALF)) {
     size_t dataSize = state->curToken->id == TOK_WORD ? 4 : 2;
     do {
-      if (!parserExpect(state, TOK_NUMBER, "expected number"))
-        return P_SYN_ERROR;
-      int32_t value = state->curToken->value.number;
-      if ((dataSize == 2) && (value < -0x8000 || value > 0xFFFF)) {
-        parserEmitError(state, "expected number between -32768 and 65536");
+      if (state->lookaheadToken->id != TOK_NUMBER) {
+        parserEmitError(state, "arguments to \".word\" or \".half\" must be numbers");
         return P_SYN_ERROR;
       }
+      int32_t value = state->lookaheadToken->value.number;
+      if ((dataSize == 2) && (value < -0x8000 || value > 0xFFFF)) {
+        parserEmitError(state, "arguments to \".half\" must be numbers between -32768 and 65536");
+        return P_SYN_ERROR;
+      }
+      parserNextToken(state);
       data.dataSize = dataSize;
       data.initialized = true;
       data.data[0] = (uint32_t)value & 0xFF;
@@ -628,24 +631,25 @@ static t_parserError expectData(t_parserState *state)
     do {
       data.dataSize = sizeof(uint8_t);
       data.initialized = true;
-      if (parserAccept(state, TOK_NUMBER)) {
-        int32_t value = state->curToken->value.number;
+      if (state->lookaheadToken->id == TOK_NUMBER) {
+        int32_t value = state->lookaheadToken->value.number;
         if (value < -128 || value > 255) {
-          parserEmitError(state, "expected number between -128 and 255");
+          parserEmitError(state, "numeric arguments to \".byte\" must be between -128 and 255");
           return P_SYN_ERROR;
         }
         data.data[0] = (uint8_t)value;
-      } else if (parserAccept(state, TOK_CHARACTER)) {
-        char *bufBegin = state->curToken->value.string;
+        parserNextToken(state);
+      } else if (state->lookaheadToken->id == TOK_CHARACTER) {
+        char *bufBegin = state->lookaheadToken->value.string;
         char *bufEnd = performStringEscapes(bufBegin);
         if (bufEnd - bufBegin != 1) {
-          fprintf(stderr, "error at %d,%d: expected a single character\n",
-              state->curToken->row + 1, state->curToken->column);
-          return P_REJECT;
+          parserEmitError(state, "character arguments to \".byte\" must be representable in a single byte");
+          return P_SYN_ERROR;
         }
         data.data[0] = (uint8_t)*bufBegin;
+        parserNextToken(state);
       } else {
-        parserEmitError(state, "expected numeric or character constant");
+        parserEmitError(state, "arguments to \".byte\" must be number or character literals");
         return P_SYN_ERROR;
       }
       objSecAppendData(state->curSection, data);
@@ -655,7 +659,7 @@ static t_parserError expectData(t_parserState *state)
 
   if (parserAccept(state, TOK_ASCII)) {
     do {
-      if (parserExpect(state, TOK_STRING, "expected string after \".ascii\"") !=
+      if (parserExpect(state, TOK_STRING, "arguments to \".ascii\" must be strings") !=
           P_ACCEPT)
         return P_SYN_ERROR;
       char *bufBegin = state->curToken->value.string;
