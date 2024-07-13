@@ -462,16 +462,20 @@ t_instruction *genPrintCharSyscall(t_program *program, t_regID r_src1)
 
 t_regID genLoadVariable(t_program *program, t_symbol *var)
 {
-  t_regID reg = getNewRegister(program);
   // Check if the symbol is an array; in that case do not generate any more
   // code. Calling emitError will eventually stop compilation anyway.
   if (isArray(var)) {
     emitError("'%s' is an array", var->ID);
-  } else {
-    // Generate a LW from the address specified by the label
-    genLWGlobal(program, reg, var->label);
+    return REG_0;
   }
-  return reg;
+
+  // Generate an LA instruction to load the label address into a register
+  t_regID rAddr = getNewRegister(program);
+  genLA(program, rAddr, var->label); 
+  // Generate a LW from the address
+  t_regID rRes = getNewRegister(program);
+  genLW(program, rRes, 0, rAddr);
+  return rRes;
 }
 
 
