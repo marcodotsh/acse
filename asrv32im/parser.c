@@ -255,19 +255,19 @@ static t_parserError expectImmediate(
 
 typedef int t_instrFormat;
 enum {
-  FORMAT_OP,       /* mnemonic rd, rs1, rs2               */
-  FORMAT_OPIMM,    /* mnemonic rd, rs1, imm               */
-  FORMAT_LOAD,     /* mnemonic rd, imm(rs1) / label       */
-  FORMAT_STORE,    /* mnemonic rs2, imm(rs1) / label, rd  */
-  FORMAT_LUI,      /* mnemonic rd, imm                    */
-  FORMAT_LI,       /* mnemonic rd, number                 */
-  FORMAT_LA,       /* mnemonic rd, label                  */
-  FORMAT_JAL,      /* mnemonic rd, label                  */
-  FORMAT_JALR,     /* mnemonic rs1, rs2, imm              */
-  FORMAT_BRANCH,   /* mnemonic rs1, rs2, label            */
-  FORMAT_BRANCH_Z, /* mnemonic rs1, label                 */
-  FORMAT_JUMP,     /* mnemonic label                      */
-  FORMAT_SYSTEM    /* mnemonic                            */
+  FORMAT_OP,       // mnemonic rd, rs1, rs2             
+  FORMAT_OPIMM,    // mnemonic rd, rs1, imm             
+  FORMAT_LOAD,     // mnemonic rd, imm(rs1) / label     
+  FORMAT_STORE,    // mnemonic rs2, imm(rs1) / label, rd
+  FORMAT_LUI,      // mnemonic rd, imm                  
+  FORMAT_LI,       // mnemonic rd, number               
+  FORMAT_LA,       // mnemonic rd, label                
+  FORMAT_JAL,      // mnemonic rd, label                
+  FORMAT_JALR,     // mnemonic rs1, rs2, imm            
+  FORMAT_BRANCH,   // mnemonic rs1, rs2, label          
+  FORMAT_BRANCH_Z, // mnemonic rs1, label               
+  FORMAT_JUMP,     // mnemonic label                    
+  FORMAT_SYSTEM    // mnemonic                          
 };
 
 static t_instrFormat instrOpcodeToFormat(t_instrOpcode opcode)
