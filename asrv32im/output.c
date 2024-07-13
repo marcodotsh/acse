@@ -14,26 +14,26 @@ typedef uint32_t Elf32_Word;
 
 #define EI_NIDENT 16
 
-#define EI_MAG0 0    /* File identification */
-#define EI_MAG1 1    /* File identification */
-#define EI_MAG2 2    /* File identification */
-#define EI_MAG3 3    /* File identification */
-#define EI_CLASS 4   /* File class */
-#define EI_DATA 5    /* Data encoding */
-#define EI_VERSION 6 /* File version */
-#define EI_PAD 7     /* Start of padding bytes */
+#define EI_MAG0 0    // File identification
+#define EI_MAG1 1    // File identification
+#define EI_MAG2 2    // File identification
+#define EI_MAG3 3    // File identification
+#define EI_CLASS 4   // File class
+#define EI_DATA 5    // Data encoding
+#define EI_VERSION 6 // File version
+#define EI_PAD 7     // Start of padding bytes
 
-#define ELFCLASSNONE 0 /* Invalid class  */
-#define ELFCLASS32 1   /* 32-bit objects */
+#define ELFCLASSNONE 0 // Invalid class
+#define ELFCLASS32 1   // 32-bit objects
 
-#define ELFDATANONE 0 /* Invalid data encoding */
-#define ELFDATA2LSB 1 /* Little-endian */
+#define ELFDATANONE 0 // Invalid data encoding
+#define ELFDATA2LSB 1 // Little-endian
 
-#define ET_NONE 0 /* No file type */
-#define ET_EXEC 2 /* Executable file */
+#define ET_NONE 0 // No file type
+#define ET_EXEC 2 // Executable file
 
-#define EM_NONE 0     /* No machine */
-#define EM_RISCV 0xF3 /* RISC-V */
+#define EM_NONE 0     // No machine
+#define EM_RISCV 0xF3 // RISC-V
 
 typedef struct __attribute__((packed)) Elf32_Ehdr {
   unsigned char e_ident[EI_NIDENT];
@@ -52,13 +52,13 @@ typedef struct __attribute__((packed)) Elf32_Ehdr {
   Elf32_Half e_shstrndx;
 } Elf32_Ehdr;
 
-#define PT_NULL 0 /* Ignored segment */
-#define PT_LOAD 1 /* Loadable segment */
-#define PT_NOTE 4 /* Target-dependent auxiliary information */
+#define PT_NULL 0 // Ignored segment
+#define PT_LOAD 1 // Loadable segment
+#define PT_NOTE 4 // Target-dependent auxiliary information
 
-#define PF_R 0x4 /* Program segment Read flag */
-#define PF_W 0x2 /* Program segment Write flag */
-#define PF_X 0x1 /* Program segment eXecute flag */
+#define PF_R 0x4 // Program segment Read flag
+#define PF_W 0x2 // Program segment Write flag
+#define PF_X 0x1 // Program segment eXecute flag
 
 typedef struct __attribute__((packed)) Elf32_Phdr {
   Elf32_Word p_type;
@@ -71,16 +71,16 @@ typedef struct __attribute__((packed)) Elf32_Phdr {
   Elf32_Word p_align;
 } Elf32_Phdr;
 
-#define SHN_UNDEF 0 /* undefined section ID */
+#define SHN_UNDEF 0 // undefined section ID
 
-#define SHT_NULL 0     /* null section */
-#define SHT_PROGBITS 1 /* section loaded with the program */
-#define SHT_STRTAB 3   /* string table */
+#define SHT_NULL 0     // null section
+#define SHT_PROGBITS 1 // section loaded with the program
+#define SHT_STRTAB 3   // string table
 
-#define SHF_WRITE (1 << 0)     /* section writable flag */
-#define SHF_ALLOC (1 << 1)     /* section initialized flag */
-#define SHF_EXECINSTR (1 << 2) /* section executable flag */
-#define SHF_STRINGS (1 << 5)   /* section string table flag */
+#define SHF_WRITE (1 << 0)     // section writable flag
+#define SHF_ALLOC (1 << 1)     // section initialized flag
+#define SHF_EXECINSTR (1 << 2) // section executable flag
+#define SHF_STRINGS (1 << 5)   // section string table flag
 
 typedef struct __attribute__((packed)) Elf32_Shdr {
   Elf32_Word sh_name;
