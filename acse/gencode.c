@@ -488,11 +488,12 @@ void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg)
     emitError("'%s' is an array", var->ID);
     return;
   }
-  // Reserve a new register which is a temporary required
-  // by the pseudo-instruction
-  t_regID r_temp = getNewRegister(program);
+
+  // Generate an LA instruction to load the label address into a register
+  t_regID rAddr = getNewRegister(program);
+  genLA(program, rAddr, var->label); 
   // Generate a SW to the address specified by the label
-  genSWGlobal(program, reg, var->label, r_temp);
+  genSW(program, reg, 0, rAddr);
 }
 
 void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
