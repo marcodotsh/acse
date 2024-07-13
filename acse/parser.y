@@ -68,7 +68,7 @@ void yyerror(const char *msg)
 %token EOF_TOK /* end of file */
 %token LPAR RPAR LSQUARE RSQUARE LBRACE RBRACE
 %token COMMA SEMI PLUS MINUS MUL_OP DIV_OP MOD_OP
-%token AND_OP OR_OP NOT_OP
+%token AND_OP XOR_OP OR_OP NOT_OP
 %token ASSIGN LT GT SHL_OP SHR_OP EQ NOTEQ LTEQ GTEQ
 %token ANDAND OROR
 %token TYPE
@@ -103,6 +103,7 @@ void yyerror(const char *msg)
 %left OROR
 %left ANDAND
 %left OR_OP
+%left XOR_OP
 %left AND_OP
 %left EQ NOTEQ
 %left LT GT LTEQ GTEQ
@@ -366,6 +367,11 @@ exp
   {
     $$ = getNewRegister(program);
     genAND(program, $$, $1, $3);
+  }
+  | exp XOR_OP exp 
+  {
+    $$ = getNewRegister(program);
+    genXOR(program, $$, $1, $3);
   }
   | exp OR_OP exp
   {

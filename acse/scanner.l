@@ -53,6 +53,7 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 "/"                       { return DIV_OP; }
 "%"                       { return MOD_OP; }
 "&"                       { return AND_OP; }
+"^"                       { return XOR_OP; }
 "|"                       { return OR_OP; }
 "!"                       { return NOT_OP; }
 "="                       { return ASSIGN; }
