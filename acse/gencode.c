@@ -84,6 +84,12 @@ t_instruction *genDIV(
   return genRFormatInstruction(program, OPC_DIV, r_dest, r_src1, r_src2);
 }
 
+t_instruction *genREM(
+    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+{
+  return genRFormatInstruction(program, OPC_REM, r_dest, r_src1, r_src2);
+}
+
 t_instruction *genSLL(
     t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
 {
@@ -143,6 +149,12 @@ t_instruction *genDIVI(
     t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
 {
   return genIFormatInstruction(program, OPC_DIVI, r_dest, r_src1, immediate);
+}
+
+t_instruction *genREMI(
+    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+{
+  return genIFormatInstruction(program, OPC_REMI, r_dest, r_src1, immediate);
 }
 
 t_instruction *genSLLI(
@@ -542,8 +554,8 @@ t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID index)
 }
 
 
-void genStoreRegisterToArrayElement(t_program *program, t_symbol *array,
-    t_regID index, t_regID data)
+void genStoreRegisterToArrayElement(
+    t_program *program, t_symbol *array, t_regID index, t_regID data)
 {
   t_regID address = genLoadArrayAddress(program, array, index);
 
@@ -551,8 +563,8 @@ void genStoreRegisterToArrayElement(t_program *program, t_symbol *array,
   genSW(program, data, 0, address);
 }
 
-void genStoreConstantToArrayElement(t_program *program, t_symbol *array,
-    t_regID index, int data)
+void genStoreConstantToArrayElement(
+    t_program *program, t_symbol *array, t_regID index, int data)
 {
   t_regID imm_register = getNewRegister(program);
   genLI(program, imm_register, data);

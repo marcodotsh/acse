@@ -6,10 +6,10 @@
 
 #include "program.h"
 
-/** 
+/**
  * @defgroup gencode Code Generation Functions
  * @brief Functions for adding instructions to a program.
- * 
+ *
  * In ACSE, the semantic actions in the parser directly translate the
  * source code into intermediate assembly by appending new instructions inside
  * the 'program' structure.
@@ -97,6 +97,17 @@ t_instruction *genMUL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
  *  @param rs2 Identifier of the second source register (divisor)
  *  @returns the instruction object added to the instruction list */
 t_instruction *genDIV(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
+
+/** Add a new REM instruction at the end of the instruction list of the
+ *  specified program. At runtime, a REM instruction places the remainder of the
+ *  division between the first and second source registers in the destination
+ *  register. All the registers are assumed to contain signed integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (dividend)
+ *  @param rs2 Identifier of the second source register (divisor)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genREM(t_program *program, t_regID rd, t_regID rs1, t_regID rs2);
 
 /** Add a new SLL instruction at the end of the instruction list of the
  *  specified program. At runtime, a SLL instruction shifts the binary value
@@ -228,6 +239,19 @@ t_instruction *genMULI(
  *  @param immediate The constant operand (divisor)
  *  @returns the instruction object added to the instruction list */
 t_instruction *genDIVI(
+    t_program *program, t_regID rd, t_regID rs1, int immediate);
+
+/** Add a new REMI instruction at the end of the instruction list of the
+ *  specified program. At runtime, a REM instruction places the remainder of the
+ *  division between the first source register and an immediate in the
+ *  destination register. All the registers are assumed to contain signed
+ *  integers.
+ *  @param program The program where the instruction will be added
+ *  @param rd Identifier of the destination register
+ *  @param rs1 Identifier of the first source register (dividend)
+ *  @param immediate The constant operand (divisor)
+ *  @returns the instruction object added to the instruction list */
+t_instruction *genREMI(
     t_program *program, t_regID rd, t_regID rs1, int immediate);
 
 /** Add a new SLLI instruction at the end of the instruction list of the
@@ -819,8 +843,8 @@ t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID rIdx);
  *                into the array.
  * @param rData   The identifier of the register that will contain the value
  *                to be stored. */
-void genStoreRegisterToArrayElement(t_program *program, t_symbol *array,
-    t_regID rIdx, t_regID rVal);
+void genStoreRegisterToArrayElement(
+    t_program *program, t_symbol *array, t_regID rIdx, t_regID rVal);
 
 /** Generate instructions that store the content of a register into an array
  * element.
@@ -829,8 +853,8 @@ void genStoreRegisterToArrayElement(t_program *program, t_symbol *array,
  * @param rIdx    The identifier of the register that will contain the index
  *                into the array.
  * @param val     The value to be stored. */
-void genStoreConstantToArrayElement(t_program *program, t_symbol *array,
-    t_regID rIdx, int val);
+void genStoreConstantToArrayElement(
+    t_program *program, t_symbol *array, t_regID rIdx, int val);
 
 /// @}
 

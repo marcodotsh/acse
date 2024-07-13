@@ -27,6 +27,8 @@ const char *opcodeToString(int opcode)
       return "mul";
     case OPC_DIV:
       return "div";
+    case OPC_REM:
+      return "rem";
     case OPC_SLL:
       return "sll";
     case OPC_SRL:
@@ -48,6 +50,8 @@ const char *opcodeToString(int opcode)
       return "muli";
     case OPC_DIVI:
       return "divi";
+    case OPC_REMI:
+      return "remi";
     case OPC_SLLI:
       return "slli";
     case OPC_SRLI:
@@ -177,6 +181,7 @@ static int opcodeToFormat(int opcode)
     case OPC_XOR:
     case OPC_MUL:
     case OPC_DIV:
+    case OPC_REM:
     case OPC_SLL:
     case OPC_SRL:
     case OPC_SRA:
@@ -198,6 +203,7 @@ static int opcodeToFormat(int opcode)
     case OPC_XORI:
     case OPC_MULI:
     case OPC_DIVI:
+    case OPC_REMI:
     case OPC_SLLI:
     case OPC_SRLI:
     case OPC_SRAI:

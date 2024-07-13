@@ -60,6 +60,7 @@ bool isImmediateArgumentInstrOpcode(int opcode)
     case OPC_XORI:
     case OPC_MULI:
     case OPC_DIVI:
+    case OPC_REMI:
     case OPC_SLLI:
     case OPC_SRLI:
     case OPC_SRAI:
@@ -96,6 +97,8 @@ int getMatchingNonImmediateOpcode(int orig)
       return OPC_MUL;
     case OPC_DIVI:
       return OPC_DIV;
+    case OPC_REMI:
+      return OPC_REM;
     case OPC_SLLI:
       return OPC_SLL;
     case OPC_SRLI:
@@ -154,7 +157,7 @@ void fixUnsupportedImmediates(t_program *program)
       }
 
     } else if (instr->opcode == OPC_MULI || instr->opcode == OPC_DIVI ||
-        !isInt12(instr->immediate)) {
+        instr->opcode == OPC_REMI || !isInt12(instr->immediate)) {
       t_regID reg = getNewRegister(program);
       int newOpc = getMatchingNonImmediateOpcode(instr->opcode);
       curi =

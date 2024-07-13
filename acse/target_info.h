@@ -81,6 +81,7 @@ enum {
   OPC_XOR,    // rd = rs1 ^  rs2
   OPC_MUL,    // rd = rs1 *  rs2
   OPC_DIV,    // rd = rs1 /  rs2
+  OPC_REM,    // rd = rs1 %  rs2
   OPC_SLL,    // rd = rs1 << rs2
   OPC_SRL,    // rd = rs1 >> rs2            (logical)
   OPC_SRA,    // rd = rs1 >> rs2            (arithmetic)
@@ -93,6 +94,7 @@ enum {
   OPC_XORI,   // rd = rs1 ^  imm
   OPC_MULI,   // rd = rs1 *  imm                         (pseudo)
   OPC_DIVI,   // rd = rs1 /  imm                         (pseudo)
+  OPC_REMI,   // rd = rs1 %  imm                         (pseudo)
   OPC_SLLI,   // rd = rs1 << imm
   OPC_SRLI,   // rd = rs1 >> imm            (logical)
   OPC_SRAI,   // rd = rs1 >> imm            (arithmetic)
