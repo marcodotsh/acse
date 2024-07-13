@@ -1,0 +1,16 @@
+// IMM_SIZE_5
+slli x1,x1,0
+slli x1,x1,-1
+slli x1,x1,1
+slli x1,x1,31
+slli x1,x1,32
+// IMM_SIZE_12
+addi x1,x2,-0x800
+addi x1,x2,-0x801
+addi x1,x2,0x7FF
+addi x1,x2,0x800
+// IMM_SIZE_20
+lui x1,-0x80000
+lui x1,-0x80001
+lui x1,0xFFFFF
+lui x1,0x100000

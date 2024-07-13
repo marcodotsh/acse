@@ -1,0 +1,6 @@
+error at 3,12: numeric constant out of bounds
+error at 6,12: numeric constant out of bounds
+error at 9,12: numeric constant out of bounds
+error at 11,12: numeric constant out of bounds
+error at 14,8: numeric constant out of bounds
+error at 16,8: numeric constant out of bounds

@@ -1,0 +1,10 @@
+error at 1,11: expected a register
+error at 3,0: expected parenthesis
+error at 3,4: expected a register
+error at 5,0: expected a constant
+error at 5,5: expected a register
+error at 7,0: expected valid immediate
+error at 7,5: expected a label identifier
+error at 9,0: register name must be followed by a comma
+error at 10,0: expected a label identifier
+error at 10,3: expected a label identifier

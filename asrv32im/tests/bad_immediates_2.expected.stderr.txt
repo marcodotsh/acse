@@ -1,0 +1,10 @@
+error at 1,12: immediate too large
+error at 2,12: immediate too large
+error at 3,12: immediate too large
+error at 4,12: immediate too large
+error at 5,12: immediate too large
+error at 7,0: expected left parenthesis
+error at 8,0: expected a label identifier
+error at 8,16: expected a label identifier
+error at 10,0: expected right parenthesis
+error at 11,12: immediate too large

@@ -1,0 +1,5 @@
+error at 1,5: expected a register
+error at 2,8: expected a register
+error at 3,11: expected a label identifier
+error at 4,6: expected a register
+error at 5,9: expected a label identifier

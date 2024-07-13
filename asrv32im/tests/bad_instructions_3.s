@@ -1,0 +1,10 @@
+sw x1,123(fff
+sw x1,123(t1
+li 123
+li x1,
+lui 123123
+lui x1,
+jal 123
+la x1
+la x1,
+j 12313131

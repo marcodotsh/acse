@@ -1,0 +1,12 @@
+slli x1,x1,%lo(foo)
+slli x1,x1,%hi(foo)
+slli x1,x1,%pcrel_lo(foo)
+slli x1,x1,%pcrel_hi(foo)
+addi x1,x1,%hi(foo)
+addi x1,x1,%lo
+addi x1,x1,%lo(
+addi x1,x1,%lo(123
+addi x1,x1,%lo(abc
+addi x1,x1,%lo(abc)
+addi x1,x1,%pcrel_hi(foo)
+addi x1,x1,%pcrel_lo(foo)

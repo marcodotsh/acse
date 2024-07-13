@@ -1,0 +1,11 @@
+jalr abcdef
+jalr x1
+jalr x1,
+jalr x1,abcdef
+jalr aaaa
+jalr 1234
+jalr 1234(
+jalr 1234(x1
+nop x1
+ecall 123253
+ebreak :::::

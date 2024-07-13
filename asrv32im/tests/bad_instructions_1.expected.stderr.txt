@@ -1,0 +1,10 @@
+error at 1,5: expected a register
+error at 3,0: register name must be followed by a comma
+error at 3,8: register name must be followed by a comma
+error at 5,0: expected a register
+error at 6,0: register name must be followed by a comma
+error at 6,13: expected end of the line
+error at 7,6: expected a register
+error at 9,0: expected a register
+error at 10,0: expected valid immediate
+error at 10,12: expected valid immediate
