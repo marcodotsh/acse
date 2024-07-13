@@ -807,9 +807,7 @@ static t_parserError expectLine(t_parserState *state)
 
 t_object *parseObject(t_lexer *lex)
 {
-  t_parserError err;
   t_parserState state;
-
   state.lex = lex;
   state.object = newObject();
   if (!state.object)
@@ -822,7 +820,7 @@ t_object *parseObject(t_lexer *lex)
   state.forwardLabels = NULL;
 
   while (parserAccept(&state, TOK_EOF) != P_ACCEPT) {
-    err = expectLine(&state);
+    t_parserError err = expectLine(&state);
     if (err != P_ACCEPT) {
       if (state.numErrors > 10) {
         fprintf(stderr, "too many errors, aborting...\n");
