@@ -28,9 +28,9 @@ $(ASM):
 	else \
 	  [ ! -f $(patsubst %.ck,%.expected.o,$@) ] || ( echo Output expected but not produced ; exit 1 ); \
 	fi
-	if [ -f $(patsubst %.ck,%.o,$@) ]; then diff $(patsubst %.ck,%.o,$@) $(patsubst %.ck,%.expected.o,$@); fi
-	diff $(patsubst %.ck,%.stderr.txt,$@) $(patsubst %.ck,%.expected.stderr.txt,$@)
-	diff $(patsubst %.ck,%.stdout.txt,$@) $(patsubst %.ck,%.expected.stdout.txt,$@)
+	if [ -f $(patsubst %.ck,%.o,$@) ]; then diff $(patsubst %.ck,%.expected.o,$@) $(patsubst %.ck,%.o,$@); fi
+	diff $(patsubst %.ck,%.expected.stderr.txt,$@) $(patsubst %.ck,%.stderr.txt,$@)
+	diff $(patsubst %.ck,%.expected.stdout.txt,$@) $(patsubst %.ck,%.stdout.txt,$@)
 
 .PHONY: expected
 expected: $(OBJS_EXPECTED)
