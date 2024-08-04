@@ -1,3 +1,3 @@
-warning: invalid escape character in string
-warning: invalid escape character in string
+data.s:11:66: warning: invalid escape character in string
+data.s:11:68: warning: invalid escape character in string
 warning: _start symbol not found, entry will be start of .text section

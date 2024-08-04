@@ -1,2 +1,2 @@
 bad_align_2.s:8:9: warning: alignment in .text with an amount which is not a multiple of 4
-warning: implicit nop-fill alignment in .text not aligned to a multiple of 4 bytes, using zero-fill instead
+bad_align_2.s:6:1: warning: implicit nop-fill alignment in .text not aligned to a multiple of 4 bytes, using zero-fill instead

@@ -1,1 +1,1 @@
-error: section overflows addressing space
+huge_align.s:8:1: error: section overflows addressing space
