@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "encode.h"
+#include "errors.h"
 
 #define MASK(n) (((uint32_t)1 << (uint32_t)(n)) - (uint32_t)1)
-#define SHIFT_MASK(x, a, b) (((uint32_t)(x)&MASK(b - a)) << a)
+#define SHIFT_MASK(x, a, b) (((uint32_t)(x) & MASK(b - a)) << a)
 
 #define ENC_OPCODE_CODE(x) (((x) << 2) | 3)
 #define ENC_OPCODE_LOAD ENC_OPCODE_CODE(0x00)
@@ -18,8 +19,8 @@
 #define ENC_OPCODE_JAL ENC_OPCODE_CODE(0x1B)
 #define ENC_OPCODE_SYSTEM ENC_OPCODE_CODE(0x1C)
 
-#define HI_20(x) ((((x) >> 12) + ((x)&0x800 ? 1 : 0)) & 0xFFFFF)
-#define LO_12(x) ((x)&0xFFF)
+#define HI_20(x) ((((x) >> 12) + ((x) & 0x800 ? 1 : 0)) & 0xFFFFF)
+#define LO_12(x) ((x) & 0xFFF)
 
 
 static uint32_t encPackRFormat(
@@ -378,7 +379,7 @@ bool encResolveImmediates(t_instruction *instr, uint32_t pc)
     return true;
 
   if (!objLabelGetPointedItem(instr->label)) {
-    fprintf(stderr, "label \"%s\" used but not defined!\n",
+    emitError(nullFileLocation, "label \"%s\" used but not defined!",
         objLabelGetName(instr->label));
     return false;
   }
@@ -404,7 +405,7 @@ bool encResolveImmediates(t_instruction *instr, uint32_t pc)
           break;
       }
       if (tooFar) {
-        fprintf(stderr, "jump to label \"%s\" too far!\n",
+        emitError(nullFileLocation, "jump to label \"%s\" too far!",
             objLabelGetName(instr->label));
         return false;
       }
@@ -435,22 +436,22 @@ bool encResolveImmediates(t_instruction *instr, uint32_t pc)
       otherInstrLbl = instr->label;
       otherInstr = objLabelGetPointedItem(otherInstrLbl);
       if (!otherInstr) {
-        fprintf(stderr, "label \"%s\" used but not defined\n",
+        emitError(nullFileLocation, "label \"%s\" used but not defined",
             objLabelGetName(otherInstrLbl));
         return false;
       } else if (otherInstr->class != OBJ_SEC_ITM_CLASS_INSTR) {
-        fprintf(stderr,
-            "argument to %%pcrel_lo must be a label to an instruction\n");
+        emitError(nullFileLocation,
+            "argument to %%pcrel_lo must be a label to an instruction");
         return false;
       } else if (otherInstr->body.instr.immMode != INSTR_IMM_LBL_PCREL_HI20) {
-        fprintf(stderr,
+        emitError(nullFileLocation,
             "argument to %%pcrel_lo must be a label to an instruction using "
-            "%%pcrel_hi\n");
+            "%%pcrel_hi");
         return false;
       }
       actualLbl = otherInstr->body.instr.label;
       if (!objLabelGetPointedItem(actualLbl)) {
-        fprintf(stderr, "label \"%s\" used but not defined!\n",
+        emitError(nullFileLocation, "label \"%s\" used but not defined!",
             objLabelGetName(actualLbl));
         return false;
       }

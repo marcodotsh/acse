@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "errors.h"
 #include "object.h"
 #include "encode.h"
 
@@ -309,9 +310,9 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
         if (objSecGetID(sec) == OBJ_SECTION_TEXT) {
           if (itm->body.alignData.nopFill &&
               (thisSize % 4 != 0 || itm->address % 4 != 0)) {
-            fprintf(stderr,
-                "warning: implicit nop-fill alignment in .text not aligned to "
-                "a multiple of 4 bytes, using zero-fill instead\n");
+            emitWarning(nullFileLocation,
+                "implicit nop-fill alignment in .text not aligned to "
+                "a multiple of 4 bytes, using zero-fill instead");
             itm->body.alignData.nopFill = false;
             itm->body.alignData.fillByte = 0;
           }
@@ -323,7 +324,7 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
     }
     size_t sizeLeft = (size_t)0x100000000ULL - (size_t)(*curAddr);
     if (thisSize > sizeLeft) {
-      fprintf(stderr, "error: section overflows addressing space\n");
+      emitError(nullFileLocation, "section overflows addressing space");
       return false;
     }
     sec->size += (uint32_t)thisSize;

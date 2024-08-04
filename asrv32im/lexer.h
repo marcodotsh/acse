@@ -37,9 +37,16 @@ enum {
 };
 
 typedef struct {
-  t_tokenID id;
+  char *file;
   int row;
   int column;
+} t_fileLocation;
+
+static const t_fileLocation nullFileLocation = {NULL, -1, -1};
+
+typedef struct {
+  t_tokenID id;
+  t_fileLocation location;
   const char *begin;
   const char *end;
   union {
@@ -55,7 +62,7 @@ typedef struct {
 typedef struct t_lexer t_lexer;
 
 
-t_lexer *newLexer(FILE *fp);
+t_lexer *newLexer(const char *fn);
 void deleteLexer(t_lexer *lex);
 
 t_token *lexNextToken(t_lexer *lex);

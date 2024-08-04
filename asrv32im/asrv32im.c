@@ -18,7 +18,6 @@ void usage(const char *name)
 
 int main(int argc, char *argv[])
 {
-  FILE *fp;
   t_lexer *lex = NULL;
   t_object *obj = NULL;
   char *name, *out;
@@ -55,12 +54,7 @@ int main(int argc, char *argv[])
   }
 
   res = 1;
-  fp = fopen(argv[0], "r");
-  if (fp == NULL) {
-    fprintf(stderr, "Could not open the input file, exiting\n");
-    goto fail;
-  }
-  lex = newLexer(fp);
+  lex = newLexer(argv[0]);
   if (lex == NULL) {
     fprintf(stderr, "Could not create a lexer object, exiting\n");
     goto fail;

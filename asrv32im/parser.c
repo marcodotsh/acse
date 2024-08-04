@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include "parser.h"
+#include "errors.h"
 
 
 typedef int t_parserError;
@@ -92,19 +93,14 @@ static void parserEmitError(t_parserState *state, const char *msg)
 {
   if (!msg)
     msg = "unexpected token";
-  int row = state->lookaheadToken->row + 1;
-  int col = state->lookaheadToken->column + 1;
-  fprintf(stderr, "error at %d,%d: %s\n", row, col, msg);
+  emitError(state->lookaheadToken->location, "%s", msg);
   state->numErrors++;
 }
 
 
 static void parserNextToken(t_parserState *state)
 {
-  if (state->curToken && state->curToken->id == TOK_EOF) {
-    fprintf(stderr, "BUG: trying to advance past EOF\n");
-    abort();
-  }
+  assert(!(state->curToken && state->curToken->id == TOK_EOF));
   deleteToken(state->curToken);
   state->curToken = state->lookaheadToken;
   state->lookaheadToken = lexNextToken(state->lex);
@@ -569,7 +565,7 @@ static char *performStringEscapes(char *in)
               c = (char)strtol(in - 1, &in, 8);
               *out++ = c;
             } else {
-              fprintf(stderr, "warning: invalid escape character in string\n");
+              emitWarning(nullFileLocation, "invalid escape character in string");
               *out++ = c;
             }
             break;
@@ -726,10 +722,8 @@ static t_parserError expectAlign(t_parserState *state)
   } else {
     if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
       if ((align.alignModulo % 4) != 0)
-        fprintf(stderr,
-            "warning at %d,%d: alignment in .text with an "
-            "amount which is not a multiple of 4\n",
-            state->curToken->row + 1, state->curToken->column + 1);
+        emitWarning(state->curToken->location, "alignment in .text with an "
+            "amount which is not a multiple of 4");
       align.nopFill = true;
     } else {
       align.nopFill = false;

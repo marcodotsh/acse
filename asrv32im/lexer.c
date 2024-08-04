@@ -4,13 +4,14 @@
 #include <assert.h>
 #include <stdbool.h>
 #include "lexer.h"
+#include "errors.h"
 
 
 struct t_lexer {
   char *buf;
   size_t bufSize;
   char *nextTokenPtr;
-  int row, column;
+  t_fileLocation nextTokenLoc;
   char *lookahead;
 };
 
@@ -25,12 +26,18 @@ static char *lexRangeToString(const char *begin, const char *end)
 }
 
 
-t_lexer *newLexer(FILE *fp)
+t_lexer *newLexer(const char *fn)
 {
   t_lexer *lex = calloc(1, sizeof(t_lexer));
   if (!lex)
     return NULL;
-  
+
+  FILE *fp = fopen(fn, "r");
+  if (fp == NULL) {
+    fprintf(stderr, "Could not open the input file\n");
+    free(lex);
+    return NULL;
+  }
   fseek(fp, 0, SEEK_END);
   ssize_t fileSize = ftello(fp);
   if (fileSize < 0) {
@@ -55,7 +62,11 @@ t_lexer *newLexer(FILE *fp)
   fclose(fp);
 
   lex->nextTokenPtr = lex->buf;
-  lex->row = lex->column = 0;
+  lex->nextTokenLoc.file = strdup(fn);
+  if (!lex->nextTokenLoc.file)
+    abort();
+  lex->nextTokenLoc.row = 0;
+  lex->nextTokenLoc.column = 0;
   lex->lookahead = lex->buf;
   return lex;
 }
@@ -65,6 +76,7 @@ void deleteLexer(t_lexer *lex)
   if (lex == NULL)
     return;
   free(lex->buf);
+  free(lex->nextTokenLoc.file);
   free(lex);
 }
 
@@ -139,10 +151,10 @@ static void lexAdvance(t_lexer *lex)
     if (c == '\r') {
       // ignore
     } else if (c == '\n') {
-      lex->column = 0;
-      lex->row++;
+      lex->nextTokenLoc.column = 0;
+      lex->nextTokenLoc.row++;
     } else {
-      lex->column++;
+      lex->nextTokenLoc.column++;
     }
   }
 }
@@ -153,8 +165,7 @@ static t_token *lexNewToken(t_lexer *lex, t_tokenID id)
   if (!tok)
     abort();
   
-  tok->row = lex->row;
-  tok->column = lex->column;
+  tok->location = lex->nextTokenLoc;
   tok->id = id;
   tok->begin = lex->nextTokenPtr;
   tok->end = lex->lookahead;
@@ -302,14 +313,14 @@ static t_token *lexExpectNumberOrLocalRef(t_lexer *lex)
   if (error == STRTOI_NO_DIGITS)
     return lexExpectUnrecognized(lex);
   if (error == STRTOI_OVERFLOW || (negative && value > 0x80000000)) {
-    fprintf(stderr, "error at %d,%d: integer literal overflow\n", lex->row+1, lex->column+1);
+    emitError(lex->nextTokenLoc, "integer literal overflow");
     return lexExpectUnrecognized(lex);
   }
 
   char direction;
   if (decimal && !negative && (direction = lexAcceptSet(lex, "fb"))) {
     if (value > 0x7FFFFFFF) {
-      fprintf(stderr, "error at %d,%d: local label ID too large\n", lex->row+1, lex->column+1);
+      emitError(lex->nextTokenLoc, "local label ID too large");
       return lexExpectUnrecognized(lex);
     }
     t_token *res = lexNewToken(lex, TOK_LOCAL_REF);
@@ -339,7 +350,7 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
   }
 
   if (badTerm) {
-    fprintf(stderr, "error at %d,%d: string not properly terminated\n", lex->row + 1, lex->column + 1);
+    emitError(lex->nextTokenLoc, "string not properly terminated");
     return lexExpectUnrecognized(lex);
   }
   t_token *res = lexNewToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
@@ -563,7 +574,7 @@ t_token *lexNextToken(t_lexer *lex)
 
   if (*lex->lookahead == '\0') {
     if (lex->lookahead != (lex->buf + lex->bufSize)) {
-      fprintf(stderr, "error at %d,%d: null character in input\n", lex->row+1, lex->column+1);
+      emitError(lex->nextTokenLoc, "null character in input");
       return lexExpectUnrecognized(lex);
     }
     return lexNewToken(lex, TOK_EOF);

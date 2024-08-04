@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include "errors.h"
 #include "output.h"
 
 
@@ -307,9 +308,9 @@ t_outError outputToELF(t_object *obj, const char *fname)
 
   l_entry = objFindLabel(obj, "_start");
   if (!l_entry) {
-    fprintf(stderr,
-        "warning: _start symbol not found, entry will be start of .text "
-        "section\n");
+    emitWarning(nullFileLocation,
+        "_start symbol not found, entry will be start of .text "
+        "section");
     head.e.e_entry = objSecGetStart(text);
   } else {
     head.e.e_entry = objLabelGetPointer(l_entry);
