@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include "errors.h"
 
 typedef int t_objSectionID;
 enum {
@@ -110,6 +111,7 @@ typedef struct t_instruction {
   t_instrImmMode immMode;
   int32_t constant;
   t_objLabel *label;
+  t_fileLocation location;
 } t_instruction;
 
 #define DATA_MAX 16
@@ -117,6 +119,7 @@ typedef struct t_data {
   size_t dataSize;
   bool initialized;
   uint8_t data[DATA_MAX];
+  t_fileLocation location;
 } t_data;
 
 typedef struct t_alignData {
@@ -124,6 +127,7 @@ typedef struct t_alignData {
   size_t effectiveSize;
   bool nopFill;
   uint8_t fillByte;
+  t_fileLocation location;
 } t_alignData;
 
 typedef int t_objSecItemClass;

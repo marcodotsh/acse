@@ -363,6 +363,8 @@ int encExpandPseudoInstruction(
       mInstBuf[mInstSz++] = instr;
   }
 
+  for (int i = 0; i < mInstSz; i++)
+    mInstBuf[i].location = instr.location;
   return mInstSz;
 }
 
@@ -379,7 +381,7 @@ bool encResolveImmediates(t_instruction *instr, uint32_t pc)
     return true;
 
   if (!objLabelGetPointedItem(instr->label)) {
-    emitError(nullFileLocation, "label \"%s\" used but not defined!",
+    emitError(instr->location, "label \"%s\" used but not defined!",
         objLabelGetName(instr->label));
     return false;
   }
@@ -405,7 +407,7 @@ bool encResolveImmediates(t_instruction *instr, uint32_t pc)
           break;
       }
       if (tooFar) {
-        emitError(nullFileLocation, "jump to label \"%s\" too far!",
+        emitError(instr->location, "jump to label \"%s\" too far!",
             objLabelGetName(instr->label));
         return false;
       }
@@ -436,22 +438,22 @@ bool encResolveImmediates(t_instruction *instr, uint32_t pc)
       otherInstrLbl = instr->label;
       otherInstr = objLabelGetPointedItem(otherInstrLbl);
       if (!otherInstr) {
-        emitError(nullFileLocation, "label \"%s\" used but not defined",
+        emitError(instr->location, "label \"%s\" used but not defined",
             objLabelGetName(otherInstrLbl));
         return false;
       } else if (otherInstr->class != OBJ_SEC_ITM_CLASS_INSTR) {
-        emitError(nullFileLocation,
+        emitError(instr->location,
             "argument to %%pcrel_lo must be a label to an instruction");
         return false;
       } else if (otherInstr->body.instr.immMode != INSTR_IMM_LBL_PCREL_HI20) {
-        emitError(nullFileLocation,
+        emitError(instr->location,
             "argument to %%pcrel_lo must be a label to an instruction using "
             "%%pcrel_hi");
         return false;
       }
       actualLbl = otherInstr->body.instr.label;
       if (!objLabelGetPointedItem(actualLbl)) {
-        emitError(nullFileLocation, "label \"%s\" used but not defined!",
+        emitError(instr->location, "label \"%s\" used but not defined!",
             objLabelGetName(actualLbl));
         return false;
       }

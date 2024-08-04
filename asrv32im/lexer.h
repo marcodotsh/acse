@@ -2,6 +2,7 @@
 #define LEXER_H
 
 #include <stdio.h>
+#include "errors.h"
 #include "object.h"
 
 typedef int t_tokenID;
@@ -35,14 +36,6 @@ enum {
   TOK_PCREL_LO,
   TOK_MNEMONIC
 };
-
-typedef struct {
-  char *file;
-  int row;
-  int column;
-} t_fileLocation;
-
-static const t_fileLocation nullFileLocation = {NULL, -1, -1};
 
 typedef struct {
   t_tokenID id;

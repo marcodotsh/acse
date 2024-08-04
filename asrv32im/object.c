@@ -296,11 +296,14 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
   for (itm = sec->items; itm != NULL; itm = itm->next) {
     itm->address = *curAddr;
     size_t thisSize = 0;
+    t_fileLocation loc;
     switch (itm->class) {
       case OBJ_SEC_ITM_CLASS_DATA:
+        loc = itm->body.data.location;
         thisSize = itm->body.data.dataSize;
         break;
       case OBJ_SEC_ITM_CLASS_ALIGN_DATA:
+        loc = itm->body.alignData.location;
         alignAmt = itm->body.alignData.alignModulo;
         if (*curAddr % alignAmt == 0)
           thisSize = 0;
@@ -310,7 +313,7 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
         if (objSecGetID(sec) == OBJ_SECTION_TEXT) {
           if (itm->body.alignData.nopFill &&
               (thisSize % 4 != 0 || itm->address % 4 != 0)) {
-            emitWarning(nullFileLocation,
+            emitWarning(loc,
                 "implicit nop-fill alignment in .text not aligned to "
                 "a multiple of 4 bytes, using zero-fill instead");
             itm->body.alignData.nopFill = false;
@@ -319,12 +322,14 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
         }
         break;
       case OBJ_SEC_ITM_CLASS_INSTR:
+        loc = itm->body.instr.location;
         thisSize = encGetInstrLength(itm->body.instr);
         break;
     }
+    // TODO: This won't work in a 32 bit build!!
     size_t sizeLeft = (size_t)0x100000000ULL - (size_t)(*curAddr);
     if (thisSize > sizeLeft) {
-      emitError(nullFileLocation, "section overflows addressing space");
+      emitError(loc, "section overflows addressing space");
       return false;
     }
     sec->size += (uint32_t)thisSize;

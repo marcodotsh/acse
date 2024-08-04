@@ -352,6 +352,7 @@ static t_parserError expectInstruction(t_parserState *state)
 {
   t_immSizeClass immSize;
   t_instruction instr = {0};
+  instr.location = state->lookaheadToken->location;
 
   parserExpect(state, TOK_MNEMONIC, NULL);
   instr.opcode = state->curToken->value.mnemonic;
@@ -516,9 +517,11 @@ static t_parserError expectInstruction(t_parserState *state)
  * function must be used to determine its length instead.
  * @param str The null terminated string where to remove escapes.
  * @returns The end pointer to the string buffer after removing the escapes. */
-static char *performStringEscapes(char *in)
+static char *performStringEscapes(t_fileLocation loc, char *begin)
 {
-  char *out = in;
+  loc.column++;
+  char *in = begin;
+  char *out = begin;
   bool stop = false;
   while (!stop) {
     char c = *in++;
@@ -565,7 +568,9 @@ static char *performStringEscapes(char *in)
               c = (char)strtol(in - 1, &in, 8);
               *out++ = c;
             } else {
-              emitWarning(nullFileLocation, "invalid escape character in string");
+              t_fileLocation charLoc = loc;
+              charLoc.column += (size_t)(in - begin) - 2;
+              emitWarning(charLoc, "invalid escape character in string");
               *out++ = c;
             }
             break;
@@ -586,6 +591,7 @@ static char *performStringEscapes(char *in)
 static t_parserError expectData(t_parserState *state)
 {
   t_data data = {0};
+  data.location = state->lookaheadToken->location;
 
   if (parserAccept(state, TOK_SPACE)) {
     if (parserExpect(state, TOK_NUMBER,
@@ -639,8 +645,9 @@ static t_parserError expectData(t_parserState *state)
         data.data[0] = (uint8_t)value;
         parserNextToken(state);
       } else if (state->lookaheadToken->id == TOK_CHARACTER) {
+        t_fileLocation loc = state->lookaheadToken->location;
         char *bufBegin = state->lookaheadToken->value.string;
-        char *bufEnd = performStringEscapes(bufBegin);
+        char *bufEnd = performStringEscapes(loc, bufBegin);
         if (bufEnd - bufBegin != 1) {
           parserEmitError(state,
               "character arguments to \".byte\" must be representable in a "
@@ -664,8 +671,9 @@ static t_parserError expectData(t_parserState *state)
       if (parserExpect(state, TOK_STRING,
               "arguments to \".ascii\" must be strings") != P_ACCEPT)
         return P_SYN_ERROR;
+      t_fileLocation loc = state->curToken->location;
       char *bufBegin = state->curToken->value.string;
-      char *bufEnd = performStringEscapes(bufBegin);
+      char *bufEnd = performStringEscapes(loc, bufBegin);
       data.dataSize = sizeof(char);
       data.initialized = true;
       for (char *p = bufBegin; p != bufEnd; p++) {
@@ -683,6 +691,7 @@ static t_parserError expectData(t_parserState *state)
 static t_parserError expectAlign(t_parserState *state)
 {
   t_alignData align = {0};
+  align.location = state->lookaheadToken->location;
 
   t_tokenID alignType;
   if (parserAccept(state, TOK_ALIGN))
