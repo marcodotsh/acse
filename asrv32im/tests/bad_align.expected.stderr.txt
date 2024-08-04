@@ -1,6 +1,6 @@
-error at 2,7: expected alignment amount
-error at 3,8: alignment amount must be a positive non-zero integer
-error at 4,8: alignment amount too large
-warning at 5,9: alignment in .text with an amount which is not a multiple of 4
-error at 6,11: numeric constant out of bounds
-error at 7,12: numeric constant out of bounds
+bad_align.s:2:7: error: expected alignment amount
+bad_align.s:3:8: error: alignment amount must be a positive non-zero integer
+bad_align.s:4:8: error: alignment amount too large
+bad_align.s:5:9: warning: alignment in .text with an amount which is not a multiple of 4
+bad_align.s:6:11: error: numeric constant out of bounds
+bad_align.s:7:12: error: numeric constant out of bounds

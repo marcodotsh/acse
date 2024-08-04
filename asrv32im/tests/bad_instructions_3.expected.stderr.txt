@@ -1,10 +1,10 @@
-error at 1,11: expected a register
-error at 2,13: expected parenthesis
-error at 3,4: expected a register
-error at 4,7: expected a constant
-error at 5,5: expected a register
-error at 6,8: expected valid immediate
-error at 7,5: expected a label identifier
-error at 8,6: register name must be followed by a comma
-error at 9,7: expected a label identifier
-error at 10,3: expected a label identifier
+bad_instructions_3.s:1:11: error: expected a register
+bad_instructions_3.s:2:13: error: expected parenthesis
+bad_instructions_3.s:3:4: error: expected a register
+bad_instructions_3.s:4:7: error: expected a constant
+bad_instructions_3.s:5:5: error: expected a register
+bad_instructions_3.s:6:8: error: expected valid immediate
+bad_instructions_3.s:7:5: error: expected a label identifier
+bad_instructions_3.s:8:6: error: register name must be followed by a comma
+bad_instructions_3.s:9:7: error: expected a label identifier
+bad_instructions_3.s:10:3: error: expected a label identifier

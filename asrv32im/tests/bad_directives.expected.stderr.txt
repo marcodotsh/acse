@@ -1,12 +1,12 @@
-error at 1,9: .data does not take arguments
-error at 2,7: .text does not take arguments
-error at 3,9: .global needs exactly one label argument
-error at 4,16: .global cannot have more than one argument
-error at 6,6: label declaration without trailing comma
-error at 7,1: local labels must be positive numbers
-error at 8,3: expected colon after number to define a local label
-error at 9,9: label declaration without trailing comma
-error at 9,19: label declaration without trailing comma
-error at 10,1: expected a data directive or an instruction
-error at 11,1: expected a data directive or an instruction
+bad_directives.s:1:9: error: .data does not take arguments
+bad_directives.s:2:7: error: .text does not take arguments
+bad_directives.s:3:9: error: .global needs exactly one label argument
+bad_directives.s:4:16: error: .global cannot have more than one argument
+bad_directives.s:6:6: error: label declaration without trailing comma
+bad_directives.s:7:1: error: local labels must be positive numbers
+bad_directives.s:8:3: error: expected colon after number to define a local label
+bad_directives.s:9:9: error: label declaration without trailing comma
+bad_directives.s:9:19: error: label declaration without trailing comma
+bad_directives.s:10:1: error: expected a data directive or an instruction
+bad_directives.s:11:1: error: expected a data directive or an instruction
 too many errors, aborting...

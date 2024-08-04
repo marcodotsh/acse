@@ -1,10 +1,10 @@
-error at 1,5: expected a register
-error at 2,7: register name must be followed by a comma
-error at 3,8: register name must be followed by a comma
-error at 4,8: expected a register
-error at 5,10: register name must be followed by a comma
-error at 6,13: expected end of the line
-error at 7,6: expected a register
-error at 8,9: expected a register
-error at 9,12: expected valid immediate
-error at 10,12: expected valid immediate
+bad_instructions_1.s:1:5: error: expected a register
+bad_instructions_1.s:2:7: error: register name must be followed by a comma
+bad_instructions_1.s:3:8: error: register name must be followed by a comma
+bad_instructions_1.s:4:8: error: expected a register
+bad_instructions_1.s:5:10: error: register name must be followed by a comma
+bad_instructions_1.s:6:13: error: expected end of the line
+bad_instructions_1.s:7:6: error: expected a register
+bad_instructions_1.s:8:9: error: expected a register
+bad_instructions_1.s:9:12: error: expected valid immediate
+bad_instructions_1.s:10:12: error: expected valid immediate

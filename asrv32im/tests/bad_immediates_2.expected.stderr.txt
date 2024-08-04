@@ -1,10 +1,10 @@
-error at 1,12: immediate too large
-error at 2,12: immediate too large
-error at 3,12: immediate too large
-error at 4,12: immediate too large
-error at 5,12: immediate too large
-error at 6,15: expected left parenthesis
-error at 7,16: expected a label identifier
-error at 8,16: expected a label identifier
-error at 9,19: expected right parenthesis
-error at 11,12: immediate too large
+bad_immediates_2.s:1:12: error: immediate too large
+bad_immediates_2.s:2:12: error: immediate too large
+bad_immediates_2.s:3:12: error: immediate too large
+bad_immediates_2.s:4:12: error: immediate too large
+bad_immediates_2.s:5:12: error: immediate too large
+bad_immediates_2.s:6:15: error: expected left parenthesis
+bad_immediates_2.s:7:16: error: expected a label identifier
+bad_immediates_2.s:8:16: error: expected a label identifier
+bad_immediates_2.s:9:19: error: expected right parenthesis
+bad_immediates_2.s:11:12: error: immediate too large

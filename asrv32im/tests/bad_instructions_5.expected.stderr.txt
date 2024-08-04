@@ -1,5 +1,5 @@
-error at 1,5: expected a register
-error at 2,8: expected a register
-error at 3,11: expected a label identifier
-error at 4,6: expected a register
-error at 5,9: expected a label identifier
+bad_instructions_5.s:1:5: error: expected a register
+bad_instructions_5.s:2:8: error: expected a register
+bad_instructions_5.s:3:11: error: expected a label identifier
+bad_instructions_5.s:4:6: error: expected a register
+bad_instructions_5.s:5:9: error: expected a label identifier

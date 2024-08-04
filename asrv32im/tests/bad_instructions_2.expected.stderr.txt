@@ -1,12 +1,12 @@
-error at 1,4: expected a register
-error at 2,7: expected valid immediate
-error at 3,12: expected end of the line
-error at 4,10: expected parenthesis
-error at 5,11: expected a register
-error at 6,13: expected parenthesis
-error at 7,3: expected a register
-error at 8,7: expected valid immediate
-error at 9,12: expected comma
-error at 10,15: expected end of the line
-error at 11,10: expected parenthesis
+bad_instructions_2.s:1:4: error: expected a register
+bad_instructions_2.s:2:7: error: expected valid immediate
+bad_instructions_2.s:3:12: error: expected end of the line
+bad_instructions_2.s:4:10: error: expected parenthesis
+bad_instructions_2.s:5:11: error: expected a register
+bad_instructions_2.s:6:13: error: expected parenthesis
+bad_instructions_2.s:7:3: error: expected a register
+bad_instructions_2.s:8:7: error: expected valid immediate
+bad_instructions_2.s:9:12: error: expected comma
+bad_instructions_2.s:10:15: error: expected end of the line
+bad_instructions_2.s:11:10: error: expected parenthesis
 too many errors, aborting...

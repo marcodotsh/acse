@@ -1,12 +1,12 @@
-error at 1,6: expected a register
-error at 2,8: register name must be followed by a comma
-error at 3,9: expected valid immediate
-error at 4,9: expected valid immediate
-error at 5,6: expected a register
-error at 6,6: expected a register
-error at 7,6: expected a register
-error at 8,6: expected a register
-error at 9,5: expected end of the line
-error at 10,7: expected end of the line
-error at 11,8: expected end of the line
+bad_instructions_4.s:1:6: error: expected a register
+bad_instructions_4.s:2:8: error: register name must be followed by a comma
+bad_instructions_4.s:3:9: error: expected valid immediate
+bad_instructions_4.s:4:9: error: expected valid immediate
+bad_instructions_4.s:5:6: error: expected a register
+bad_instructions_4.s:6:6: error: expected a register
+bad_instructions_4.s:7:6: error: expected a register
+bad_instructions_4.s:8:6: error: expected a register
+bad_instructions_4.s:9:5: error: expected end of the line
+bad_instructions_4.s:10:7: error: expected end of the line
+bad_instructions_4.s:11:8: error: expected end of the line
 too many errors, aborting...

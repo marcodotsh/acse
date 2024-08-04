@@ -1,6 +1,6 @@
-error at 3,12: numeric constant out of bounds
-error at 6,12: numeric constant out of bounds
-error at 9,12: numeric constant out of bounds
-error at 11,12: numeric constant out of bounds
-error at 14,8: numeric constant out of bounds
-error at 16,8: numeric constant out of bounds
+bad_immediates_1.s:3:12: error: numeric constant out of bounds
+bad_immediates_1.s:6:12: error: numeric constant out of bounds
+bad_immediates_1.s:9:12: error: numeric constant out of bounds
+bad_immediates_1.s:11:12: error: numeric constant out of bounds
+bad_immediates_1.s:14:8: error: numeric constant out of bounds
+bad_immediates_1.s:16:8: error: numeric constant out of bounds
