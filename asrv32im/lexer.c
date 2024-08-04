@@ -15,15 +15,6 @@ struct t_lexer {
 };
 
 
-t_tokenID lexNextTokenID(t_lexer *lex);
-char *lexGetLastTokenText(t_lexer *lex);
-
-t_instrOpcode lexGetLastMnemonicOpcode(t_lexer *lex);
-t_instrRegID lexGetLastRegisterID(t_lexer *lex);
-int32_t lexGetLastNumberValue(t_lexer *lex);
-char *lexGetLastStringValue(t_lexer *lex);
-
-
 static char *lexRangeToString(const char *begin, const char *end)
 {
   size_t len = (size_t)(end - begin);
