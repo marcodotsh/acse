@@ -288,7 +288,9 @@ static t_token *lexExpectNumberOrLocalRef(t_lexer *lex)
     error = lexStringToU32(&lex->lookahead, 16, &value);
   } else if (lexAcceptString(lex, "0b")) {
     error = lexStringToU32(&lex->lookahead, 2, &value);
-  } else if (lexAcceptString(lex, "0")) {
+  } else if (*lex->lookahead == '0') {
+    // We do not accept the leading zero right away because
+    // our number may consist of that zero alone
     error = lexStringToU32(&lex->lookahead, 8, &value);
   } else {
     decimal = true;
