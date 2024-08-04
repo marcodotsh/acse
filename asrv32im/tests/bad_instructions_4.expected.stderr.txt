@@ -1,6 +1,6 @@
 error at 1,6: expected a register
-error at 3,0: register name must be followed by a comma
-error at 4,0: expected valid immediate
+error at 2,8: register name must be followed by a comma
+error at 3,9: expected valid immediate
 error at 4,9: expected valid immediate
 error at 5,6: expected a register
 error at 6,6: expected a register

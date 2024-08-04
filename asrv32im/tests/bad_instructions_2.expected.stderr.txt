@@ -1,12 +1,12 @@
 error at 1,4: expected a register
-error at 3,0: expected valid immediate
+error at 2,7: expected valid immediate
 error at 3,12: expected end of the line
-error at 5,0: expected parenthesis
+error at 4,10: expected parenthesis
 error at 5,11: expected a register
-error at 7,0: expected parenthesis
-error at 8,0: expected a register
-error at 9,0: expected valid immediate
-error at 10,0: expected comma
+error at 6,13: expected parenthesis
+error at 7,3: expected a register
+error at 8,7: expected valid immediate
+error at 9,12: expected comma
 error at 10,15: expected end of the line
-error at 12,0: expected parenthesis
+error at 11,10: expected parenthesis
 too many errors, aborting...
