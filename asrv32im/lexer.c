@@ -208,9 +208,10 @@ static void lexSkipWhitespaceAndComments(t_lexer *lex)
 
     } else if (state == 2) {
       // in a line comment
-      if (lexAcceptNewline(lex)) {
-        // end of the line comment
-        state = 0;
+      if (*lex->lookahead == '\n' || *lex->lookahead == '\r') {
+        // end of the line comment and end of whitespace
+        // (newlines are not considered whitespace!)
+        state = -1;
       } else {
         lex->lookahead++;
       }
