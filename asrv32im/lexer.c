@@ -221,6 +221,16 @@ static void lexSkipWhitespaceAndComments(t_lexer *lex)
 }
 
 
+static t_token *lexExpectUnrecognized(t_lexer *lex)
+{
+  assert(*lex->lookahead);
+  // Accept at least one character otherwise the lexer gets stuck
+  if (lex->lookahead == lex->nextTokenPtr)
+    lex->lookahead++;
+  return lexNewToken(lex, TOK_UNRECOGNIZED);
+}
+
+
 static bool lexIsDigit(char c, int base)
 {
   c = toupper(c);
@@ -289,17 +299,17 @@ static t_token *lexExpectNumberOrLocalRef(t_lexer *lex)
   }
 
   if (error == STRTOI_NO_DIGITS)
-    return lexNewToken(lex, TOK_UNRECOGNIZED);
+    return lexExpectUnrecognized(lex);
   if (error == STRTOI_OVERFLOW || (negative && value > 0x80000000)) {
     fprintf(stderr, "error at %d,%d: integer literal overflow\n", lex->row+1, lex->column+1);
-    return lexNewToken(lex, TOK_UNRECOGNIZED);
+    return lexExpectUnrecognized(lex);
   }
 
   char direction;
   if (decimal && !negative && (direction = lexAcceptSet(lex, "fb"))) {
     if (value > 0x7FFFFFFF) {
       fprintf(stderr, "error at %d,%d: local label ID too large\n", lex->row+1, lex->column+1);
-      return lexNewToken(lex, TOK_UNRECOGNIZED);
+      return lexExpectUnrecognized(lex);
     }
     t_token *res = lexNewToken(lex, TOK_LOCAL_REF);
     res->value.localRef = direction == 'b' ? -(int32_t)value : value;
@@ -316,7 +326,7 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
 {
   char delimiter = lexAcceptSet(lex, "'\"");
   if (!delimiter)
-    return lexNewToken(lex, TOK_UNRECOGNIZED);
+    return lexExpectUnrecognized(lex);
   bool badTerm = false;
   while (!lexAcceptChar(lex, delimiter)) {
     lexAcceptChar(lex, '\\');
@@ -329,7 +339,7 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
 
   if (badTerm) {
     fprintf(stderr, "error at %d,%d: string not properly terminated\n", lex->row + 1, lex->column + 1);
-    return lexNewToken(lex, TOK_UNRECOGNIZED);
+    return lexExpectUnrecognized(lex);
   }
   t_token *res = lexNewToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
   res->value.string = lexRangeToString(res->begin+1, res->end-1);
@@ -340,7 +350,7 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
 static t_token *lexExpectDirective(t_lexer *lex)
 {
   if (!lexAcceptChar(lex, '.'))
-    return lexNewToken(lex, TOK_UNRECOGNIZED);
+    return lexExpectUnrecognized(lex);
   lexAcceptIdentifier(lex);
 
   if (lexIdentEquals(lex, ".text"))
@@ -364,14 +374,14 @@ static t_token *lexExpectDirective(t_lexer *lex)
   if (lexIdentEquals(lex, ".global"))
     return lexNewToken(lex, TOK_GLOBAL);
   
-  return lexNewToken(lex, TOK_UNRECOGNIZED);
+  return lexExpectUnrecognized(lex);
 }
 
 
 static t_token *lexExpectAddressing(t_lexer *lex)
 {
   if (!lexAcceptChar(lex, '%'))
-    return lexNewToken(lex, TOK_UNRECOGNIZED);
+    return lexExpectUnrecognized(lex);
   lexAcceptIdentifier(lex);
 
   if (lexIdentEquals(lex, "%hi"))
@@ -383,7 +393,7 @@ static t_token *lexExpectAddressing(t_lexer *lex)
   if (lexIdentEquals(lex, "%pcrel_lo"))
     return lexNewToken(lex, TOK_PCREL_LO);
   
-  return lexNewToken(lex, TOK_UNRECOGNIZED);
+  return lexExpectUnrecognized(lex);
 }
 
 
@@ -553,7 +563,7 @@ t_token *lexNextToken(t_lexer *lex)
   if (*lex->lookahead == '\0') {
     if (lex->lookahead != (lex->buf + lex->bufSize)) {
       fprintf(stderr, "error at %d,%d: null character in input\n", lex->row+1, lex->column+1);
-      return lexNewToken(lex, TOK_UNRECOGNIZED);
+      return lexExpectUnrecognized(lex);
     }
     return lexNewToken(lex, TOK_EOF);
   }
@@ -583,5 +593,5 @@ t_token *lexNextToken(t_lexer *lex)
   if (isalpha(*lex->lookahead) || *lex->lookahead == '_')
     return lexExpectIdentifierOrKeyword(lex);
 
-  return lexNewToken(lex, TOK_UNRECOGNIZED);
+  return lexExpectUnrecognized(lex);
 }
