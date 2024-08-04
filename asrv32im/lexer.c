@@ -340,7 +340,7 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
     fprintf(stderr, "error at %d,%d: string not properly terminated\n", lex->row + 1, lex->column + 1);
     return lexNewToken(lex, TOK_UNRECOGNIZED);
   }
-  t_token *res = lexNewToken(lex, TOK_STRING);
+  t_token *res = lexNewToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
   res->value.string = lexRangeToString(res->begin+1, res->end-1);
   return res;
 }
