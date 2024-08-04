@@ -40,6 +40,8 @@ typedef struct {
   t_tokenID id;
   int row;
   int column;
+  const char *begin;
+  const char *end;
   union {
     char *id;
     int32_t localRef;

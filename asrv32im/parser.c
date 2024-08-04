@@ -93,7 +93,7 @@ static void parserEmitError(t_parserState *state, const char *msg)
   if (!msg)
     msg = "unexpected token";
   int row = state->lookaheadToken->row + 1;
-  int col = state->lookaheadToken->column;
+  int col = state->lookaheadToken->column + 1;
   fprintf(stderr, "error at %d,%d: %s\n", row, col, msg);
   state->numErrors++;
 }
@@ -729,7 +729,7 @@ static t_parserError expectAlign(t_parserState *state)
         fprintf(stderr,
             "warning at %d,%d: alignment in .text with an "
             "amount which is not a multiple of 4\n",
-            state->curToken->row + 1, state->curToken->column);
+            state->curToken->row + 1, state->curToken->column + 1);
       align.nopFill = true;
     } else {
       align.nopFill = false;

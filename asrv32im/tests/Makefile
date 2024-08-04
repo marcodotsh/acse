@@ -23,7 +23,11 @@ $(ASM):
 
 .PHONY: %.ck
 %.ck: %.o
-	if [ -f $(patsubst %.ck,%.o,$@) ]; then [ -f $(patsubst %.ck,%.expected.o,$@) ]; else [ ! -f $(patsubst %.ck,%.expected.o,$@) ]; fi
+	@if [ -f $(patsubst %.ck,%.o,$@) ]; then \
+	  [ -f $(patsubst %.ck,%.expected.o,$@) ] || ( echo Output produced but not expected ; exit 1 ); \
+	else \
+	  [ ! -f $(patsubst %.ck,%.expected.o,$@) ] || ( echo Output expected but not produced ; exit 1 ); \
+	fi
 	if [ -f $(patsubst %.ck,%.o,$@) ]; then diff $(patsubst %.ck,%.o,$@) $(patsubst %.ck,%.expected.o,$@); fi
 	diff $(patsubst %.ck,%.stderr.txt,$@) $(patsubst %.ck,%.expected.stderr.txt,$@)
 	diff $(patsubst %.ck,%.stdout.txt,$@) $(patsubst %.ck,%.expected.stdout.txt,$@)
