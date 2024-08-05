@@ -103,15 +103,14 @@ typedef struct t_outStrTbl {
   size_t tail;
 } t_outStrTbl;
 
-t_outError outStrTblInit(t_outStrTbl *tbl)
+void outStrTblInit(t_outStrTbl *tbl)
 {
   tbl->bufSz = 64;
   tbl->tail = 0;
   tbl->buf = calloc(tbl->bufSz, sizeof(char));
   if (!tbl->buf)
-    return OUT_MEMORY_ERROR;
+    fatalError("out of memory");
   tbl->buf[tbl->tail++] = '\0';
-  return OUT_NO_ERROR;
 }
 
 void outStrTblDeinit(t_outStrTbl *tbl)
@@ -119,7 +118,7 @@ void outStrTblDeinit(t_outStrTbl *tbl)
   free(tbl->buf);
 }
 
-t_outError outStrTblAddString(t_outStrTbl *tbl, char *str, Elf32_Word *outIdx)
+void outStrTblAddString(t_outStrTbl *tbl, char *str, Elf32_Word *outIdx)
 {
   size_t strSz, newBufSz;
   char *newBuf;
@@ -129,7 +128,7 @@ t_outError outStrTblAddString(t_outStrTbl *tbl, char *str, Elf32_Word *outIdx)
     newBufSz = tbl->bufSz * 2 + strSz;
     newBuf = realloc(tbl->buf, tbl->bufSz);
     if (!newBuf)
-      return OUT_MEMORY_ERROR;
+      fatalError("out of memory");
     tbl->buf = newBuf;
     tbl->bufSz = newBufSz;
   }
@@ -137,7 +136,6 @@ t_outError outStrTblAddString(t_outStrTbl *tbl, char *str, Elf32_Word *outIdx)
   if (outIdx)
     *outIdx = (Elf32_Word)tbl->tail;
   tbl->tail += strSz;
-  return OUT_NO_ERROR;
 }
 
 Elf32_Shdr outputStrTabToELFSHdr(
@@ -279,9 +277,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
   Elf32_Word textSecName, dataSecName, strtabSecName;
   Elf32_Addr textAddr, dataAddr, strtabAddr;
 
-  res = outStrTblInit(&strTbl);
-  if (res != OUT_NO_ERROR)
-    return res;
+  outStrTblInit(&strTbl);
 
   text = objGetSection(obj, OBJ_SECTION_TEXT);
   data = objGetSection(obj, OBJ_SECTION_DATA);
@@ -309,8 +305,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
   l_entry = objFindLabel(obj, "_start");
   if (!l_entry) {
     emitWarning(nullFileLocation,
-        "_start symbol not found, entry will be start of .text "
-        "section");
+        "_start symbol not found, entry will be start of .text section");
     head.e.e_entry = objSecGetStart(text);
   } else {
     head.e.e_entry = objLabelGetPointer(l_entry);
@@ -320,15 +315,9 @@ t_outError outputToELF(t_object *obj, const char *fname)
   dataAddr = textAddr + objSecGetSize(text);
   strtabAddr = dataAddr + objSecGetSize(data);
 
-  res = outStrTblAddString(&strTbl, ".text", &textSecName);
-  if (res != OUT_NO_ERROR)
-    goto exit;
-  res = outStrTblAddString(&strTbl, ".data", &dataSecName);
-  if (res != OUT_NO_ERROR)
-    goto exit;
-  res = outStrTblAddString(&strTbl, ".strtab", &strtabSecName);
-  if (res != OUT_NO_ERROR)
-    goto exit;
+  outStrTblAddString(&strTbl, ".text", &textSecName);
+  outStrTblAddString(&strTbl, ".data", &dataSecName);
+  outStrTblAddString(&strTbl, ".strtab", &strtabSecName);
 
   head.p[PRG_ID_TEXT] = outputSecToELFPHdr(text, textAddr, PF_R + PF_X);
   head.p[PRG_ID_DATA] = outputSecToELFPHdr(data, dataAddr, PF_R + PF_W);

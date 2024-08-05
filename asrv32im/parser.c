@@ -50,6 +50,8 @@ static t_localLabel *parserGetLocalLabel(
     return NULL;
 
   cur = calloc(1, sizeof(t_localLabel));
+  if (!cur)
+    fatalError("out of memory");
   cur->identifier = identifier;
   char realLblName[50];
   static int progressive = 0;
@@ -819,8 +821,6 @@ t_object *parseObject(t_lexer *lex)
   t_parserState state;
   state.lex = lex;
   state.object = newObject();
-  if (!state.object)
-    goto error;
   state.curSection = objGetSection(state.object, OBJ_SECTION_TEXT);
   state.numErrors = 0;
   state.curToken = NULL;
@@ -848,11 +848,9 @@ t_object *parseObject(t_lexer *lex)
   deleteLocalLabelList(state.backLabels);
   deleteLocalLabelList(state.forwardLabels);
 
-  if (state.numErrors > 0)
-    goto error;
-
+  if (state.numErrors > 0) {
+    deleteObject(state.object);
+    return NULL;
+  }
   return state.object;
-error:
-  deleteObject(state.object);
-  return NULL;
 }

@@ -49,14 +49,14 @@ int main(int argc, char *argv[])
     usage(name);
     return 1;
   } else if (argc > 1) {
-    fprintf(stderr, "Cannot assemble more than one file, exiting\n");
+    emitError(nullFileLocation, "cannot assemble more than one file");
     return 1;
   }
 
   res = 1;
   lex = newLexer(argv[0]);
   if (lex == NULL) {
-    fprintf(stderr, "Could not create a lexer object, exiting\n");
+    emitError(nullFileLocation, "could not read input file");
     goto fail;
   }
   obj = parseObject(lex);
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
   if (!objMaterialize(obj))
     goto fail;
   if (outputToELF(obj, out) != OUT_NO_ERROR) {
-    fprintf(stderr, "Could not write to output file, exiting\n");
+    emitError(nullFileLocation, "could not write output file");
     goto fail;
   }
 

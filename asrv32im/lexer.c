@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <errno.h>
 #include "lexer.h"
 #include "errors.h"
 
@@ -20,6 +21,8 @@ static char *lexRangeToString(const char *begin, const char *end)
 {
   size_t len = (size_t)(end - begin);
   char *res = malloc(len+1);
+  if (!res)
+    fatalError("out of memory");
   memcpy(res, begin, len);
   res[len] = '\0';
   return res;
@@ -30,11 +33,10 @@ t_lexer *newLexer(const char *fn)
 {
   t_lexer *lex = calloc(1, sizeof(t_lexer));
   if (!lex)
-    return NULL;
+    fatalError("out of memory");
 
   FILE *fp = fopen(fn, "r");
   if (fp == NULL) {
-    fprintf(stderr, "Could not open the input file\n");
     free(lex);
     return NULL;
   }
@@ -50,21 +52,20 @@ t_lexer *newLexer(const char *fn)
     lex->buf = strdup("");
   } else {
     lex->buf = malloc(fileSize+1);
-    if (!lex->buf) {
-      free(lex);
-      return NULL;
-    } else {
+    if (lex->buf) {
       size_t readSz = fread(lex->buf, 1, fileSize, fp);
       lex->buf[readSz] = '\0';
       lex->bufSize = readSz;
     }
   }
+  if (!lex->buf)
+    fatalError("out of memory");
   fclose(fp);
 
   lex->nextTokenPtr = lex->buf;
   lex->nextTokenLoc.file = strdup(fn);
   if (!lex->nextTokenLoc.file)
-    abort();
+    fatalError("out of memory");
   lex->nextTokenLoc.row = 0;
   lex->nextTokenLoc.column = 0;
   lex->lookahead = lex->buf;
@@ -163,7 +164,7 @@ static t_token *lexNewToken(t_lexer *lex, t_tokenID id)
 {
   t_token *tok = calloc(1, sizeof(t_token));
   if (!tok)
-    abort();
+    fatalError("out of memory");
   
   tok->location = lex->nextTokenLoc;
   tok->id = id;

@@ -33,7 +33,7 @@ static t_objSection *newSection(t_objSectionID id)
 
   sec = malloc(sizeof(t_objSection));
   if (!sec)
-    return NULL;
+    fatalError("out of memory");
   sec->id = id;
   sec->items = NULL;
   sec->lastItem = NULL;
@@ -65,14 +65,10 @@ t_object *newObject(void)
 
   obj = malloc(sizeof(t_object));
   if (!obj)
-    return NULL;
+    fatalError("out of memory");
   obj->data = newSection(OBJ_SECTION_DATA);
   obj->text = newSection(OBJ_SECTION_TEXT);
   obj->labelList = NULL;
-  if (!obj->data || !obj->text) {
-    deleteObject(obj);
-    return NULL;
-  }
   return obj;
 }
 
@@ -115,8 +111,10 @@ t_objLabel *objGetLabel(t_object *obj, const char *name)
 
   lbl = malloc(sizeof(t_objLabel));
   if (!lbl)
-    return NULL;
+    fatalError("out of memory");
   lbl->name = strdup(name);
+  if (!lbl->name)
+    fatalError("out of memory");
   lbl->next = obj->labelList;
   lbl->pointer = NULL;
   obj->labelList = lbl;
@@ -169,7 +167,7 @@ void objSecAppendData(t_objSection *sec, t_data data)
 
   itm = malloc(sizeof(t_objSecItem));
   if (!itm)
-    return;
+    fatalError("out of memory");
   itm->address = 0;
   itm->class = OBJ_SEC_ITM_CLASS_DATA;
   itm->body.data = data;
@@ -182,7 +180,7 @@ void objSecAppendAlignmentData(t_objSection *sec, t_alignData align)
 
   itm = malloc(sizeof(t_objSecItem));
   if (!itm)
-    return;
+    fatalError("out of memory");
   itm->address = 0;
   itm->class = OBJ_SEC_ITM_CLASS_ALIGN_DATA;
   itm->body.alignData = align;
@@ -196,7 +194,7 @@ t_objSecItem *objSecInsertInstructionAfter(
 
   itm = malloc(sizeof(t_objSecItem));
   if (!itm)
-    return NULL;
+    fatalError("out of memory");
   itm->address = 0;
   itm->class = OBJ_SEC_ITM_CLASS_INSTR;
   itm->body.instr = instr;
@@ -218,7 +216,7 @@ bool objSecDeclareLabel(t_objSection *sec, t_objLabel *label)
 
   itm = malloc(sizeof(t_objSecItem));
   if (!itm)
-    return false;
+    fatalError("out of memory");
   itm->address = 0;
   itm->class = OBJ_SEC_ITM_CLASS_VOID;
   objSecAppend(sec, itm);
