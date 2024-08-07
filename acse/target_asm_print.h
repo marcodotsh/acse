@@ -6,7 +6,6 @@
 
 #include <stdbool.h>
 #include "program.h"
-#include "acse.h"
 
 /** Convert an opcode ID to a string. */
 const char *opcodeToString(int opcode);
