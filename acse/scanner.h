@@ -5,8 +5,9 @@
 #define SCANNER_H
 
 #include <stdio.h>
+#include "errors.h"
 
-extern int lineNum;
+extern t_fileLocation curFileLoc;
 
 /* This global variable is the file read by the Flex-generated scanner */
 extern FILE *yyin;

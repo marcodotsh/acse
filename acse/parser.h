@@ -35,16 +35,11 @@ typedef struct {
  * @{
  */
 
-/** During parsing, this variable keeps track of the source code line number.
- * Every time a newline is encountered while scanning the input file, the
- * lexer increases this variable by 1. */
-extern int lineNum;
-
 /** Performs the initial syntactic-driven translation of the source code. The
  * generated code is put into the global `program' data structure.
  * @param fp The source code file being compiled
  * @returns The number of syntax errors encountered. */
-int parseProgram(t_program *program, FILE *fp);
+int parseProgram(t_program *program, char *fn);
 
 /**
  * @}

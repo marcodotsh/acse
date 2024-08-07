@@ -44,21 +44,6 @@
  * @brief Top-level functions that drive the compilation process
  */
 
-extern int num_error;
-
-/** In debug builds (NDEBUG not defined), prints a message on the standard
- * output like `printf'. Otherwise, does nothing and returns zero. */
-int debugPrintf(const char *fmt, ...);
-
 char *getLogFileName(const char *logType);
-
-/** Prints an error message depending on the given code.
- * Does not terminate the program.
- * @param errorcode The error code. */
-void emitError(const char *format, ...);
-
-/** Prints the specified error message and terminates the program.
- * @param errorcode The error code. */
-__attribute__((noreturn)) void fatalError(const char *format, ...);
 
 #endif

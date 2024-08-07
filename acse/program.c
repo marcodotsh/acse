@@ -6,13 +6,10 @@
 #include <ctype.h>
 #include "parser.h"
 #include "program.h"
-#include "acse.h"
+#include "scanner.h"
 #include "gencode.h"
 #include "target_info.h"
 #include "target_asm_print.h"
-
-/* last line number inserted in an instruction as a comment */
-int prev_line_num = -1;
 
 
 static t_label *newLabel(unsigned int value)
@@ -393,18 +390,25 @@ char *getLabelName(t_label *label)
 /* add an instruction at the tail of the list `program->instructions'. */
 void addInstruction(t_program *program, t_instruction *instr)
 {
+  static t_fileLocation lastFileLoc = {NULL, -1};
+
   /* assign the currently pending label if there is one */
   instr->label = program->pendingLabel;
   program->pendingLabel = NULL;
 
   /* add a comment with the line number */
-  if (lineNum >= 0 && lineNum != prev_line_num) {
-    instr->comment = calloc(20, sizeof(char));
+  if (curFileLoc.row >= 0 &&
+      (curFileLoc.file != lastFileLoc.file ||
+          curFileLoc.row != lastFileLoc.row)) {
+    size_t fileNameLen = strlen(curFileLoc.file);
+    size_t strBufSz = fileNameLen + 10 + 1;
+    instr->comment = calloc(strBufSz, sizeof(char));
     if (instr->comment) {
-      snprintf(instr->comment, 20, "line %d", lineNum);
+      snprintf(
+          instr->comment, strBufSz, "%s:%d", curFileLoc.file, curFileLoc.row+1);
     }
   }
-  prev_line_num = lineNum;
+  lastFileLoc = curFileLoc;
 
   /* update the list of instructions */
   program->instructions = listInsert(program->instructions, instr, -1);
@@ -496,14 +500,14 @@ t_symbol *createSymbol(
     fatalError("invalid type");
   // Check array size validity
   if (type == TYPE_INT_ARRAY && arraySize <= 0) {
-    emitError("invalid size %d for array %s", arraySize, ID);
+    emitError(curFileLoc, "invalid size %d for array %s", arraySize, ID);
     return NULL;
   }
 
   // Check if another symbol already exists with the same ID
   t_symbol *existingSym = getSymbol(program, ID);
   if (existingSym != NULL) {
-    emitError("variable '%s' already declared", ID);
+    emitError(curFileLoc, "variable '%s' already declared", ID);
     return NULL;
   }
 

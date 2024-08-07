@@ -5,10 +5,11 @@
 #include <string.h>
 #include "acse.h"
 #include "list.h"
+#include "scanner.h"
 #include "parser.h"
 #include "parser.tab.h"
 
-int lineNum;
+t_fileLocation curFileLoc = {NULL, -1};
 
 %}
 
@@ -26,8 +27,8 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
  ******************************************************************************/
 %%
 
-"\r\n"                    { ++lineNum; }
-"\n"                      { ++lineNum; }
+"\r\n"                    { curFileLoc.row++; }
+"\n"                      { curFileLoc.row++; }
 
 [ \t\f\v]+                { /* Ignore whitespace. */ }
 
@@ -35,9 +36,9 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 "/*"                      BEGIN(comment);
 
 <comment>[^*\n]*
-<comment>[^*\n]*\n        { ++lineNum; }
+<comment>[^*\n]*\n        { curFileLoc.row++; }
 <comment>"*"+[^*/\n]*     
-<comment>"*"+[^*/\n]*\n   { ++lineNum; }
+<comment>"*"+[^*/\n]*\n   { curFileLoc.row++; }
 <comment>"*"+"/"          BEGIN(INITIAL);
 
 "{"                       { return LBRACE; }
@@ -91,4 +92,7 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
                             yyerror("unexpected token");
                             return -1; /* invalid token */
                           }
-<INITIAL><<EOF>>          { return EOF_TOK; }
+<INITIAL><<EOF>>          {
+                            curFileLoc.row = -1;
+                            return EOF_TOK;
+                          }

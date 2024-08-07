@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include "gencode.h"
-#include "acse.h"
+#include "scanner.h"
 #include "target_info.h"
 
 
@@ -465,7 +465,7 @@ t_regID genLoadVariable(t_program *program, t_symbol *var)
   // Check if the symbol is an array; in that case do not generate any more
   // code. Calling emitError will eventually stop compilation anyway.
   if (isArray(var)) {
-    emitError("'%s' is an array", var->ID);
+    emitError(curFileLoc, "'%s' is an array", var->ID);
     return REG_0;
   }
 
@@ -485,7 +485,7 @@ void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg)
   // any code (but emitting an error that will eventually stop further
   // compilation)
   if (isArray(var)) {
-    emitError("'%s' is an array", var->ID);
+    emitError(curFileLoc, "'%s' is an array", var->ID);
     return;
   }
 
@@ -518,7 +518,7 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID idxReg)
 {
   if (!isArray(array)) {
     // If the symbol is not an array, bail out returning a dummy register ID
-    emitError("'%s' is a scalar", array->ID);
+    emitError(curFileLoc, "'%s' is a scalar", array->ID);
     return REG_0;
   }
   t_label *label = array->label;

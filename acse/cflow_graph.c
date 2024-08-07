@@ -5,6 +5,7 @@
 #include "cflow_graph.h"
 #include "target_info.h"
 #include "target_asm_print.h"
+#include "errors.h"
 
 
 static bool compareCFGRegAndRegID(void *a, void *b)

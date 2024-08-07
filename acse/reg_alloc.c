@@ -5,7 +5,7 @@
 #include <string.h>
 #include "reg_alloc.h"
 #include "target_info.h"
-#include "acse.h"
+#include "errors.h"
 #include "gencode.h"
 #include "program.h"
 #include "list.h"
