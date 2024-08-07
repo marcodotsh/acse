@@ -120,7 +120,6 @@ int main(int argc, char *argv[])
     fprintf(stderr, "%d error(s) found.\n", num_errors);
     goto fail;
   }
-
 #ifndef NDEBUG
   char *logFileName = getLogFileName("frontend");
   debugPrintf(" -> Writing the output of parsing to \"%s\"\n", logFileName);
@@ -133,8 +132,30 @@ int main(int argc, char *argv[])
   debugPrintf("Lowering of pseudo-instructions to machine instructions.\n");
   doTargetSpecificTransformations(program);
 
+#ifndef NDEBUG
+  t_cfg *cfg = programToCFG(program);
+  cfgComputeLiveness(cfg);
+  logFileName = getLogFileName("controlFlow");
+  debugPrintf(" -> Writing the control flow graph to \"%s\"\n", logFileName);
+  logFile = fopen(logFileName, "w");
+  cfgDump(cfg, logFile, true);
+  fclose(logFile);
+  free(logFileName);
+  deleteCFG(cfg);
+#endif
+
   debugPrintf("Performing register allocation.\n");
-  doRegisterAllocation(program);
+  t_regAllocator *regAlloc = newRegAllocator(program);
+  doRegisterAllocation(regAlloc);
+#ifndef NDEBUG
+  logFileName = getLogFileName("regAlloc");
+  debugPrintf(" -> Writing the register bindings to \"%s\"\n", logFileName);
+  logFile = fopen(logFileName, "w");
+  dumpRegAllocation(regAlloc, logFile);
+  fclose(logFile);
+  free(logFileName);
+#endif
+  deleteRegAllocator(regAlloc);
 
   debugPrintf("Writing the assembly file.\n");
   debugPrintf(" -> Output file name: \"%s\"\n", compilerOptions.outputFileName);

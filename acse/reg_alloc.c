@@ -35,7 +35,11 @@ typedef struct {
 } t_liveInterval;
 
 /// Structure encapsulating the state of the register allocator
-typedef struct {
+struct t_regAllocator {
+  /// The program where register allocation needs to be performed
+  t_program *program;
+  /// The temporary control flow graph produced from the program
+  t_cfg *graph;
   /// List of live intervals, ordered depending on their start index
   t_listNode *liveIntervals;
   /// Number of temporary registers in the program
@@ -49,7 +53,7 @@ typedef struct {
   t_listNode *activeIntervals;
   /// List of currently free physical registers during the allocation process.
   t_listNode *freeRegisters;
-} t_regAllocator;
+};
 
 /// Structure used for mapping a spilled temporary register to the label
 /// pointing to its physical storage location in memory.
@@ -344,17 +348,22 @@ void handleCallerSaveRegisters(t_regAllocator *ra, t_cfg *cfg)
 }
 
 /* Allocate and initialize the register allocator */
-t_regAllocator *newRegAllocator(t_cfg *graph)
+t_regAllocator *newRegAllocator(t_program *program)
 {
   t_regAllocator *result = (t_regAllocator *)calloc(1, sizeof(t_regAllocator));
   if (result == NULL)
     fatalError("out of memory");
 
+  // Create a CFG from the given program and compute the liveness intervals
+  result->program = program;
+  result->graph = programToCFG(program);
+  cfgComputeLiveness(result->graph);
+
   // Find the maximum temporary register ID in the program, then allocate the
   // array of register bindings with that size. If there are unused register
   // IDs, the array will have holes, but that's not a problem.
   t_regID maxTempRegID = 0;
-  t_listNode *current_cflow_var = graph->registers;
+  t_listNode *current_cflow_var = result->graph->registers;
   while (current_cflow_var != NULL) {
     t_cfgReg *cflow_var = (t_cfgReg *)current_cflow_var->data;
     if (maxTempRegID < cflow_var->tempRegID)
@@ -363,7 +372,7 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
   }
   result->tempRegNum = maxTempRegID + 1;
 
-  // allocate space for the binding array, and initialize it */
+  // allocate space for the binding array, and initialize it
   result->bindings = malloc(sizeof(t_regID) * (size_t)result->tempRegNum);
   if (result->bindings == NULL)
     fatalError("out of memory");
@@ -376,14 +385,14 @@ t_regAllocator *newRegAllocator(t_cfg *graph)
     result->bindings[REG_0] = REG_0;
 
   // Compute the ordered list of live intervals
-  result->liveIntervals = getLiveIntervals(graph);
+  result->liveIntervals = getLiveIntervals(result->graph);
 
   // Create the list of free physical (machine) registers
   result->freeRegisters = getListOfMachineRegisters();
 
   /* Initialize register constraints */
   initializeRegisterConstraints(result);
-  handleCallerSaveRegisters(result, graph);
+  handleCallerSaveRegisters(result, result->graph);
 
   /* return the new register allocator */
   return result;
@@ -568,6 +577,9 @@ void deleteRegAllocator(t_regAllocator *RA)
   free(RA->bindings);
   deleteList(RA->activeIntervals);
   deleteList(RA->freeRegisters);
+
+  // Delete the temporary CFG
+  deleteCFG(RA->graph);
 
   free(RA);
 }
@@ -915,10 +927,12 @@ void materializeRegisterAllocation(
   cfgToProgram(program, graph);
 }
 
+void doRegisterAllocation(t_regAllocator *regalloc)
+{
+  executeLinearScan(regalloc);
+  materializeRegisterAllocation(regalloc->program, regalloc->graph, regalloc);
+}
 
-/*
- *  Debug print utilities
- */
 
 void dumpVariableBindings(t_regID *bindings, int numVars, FILE *fout)
 {
@@ -983,7 +997,7 @@ void dumpLiveIntervals(t_listNode *intervals, FILE *fout)
   fflush(fout);
 }
 
-void dumpRegAllocInfos(t_regAllocator *RA, FILE *fout)
+void dumpRegAllocation(t_regAllocator *RA, FILE *fout)
 {
   if (RA == NULL)
     return;
@@ -1012,58 +1026,4 @@ void dumpRegAllocInfos(t_regAllocator *RA, FILE *fout)
   dumpVariableBindings(RA->bindings, RA->tempRegNum, fout);
 
   fflush(fout);
-}
-
-
-/*
- * Wrapper function
- */
-
-void doRegisterAllocation(t_program *program)
-{
-  char *logFileName;
-  FILE *logFile;
-
-  /* create the control flow graph */
-  t_cfg *graph = programToCFG(program);
-
-#ifndef NDEBUG
-  logFileName = getLogFileName("controlFlow");
-  debugPrintf(" -> Writing the control flow graph to \"%s\"\n", logFileName);
-  logFile = fopen(logFileName, "w");
-  cfgDump(graph, logFile, false);
-  fclose(logFile);
-  free(logFileName);
-#endif
-
-  cfgComputeLiveness(graph);
-
-#ifndef NDEBUG
-  logFileName = getLogFileName("dataFlow");
-  debugPrintf(" -> Writing the liveness information to \"%s\"\n", logFileName);
-  logFile = fopen(logFileName, "w");
-  cfgDump(graph, logFile, true);
-  fclose(logFile);
-  free(logFileName);
-#endif
-
-  /* execute the linear scan algorithm */
-  t_regAllocator *RA = newRegAllocator(graph);
-  executeLinearScan(RA);
-
-#ifndef NDEBUG
-  logFileName = getLogFileName("regAlloc");
-  debugPrintf(" -> Writing the register bindings to \"%s\"\n", logFileName);
-  logFile = fopen(logFileName, "w");
-  dumpRegAllocInfos(RA, logFile);
-  fclose(logFile);
-  free(logFileName);
-#endif
-
-  /* apply changes to the program informations by using the informations
-   * of the register allocation process */
-  materializeRegisterAllocation(program, graph, RA);
-
-  deleteRegAllocator(RA);
-  deleteCFG(graph);
 }
