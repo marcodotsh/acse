@@ -7,8 +7,6 @@
 - License file (gpl-v3)
 
 # Structural coherency
-- Introduce error.c/h to acse/as/sim (essentially the same code)
-- Remove acse.h
 - Replace int with bool where applicable
   - acse
   - as
@@ -19,12 +17,8 @@
   - sim
 
 # Code quality
-- as: Transform Token type into struct
-- as: Read entire file into memory in tokenizer?
-- acse: Move log prints to main()?
 - Update copyright dates
 - Handle malloc failures as aborts everywhere, not just in acse
-  - as
   - sim
 - clang-format everywhere (should be at least partially already done)
   - acse
