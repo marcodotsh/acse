@@ -1,6 +1,7 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
+#include <stdbool.h>
 #include "memory.h"
 
 
@@ -18,15 +19,15 @@ typedef void *t_dbgEnumBreakpointState;
 #define DBG_ENUM_BREAKPOINT_STOP ((t_dbgEnumBreakpointState)NULL)
 
 
-int dbgEnable(void);
-int dbgGetEnabled(void);
-int dbgDisable(void);
+bool dbgEnable(void);
+bool dbgGetEnabled(void);
+bool dbgDisable(void);
 void dbgRequestEnter(void);
 
 int dbgPrintf(const char *format, ...);
 
 t_dbgBreakpointId dbgAddBreakpoint(t_memAddress address);
-int dbgRemoveBreakpoint(t_dbgBreakpointId brkId);
+bool dbgRemoveBreakpoint(t_dbgBreakpointId brkId);
 t_memAddress dbgGetBreakpoint(t_dbgBreakpointId brkId);
 t_dbgEnumBreakpointState dbgEnumerateBreakpoints(t_dbgEnumBreakpointState state,
     t_dbgBreakpointId *outId, t_memAddress *outAddress);

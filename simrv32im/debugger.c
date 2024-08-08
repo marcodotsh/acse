@@ -17,38 +17,38 @@ t_dbgBreakpoint *dbgBreakpointList = NULL;
 
 t_dbgBreakpointId dbgLastBreakpointID = 0;
 
-int dbgEnabled = 0;
-int dbgUserRequestsEnter = 0;
-int dbgStepInEnabled = 0;
-int dbgStepOverEnabled = 0;
+bool dbgEnabled = false;
+bool dbgUserRequestsEnter = false;
+bool dbgStepInEnabled = false;
+bool dbgStepOverEnabled = false;
 t_memAddress dbgStepOverAddr;
 
 
-int dbgEnable(void)
+bool dbgEnable(void)
 {
-  int oldEnable = dbgEnabled;
-  dbgEnabled = 1;
+  bool oldEnable = dbgEnabled;
+  dbgEnabled = true;
   return oldEnable;
 }
 
 
-int dbgGetEnabled(void)
+bool dbgGetEnabled(void)
 {
   return dbgEnabled;
 }
 
 
-int dbgDisable(void)
+bool dbgDisable(void)
 {
-  int oldEnable = dbgEnabled;
-  dbgEnabled = 0;
+  bool oldEnable = dbgEnabled;
+  dbgEnabled = false;
   return oldEnable;
 }
 
 
 void dbgRequestEnter(void)
 {
-  dbgUserRequestsEnter = 1;
+  dbgUserRequestsEnter = true;
 }
 
 
@@ -78,7 +78,7 @@ t_dbgBreakpointId dbgAddBreakpoint(t_memAddress address)
 }
 
 
-int dbgRemoveBreakpoint(t_dbgBreakpointId brkId)
+bool dbgRemoveBreakpoint(t_dbgBreakpointId brkId)
 {
   t_dbgBreakpoint *prev = NULL;
   t_dbgBreakpoint *cur = dbgBreakpointList;
@@ -87,14 +87,14 @@ int dbgRemoveBreakpoint(t_dbgBreakpointId brkId)
     cur = cur->next;
   }
   if (!cur)
-    return 1;
+    return false;
   if (prev) {
     prev->next = cur->next;
   } else {
     dbgBreakpointList = cur->next;
   }
   free(cur);
-  return 0;
+  return true;
 }
 
 
@@ -179,7 +179,7 @@ void dbgParserSkipWhitespace(char **in)
     (*in)++;
 }
 
-int dbgParserAcceptKeyword(const char *word, char **in)
+bool dbgParserAcceptKeyword(const char *word, char **in)
 {
   char *p;
   dbgParserSkipWhitespace(in);
@@ -190,9 +190,9 @@ int dbgParserAcceptKeyword(const char *word, char **in)
     p++;
   }
   if (*word != '\0')
-    return 0;
+    return false;
   *in = p;
-  return 1;
+  return true;
 }
 
 typedef int t_dbgInterfaceStatus;
@@ -306,7 +306,6 @@ void dbgCmdRemoveBreakpoint(char *args)
 {
   unsigned long bpid;
   char *arg2;
-  int error;
 
   bpid = strtoul(args, &arg2, 0);
   if (args == arg2) {
@@ -314,8 +313,7 @@ void dbgCmdRemoveBreakpoint(char *args)
     return;
   }
 
-  error = dbgRemoveBreakpoint((t_dbgBreakpointId)bpid);
-  if (error == 0)
+  if (dbgRemoveBreakpoint((t_dbgBreakpointId)bpid))
     fprintf(stderr, "Removed breakpoint %lu\n", bpid);
   else
     fprintf(stderr, "Breakpoint %lu not found\n", bpid);
@@ -438,9 +436,9 @@ t_dbgResult dbgTick(void)
         dbgGetBreakpoint(bpId));
   }
 
-  dbgStepInEnabled = 0;
-  dbgStepOverEnabled = 0;
-  dbgUserRequestsEnter = 0;
+  dbgStepInEnabled = false;
+  dbgStepOverEnabled = false;
+  dbgUserRequestsEnter = false;
 
   dbgCmdPrintCpuStatus();
 

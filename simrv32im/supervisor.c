@@ -23,16 +23,14 @@ t_svError svInit(void)
 }
 
 
-int svExpandStack(void)
+void svExpandStack(void)
 {
   t_memAddress faultAddr = memGetLastFaultAddress();
   if (faultAddr < svStackBottom &&
       faultAddr >= (svStackBottom - SV_STACK_PAGE_SIZE)) {
     svStackBottom -= SV_STACK_PAGE_SIZE;
     memMapArea(svStackBottom, SV_STACK_PAGE_SIZE, NULL);
-    return 0;
   }
-  return -1;
 }
 
 
