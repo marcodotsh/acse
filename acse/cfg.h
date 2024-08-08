@@ -1,8 +1,8 @@
-/// @file cflow_graph.h
+/// @file cfg.h
 /// @brief Control Flow Graph generation and related analyses
 
-#ifndef CFLOW_GRAPH_H
-#define CFLOW_GRAPH_H
+#ifndef CFG_H
+#define CFG_H
 
 #include <stdio.h>
 #include <stdbool.h>
