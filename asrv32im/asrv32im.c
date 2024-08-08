@@ -18,16 +18,13 @@ void usage(const char *name)
 
 int main(int argc, char *argv[])
 {
-  t_lexer *lex = NULL;
-  t_object *obj = NULL;
-  char *name, *out;
+  char *name = argv[0];
   int ch, res = 0;
   static const struct option options[] = {
       {"help", no_argument, NULL, 'h'},
   };
 
-  name = argv[0];
-  out = "output.o";
+  char *out = "output.o";
 
   while ((ch = getopt_long(argc, argv, "ho:", options, NULL)) != -1) {
     switch (ch) {
@@ -54,7 +51,8 @@ int main(int argc, char *argv[])
   }
 
   res = 1;
-  lex = newLexer(argv[0]);
+  t_object *obj = NULL;
+  t_lexer *lex = newLexer(argv[0]);
   if (lex == NULL) {
     emitError(nullFileLocation, "could not read input file");
     goto fail;
