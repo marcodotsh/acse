@@ -1,4 +1,4 @@
-/// @file cflow_graph.c
+/// @file cfg.c
 
 #include <assert.h>
 #include "cfg.h"
