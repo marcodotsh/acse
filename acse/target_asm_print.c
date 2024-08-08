@@ -449,7 +449,7 @@ int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
 
   instructionToString(buf, BUF_LENGTH, instr, machineRegIDs);
   if (instr->comment) {
-    res = fprintf(fp, "%-24s# %s", buf, instr->comment);
+    res = fprintf(fp, "%-48s# %s", buf, instr->comment);
   } else {
     res = fprintf(fp, "%s", buf);
   }
