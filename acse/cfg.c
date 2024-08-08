@@ -799,8 +799,8 @@ void cfgDump(t_cfg *graph, FILE *fout, bool verbose)
 
   if (TARGET_REG_ZERO_IS_CONST) {
     fprintf(fout, "%s",
-        "Note: Temporary register \'t0\' refers to the physical register "
-        "\'zero\', whose\nvalue is immutable. As a result, it does not appear"
+        "Note: Temporary register \'temp0\' refers to the physical register "
+        "\'zero\', whose\nvalue is immutable. As a result, it does not appear "
         "in the liveness sets.\n\n");
   }
 

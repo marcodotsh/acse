@@ -932,7 +932,7 @@ void dumpVariableBindings(t_regAllocator *RA, FILE *fout)
           tempReg);
 
     } else {
-      char *reg = registerIDToString(physReg, 1);
+      char *reg = registerIDToString(physReg, true);
       fprintf(
           fout, "Variable T%-3d is assigned to register %s\n", tempReg, reg);
       free(reg);
@@ -959,7 +959,7 @@ void dumpLiveIntervals(t_listNode *intervals, FILE *fout)
     while (i) {
       char *reg;
 
-      reg = registerIDToString((t_regID)LIST_DATA_TO_INT(i->data), 1);
+      reg = registerIDToString((t_regID)LIST_DATA_TO_INT(i->data), true);
       fprintf(fout, "%s", reg);
       free(reg);
 
