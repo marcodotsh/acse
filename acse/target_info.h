@@ -187,5 +187,4 @@ t_listNode *getListOfMachineRegisters(void);
  * call instruction, except for input and output parameters. */
 t_listNode *getListOfCallerSaveMachineRegisters(void);
 
-
 #endif

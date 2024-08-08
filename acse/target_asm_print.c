@@ -310,16 +310,14 @@ int labelToString(char *buf, int bufsz, t_label *label, int finalColon)
 int instructionToString(
     char *buf, int bufsz, t_instruction *instr, bool machineRegIDs)
 {
-  int format, res;
-  const char *opc;
-  char *rd, *rs1, *rs2, *buf0 = buf;
-  int32_t imm;
+  int res;
+  char *buf0 = buf;
   char *address = NULL;
 
-  opc = opcodeToString(instr->opcode);
-  rd = registerToString(instr->rDest, machineRegIDs);
-  rs1 = registerToString(instr->rSrc1, machineRegIDs);
-  rs2 = registerToString(instr->rSrc2, machineRegIDs);
+  const char *opc = opcodeToString(instr->opcode);
+  char *rd = registerToString(instr->rDest, machineRegIDs);
+  char *rs1 = registerToString(instr->rSrc1, machineRegIDs);
+  char *rs2 = registerToString(instr->rSrc2, machineRegIDs);
   if (instr->addressParam) {
     int n = labelToString(NULL, 0, instr->addressParam, 0);
     address = calloc((size_t)n + 1, sizeof(char));
@@ -327,9 +325,9 @@ int instructionToString(
       fatalError("out of memory");
     labelToString(address, n + 1, instr->addressParam, 0);
   }
-  imm = instr->immediate;
+  int32_t imm = instr->immediate;
 
-  format = opcodeToFormat(instr->opcode);
+  int format = opcodeToFormat(instr->opcode);
   switch (format) {
     case FORMAT_OP:
       if (!instr->rDest || !instr->rSrc1 || !instr->rSrc2)
