@@ -39,11 +39,10 @@
 #include <stdarg.h>
 #include "target_info.h"
 #include "program.h"
-#include "cflow_graph.h"
 #include "target_asm_print.h"
 #include "target_transform.h"
 #include "target_info.h"
-#include "cflow_graph.h"
+#include "cfg.h"
 #include "reg_alloc.h"
 #include "parser.h"
 #include "errors.h"

@@ -9,7 +9,7 @@
 #include "gencode.h"
 #include "program.h"
 #include "list.h"
-#include "cflow_graph.h"
+#include "cfg.h"
 #include "target_asm_print.h"
 
 /// Maximum amount of arguments to an instruction
