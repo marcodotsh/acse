@@ -400,13 +400,10 @@ bool objMaterialize(t_object *obj)
 
 static void objSecDump(t_objSection *sec)
 {
-  t_objSecItem *itm;
-  int i;
-
   printf("{\n");
   printf("  Start = 0x%08x\n", sec->start);
   printf("  Size = 0x%08x\n", sec->size);
-  for (itm = sec->items; itm != NULL; itm = itm->next) {
+  for (t_objSecItem *itm = sec->items; itm != NULL; itm = itm->next) {
     printf("  %p = {\n", (void *)itm);
     printf("    Address = 0x%08x,\n", itm->address);
     printf("    Class = %d,\n", itm->class);
@@ -423,7 +420,7 @@ static void objSecDump(t_objSection *sec)
       printf("    Initialized = %d,\n", itm->body.data.initialized);
       if (itm->body.data.initialized) {
         printf("    Data = { ");
-        for (i = 0; i < DATA_MAX; i++)
+        for (int i = 0; i < DATA_MAX; i++)
           printf("%02x ", itm->body.data.data[i]);
         printf("}\n");
       }

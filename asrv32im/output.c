@@ -120,13 +120,10 @@ void outStrTblDeinit(t_outStrTbl *tbl)
 
 void outStrTblAddString(t_outStrTbl *tbl, char *str, Elf32_Word *outIdx)
 {
-  size_t strSz, newBufSz;
-  char *newBuf;
-
-  strSz = strlen(str) + 1;
+  size_t strSz = strlen(str) + 1;
   if (tbl->bufSz - tbl->tail < strSz) {
-    newBufSz = tbl->bufSz * 2 + strSz;
-    newBuf = realloc(tbl->buf, tbl->bufSz);
+    size_t newBufSz = tbl->bufSz * 2 + strSz;
+    char *newBuf = realloc(tbl->buf, tbl->bufSz);
     if (!newBuf)
       fatalError("out of memory");
     tbl->buf = newBuf;
@@ -205,13 +202,10 @@ Elf32_Shdr outputSecToELFSHdr(
 
 t_outError outputSecContentToFile(FILE *fp, off_t whence, t_objSection *sec)
 {
-  t_objSecItem *itm;
-  int i;
-
   if (fseeko(fp, whence, SEEK_SET) < 0)
     return OUT_FILE_ERROR;
 
-  itm = objSecGetItemList(sec);
+  t_objSecItem *itm = objSecGetItemList(sec);
   for (; itm != NULL; itm = itm->next) {
     if (itm->class == OBJ_SEC_ITM_CLASS_VOID) {
       continue;
@@ -221,7 +215,7 @@ t_outError outputSecContentToFile(FILE *fp, off_t whence, t_objSection *sec)
           return OUT_FILE_ERROR;
       } else {
         uint8_t tmp = 0;
-        for (i = 0; i < itm->body.data.dataSize; i++)
+        for (int i = 0; i < itm->body.data.dataSize; i++)
           if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
             return OUT_FILE_ERROR;
       }
@@ -229,12 +223,12 @@ t_outError outputSecContentToFile(FILE *fp, off_t whence, t_objSection *sec)
       if (itm->body.alignData.nopFill) {
         uint32_t tmp = 0x00000013; // nop = addi x0, x0, 0
         assert((itm->body.alignData.effectiveSize % 4) == 0);
-        for (i = 0; i < itm->body.alignData.effectiveSize; i += 4)
+        for (int i = 0; i < itm->body.alignData.effectiveSize; i += 4)
           if (fwrite(&tmp, sizeof(uint32_t), 1, fp) < 1)
             return OUT_FILE_ERROR;
       } else {
         uint8_t tmp = itm->body.alignData.fillByte;
-        for (i = 0; i < itm->body.alignData.effectiveSize; i++)
+        for (int i = 0; i < itm->body.alignData.effectiveSize; i++)
           if (fwrite(&tmp, sizeof(uint8_t), 1, fp) < 1)
             return OUT_FILE_ERROR;
       }
@@ -268,20 +262,12 @@ typedef struct __attribute__((packed)) t_outputELFHead {
 
 t_outError outputToELF(t_object *obj, const char *fname)
 {
-  FILE *fp = NULL;
   t_outError res = OUT_NO_ERROR;
-  t_objLabel *l_entry;
-  t_objSection *text, *data;
-  t_outStrTbl strTbl;
+
+  t_objSection *text = objGetSection(obj, OBJ_SECTION_TEXT);
+  t_objSection *data = objGetSection(obj, OBJ_SECTION_DATA);
+
   t_outputELFHead head = {0};
-  Elf32_Word textSecName, dataSecName, strtabSecName;
-  Elf32_Addr textAddr, dataAddr, strtabAddr;
-
-  outStrTblInit(&strTbl);
-
-  text = objGetSection(obj, OBJ_SECTION_TEXT);
-  data = objGetSection(obj, OBJ_SECTION_DATA);
-
   head.e.e_ident[EI_MAG0] = 0x7F;
   head.e.e_ident[EI_MAG1] = 'E';
   head.e.e_ident[EI_MAG2] = 'L';
@@ -302,7 +288,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
   head.e.e_shnum = SEC_NUM;
   head.e.e_shstrndx = SEC_ID_SYMTAB;
 
-  l_entry = objFindLabel(obj, "_start");
+  t_objLabel *l_entry = objFindLabel(obj, "_start");
   if (!l_entry) {
     emitWarning(nullFileLocation,
         "_start symbol not found, entry will be start of .text section");
@@ -311,10 +297,13 @@ t_outError outputToELF(t_object *obj, const char *fname)
     head.e.e_entry = objLabelGetPointer(l_entry);
   }
 
-  textAddr = sizeof(t_outputELFHead);
-  dataAddr = textAddr + objSecGetSize(text);
-  strtabAddr = dataAddr + objSecGetSize(data);
+  Elf32_Addr textAddr = sizeof(t_outputELFHead);
+  Elf32_Addr dataAddr = textAddr + objSecGetSize(text);
+  Elf32_Addr strtabAddr = dataAddr + objSecGetSize(data);
 
+  t_outStrTbl strTbl;
+  outStrTblInit(&strTbl);
+  Elf32_Word textSecName, dataSecName, strtabSecName;
   outStrTblAddString(&strTbl, ".text", &textSecName);
   outStrTblAddString(&strTbl, ".data", &dataSecName);
   outStrTblAddString(&strTbl, ".strtab", &strtabSecName);
@@ -329,7 +318,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
   head.s[SEC_ID_SYMTAB] =
       outputStrTabToELFSHdr(&strTbl, strtabAddr, strtabSecName);
 
-  fp = fopen(fname, "w");
+  FILE *fp = fopen(fname, "w");
   if (fp == NULL) {
     res = OUT_FILE_ERROR;
     goto exit;
