@@ -30,11 +30,11 @@
 /// Type for register identifiers.
 typedef int t_regID;
 
-
 /// Constant used for invalid register identifiers.
 #define REG_INVALID ((t_regID)(-1))
 /// Constant identifying a register whose value is always zero.
 #define REG_0       ((t_regID)(0))
+
 
 /** Supported data types */
 typedef enum {
@@ -154,11 +154,11 @@ t_regID getNewRegister(t_program *program);
 /** Add a new instruction at the end the current program's list of instructions.
  * @param program   The program where to add the instruction
  * @param opcode    Identifier for the operation performed by the instruction
- * @param r_dest    Identifier of the destination register argument,
+ * @param rd    Identifier of the destination register argument,
  *                  or REG_INVALID if none
- * @param r_src1    Identifier of the first source register argument,
+ * @param rs1    Identifier of the first source register argument,
  *                  or REG_INVALID if none
- * @param r_src2    Identifier of the second source register argument,
+ * @param rs2    Identifier of the second source register argument,
  *                  or REG_INVALID if none
  * @param label     Label object representing the label argument,
  *                  or NULL if none
@@ -170,8 +170,8 @@ t_regID getNewRegister(t_program *program);
  *          instructions.
  *          Use the helper functions in codegen.h instead for generating
  *          instructions. */
-t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
-    t_regID r_src1, t_regID r_src2, t_label *label, int immediate);
+t_instruction *genInstruction(t_program *program, int opcode, t_regID rd,
+    t_regID rs1, t_regID rs2, t_label *label, int immediate);
 
 /** Remove an instruction from the program, given its node in the instruction
  * list.

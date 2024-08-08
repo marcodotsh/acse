@@ -47,7 +47,7 @@ $(objdir)/parser.tab.c: $(y_src)
 	$(BISON) $(YFLAGS) -o $@ -d $< 
 
 $(version_c): ../VERSION
-	printf 'const char *axe_version = "%s";\n' `cat $<` > $@
+	printf 'const char *acseVersion = "%s";\n' `cat $<` > $@
 
 $(version_c): | $(objdir)
 $(derived_c_src): | $(objdir)

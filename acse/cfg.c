@@ -87,14 +87,14 @@ static void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
   }
 
   // Fill the def/use sets for this node
-  int def_i = 0;
+  int defIdx = 0;
   if (regDest)
-    node->defs[def_i++] = regDest;
-  int use_i = 0;
+    node->defs[defIdx++] = regDest;
+  int useIdx = 0;
   if (regSource1)
-    node->uses[use_i++] = regSource1;
+    node->uses[useIdx++] = regSource1;
   if (regSource2)
-    node->uses[use_i++] = regSource2;
+    node->uses[useIdx++] = regSource2;
 }
 
 t_cfgNode *createCFGNode(t_cfg *graph, t_instruction *instr)
@@ -148,11 +148,11 @@ void deleteBasicBlock(t_basicBlock *block)
   if (block->succ != NULL)
     deleteList(block->succ);
 
-  t_listNode *current_element = block->nodes;
-  while (current_element != NULL) {
-    t_cfgNode *current_node = (t_cfgNode *)current_element->data;
-    deleteCFGNode(current_node);
-    current_element = current_element->next;
+  t_listNode *curNode = block->nodes;
+  while (curNode != NULL) {
+    t_cfgNode *curCFGNode = (t_cfgNode *)curNode->data;
+    deleteCFGNode(curCFGNode);
+    curNode = curNode->next;
   }
 
   deleteList(block->nodes);
@@ -177,41 +177,41 @@ void bbAddSucc(t_basicBlock *block, t_basicBlock *succ)
   }
 }
 
-t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *node)
+t_cfgError bbInsertNode(t_basicBlock *block, t_cfgNode *newNode)
 {
-  if (listFind(block->nodes, node) != NULL)
+  if (listFind(block->nodes, newNode) != NULL)
     return CFG_ERROR_NODE_ALREADY_INSERTED;
 
-  block->nodes = listInsert(block->nodes, node, -1);
+  block->nodes = listInsert(block->nodes, newNode, -1);
   return CFG_NO_ERROR;
 }
 
 t_cfgError bbInsertNodeBefore(
-    t_basicBlock *block, t_cfgNode *before_node, t_cfgNode *new_node)
+    t_basicBlock *block, t_cfgNode *ip, t_cfgNode *newNode)
 {
-  t_listNode *before_node_elem = listFind(block->nodes, before_node);
-  if (before_node_elem == NULL)
+  t_listNode *listIP = listFind(block->nodes, ip);
+  if (listIP == NULL)
     return CFG_ERROR_INVALID_NODE;
 
-  if (listFind(block->nodes, new_node) != NULL)
+  if (listFind(block->nodes, newNode) != NULL)
     return CFG_ERROR_NODE_ALREADY_INSERTED;
 
-  block->nodes = listInsertBefore(block->nodes, before_node_elem, new_node);
+  block->nodes = listInsertBefore(block->nodes, listIP, newNode);
   return CFG_NO_ERROR;
 }
 
 /* insert a new node without updating the dataflow informations */
 t_cfgError bbInsertNodeAfter(
-    t_basicBlock *block, t_cfgNode *after_node, t_cfgNode *new_node)
+    t_basicBlock *block, t_cfgNode *nextCFGNode, t_cfgNode *newNode)
 {
-  t_listNode *after_node_elem = listFind(block->nodes, after_node);
-  if (after_node_elem == NULL)
+  t_listNode *listIP = listFind(block->nodes, nextCFGNode);
+  if (listIP == NULL)
     return CFG_ERROR_INVALID_NODE;
 
-  if (listFind(block->nodes, new_node) != NULL)
+  if (listFind(block->nodes, newNode) != NULL)
     return CFG_ERROR_NODE_ALREADY_INSERTED;
 
-  block->nodes = listInsertAfter(block->nodes, after_node_elem, new_node);
+  block->nodes = listInsertAfter(block->nodes, listIP, newNode);
   return CFG_NO_ERROR;
 }
 
@@ -234,13 +234,11 @@ void deleteCFG(t_cfg *graph)
   if (graph == NULL)
     return;
 
-  t_listNode *current_element = graph->blocks;
-  while (current_element != NULL) {
-    t_basicBlock *current_block = (t_basicBlock *)current_element->data;
-
-    deleteBasicBlock(current_block);
-
-    current_element = current_element->next;
+  t_listNode *curNode = graph->blocks;
+  while (curNode != NULL) {
+    t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
+    deleteBasicBlock(curBlock);
+    curNode = curNode->next;
   }
 
   if (graph->blocks != NULL)
@@ -248,16 +246,16 @@ void deleteCFG(t_cfg *graph)
   if (graph->endingBlock != NULL)
     deleteBasicBlock(graph->endingBlock);
   if (graph->registers != NULL) {
-    t_listNode *current_element = graph->registers;
-    while (current_element != NULL) {
-      t_cfgReg *currentRegister = (t_cfgReg *)current_element->data;
+    t_listNode *curNode = graph->registers;
+    while (curNode != NULL) {
+      t_cfgReg *curReg = (t_cfgReg *)curNode->data;
 
-      if (currentRegister != NULL) {
-        deleteList(currentRegister->mcRegWhitelist);
-        free(currentRegister);
+      if (curReg != NULL) {
+        deleteList(curReg->mcRegWhitelist);
+        free(curReg);
       }
 
-      current_element = current_element->next;
+      curNode = curNode->next;
     }
 
     deleteList(graph->registers);
@@ -273,20 +271,20 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
     return NULL;
 
   t_basicBlock *bblock = NULL;
-  t_listNode *current_element = graph->blocks;
-  while (current_element != NULL) {
-    bblock = (t_basicBlock *)current_element->data;
+  t_listNode *curNode = graph->blocks;
+  while (curNode != NULL) {
+    bblock = (t_basicBlock *)curNode->data;
 
     // Check the first node of the basic block. If its instruction has a label,
     // check if it's the label we are searching fore.
-    t_cfgNode *current_node = (t_cfgNode *)bblock->nodes->data;
-    if ((current_node->instr)->label != NULL) {
-      if ((current_node->instr)->label->labelID == label->labelID)
+    t_cfgNode *curCFGNode = (t_cfgNode *)bblock->nodes->data;
+    if ((curCFGNode->instr)->label != NULL) {
+      if ((curCFGNode->instr)->label->labelID == label->labelID)
         // Found!
         break;
     }
 
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
 
   return bblock;
@@ -321,34 +319,34 @@ static void cfgComputeTransitions(t_cfg *graph)
   // found at the end of (some of the) basic blocks. The algorithm for adding
   // the transitions simply consists of searching for every branch, and adding
   // the correct outgoing edges to its basic block.
-  t_listNode *current_element = graph->blocks;
-  while (current_element != NULL) {
-    t_basicBlock *current_block = (t_basicBlock *)current_element->data;
+  t_listNode *curNode = graph->blocks;
+  while (curNode != NULL) {
+    t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
 
     // Get the last instruction in the basic block
-    t_listNode *last_element = listGetLastNode(current_block->nodes);
-    t_cfgNode *last_node = (t_cfgNode *)last_element->data;
-    t_instruction *last_instruction = last_node->instr;
+    t_listNode *lastNode = listGetLastNode(curBlock->nodes);
+    t_cfgNode *lastCFGNode = (t_cfgNode *)lastNode->data;
+    t_instruction *lastInstr = lastCFGNode->instr;
 
     // If the instruction is return-like or exit-like, by definition the next
     // block is the ending block because it stops the program/subroutine.
-    if (isHaltOrRetInstruction(last_instruction)) {
-      bbAddSucc(current_block, graph->endingBlock);
-      bbAddPred(graph->endingBlock, current_block);
+    if (isHaltOrRetInstruction(lastInstr)) {
+      bbAddSucc(curBlock, graph->endingBlock);
+      bbAddPred(graph->endingBlock, curBlock);
       continue;
     }
 
     // All branch/jump instructions may transfer control to the code
     // indicated by their label argument, so add edges appropriately.
-    if (isJumpInstruction(last_instruction)) {
-      if (last_instruction->addressParam == NULL)
+    if (isJumpInstruction(lastInstr)) {
+      if (lastInstr->addressParam == NULL)
         fatalError("bug: malformed jump instruction with no label in CFG");
       t_basicBlock *jumpBlock =
-          cfgSearchLabel(graph, last_instruction->addressParam);
+          cfgSearchLabel(graph, lastInstr->addressParam);
       if (jumpBlock == NULL)
         fatalError("bug: malformed jump instruction with invalid label in CFG");
-      bbAddPred(jumpBlock, current_block);
-      bbAddSucc(current_block, jumpBlock);
+      bbAddPred(jumpBlock, curBlock);
+      bbAddSucc(curBlock, jumpBlock);
     }
 
     // Additionally, conditional jumps may also not be taken, and in that
@@ -356,22 +354,22 @@ static void cfgComputeTransitions(t_cfg *graph)
     //   As the order of the blocks in the block list reflects the order of
     // the instructions in the program, we can rely on this property to fetch
     // the correct block for this fallthrough case.
-    if (!isUnconditionalJump(last_instruction)) {
-      t_listNode *next_element = current_element->next;
-      if (next_element != NULL) {
+    if (!isUnconditionalJump(lastInstr)) {
+      t_listNode *nextNode = curNode->next;
+      if (nextNode != NULL) {
         // The current basic block has a successor in the list, all is fine
-        t_basicBlock *nextBlock = next_element->data;
-        bbAddSucc(current_block, nextBlock);
-        bbAddPred(nextBlock, current_block);
+        t_basicBlock *nextBlock = nextNode->data;
+        bbAddSucc(curBlock, nextBlock);
+        bbAddPred(nextBlock, curBlock);
       } else {
         // If this is the last basic block in the list, the next block is
         // the ending block (which exists outside the list)
-        bbAddSucc(current_block, graph->endingBlock);
-        bbAddPred(graph->endingBlock, current_block);
+        bbAddSucc(curBlock, graph->endingBlock);
+        bbAddPred(graph->endingBlock, curBlock);
       }
     }
 
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
 }
 
@@ -393,17 +391,17 @@ t_cfg *programToCFG(t_program *program)
   // block is created lazily at the next instruction found. This ensures no
   // empty blocks are created.
   t_basicBlock *bblock = NULL;
-  t_listNode *current_element = instructions;
-  while (current_element != NULL) {
-    t_instruction *current_instr = (t_instruction *)current_element->data;
+  t_listNode *curNode = instructions;
+  while (curNode != NULL) {
+    t_instruction *curInstr = (t_instruction *)curNode->data;
 
     // create the next node to insert in the block
-    t_cfgNode *current_node = createCFGNode(result, current_instr);
+    t_cfgNode *curCFGNode = createCFGNode(result, curInstr);
 
     // If the instruction node needs to be at the beginning of a basic block
     // (= is labeled) or if `bblock' is NULL (because the last instruction was
     // a terminator) then create a new basic block.
-    if (instrIsStartingNode(current_instr) || bblock == NULL) {
+    if (instrIsStartingNode(curInstr) || bblock == NULL) {
       bblock = newBasicBlock();
       // Add the block to the graph.
       t_cfgError error = cfgInsertBlock(result, bblock);
@@ -411,15 +409,15 @@ t_cfg *programToCFG(t_program *program)
     }
 
     // Add the instruction to the current basic block
-    t_cfgError error = bbInsertNode(bblock, current_node);
+    t_cfgError error = bbInsertNode(bblock, curCFGNode);
     assert(error == CFG_NO_ERROR && "bbInsertNode failed, corrupt CFG?");
 
     // If the instruction is a basic block terminator, set `bblock' to NULL
     // to stop inserting nodes into it.
-    if (instrIsEndingNode(current_instr))
+    if (instrIsEndingNode(curInstr))
       bblock = NULL;
 
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
 
   // Now all the blocks have been created, we need to add the edges between
@@ -435,23 +433,23 @@ int cfgIterateNodes(t_cfg *graph, void *context,
   int counter = 0;
   int exitcode = 0;
 
-  t_listNode *current_bb_element = graph->blocks;
-  while (current_bb_element != NULL) {
-    t_basicBlock *current_block = (t_basicBlock *)current_bb_element->data;
+  t_listNode *curBlockNode = graph->blocks;
+  while (curBlockNode != NULL) {
+    t_basicBlock *curBlock = (t_basicBlock *)curBlockNode->data;
 
-    t_listNode *current_nd_element = current_block->nodes;
-    while (current_nd_element != NULL) {
-      t_cfgNode *current_node = (t_cfgNode *)current_nd_element->data;
+    t_listNode *curInnerNode = curBlock->nodes;
+    while (curInnerNode != NULL) {
+      t_cfgNode *curCFGNode = (t_cfgNode *)curInnerNode->data;
 
-      exitcode = callback(current_block, current_node, counter, context);
+      exitcode = callback(curBlock, curCFGNode, counter, context);
       if (exitcode != 0)
         return exitcode;
 
       counter++;
-      current_nd_element = current_nd_element->next;
+      curInnerNode = curInnerNode->next;
     }
 
-    current_bb_element = current_bb_element->next;
+    curBlockNode = curBlockNode->next;
   }
   return exitcode;
 }
@@ -463,19 +461,19 @@ void cfgToProgram(t_program *program, t_cfg *graph)
 
   // Iterate through all the instructions in all the basic blocks (in order)
   // and re-add them to the program.
-  t_listNode *current_bb_element = graph->blocks;
-  while (current_bb_element != NULL) {
-    t_basicBlock *bblock = (t_basicBlock *)current_bb_element->data;
-    t_listNode *current_nd_element = bblock->nodes;
-    while (current_nd_element != NULL) {
-      t_cfgNode *node = (t_cfgNode *)current_nd_element->data;
+  t_listNode *curBlockNode = graph->blocks;
+  while (curBlockNode != NULL) {
+    t_basicBlock *bblock = (t_basicBlock *)curBlockNode->data;
+    t_listNode *curInnerNode = bblock->nodes;
+    while (curInnerNode != NULL) {
+      t_cfgNode *node = (t_cfgNode *)curInnerNode->data;
 
       program->instructions =
           listInsert(program->instructions, node->instr, -1);
 
-      current_nd_element = current_nd_element->next;
+      curInnerNode = curInnerNode->next;
     }
-    current_bb_element = current_bb_element->next;
+    curBlockNode = curBlockNode->next;
   }
 }
 
@@ -522,11 +520,11 @@ static t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
     bool (*compareFunc)(void *a, void *b), bool *modified)
 {
   // Add all the elements to the set one by one
-  t_listNode *current_element = elements;
-  while (current_element != NULL) {
-    void *current_data = current_element->data;
-    set = addElementToSet(set, current_data, compareFunc, modified);
-    current_element = current_element->next;
+  t_listNode *curNode = elements;
+  while (curNode != NULL) {
+    void *curData = curNode->data;
+    set = addElementToSet(set, curData, compareFunc, modified);
+    curNode = curNode->next;
   }
 
   // return the new list
@@ -550,21 +548,21 @@ static t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
 
   // Remove items from set of definitions as long as they are not present in
   // the set of uses
-  for (int def_i = 0; def_i < CFG_MAX_DEFS; def_i++) {
+  for (int defIdx = 0; defIdx < CFG_MAX_DEFS; defIdx++) {
     int found = 0;
 
-    if (defs[def_i] == NULL)
+    if (defs[defIdx] == NULL)
       continue;
-    if (TARGET_REG_ZERO_IS_CONST && defs[def_i]->tempRegID == REG_0)
+    if (TARGET_REG_ZERO_IS_CONST && defs[defIdx]->tempRegID == REG_0)
       continue;
 
-    for (int use_i = 0; use_i < CFG_MAX_USES && !found; use_i++) {
-      if (uses[use_i] && uses[use_i]->tempRegID == defs[def_i]->tempRegID)
+    for (int useIdx = 0; useIdx < CFG_MAX_USES && !found; useIdx++) {
+      if (uses[useIdx] && uses[useIdx]->tempRegID == defs[defIdx]->tempRegID)
         found = 1;
     }
 
     if (!found)
-      liveIn = listFindAndRemove(liveIn, defs[def_i]);
+      liveIn = listFindAndRemove(liveIn, defs[defIdx]);
   }
 
   return liveIn;
@@ -577,19 +575,19 @@ static t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 {
   // Iterate through all the successor blocks
   t_listNode *result = NULL;
-  t_listNode *current_elem = block->succ;
-  while (current_elem != NULL) {
-    t_basicBlock *current_succ = (t_basicBlock *)current_elem->data;
+  t_listNode *curSuccNode = block->succ;
+  while (curSuccNode != NULL) {
+    t_basicBlock *curSuccessor = (t_basicBlock *)curSuccNode->data;
 
-    if (current_succ != graph->endingBlock) {
+    if (curSuccessor != graph->endingBlock) {
       // Update our block's 'out' set by adding all registers 'in' to the
       // current successor
-      t_listNode *liveINRegs = bbGetLiveIn(current_succ);
+      t_listNode *liveINRegs = bbGetLiveIn(curSuccessor);
       result = addElementsToSet(result, liveINRegs, NULL, NULL);
       deleteList(liveINRegs);
     }
 
-    current_elem = current_elem->next;
+    curSuccNode = curSuccNode->next;
   }
 
   return result;
@@ -640,15 +638,15 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
 static bool cfgPerformLivenessIteration(t_cfg *graph)
 {
   bool modified = false;
-  t_listNode *current_element = listGetLastNode(graph->blocks);
-  while (current_element != NULL) {
-    t_basicBlock *current_bblock = (t_basicBlock *)current_element->data;
+  t_listNode *curNode = listGetLastNode(graph->blocks);
+  while (curNode != NULL) {
+    t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
 
     // update the liveness informations for the current bblock
-    if (cfgUpdateLivenessOfNodesInBlock(graph, current_bblock))
+    if (cfgUpdateLivenessOfNodesInBlock(graph, curBlock))
       modified = true;
 
-    current_element = current_element->prev;
+    curNode = curNode->prev;
   }
   return modified;
 }
@@ -693,7 +691,7 @@ static void dumpArrayOfCFGRegisters(t_cfgReg **array, int size, FILE *fout)
 static void dumpListOfCFGRegisters(t_listNode *regs, FILE *fout)
 {
   t_listNode *currentListNode;
-  t_cfgReg *currentRegister;
+  t_cfgReg *curReg;
 
   if (regs == NULL)
     return;
@@ -702,8 +700,8 @@ static void dumpListOfCFGRegisters(t_listNode *regs, FILE *fout)
 
   currentListNode = regs;
   while (currentListNode != NULL) {
-    currentRegister = (t_cfgReg *)currentListNode->data;
-    dumpCFGRegister(currentRegister, fout);
+    curReg = (t_cfgReg *)currentListNode->data;
+    dumpCFGRegister(curReg, fout);
     if (currentListNode->next != NULL)
       fprintf(fout, ", ");
 
@@ -759,28 +757,28 @@ static void cfgDumpBB(t_cfg *cfg, t_basicBlock *block, FILE *fout, bool verbose)
   int count = 1;
   t_listNode *elem = block->nodes;
   while (elem != NULL) {
-    t_cfgNode *current_node = (t_cfgNode *)elem->data;
+    t_cfgNode *curCFGNode = (t_cfgNode *)elem->data;
 
     fprintf(fout, "  Node %4d: ", count);
-    if (current_node->instr == NULL)
+    if (curCFGNode->instr == NULL)
       fprintf(fout, "(null)");
     else
-      printInstruction(current_node->instr, fout, false);
+      printInstruction(curCFGNode->instr, fout, false);
     fprintf(fout, "\n");
 
     if (verbose) {
       fprintf(fout, "    def = {");
-      dumpArrayOfCFGRegisters(current_node->defs, CFG_MAX_DEFS, fout);
+      dumpArrayOfCFGRegisters(curCFGNode->defs, CFG_MAX_DEFS, fout);
       fprintf(fout, "}\n");
       fprintf(fout, "    use = {");
-      dumpArrayOfCFGRegisters(current_node->uses, CFG_MAX_USES, fout);
+      dumpArrayOfCFGRegisters(curCFGNode->uses, CFG_MAX_USES, fout);
       fprintf(fout, "}\n");
 
       fprintf(fout, "    in  = {");
-      dumpListOfCFGRegisters(current_node->in, fout);
+      dumpListOfCFGRegisters(curCFGNode->in, fout);
       fprintf(fout, "}\n");
       fprintf(fout, "    out = {");
-      dumpListOfCFGRegisters(current_node->out, fout);
+      dumpListOfCFGRegisters(curCFGNode->out, fout);
       fprintf(fout, "}\n");
     }
 
@@ -813,15 +811,15 @@ void cfgDump(t_cfg *graph, FILE *fout, bool verbose)
   fprintf(fout, "## Basic Blocks\n\n");
 
   int counter = 1;
-  t_listNode *current_element = graph->blocks;
-  while (current_element != NULL) {
-    t_basicBlock *current_bblock = (t_basicBlock *)current_element->data;
+  t_listNode *curNode = graph->blocks;
+  while (curNode != NULL) {
+    t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
     fprintf(fout, "Block %d:\n", counter);
-    cfgDumpBB(graph, current_bblock, fout, verbose);
+    cfgDumpBB(graph, curBlock, fout, verbose);
     fprintf(fout, "\n");
 
     counter++;
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
   fflush(fout);
 }

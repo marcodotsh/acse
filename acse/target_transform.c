@@ -295,9 +295,6 @@ void fixSyscalls(t_program *program)
   while (curi) {
     t_listNode *transformedInstrLnk = curi;
     t_instruction *instr = curi->data;
-    t_instruction *tmp, *ecall;
-    int func;
-    t_regID r_func, r_arg, r_dest;
 
     if (instr->opcode != OPC_CALL_EXIT_0 &&
         instr->opcode != OPC_CALL_READ_INT &&
@@ -308,6 +305,7 @@ void fixSyscalls(t_program *program)
     }
 
     /* load syscall ID in a7 */
+    int func;
     if (instr->opcode == OPC_CALL_EXIT_0)
       func = SYSCALL_ID_EXIT_0;
     else if (instr->opcode == OPC_CALL_PRINT_INT)
@@ -316,24 +314,26 @@ void fixSyscalls(t_program *program)
       func = SYSCALL_ID_READ_INT;
     else // if (instr->opcode == OPC_CALL_PRINT_CHAR)
       func = SYSCALL_ID_PRINT_CHAR;
-    r_func = getNewRegister(program);
-    curi = addInstrAfter(program, curi, genLI(NULL, r_func, func));
+    t_regID rFunc = getNewRegister(program);
+    curi = addInstrAfter(program, curi, genLI(NULL, rFunc, func));
 
     /* load argument in a0, if there is one */
+    t_regID rArg;
     if (instr->rSrc1) {
-      r_arg = getNewRegister(program);
-      tmp = genADDI(NULL, r_arg, RS1(instr), 0);
+      rArg = getNewRegister(program);
+      t_instruction *tmp = genADDI(NULL, rArg, RS1(instr), 0);
       curi = addInstrAfter(program, curi, tmp);
     } else {
-      r_arg = REG_INVALID;
+      rArg = REG_INVALID;
     }
 
     /* generate an ECALL */
+    t_regID rd;
     if (instr->rDest)
-      r_dest = getNewRegister(program);
+      rd = getNewRegister(program);
     else
-      r_dest = REG_INVALID;
-    ecall = genInstruction(NULL, OPC_ECALL, r_dest, r_func, r_arg, NULL, 0);
+      rd = REG_INVALID;
+    t_instruction *ecall = genInstruction(NULL, OPC_ECALL, rd, rFunc, rArg, NULL, 0);
     curi = addInstrAfter(program, curi, ecall);
     if (ecall->rDest)
       setMCRegisterWhitelist(ecall->rDest, REG_A0, -1);
@@ -345,7 +345,7 @@ void fixSyscalls(t_program *program)
     /* move a0 (result) to the destination reg. if needed */
     if (instr->rDest)
       curi = addInstrAfter(
-          program, curi, genADDI(NULL, RD(instr), r_dest, 0));
+          program, curi, genADDI(NULL, RD(instr), rd, 0));
 
     /* remove the old call instruction */
     removeInstructionAt(program, transformedInstrLnk);

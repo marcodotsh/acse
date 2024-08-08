@@ -109,21 +109,21 @@ void deleteInstruction(t_instruction *inst)
 
 void deleteInstructions(t_listNode *instructions)
 {
-  t_listNode *current_element;
-  t_instruction *current_instr;
+  t_listNode *curNode;
+  t_instruction *curInstr;
 
   /* nothing to finalize */
   if (instructions == NULL)
     return;
 
-  current_element = instructions;
-  while (current_element != NULL) {
+  curNode = instructions;
+  while (curNode != NULL) {
     /* retrieve the current instruction */
-    current_instr = (t_instruction *)current_element->data;
-    if (current_instr != NULL)
-      deleteInstruction(current_instr);
+    curInstr = (t_instruction *)curNode->data;
+    if (curInstr != NULL)
+      deleteInstruction(curInstr);
 
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
 
   /* free the list of instructions */
@@ -132,16 +132,11 @@ void deleteInstructions(t_listNode *instructions)
 
 void deleteLabels(t_listNode *labels)
 {
-  t_listNode *current_element = labels;
-  while (current_element != NULL) {
-    /* retrieve the current label */
-    t_label *current_label = (t_label *)current_element->data;
-
-    /* free the memory associated with the current label */
-    deleteLabel(current_label);
-
-    /* fetch the next label */
-    current_element = current_element->next;
+  t_listNode *curNode = labels;
+  while (curNode != NULL) {
+    t_label *curLabel = (t_label *)curNode->data;
+    deleteLabel(curLabel);
+    curNode = curNode->next;
   }
   deleteList(labels);
 }
@@ -173,56 +168,44 @@ static void deleteSymbol(t_symbol *s)
 
 static void deleteSymbols(t_listNode *variables)
 {
-  t_listNode *current_element;
-  t_symbol *current_var;
-
   if (variables == NULL)
     return;
 
-  /* initialize the `current_element' */
-  current_element = variables;
-  while (current_element != NULL) {
-    current_var = (t_symbol *)current_element->data;
-    if (current_var != NULL) {
-      if (current_var->ID != NULL)
-        free(current_var->ID);
+  t_listNode *curNode = variables;
+  while (curNode != NULL) {
+    t_symbol *curSymbol = (t_symbol *)curNode->data;
+    if (curSymbol != NULL) {
+      if (curSymbol->ID != NULL)
+        free(curSymbol->ID);
 
-      free(current_var);
+      free(curSymbol);
     }
 
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
 
-  /* free the list of variables */
   deleteList(variables);
 }
 
 /* initialize an instance of `t_program' */
 t_program *newProgram(void)
 {
-  t_program *result;
-  t_label *l_start;
-
-  /* initialize the local variable `result' */
-  result = (t_program *)malloc(sizeof(t_program));
+  t_program *result = (t_program *)malloc(sizeof(t_program));
   if (result == NULL)
     fatalError("out of memory");
-
-  /* initialize the new instance of `result' */
   result->symbols = NULL;
   result->instructions = NULL;
-  result->firstUnusedReg = 1; /* we are excluding the register R0 */
+  result->firstUnusedReg = 1; // we are excluding register R0
   result->labels = NULL;
   result->firstUnusedLblID = 0;
   result->pendingLabel = NULL;
 
-  /* Create the start label */
-  l_start = createLabel(result);
-  l_start->global = 1;
-  setLabelName(result, l_start, "_start");
-  assignLabel(result, l_start);
+  // Create the start label
+  t_label *lStart = createLabel(result);
+  lStart->global = 1;
+  setLabelName(result, lStart, "_start");
+  assignLabel(result, lStart);
 
-  /* postcondition: return an instance of `t_program' */
   return result;
 }
 
@@ -242,18 +225,11 @@ void deleteProgram(t_program *program)
 
 t_label *createLabel(t_program *program)
 {
-  /* initialize a new label */
   t_label *result = newLabel(program->firstUnusedLblID);
   if (result == NULL)
     fatalError("out of memory");
-
-  /* update the value of `current_label_ID' */
   program->firstUnusedLblID++;
-
-  /* add the new label to the list of labels */
   program->labels = listInsert(program->labels, result, -1);
-
-  /* return the new label */
   return result;
 }
 
@@ -263,15 +239,15 @@ void setRawLabelName(t_program *program, t_label *label, const char *finalName)
 {
   t_listNode *i;
 
-  /* check the entire list of labels because there might be two
-   * label objects with the same ID and they need to be kept in sync */
+  // check the entire list of labels because there might be two
+  // label objects with the same ID and they need to be kept in sync
   for (i = program->labels; i != NULL; i = i->next) {
     t_label *thisLab = i->data;
 
     if (thisLab->labelID == label->labelID) {
-      /* found! remove old name */
+      // found! remove old name
       free(thisLab->name);
-      /* change to new name */
+      // change to new name
       if (finalName)
         thisLab->name = strdup(finalName);
       else
@@ -282,24 +258,24 @@ void setRawLabelName(t_program *program, t_label *label, const char *finalName)
 
 void setLabelName(t_program *program, t_label *label, const char *name)
 {
-  int serial = -1;
-  size_t allocatedSpace;
-  bool ok;
-  char *sanitizedName, *finalName, *dstp;
-  const char *srcp;
-
-  /* remove all non a-zA-Z0-9_ characters */
-  sanitizedName = calloc(strlen(name) + 1, sizeof(char));
-  srcp = name;
-  for (dstp = sanitizedName; *srcp; srcp++) {
+  // remove all non a-zA-Z0-9_ characters
+  char *sanitizedName = calloc(strlen(name) + 1, sizeof(char));
+  if (!sanitizedName)
+    fatalError("out of memory");
+  const char *srcp = name;
+  for (char *dstp = sanitizedName; *srcp; srcp++) {
     if (*srcp == '_' || isalnum(*srcp))
       *dstp++ = *srcp;
   }
 
-  /* append a sequential number to disambiguate labels with the same name */
-  allocatedSpace = strlen(sanitizedName) + 24;
-  finalName = calloc(allocatedSpace, sizeof(char));
+  // append a sequential number to disambiguate labels with the same name
+  size_t allocatedSpace = strlen(sanitizedName) + 24;
+  char *finalName = calloc(allocatedSpace, sizeof(char));
+  if (!finalName)
+    fatalError("out of memory");
   snprintf(finalName, allocatedSpace, "%s", sanitizedName);
+  int serial = -1;
+  bool ok;
   do {
     t_listNode *i;
     ok = true;
@@ -414,34 +390,31 @@ void addInstruction(t_program *program, t_instruction *instr)
   program->instructions = listInsert(program->instructions, instr, -1);
 }
 
-t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
-    t_regID r_src1, t_regID r_src2, t_label *label, int immediate)
+t_instruction *genInstruction(t_program *program, int opcode, t_regID rd,
+    t_regID rs1, t_regID rs2, t_label *label, int immediate)
 {
-  t_instruction *instr;
+  t_instruction *instr = newInstruction(opcode);
 
-  /* create an instance of `t_instruction' */
-  instr = newInstruction(opcode);
+  // initialize the instruction's registers
+  if (rd != REG_INVALID)
+    instr->rDest = newInstrArg(rd);
+  if (rs1 != REG_INVALID)
+    instr->rSrc1 = newInstrArg(rs1);
+  if (rs2 != REG_INVALID)
+    instr->rSrc2 = newInstrArg(rs2);
 
-  /* initialize the instruction's registers */
-  if (r_dest != REG_INVALID)
-    instr->rDest = newInstrArg(r_dest);
-  if (r_src1 != REG_INVALID)
-    instr->rSrc1 = newInstrArg(r_src1);
-  if (r_src2 != REG_INVALID)
-    instr->rSrc2 = newInstrArg(r_src2);
-
-  /* attach an address if needed */
+  // attach an address if needed
   if (label)
     instr->addressParam = label;
 
-  /* initialize the immediate field */
+  // initialize the immediate field
   instr->immediate = immediate;
 
-  /* add the newly created instruction to the current program */
+  // add the newly created instruction to the current program
   if (program != NULL)
     addInstruction(program, instr);
 
-  /* return the load instruction */
+  // return the load instruction
   return instr;
 }
 
@@ -486,8 +459,6 @@ t_regID getNewRegister(t_program *program)
 {
   t_regID result = program->firstUnusedReg;
   program->firstUnusedReg++;
-
-  /* return the current label identifier */
   return result;
 }
 
@@ -570,12 +541,12 @@ void genProgramEpilog(t_program *program)
 
   if (program->instructions != NULL) {
     /* get the last element of the list */
-    t_listNode *last_element = listGetLastNode(program->instructions);
+    t_listNode *lastNode = listGetLastNode(program->instructions);
 
     /* retrieve the last instruction */
-    t_instruction *last_instr = (t_instruction *)last_element->data;
+    t_instruction *lastInstr = (t_instruction *)lastNode->data;
 
-    if (last_instr->opcode == OPC_CALL_EXIT_0)
+    if (lastInstr->opcode == OPC_CALL_EXIT_0)
       return;
   }
 
@@ -585,8 +556,6 @@ void genProgramEpilog(t_program *program)
 
 void dumpProgram(t_program *program, FILE *fout)
 {
-  t_listNode *cur_var, *cur_inst;
-
   fprintf(fout, "**************************\n");
   fprintf(fout, "          PROGRAM         \n");
   fprintf(fout, "**************************\n\n");
@@ -594,9 +563,9 @@ void dumpProgram(t_program *program, FILE *fout)
   fprintf(fout, "-----------\n");
   fprintf(fout, " VARIABLES\n");
   fprintf(fout, "-----------\n");
-  cur_var = program->symbols;
-  while (cur_var) {
-    t_symbol *var = cur_var->data;
+  t_listNode *curVarNode = program->symbols;
+  while (curVarNode) {
+    t_symbol *var = curVarNode->data;
     fprintf(fout, "[%s]\n", var->ID);
 
     if (var->type == TYPE_INT) {
@@ -610,21 +579,21 @@ void dumpProgram(t_program *program, FILE *fout)
     fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
     free(labelName);
 
-    cur_var = cur_var->next;
+    curVarNode = curVarNode->next;
   }
 
   fprintf(fout, "\n--------------\n");
   fprintf(fout, " INSTRUCTIONS\n");
   fprintf(fout, "--------------\n");
-  cur_inst = program->instructions;
-  while (cur_inst) {
-    t_instruction *instr = cur_inst->data;
+  t_listNode *curInstNode = program->instructions;
+  while (curInstNode) {
+    t_instruction *instr = curInstNode->data;
     if (instr == NULL)
       fprintf(fout, "(null)");
     else
       printInstruction(instr, fout, false);
     fprintf(fout, "\n");
-    cur_inst = cur_inst->next;
+    curInstNode = curInstNode->next;
   }
 
   fflush(fout);

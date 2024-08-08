@@ -7,9 +7,6 @@
 #include <stdbool.h>
 #include "program.h"
 
-/** Convert an opcode ID to a string. */
-const char *opcodeToString(int opcode);
-
 /** Convert a register to a string. The result string is dynamically allocated
  * and must be freed. Returns NULL on error. */
 char *registerIDToString(t_regID regID, bool machineRegIDs);

@@ -471,21 +471,21 @@ bool translateCodeSegment(t_program *program, FILE *fp)
     return false;
 
   /* iterate through the instruction list */
-  t_listNode *current_element = program->instructions;
-  while (current_element != NULL) {
+  t_listNode *curNode = program->instructions;
+  while (curNode != NULL) {
     /* retrieve the current instruction */
-    t_instruction *current_instr = (t_instruction *)current_element->data;
-    if (current_instr == NULL)
+    t_instruction *curInstr = (t_instruction *)curNode->data;
+    if (curInstr == NULL)
       fatalError("bug: NULL instruction found in the program");
 
     /* print label, instruction and comment */
-    if (printInstruction(current_instr, fp, true) < 0)
+    if (printInstruction(curInstr, fp, true) < 0)
       return false;
     if (fprintf(fp, "\n") < 0)
       return false;
 
     /* advance to the next instruction */
-    current_element = current_element->next;
+    curNode = curNode->next;
   }
 
   return true;

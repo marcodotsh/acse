@@ -47,8 +47,8 @@ void yyerror(const char *msg)
   t_symbol *var;
   t_listNode *list;
   t_label *label;
-  t_ifStatement if_stmt;
-  t_whileStatement while_stmt;
+  t_ifStmt ifStmt;
+  t_whileStmt whileStmt;
 }
 
 /******************************************************************************
@@ -71,8 +71,8 @@ void yyerror(const char *msg)
 %token READ WRITE ELSE
 
 // These are the tokens with a semantic value of the given type.
-%token <if_stmt> IF
-%token <while_stmt> WHILE
+%token <ifStmt> IF
+%token <whileStmt> WHILE
 %token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
@@ -203,21 +203,21 @@ if_statement
   : IF LPAR exp RPAR
   {
     // Generate a jump to the else part if the expression is equal to zero.
-    $1.l_else = createLabel(program);
-    genBEQ(program, $3, REG_0, $1.l_else);
+    $1.lElse = createLabel(program);
+    genBEQ(program, $3, REG_0, $1.lElse);
   }
   code_block
   {
     // After the `then' part, generate a jump to the end of the statement
-    $1.l_exit = createLabel(program);
-    genJ(program, $1.l_exit);
+    $1.lExit = createLabel(program);
+    genJ(program, $1.lExit);
     // Assign the label which points to the first instruction of the else part
-    assignLabel(program, $1.l_else);
+    assignLabel(program, $1.lElse);
   }
   else_part
   {
     // Assign the label to the end of the statement
-    assignLabel(program, $1.l_exit);
+    assignLabel(program, $1.lExit);
   }
 ;
 
@@ -234,21 +234,21 @@ while_statement
   : WHILE
   {
     // Assign a label at the beginning of the loop for the back-edge
-    $1.l_loop = createLabel(program);
-    assignLabel(program, $1.l_loop);
+    $1.lLoop = createLabel(program);
+    assignLabel(program, $1.lLoop);
   }
   LPAR exp RPAR
   {
     // Generate a jump out of the loop if the condition is equal to zero
-    $1.l_exit = createLabel(program);
-    genBEQ(program, $4, REG_0, $1.l_exit);
+    $1.lExit = createLabel(program);
+    genBEQ(program, $4, REG_0, $1.lExit);
   }
   code_block
   {
     // Generate a jump back to the beginning of the loop after its body
-    genJ(program, $1.l_loop);
+    genJ(program, $1.lLoop);
     // Assign the label to the end of the loop
-    assignLabel(program, $1.l_exit);
+    assignLabel(program, $1.lExit);
   }
 ;
 
@@ -284,9 +284,9 @@ return_statement
 read_statement
   : READ LPAR var_id RPAR 
   {
-    t_regID r_tmp = getNewRegister(program);
-    genReadIntSyscall(program, r_tmp);
-    genStoreRegisterToVariable(program, $3, r_tmp);
+    t_regID rTmp = getNewRegister(program);
+    genReadIntSyscall(program, rTmp);
+    genStoreRegisterToVariable(program, $3, rTmp);
   }
 ;
 
@@ -298,9 +298,9 @@ write_statement
     // Generate a call to the PrintInt syscall.
     genPrintIntSyscall(program, $3);
     // Also generate code to print a newline after the integer
-    t_regID r_temp = getNewRegister(program);
-    genLI(program, r_temp, '\n');
-    genPrintCharSyscall(program, r_temp);
+    t_regID rTmp = getNewRegister(program);
+    genLI(program, rTmp, '\n');
+    genPrintCharSyscall(program, rTmp);
   }
 ;
 
@@ -420,21 +420,21 @@ exp
   }
   | exp ANDAND exp
   {
-    t_regID normalizedOp1 = getNewRegister(program);
-    genSNE(program, normalizedOp1, $1, REG_0);
-    t_regID normalizedOp2 = getNewRegister(program);
-    genSNE(program, normalizedOp2, $3, REG_0);
+    t_regID rNormalizedOp1 = getNewRegister(program);
+    genSNE(program, rNormalizedOp1, $1, REG_0);
+    t_regID rNormalizedOp2 = getNewRegister(program);
+    genSNE(program, rNormalizedOp2, $3, REG_0);
     $$ = getNewRegister(program);
-    genAND(program, $$, normalizedOp1, normalizedOp2);
+    genAND(program, $$, rNormalizedOp1, rNormalizedOp2);
   }
   | exp OROR exp
   {
-    t_regID normalizedOp1 = getNewRegister(program);
-    genSNE(program, normalizedOp1, $1, REG_0);
-    t_regID normalizedOp2 = getNewRegister(program);
-    genSNE(program, normalizedOp2, $3, REG_0);
+    t_regID rNormalizedOp1 = getNewRegister(program);
+    genSNE(program, rNormalizedOp1, $1, REG_0);
+    t_regID rNormalizedOp2 = getNewRegister(program);
+    genSNE(program, rNormalizedOp2, $3, REG_0);
     $$ = getNewRegister(program);
-    genOR(program, $$, normalizedOp1, normalizedOp2);
+    genOR(program, $$, rNormalizedOp1, rNormalizedOp2);
   }
 ;
 

@@ -42,259 +42,238 @@ static t_instruction *genBFormatInstruction(
 }
 
 
-t_instruction *genADD(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genADD(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_ADD, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_ADD, rd, rs1, rs2);
 }
 
-t_instruction *genSUB(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSUB(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SUB, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SUB, rd, rs1, rs2);
 }
 
-t_instruction *genAND(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genAND(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_AND, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_AND, rd, rs1, rs2);
 }
 
-t_instruction *genOR(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genOR(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_OR, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_OR, rd, rs1, rs2);
 }
 
-t_instruction *genXOR(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genXOR(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_XOR, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_XOR, rd, rs1, rs2);
 }
 
-t_instruction *genMUL(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genMUL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_MUL, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_MUL, rd, rs1, rs2);
 }
 
-t_instruction *genDIV(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genDIV(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_DIV, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_DIV, rd, rs1, rs2);
 }
 
-t_instruction *genREM(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genREM(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_REM, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_REM, rd, rs1, rs2);
 }
 
-t_instruction *genSLL(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSLL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SLL, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SLL, rd, rs1, rs2);
 }
 
-t_instruction *genSRL(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSRL(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SRL, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SRL, rd, rs1, rs2);
 }
 
-t_instruction *genSRA(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSRA(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SRA, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SRA, rd, rs1, rs2);
 }
 
 
 t_instruction *genADDI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_ADDI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_ADDI, rd, rs1, immediate);
 }
 
 t_instruction *genSUBI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SUBI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SUBI, rd, rs1, immediate);
 }
 
 t_instruction *genANDI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_ANDI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_ANDI, rd, rs1, immediate);
 }
 
 t_instruction *genMULI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_MULI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_MULI, rd, rs1, immediate);
 }
 
 t_instruction *genORI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_ORI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_ORI, rd, rs1, immediate);
 }
 
 t_instruction *genXORI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_XORI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_XORI, rd, rs1, immediate);
 }
 
 t_instruction *genDIVI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_DIVI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_DIVI, rd, rs1, immediate);
 }
 
 t_instruction *genREMI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_REMI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_REMI, rd, rs1, immediate);
 }
 
 t_instruction *genSLLI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SLLI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SLLI, rd, rs1, immediate);
 }
 
 t_instruction *genSRLI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SRLI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SRLI, rd, rs1, immediate);
 }
 
 t_instruction *genSRAI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SRAI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SRAI, rd, rs1, immediate);
 }
 
 
-t_instruction *genSEQ(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSEQ(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SEQ, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SEQ, rd, rs1, rs2);
 }
 
-t_instruction *genSNE(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSNE(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SNE, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SNE, rd, rs1, rs2);
 }
 
-t_instruction *genSLT(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSLT(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SLT, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SLT, rd, rs1, rs2);
 }
 
-t_instruction *genSLTU(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSLTU(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SLTU, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SLTU, rd, rs1, rs2);
 }
 
-t_instruction *genSGE(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSGE(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SGE, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SGE, rd, rs1, rs2);
 }
 
-t_instruction *genSGEU(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSGEU(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SGEU, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SGEU, rd, rs1, rs2);
 }
 
-t_instruction *genSGT(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSGT(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SGT, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SGT, rd, rs1, rs2);
 }
 
-t_instruction *genSGTU(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSGTU(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SGTU, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SGTU, rd, rs1, rs2);
 }
 
-t_instruction *genSLE(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSLE(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SLE, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SLE, rd, rs1, rs2);
 }
 
-t_instruction *genSLEU(
-    t_program *program, t_regID r_dest, t_regID r_src1, t_regID r_src2)
+t_instruction *genSLEU(t_program *program, t_regID rd, t_regID rs1, t_regID rs2)
 {
-  return genRFormatInstruction(program, OPC_SLEU, r_dest, r_src1, r_src2);
+  return genRFormatInstruction(program, OPC_SLEU, rd, rs1, rs2);
 }
 
 
 t_instruction *genSEQI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SEQI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SEQI, rd, rs1, immediate);
 }
 
 t_instruction *genSNEI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SNEI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SNEI, rd, rs1, immediate);
 }
 
 t_instruction *genSLTI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SLTI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SLTI, rd, rs1, immediate);
 }
 
 t_instruction *genSLTIU(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SLTIU, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SLTIU, rd, rs1, immediate);
 }
 
 t_instruction *genSGEI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SGEI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SGEI, rd, rs1, immediate);
 }
 
 t_instruction *genSGEIU(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SGEIU, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SGEIU, rd, rs1, immediate);
 }
 
 t_instruction *genSGTI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SGTI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SGTI, rd, rs1, immediate);
 }
 
 t_instruction *genSGTIU(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SGTIU, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SGTIU, rd, rs1, immediate);
 }
 
 t_instruction *genSLEI(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SLEI, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SLEI, rd, rs1, immediate);
 }
 
 t_instruction *genSLEIU(
-    t_program *program, t_regID r_dest, t_regID r_src1, int immediate)
+    t_program *program, t_regID rd, t_regID rs1, int immediate)
 {
-  return genIFormatInstruction(program, OPC_SLEIU, r_dest, r_src1, immediate);
+  return genIFormatInstruction(program, OPC_SLEIU, rd, rs1, immediate);
 }
 
 
@@ -366,27 +345,25 @@ t_instruction *genBLEU(
 }
 
 
-t_instruction *genLI(t_program *program, t_regID r_dest, int immediate)
+t_instruction *genLI(t_program *program, t_regID rd, int immediate)
 {
-  validateRegisterId(program, r_dest);
+  validateRegisterId(program, rd);
   return genInstruction(
-      program, OPC_LI, r_dest, REG_INVALID, REG_INVALID, NULL, immediate);
+      program, OPC_LI, rd, REG_INVALID, REG_INVALID, NULL, immediate);
 }
 
-t_instruction *genLA(t_program *program, t_regID r_dest, t_label *label)
+t_instruction *genLA(t_program *program, t_regID rd, t_label *label)
 {
-  validateRegisterId(program, r_dest);
+  validateRegisterId(program, rd);
   return genInstruction(
-      program, OPC_LA, r_dest, REG_INVALID, REG_INVALID, label, 0);
+      program, OPC_LA, rd, REG_INVALID, REG_INVALID, label, 0);
 }
 
-t_instruction *genLW(
-    t_program *program, t_regID r_dest, int immediate, t_regID rs1)
+t_instruction *genLW(t_program *program, t_regID rd, int immediate, t_regID rs1)
 {
-  validateRegisterId(program, r_dest);
+  validateRegisterId(program, rd);
   validateRegisterId(program, rs1);
-  return genInstruction(
-      program, OPC_LW, r_dest, rs1, REG_INVALID, NULL, immediate);
+  return genInstruction(program, OPC_LW, rd, rs1, REG_INVALID, NULL, immediate);
 }
 
 t_instruction *genSW(
@@ -398,11 +375,11 @@ t_instruction *genSW(
       program, OPC_SW, REG_INVALID, rs1, rs2, NULL, immediate);
 }
 
-t_instruction *genLWGlobal(t_program *program, t_regID r_dest, t_label *label)
+t_instruction *genLWGlobal(t_program *program, t_regID rd, t_label *label)
 {
-  validateRegisterId(program, r_dest);
+  validateRegisterId(program, rd);
   return genInstruction(
-      program, OPC_LW_G, r_dest, REG_INVALID, REG_INVALID, label, 0);
+      program, OPC_LW_G, rd, REG_INVALID, REG_INVALID, label, 0);
 }
 
 t_instruction *genSWGlobal(
@@ -438,25 +415,25 @@ t_instruction *genExit0Syscall(t_program *program)
       program, OPC_CALL_EXIT_0, REG_INVALID, REG_INVALID, REG_INVALID, NULL, 0);
 }
 
-t_instruction *genReadIntSyscall(t_program *program, t_regID r_dest)
+t_instruction *genReadIntSyscall(t_program *program, t_regID rd)
 {
-  validateRegisterId(program, r_dest);
+  validateRegisterId(program, rd);
   return genInstruction(
-      program, OPC_CALL_READ_INT, r_dest, REG_INVALID, REG_INVALID, NULL, 0);
+      program, OPC_CALL_READ_INT, rd, REG_INVALID, REG_INVALID, NULL, 0);
 }
 
-t_instruction *genPrintIntSyscall(t_program *program, t_regID r_src1)
+t_instruction *genPrintIntSyscall(t_program *program, t_regID rs1)
 {
-  validateRegisterId(program, r_src1);
+  validateRegisterId(program, rs1);
   return genInstruction(
-      program, OPC_CALL_PRINT_INT, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
+      program, OPC_CALL_PRINT_INT, REG_INVALID, rs1, REG_INVALID, NULL, 0);
 }
 
-t_instruction *genPrintCharSyscall(t_program *program, t_regID r_src1)
+t_instruction *genPrintCharSyscall(t_program *program, t_regID rs1)
 {
-  validateRegisterId(program, r_src1);
+  validateRegisterId(program, rs1);
   return genInstruction(
-      program, OPC_CALL_PRINT_CHAR, REG_INVALID, r_src1, REG_INVALID, NULL, 0);
+      program, OPC_CALL_PRINT_CHAR, REG_INVALID, rs1, REG_INVALID, NULL, 0);
 }
 
 
@@ -471,7 +448,7 @@ t_regID genLoadVariable(t_program *program, t_symbol *var)
 
   // Generate an LA instruction to load the label address into a register
   t_regID rAddr = getNewRegister(program);
-  genLA(program, rAddr, var->label); 
+  genLA(program, rAddr, var->label);
   // Generate a LW from the address
   t_regID rRes = getNewRegister(program);
   genLW(program, rRes, 0, rAddr);
@@ -491,7 +468,7 @@ void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg)
 
   // Generate an LA instruction to load the label address into a register
   t_regID rAddr = getNewRegister(program);
-  genLA(program, rAddr, var->label); 
+  genLA(program, rAddr, var->label);
   // Generate a SW to the address specified by the label
   genSW(program, reg, 0, rAddr);
 }
@@ -499,10 +476,10 @@ void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg)
 void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
 {
   // Generate a copy of the constant value into a register
-  t_regID r_val = getNewRegister(program);
-  genLI(program, r_val, val);
+  t_regID rVal = getNewRegister(program);
+  genLI(program, rVal, val);
   // Copy the register value into the variable
-  genStoreRegisterToVariable(program, var, r_val);
+  genStoreRegisterToVariable(program, var, rVal);
 }
 
 
@@ -514,7 +491,7 @@ void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
  * @returns The identifier of the register that (at runtime) will contain the
  *          address of the array element at position `index'. If the symbol
  *          is not of the correct type, REG_0 is returned instead. */
-t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID idxReg)
+t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID rIdx)
 {
   if (!isArray(array)) {
     // If the symbol is not an array, bail out returning a dummy register ID
@@ -524,54 +501,48 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID idxReg)
   t_label *label = array->label;
 
   // Generate a load of the base address using LA
-  t_regID mova_register = getNewRegister(program);
-  genLA(program, mova_register, label);
+  t_regID rAddr = getNewRegister(program);
+  genLA(program, rAddr, label);
 
-  /* We are making the following assumption:
-   * the type can only be an INTEGER_TYPE */
+  // Generate the code to compute the offset of the element in the array in
+  // bytes. Assume the type is an integer (no other scalar types are supported)
   int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
   if (sizeofElem != 1)
-    genMULI(program, idxReg, idxReg, sizeofElem);
+    genMULI(program, rIdx, rIdx, sizeofElem);
 
-  genADD(program, mova_register, mova_register, idxReg);
-
-  /* return the identifier of the register that contains
-   * the value of the array slot */
-  return mova_register;
+  // Generate the code which computes the final address by summing the base
+  // address to the offset of the element
+  genADD(program, rAddr, rAddr, rIdx);
+  return rAddr;
 }
 
 
-t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID index)
+t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID rIdx)
 {
-  t_regID load_register, address;
-
-  /* retrieve the address of the array slot */
-  address = genLoadArrayAddress(program, array, index);
-
-  /* get a new register */
-  load_register = getNewRegister(program);
-
-  /* load the value into `load_register' */
-  genLW(program, load_register, 0, address);
-
-  /* return the register ID that holds the required data */
-  return load_register;
+  // Generate code that loads the address of the array element in a register
+  // and then loads the element itself from that memory address
+  t_regID rAddr = genLoadArrayAddress(program, array, rIdx);
+  t_regID rVal = getNewRegister(program);
+  genLW(program, rVal, 0, rAddr);
+  return rVal;
 }
 
 
 void genStoreRegisterToArrayElement(
-    t_program *program, t_symbol *array, t_regID index, t_regID data)
+    t_program *program, t_symbol *array, t_regID rIdx, t_regID rVal)
 {
-  t_regID address = genLoadArrayAddress(program, array, index);
-
-  /* load the value indirectly into `mova_register' */
-  genSW(program, data, 0, address);
+  // Generate code that loads the address of the array element in a register
+  // and then stores the new value in that address
+  t_regID rAddr = genLoadArrayAddress(program, array, rIdx);
+  genSW(program, rVal, 0, rAddr);
 }
 
 void genStoreConstantToArrayElement(
-    t_program *program, t_symbol *array, t_regID index, int data)
+    t_program *program, t_symbol *array, t_regID rIdx, int val)
 {
-  t_regID imm_register = getNewRegister(program);
-  genLI(program, imm_register, data);
-  genStoreRegisterToArrayElement(program, array, index, imm_register);
+  // Generate code to move the constant value into a register
+  t_regID rVal = getNewRegister(program);
+  genLI(program, rVal, val);
+  // Generate the array access itself
+  genStoreRegisterToArrayElement(program, array, rIdx, rVal);
 }
