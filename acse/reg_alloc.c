@@ -92,15 +92,12 @@ typedef struct {
 } t_spillState;
 
 
-/* Allocate and initialize a live interval data structure with a given
- * temporary register ID, starting and ending points */
 static t_liveInterval *newLiveInterval(
     t_regID tempRegID, t_listNode *mcRegs, int startPoint, int endPoint)
 {
   t_liveInterval *result = malloc(sizeof(t_liveInterval));
   if (result == NULL)
     fatalError("out of memory");
-
   result->tempRegID = tempRegID;
   result->mcRegConstraints = listClone(mcRegs);
   result->startPoint = startPoint;
@@ -108,12 +105,10 @@ static t_liveInterval *newLiveInterval(
   return result;
 }
 
-/* Deallocate a live interval */
 static void deleteLiveInterval(t_liveInterval *interval)
 {
   if (interval == NULL)
     return;
-
   free(interval->mcRegConstraints);
   free(interval);
 }
@@ -156,11 +151,11 @@ static bool compareLiveIntWithRegID(void *a, void *b)
   return interval->tempRegID == tempRegID;
 }
 
-/* Update the liveness interval list to account for the fact that variable 'var'
- * is live at index 'counter' in the current program.
- * If the variable already appears in the list, its live interval its prolonged
- * to include the given counter location.
- * Otherwise, a new liveness interval is generated for it.*/
+// Update the liveness interval list to account for the fact that variable 'var'
+// is live at index 'counter' in the current program.
+// If the variable already appears in the list, its live interval its prolonged
+// to include the given counter location.
+// Otherwise, a new liveness interval is generated for it.
 static t_listNode *updateIntervalsWithLiveVarAtLocation(
     t_listNode *intervals, t_cfgReg *var, int counter)
 {
@@ -428,11 +423,11 @@ t_regAllocator *newRegAllocator(t_program *program)
   // Initialize the list of spill locations
   result->spills = NULL;
 
-  /* Initialize register constraints */
+  // Initialize register constraints
   initializeRegisterConstraints(result);
   handleCallerSaveRegisters(result, result->graph);
 
-  /* return the new register allocator */
+  // return the new register allocator
   return result;
 }
 
@@ -442,27 +437,16 @@ void deleteRegAllocator(t_regAllocator *RA)
   if (RA == NULL)
     return;
 
-  /* finalize the memory blocks associated with all
-   * the live intervals */
-  for (t_listNode *curNode = RA->liveIntervals; curNode != NULL;
-       curNode = curNode->next) {
-    /* fetch the current interval */
+  t_listNode *curNode = RA->liveIntervals;
+  while (curNode) {
     t_liveInterval *curInterval = (t_liveInterval *)curNode->data;
-    if (curInterval != NULL) {
-      /* finalize the memory block associated with
-       * the current interval */
-      deleteLiveInterval(curInterval);
-    }
+    deleteLiveInterval(curInterval);
+    curNode = curNode->next;
   }
 
-  /* deallocate the list of intervals */
   deleteList(RA->liveIntervals);
-
-  /* Free memory used for the variable/register bindings */
   free(RA->bindings);
   deleteSpillLocationList(RA->spills);
-
-  // Delete the temporary CFG
   deleteCFG(RA->graph);
 
   free(RA);
@@ -474,32 +458,32 @@ static bool compareFreeRegListNodes(void *freeReg, void *constraintReg)
   return INT_TO_LIST_DATA(constraintReg) == INT_TO_LIST_DATA(freeReg);
 }
 
-/* Remove from activeIntervals all the live intervals that end before the
+/* Remove from activeInterv all the live intervals that end before the
  * beginning of the current live interval */
-static void expireOldIntervals(t_regAllocator *RA, t_listNode **activeIntervals,
-    t_listNode **freeRegisters, t_liveInterval *interval)
+static void expireOldIntervals(t_regAllocator *RA, t_listNode **activeInterv,
+    t_listNode **freeRegs, t_liveInterval *interval)
 {
-  /* No active intervals, bail out! */
-  if (*activeIntervals == NULL)
+  // No active intervals, bail out!
+  if (*activeInterv == NULL)
     return;
 
-  /* Iterate over the set of active intervals */
-  t_listNode *curNode = *activeIntervals;
+  // Iterate over the set of active intervals
+  t_listNode *curNode = *activeInterv;
   while (curNode != NULL) {
-    /* Get the live interval */
+    // Get the live interval
     t_liveInterval *curInterval = (t_liveInterval *)curNode->data;
 
-    /* If the considered interval ends before the beginning of
-     * the current live interval, we don't need to keep track of
-     * it anymore; otherwise, this is the first interval we must
-     * still take into account when assigning registers. */
+    // If the considered interval ends before the beginning of the current live
+    // interval, we don't need to keep track of it anymore; otherwise, this is
+    // the first interval we must still take into account when assigning
+    // registers.
     if (curInterval->endPoint > interval->startPoint)
       return;
 
-    /* when curInterval->endPoint == interval->startPoint,
-     * the variable associated to curInterval is being used by the
-     * instruction that defines interval. As a result, we can allocate
-     * interval to the same reg as curInterval. */
+    // When curInterval->endPoint == interval->startPoint, the variable
+    // associated to curInterval is being used by the instruction that defines
+    // interval. As a result, we can allocate interval to the same reg as
+    // curInterval.
     if (curInterval->endPoint == interval->startPoint) {
       t_regID curIntReg = RA->bindings[curInterval->tempRegID];
       if (curIntReg >= 0) {
@@ -511,24 +495,24 @@ static void expireOldIntervals(t_regAllocator *RA, t_listNode **activeIntervals,
       }
     }
 
-    /* Get the next live interval */
+    // Get the next live interval
     t_listNode *nextNode = curNode->next;
 
-    /* Remove the current element from the list */
-    *activeIntervals = listFindAndRemove(*activeIntervals, curInterval);
+    // Remove the current element from the list
+    *activeInterv = listFindAndRemove(*activeInterv, curInterval);
 
-    /* Free all the registers associated with the removed interval */
-    *freeRegisters = listInsert(*freeRegisters,
-        INT_TO_LIST_DATA(RA->bindings[curInterval->tempRegID]), 0);
+    // Free all the registers associated with the removed interval
+    *freeRegs = listInsert(
+        *freeRegs, INT_TO_LIST_DATA(RA->bindings[curInterval->tempRegID]), 0);
 
-    /* Step to the next interval */
+    // Step to the next interval
     curNode = nextNode;
   }
 }
 
 /* Get a new register from the free list */
 static t_regID assignRegister(
-    t_regAllocator *RA, t_listNode **freeRegisters, t_listNode *constraints)
+    t_regAllocator *RA, t_listNode **freeRegs, t_listNode *constraints)
 {
   if (constraints == NULL)
     return RA_SPILL_REQUIRED;
@@ -536,9 +520,9 @@ static t_regID assignRegister(
   for (t_listNode *i = constraints; i; i = i->next) {
     t_regID tempRegID = (t_regID)LIST_DATA_TO_INT(i->data);
     t_listNode *freeReg = listFindWithCallback(
-        *freeRegisters, INT_TO_LIST_DATA(tempRegID), compareFreeRegListNodes);
+        *freeRegs, INT_TO_LIST_DATA(tempRegID), compareFreeRegListNodes);
     if (freeReg) {
-      *freeRegisters = listRemoveNode(*freeRegisters, freeReg);
+      *freeRegs = listRemoveNode(*freeRegs, freeReg);
       return tempRegID;
     }
   }
@@ -546,82 +530,74 @@ static t_regID assignRegister(
   return RA_SPILL_REQUIRED;
 }
 
-/* Perform a spill that allows the allocation of the given
- * interval, given the list of active live intervals */
+/* Perform a spill that allows the allocation of the given interval, given the
+ * list of active live intervals */
 static void spillAtInterval(
-    t_regAllocator *RA, t_listNode **activeIntervals, t_liveInterval *interval)
+    t_regAllocator *RA, t_listNode **activeInterv, t_liveInterval *interval)
 {
-  t_listNode *lastNode;
-  t_liveInterval *lastInterval;
-
-  /* get the last element of the list of active intervals */
-  /* Precondition: if the list of active intervals is empty
-   * we are working on a machine with 0 registers available
-   * for the register allocation */
-  if (*activeIntervals == NULL) {
+  // An interval is made active when its register is allocated. As a result,
+  // if the list of active intervals is empty and we request a spill, we are
+  // working on a machine with 0 registers and we need to spill everything.
+  if (*activeInterv == NULL) {
     RA->bindings[interval->tempRegID] = RA_SPILL_REQUIRED;
     return;
   }
 
-  lastNode = listGetLastNode(*activeIntervals);
-  lastInterval = (t_liveInterval *)lastNode->data;
-
-  /* If the current interval ends before the last one, spill
-   * the last one, otherwise spill the current interval. */
+  // If the current interval ends before the last one successfully allocated,
+  // spill the last one. This has the result of making one register available
+  // much sooner. Otherwise spill the current interval.
+  t_listNode *lastNode = listGetLastNode(*activeInterv);
+  t_liveInterval *lastInterval = (t_liveInterval *)lastNode->data;
   if (lastInterval->endPoint > interval->endPoint) {
+    // The last interval does end later than the current one.
+    // Ensure that the current interval is allocatable to the last interval's
+    // register.
     t_regID attempt = RA->bindings[lastInterval->tempRegID];
     if (listFind(interval->mcRegConstraints, INT_TO_LIST_DATA(attempt))) {
+      // All conditions satisfied for the last interval.
+      // Take its register for our interval and mark it as spilled
       RA->bindings[interval->tempRegID] = RA->bindings[lastInterval->tempRegID];
       RA->bindings[lastInterval->tempRegID] = RA_SPILL_REQUIRED;
-
-      *activeIntervals = listFindAndRemove(*activeIntervals, lastInterval);
-
-      *activeIntervals =
-          listInsertSorted(*activeIntervals, interval, compareLiveIntEndPoints);
+      // Update the active intervals list
+      *activeInterv = listFindAndRemove(*activeInterv, lastInterval);
+      *activeInterv =
+          listInsertSorted(*activeInterv, interval, compareLiveIntEndPoints);
       return;
     }
   }
-
   RA->bindings[interval->tempRegID] = RA_SPILL_REQUIRED;
 }
 
-/* Main register allocation function */
 static void executeLinearScan(t_regAllocator *RA)
 {
-  t_listNode *freeRegisters = getListOfMachineRegisters();
-  t_listNode *activeIntervals = NULL;
+  t_listNode *freeRegs = getListOfMachineRegisters();
+  t_listNode *activeInterv = NULL;
 
-  /* Iterate over the list of live intervals */
   for (t_listNode *curNode = RA->liveIntervals; curNode != NULL;
        curNode = curNode->next) {
-    /* Get the live interval */
     t_liveInterval *curInterval = (t_liveInterval *)curNode->data;
 
-    /* Check which intervals are ended and remove
-     * them from the active set, thus freeing registers */
-    expireOldIntervals(RA, &activeIntervals, &freeRegisters, curInterval);
+    // Check which intervals are ended and remove them from the active set,
+    // thus freeing registers
+    expireOldIntervals(RA, &activeInterv, &freeRegs, curInterval);
 
-    t_regID reg =
-        assignRegister(RA, &freeRegisters, curInterval->mcRegConstraints);
+    t_regID reg = assignRegister(RA, &freeRegs, curInterval->mcRegConstraints);
 
-    /* If all registers are busy, perform a spill */
+    // If all registers are busy, perform a spill
     if (reg == RA_SPILL_REQUIRED) {
-      /* perform a spill */
-      spillAtInterval(RA, &activeIntervals, curInterval);
+      spillAtInterval(RA, &activeInterv, curInterval);
     } else {
-      /* Otherwise, assign a new register to the current live interval */
+      // Otherwise, assign a new register to the current live interval
+      // and add the current interval to the list of active intervals, in
+      // order of ending points (to allow easier expire management)
       RA->bindings[curInterval->tempRegID] = reg;
-
-      /* Add the current interval to the list of active intervals, in
-       * order of ending points (to allow easier expire management) */
-      activeIntervals = listInsertSorted(
-          activeIntervals, curInterval, compareLiveIntEndPoints);
+      activeInterv =
+          listInsertSorted(activeInterv, curInterval, compareLiveIntEndPoints);
     }
   }
 
-  /* free the list of active intervals */
-  activeIntervals = deleteList(activeIntervals);
-  freeRegisters = deleteList(freeRegisters);
+  activeInterv = deleteList(activeInterv);
+  freeRegs = deleteList(freeRegs);
 }
 
 
@@ -655,12 +631,12 @@ static void genStoreSpillVariable(t_regAllocator *RA, t_regID rSpilled,
 
   t_spillLocation *tlabel = (t_spillLocation *)elementFound->data;
 
-  /* create a store instruction */
+  // create a store instruction
   t_instruction *storeInstr = genSWGlobal(NULL, rSrc, tlabel->label, REG_T6);
   t_cfgNode *storeNode = createCFGNode(RA->graph, storeInstr);
 
-  /* test if we have to insert the node `storeNode' before `curCFGNode'
-   * inside the basic block */
+  // test if we have to insert the node `storeNode' before `curCFGNode'
+  // inside the basic block
   if (before) {
     bbInsertNodeBefore(curBlock, curCFGNode, storeNode);
   } else {
@@ -678,15 +654,15 @@ static void genLoadSpillVariable(t_regAllocator *RA, t_regID rSpilled,
 
   t_spillLocation *tlabel = (t_spillLocation *)elementFound->data;
 
-  /* create a load instruction */
+  // create a load instruction
   t_instruction *loadInstr = genLWGlobal(NULL, rDest, tlabel->label);
   t_cfgNode *loadNode = createCFGNode(RA->graph, loadInstr);
 
   if (before) {
-    /* insert the node `loadNode' before `curCFGNode' */
+    // insert the node `loadNode' before `curCFGNode'
     bbInsertNodeBefore(block, curCFGNode, loadNode);
-    /* if the `curCFGNode' instruction has a label, move it to the new
-     * load instruction */
+    // if the `curCFGNode' instruction has a label, move it to the new
+    // load instruction
     if ((curCFGNode->instr)->label != NULL) {
       loadInstr->label = (curCFGNode->instr)->label;
       (curCFGNode->instr)->label = NULL;
@@ -699,16 +675,16 @@ static void genLoadSpillVariable(t_regAllocator *RA, t_regID rSpilled,
 static void materializeRegAllocInBBForInstructionNode(t_regAllocator *RA,
     t_spillState *state, t_basicBlock *curBlock, t_cfgNode *curCFGNode)
 {
-  /* The elements in this array indicate whether the corresponding spill
-   * register will be used or not by this instruction */
+  // The elements in this array indicate whether the corresponding spill
+  // register will be used or not by this instruction
   bool spillSlotInUse[NUM_SPILL_REGS] = {false};
-  /* This array stores whether each argument of the instruction is allocated
-   * to a spill register or not.
-   * For example, if argState[1].spillSlot == 2, the argState[1].reg register
-   * will be materialized to the third spill register. */
+  // This array stores whether each argument of the instruction is allocated
+  // to a spill register or not.
+  // For example, if argState[1].spillSlot == 2, the argState[1].reg register
+  // will be materialized to the third spill register.
   t_spillInstrArgState argState[MAX_INSTR_ARGS];
 
-  // Analyze the current instruction
+  // Analyze the current instruction.
   t_instruction *instr = curCFGNode->instr;
   int numArgs = 0;
   if (instr->rDest) {
@@ -730,95 +706,95 @@ static void materializeRegAllocInBBForInstructionNode(t_regAllocator *RA,
     numArgs++;
   }
 
-  /* Test if a requested variable is already loaded into a register
-   * from a previous instruction. */
+  // Test if a requested spilled register is already loaded into a spill slot
+  // from a previous instruction.
   for (int argIdx = 0; argIdx < numArgs; argIdx++) {
+    // Skip non-spilled registers
     if (RA->bindings[argState[argIdx].reg->ID] != RA_SPILL_REQUIRED)
       continue;
-
-    for (int rowIdx = 0; rowIdx < NUM_SPILL_REGS; rowIdx++) {
-      if (state->regs[rowIdx].assignedTempReg != argState[argIdx].reg->ID)
+    // Check the state of each spill slot against the argument
+    for (int slot = 0; slot < NUM_SPILL_REGS; slot++) {
+      // Spill slot is allocated to something else
+      if (state->regs[slot].assignedTempReg != argState[argIdx].reg->ID)
         continue;
 
-      /* update the value of used_Register */
-      argState[argIdx].spillSlot = rowIdx;
-
-      /* update the value of `assignedRegisters` */
-      /* set currently used flag */
-      spillSlotInUse[rowIdx] = true;
-
-      /* test if a write back is needed. Writebacks are needed
-       * when an instruction modifies a spilled register. */
+      // Spill slot is allocated to the correct register, so just use that slot
+      argState[argIdx].spillSlot = slot;
+      spillSlotInUse[slot] = true;
       if (argState[argIdx].isDestination)
-        state->regs[rowIdx].needsWB = true;
-
-      /* a slot was found, stop searching */
+        state->regs[slot].needsWB = true;
       break;
     }
   }
 
-  /* Find a slot for all other variables. Write back the variable associated
-   * with the slot if necessary. */
+  // Find a slot for all other spilled registers, evicting the previous use of
+  // a spill slot and writing it back if necessary
   for (int argIdx = 0; argIdx < numArgs; argIdx++) {
+    // Skip non-spilled registers
     if (RA->bindings[argState[argIdx].reg->ID] != RA_SPILL_REQUIRED)
       continue;
     if (argState[argIdx].spillSlot != -1)
       continue;
 
-    /* Check if we already have found a slot for this variable */
+    // Check if we already have found a slot for this same spilled register
+    // because it is used in more than one operand of the same instruction.
+    // In this case nothing to do, except marking the need of a writeback
+    // (one argument may be a source and the other a destination)
     bool alreadyFound = false;
     for (int otherArg = 0; otherArg < argIdx && !alreadyFound; otherArg++) {
       if (argState[argIdx].reg->ID == argState[otherArg].reg->ID) {
-        argState[argIdx].spillSlot = argState[otherArg].spillSlot;
+        int slot = argState[otherArg].spillSlot;
+        argState[argIdx].spillSlot = slot;
+        // Note: this next assignment is technically not needed because
+        // destination registers come first in the list of arguments
+        state->regs[slot].needsWB |= argState[argIdx].isDestination;
         alreadyFound = true;
       }
     }
-    /* No need to do anything else in this case, the state of the
-     * spill slot is already up to date */
     if (alreadyFound)
       continue;
 
-    /* Otherwise a slot one by iterating through the slots available */
-    int rowIdx;
-    for (rowIdx = 0; rowIdx < NUM_SPILL_REGS; rowIdx++) {
-      if (spillSlotInUse[rowIdx] == false)
+    // Otherwise we need to find a new slot
+    int slot;
+    for (slot = 0; slot < NUM_SPILL_REGS; slot++) {
+      if (spillSlotInUse[slot] == false)
         break;
     }
-    /* If we don't find anything, we don't have enough spill registers!
-     * This should never happen, bail out! */
-    if (rowIdx == NUM_SPILL_REGS)
+    // If we don't find anything, we don't have enough spill registers!
+    // This should never happen, bail out!
+    if (slot == NUM_SPILL_REGS)
       fatalError("bug: spill slots exhausted");
 
-    /* If needed, write back the old variable that was assigned to this
-     * slot before reassigning it */
-    if (state->regs[rowIdx].needsWB) {
-      genStoreSpillVariable(RA, state->regs[rowIdx].assignedTempReg,
-          getSpillMachineRegister(rowIdx), curBlock, curCFGNode, true);
+    // If needed, write back the old variable that was assigned to this
+    // slot before reassigning it
+    if (state->regs[slot].needsWB) {
+      genStoreSpillVariable(RA, state->regs[slot].assignedTempReg,
+          getSpillMachineRegister(slot), curBlock, curCFGNode, true);
     }
 
-    /* Update the state of this spill slot */
-    spillSlotInUse[rowIdx] = true;
-    argState[argIdx].spillSlot = rowIdx;
-    state->regs[rowIdx].assignedTempReg = argState[argIdx].reg->ID;
-    state->regs[rowIdx].needsWB = argState[argIdx].isDestination;
+    // Update the state of this spill slot
+    spillSlotInUse[slot] = true;
+    argState[argIdx].spillSlot = slot;
+    state->regs[slot].assignedTempReg = argState[argIdx].reg->ID;
+    state->regs[slot].needsWB = argState[argIdx].isDestination;
 
-    /* Load the value of the variable in the spill register if not a
-     * destination of the instruction */
+    // Load the value of the variable in the spill register if not a
+    // destination of the instruction
     if (!argState[argIdx].isDestination) {
       genLoadSpillVariable(RA, argState[argIdx].reg->ID,
-          getSpillMachineRegister(rowIdx), curBlock, curCFGNode, true);
+          getSpillMachineRegister(slot), curBlock, curCFGNode, true);
     }
   }
 
-  /* rewrite the register identifiers to use the appropriate
-   * register number instead of the variable number. */
+  // Rewrite the register identifiers to use the appropriate
+  // register number instead of the variable number.
   for (int argIdx = 0; argIdx < numArgs; argIdx++) {
     t_instrArg *curReg = argState[argIdx].reg;
     if (argState[argIdx].spillSlot == -1) {
-      /* normal case */
+      // normal case
       curReg->ID = RA->bindings[curReg->ID];
     } else {
-      /* spilled register case */
+      // spilled register case
       curReg->ID = getSpillMachineRegister(argState[argIdx].spillSlot);
     }
   }
@@ -827,32 +803,29 @@ static void materializeRegAllocInBBForInstructionNode(t_regAllocator *RA,
 static void materializeRegAllocInBB(t_regAllocator *RA, t_basicBlock *curBlock)
 {
   t_spillState state;
-
-  /* initialize the state for this block */
   for (int counter = 0; counter < NUM_SPILL_REGS; counter++) {
     state.regs[counter].assignedTempReg = REG_INVALID;
     state.regs[counter].needsWB = false;
   }
 
-  /* iterate through the instructions in the block */
-  t_cfgNode *curCFGNode;
+  t_cfgNode *curCFGNode = NULL;
   t_listNode *curInnerNode = curBlock->nodes;
   while (curInnerNode != NULL) {
     curCFGNode = (t_cfgNode *)curInnerNode->data;
-
-    /* Change the register IDs of the argument of the instruction accoring
-     * to the given register allocation. Generate load and stores for spilled
-     * registers */
+    // Change the register IDs of the argument of the instruction according
+    // to the given register allocation. Generate load and stores for spilled
+    // registers
     materializeRegAllocInBBForInstructionNode(RA, &state, curBlock, curCFGNode);
-
     curInnerNode = curInnerNode->next;
   }
+  if (curCFGNode == NULL)
+    fatalError("bug: invalid CFG where a block has no nodes");
 
   bool bbHasTermInstr = curBlock->nodes &&
       (isJumpInstruction(curCFGNode->instr) ||
           isHaltOrRetInstruction(curCFGNode->instr));
 
-  /* writeback everything at the end of the basic block */
+  // writeback everything at the end of the basic block
   for (int counter = 0; counter < NUM_SPILL_REGS; counter++) {
     if (state.regs[counter].needsWB == false)
       continue;
@@ -861,18 +834,12 @@ static void materializeRegAllocInBB(t_regAllocator *RA, t_basicBlock *curBlock)
   }
 }
 
-/* update the control flow informations by unsing the result
- * of the register allocation process and a list of bindings
- * between new assembly labels and spilled variables */
 static void materializeRegAllocInCFG(t_regAllocator *RA)
 {
   t_listNode *curBlockNode = RA->graph->blocks;
   while (curBlockNode != NULL) {
     t_basicBlock *curBlock = (t_basicBlock *)curBlockNode->data;
-
     materializeRegAllocInBB(RA, curBlock);
-
-    /* retrieve the next basic block element */
     curBlockNode = curBlockNode->next;
   }
 }

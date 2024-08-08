@@ -12,7 +12,6 @@ static t_listNode *newListNode(void *data)
   t_listNode *result = (t_listNode *)malloc(sizeof(t_listNode));
   if (result == NULL)
     fatalError("out of memory");
-
   result->data = data;
   result->prev = NULL;
   result->next = NULL;

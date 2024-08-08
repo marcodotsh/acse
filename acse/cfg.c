@@ -7,6 +7,17 @@
 #include "errors.h"
 
 
+static bool instrIsStartingNode(t_instruction *instr)
+{
+  return instr->label != NULL;
+}
+
+static bool instrIsEndingNode(t_instruction *instr)
+{
+  return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
+}
+
+
 static bool compareCFGRegAndRegID(void *a, void *b)
 {
   t_cfgReg *cfgReg = (t_cfgReg *)a;
@@ -42,7 +53,7 @@ static t_cfgReg *createCFGRegister(
     graph->registers = listInsert(graph->registers, result, -1);
   }
 
-  // copy the machine register allocation constraint, or compute the
+  // Copy the machine register allocation constraint, or compute the
   // intersection between the register allocation constraint sets
   if (mcRegs) {
     if (result->mcRegWhitelist == NULL) {
@@ -64,6 +75,7 @@ static t_cfgReg *createCFGRegister(
 
   return result;
 }
+
 
 static void cfgComputeDefUses(t_cfg *graph, t_cfgNode *node)
 {
@@ -126,6 +138,7 @@ void deleteCFGNode(t_cfgNode *node)
     deleteList(node->out);
   free(node);
 }
+
 
 t_basicBlock *newBasicBlock(void)
 {
@@ -200,7 +213,6 @@ t_cfgError bbInsertNodeBefore(
   return CFG_NO_ERROR;
 }
 
-/* insert a new node without updating the dataflow informations */
 t_cfgError bbInsertNodeAfter(
     t_basicBlock *block, t_cfgNode *nextCFGNode, t_cfgNode *newNode)
 {
@@ -215,7 +227,7 @@ t_cfgError bbInsertNodeAfter(
   return CFG_NO_ERROR;
 }
 
-/* allocate memory for a control flow graph */
+
 static t_cfg *newCFG(void)
 {
   t_cfg *result = malloc(sizeof(t_cfg));
@@ -228,7 +240,6 @@ static t_cfg *newCFG(void)
   return result;
 }
 
-/* finalize the memory associated with the given control flow graph */
 void deleteCFG(t_cfg *graph)
 {
   if (graph == NULL)
@@ -249,22 +260,18 @@ void deleteCFG(t_cfg *graph)
     t_listNode *curNode = graph->registers;
     while (curNode != NULL) {
       t_cfgReg *curReg = (t_cfgReg *)curNode->data;
-
       if (curReg != NULL) {
         deleteList(curReg->mcRegWhitelist);
         free(curReg);
       }
-
       curNode = curNode->next;
     }
-
     deleteList(graph->registers);
   }
 
   free(graph);
 }
 
-/* look up for a label inside the graph */
 static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
 {
   if (label == NULL)
@@ -288,18 +295,6 @@ static t_basicBlock *cfgSearchLabel(t_cfg *graph, t_label *label)
   }
 
   return bblock;
-}
-
-/* test if 'instr' is a labelled instruction */
-static bool instrIsStartingNode(t_instruction *instr)
-{
-  return instr->label != NULL;
-}
-
-/* test if 'instr' must appear at the end of a basic block */
-static bool instrIsEndingNode(t_instruction *instr)
-{
-  return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
 }
 
 t_cfgError cfgInsertBlock(t_cfg *graph, t_basicBlock *block)
@@ -375,9 +370,6 @@ static void cfgComputeTransitions(t_cfg *graph)
 
 t_cfg *programToCFG(t_program *program)
 {
-  t_listNode *instructions = program->instructions;
-
-  // alloc memory for a new control flow graph
   t_cfg *result = newCFG();
 
   // Generate each basic block, by splitting the list of instruction at each
@@ -391,7 +383,7 @@ t_cfg *programToCFG(t_program *program)
   // block is created lazily at the next instruction found. This ensures no
   // empty blocks are created.
   t_basicBlock *bblock = NULL;
-  t_listNode *curNode = instructions;
+  t_listNode *curNode = program->instructions;
   while (curNode != NULL) {
     t_instruction *curInstr = (t_instruction *)curNode->data;
 
@@ -690,17 +682,14 @@ static void dumpArrayOfCFGRegisters(t_cfgReg **array, int size, FILE *fout)
 
 static void dumpListOfCFGRegisters(t_listNode *regs, FILE *fout)
 {
-  t_listNode *currentListNode;
-  t_cfgReg *curReg;
-
   if (regs == NULL)
     return;
   if (fout == NULL)
     return;
 
-  currentListNode = regs;
+  t_listNode *currentListNode = regs;
   while (currentListNode != NULL) {
-    curReg = (t_cfgReg *)currentListNode->data;
+    t_cfgReg *curReg = (t_cfgReg *)currentListNode->data;
     dumpCFGRegister(curReg, fout);
     if (currentListNode->next != NULL)
       fprintf(fout, ", ");

@@ -12,7 +12,7 @@
 const char *opcodeToString(int opcode)
 {
   switch (opcode) {
-    /* Arithmetic */
+    // Arithmetic
     case OPC_ADD:
       return "add";
     case OPC_SUB:
@@ -35,7 +35,7 @@ const char *opcodeToString(int opcode)
       return "srl";
     case OPC_SRA:
       return "sra";
-    /* Arithmetic with immediate */
+    // Arithmetic with immediate
     case OPC_ADDI:
       return "addi";
     case OPC_SUBI:
@@ -58,7 +58,7 @@ const char *opcodeToString(int opcode)
       return "srli";
     case OPC_SRAI:
       return "srai";
-    /* Comparison */
+    // Comparison
     case OPC_SEQ:
       return "seq";
     case OPC_SNE:
@@ -79,7 +79,7 @@ const char *opcodeToString(int opcode)
       return "sle";
     case OPC_SLEU:
       return "sleu";
-    /* Comparison with immediate */
+    // Comparison with immediate
     case OPC_SEQI:
       return "seqi";
     case OPC_SNEI:
@@ -100,7 +100,7 @@ const char *opcodeToString(int opcode)
       return "slei";
     case OPC_SLEIU:
       return "sleiu";
-    /* Jump, Branch */
+    // Jump, Branch
     case OPC_J:
       return "j";
     case OPC_BEQ:
@@ -123,7 +123,7 @@ const char *opcodeToString(int opcode)
       return "ble";
     case OPC_BLEU:
       return "bleu";
-    /* Load/Store */
+    // Load/Store
     case OPC_LW:
       return "lw";
     case OPC_LW_G:
@@ -136,14 +136,14 @@ const char *opcodeToString(int opcode)
       return "li";
     case OPC_LA:
       return "la";
-    /* Other */
+    // Other
     case OPC_NOP:
       return "nop";
     case OPC_ECALL:
       return "ecall";
     case OPC_EBREAK:
       return "ebreak";
-    /* Syscall */
+    // Syscall
     case OPC_CALL_EXIT_0:
       return "Exit";
     case OPC_CALL_READ_INT:
@@ -408,7 +408,6 @@ int instructionToString(
 
 bool translateForwardDeclarations(t_program *program, FILE *fp)
 {
-  /* print declarations for all global labels */
   for (t_listNode *li = program->labels; li != NULL; li = li->next) {
     t_label *nextLabel = li->data;
 
@@ -457,35 +456,28 @@ int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
   return 0;
 }
 
-
 bool translateCodeSegment(t_program *program, FILE *fp)
 {
-  /* if the instruction list is empty, there is nothing to print, exit */
   if (!program->instructions)
     return true;
 
-  /* write the .text directive */
+  // write the .text directive to switch to the text segment
   if (fprintf(fp, "%-8s.text\n", "") < 0)
     return false;
 
-  /* iterate through the instruction list */
   t_listNode *curNode = program->instructions;
   while (curNode != NULL) {
-    /* retrieve the current instruction */
     t_instruction *curInstr = (t_instruction *)curNode->data;
     if (curInstr == NULL)
       fatalError("bug: NULL instruction found in the program");
 
-    /* print label, instruction and comment */
     if (printInstruction(curInstr, fp, true) < 0)
       return false;
     if (fprintf(fp, "\n") < 0)
       return false;
 
-    /* advance to the next instruction */
     curNode = curNode->next;
   }
-
   return true;
 }
 
@@ -494,7 +486,7 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
 {
   char buf[BUF_LENGTH];
 
-  /* print the label */
+  // print the label
   if (data->label != NULL) {
     labelToString(buf, BUF_LENGTH, data->label, 1);
   } else {
@@ -503,7 +495,7 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
   if (fprintf(fp, "%-8s", buf) < 0)
     return -1;
 
-  /* print the directive */
+  // print the directive
   int size;
   switch (data->type) {
     case TYPE_INT:
@@ -520,7 +512,6 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
 
   return 0;
 }
-
 
 bool translateDataSegment(t_program *program, FILE *fp)
 {
