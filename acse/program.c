@@ -497,7 +497,7 @@ t_symbol *createSymbol(
 {
   // Check validity of type
   if (type != TYPE_INT && type != TYPE_INT_ARRAY)
-    fatalError("invalid type");
+    fatalError("bug: invalid type");
   // Check array size validity
   if (type == TYPE_INT_ARRAY && arraySize <= 0) {
     emitError(curFileLoc, "invalid size %d for array %s", arraySize, ID);

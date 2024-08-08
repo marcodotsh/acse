@@ -333,52 +333,52 @@ int instructionToString(
   switch (format) {
     case FORMAT_OP:
       if (!instr->rDest || !instr->rSrc1 || !instr->rSrc2)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rd, rs1, rs2);
       break;
     case FORMAT_OPIMM:
       if (!instr->rDest || !instr->rSrc1)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %d", opc, rd, rs1, imm);
       break;
     case FORMAT_LOAD:
       if (!instr->rDest || !instr->rSrc1)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rd, imm, rs1);
       break;
     case FORMAT_LOAD_GL:
       if (!instr->rDest || !instr->addressParam)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
       break;
     case FORMAT_STORE:
       if (!instr->rSrc2 || !instr->rSrc1)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d(%s)", opc, rs2, imm, rs1);
       break;
     case FORMAT_STORE_GL:
       if (!instr->rDest || !instr->rSrc1 || !instr->addressParam)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, address, rd);
       break;
     case FORMAT_BRANCH:
       if (!instr->rSrc1 || !instr->rSrc2 || !instr->addressParam)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s, %s", opc, rs1, rs2, address);
       break;
     case FORMAT_JUMP:
       if (!instr->addressParam)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s", opc, address);
       break;
     case FORMAT_LI:
       if (!instr->rDest)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %d", opc, rd, imm);
       break;
     case FORMAT_LA:
       if (!instr->rDest || !instr->addressParam)
-        fatalError("invalid instruction found in the program");
+        fatalError("bug: invalid instruction found in the program");
       res = snprintf(buf, bufsz, "%-6s %s, %s", opc, rd, address);
       break;
     case FORMAT_SYSTEM:
@@ -476,7 +476,7 @@ int translateCodeSegment(t_program *program, FILE *fp)
     /* retrieve the current instruction */
     t_instruction *current_instr = (t_instruction *)current_element->data;
     if (current_instr == NULL)
-      fatalError("NULL instruction found in the program");
+      fatalError("bug: NULL instruction found in the program");
 
     /* print label, instruction and comment */
     if (printInstruction(current_instr, fp, true) < 0)
@@ -515,7 +515,7 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
       size = (4 / TARGET_PTR_GRANULARITY) * data->arraySize;
       break;
     default:
-      fatalError("invalid data type found in the program");
+      fatalError("bug: invalid data type found in the program");
   }
   if (fprintf(fp, ".space %d", size) < 0)
     return -1;
@@ -553,11 +553,6 @@ int translateDataSegment(t_program *program, FILE *fp)
 
 void writeAssembly(t_program *program, FILE *fp)
 {
-  debugPrintf(" -> Code segment size: %d instructions\n",
-      listLength(program->instructions));
-  debugPrintf(" -> Data segment size: %d elements\n", listLength(program->symbols));
-  debugPrintf(" -> Number of labels: %d\n", listLength(program->labels));
-
   if (translateForwardDeclarations(program, fp) < 0)
     fatalError("error writing to the assembly output file");
 

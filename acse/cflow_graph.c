@@ -58,7 +58,7 @@ static t_cfgReg *createCFGRegister(
         thisReg = nextReg;
       }
       if (result->mcRegWhitelist == NULL)
-        fatalError("unsatisfiable register constraints on t%d", identifier);
+        fatalError("bug: unsatisfiable register constraints on t%d", identifier);
     }
   }
 
@@ -342,11 +342,11 @@ static void cfgComputeTransitions(t_cfg *graph)
     // indicated by their label argument, so add edges appropriately.
     if (isJumpInstruction(last_instruction)) {
       if (last_instruction->addressParam == NULL)
-        fatalError("malformed jump instruction with no label in CFG");
+        fatalError("bug: malformed jump instruction with no label in CFG");
       t_basicBlock *jumpBlock =
           cfgSearchLabel(graph, last_instruction->addressParam);
       if (jumpBlock == NULL)
-        fatalError("malformed jump instruction with invalid label in CFG");
+        fatalError("bug: malformed jump instruction with invalid label in CFG");
       bbAddPred(jumpBlock, current_block);
       bbAddSucc(current_block, jumpBlock);
     }
@@ -727,7 +727,7 @@ static int cfgComputeBBIndex(t_cfg *cfg, t_basicBlock *bb)
     cur = cur->next;
   }
 
-  fatalError("malformed CFG, found basic block not in list");
+  fatalError("bug: malformed CFG, found basic block not in list");
 }
 
 static void dumpBBList(t_cfg *cfg, t_listNode *list, FILE *fout)
