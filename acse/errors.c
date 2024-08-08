@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include "errors.h"
 
-int num_error;
+int numErrors;
 
 static void printMessage(
     t_fileLocation loc, const char *category, const char *fmt, va_list arg)
@@ -22,7 +22,7 @@ void emitError(t_fileLocation loc, const char *fmt, ...)
   va_start(args, fmt);
   printMessage(loc, "error", fmt, args);
   va_end(args);
-  num_error++;
+  numErrors++;
 }
 
 void fatalError(const char *format, ...)

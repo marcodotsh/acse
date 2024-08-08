@@ -464,12 +464,12 @@ t_program *parseProgram(char *fn)
   program = newProgram();
   curFileLoc.file = fn;
   curFileLoc.row = 0;
-  num_error = 0;
+  numErrors = 0;
   yyin = fp;
   yyparse();
 
-  if (num_error > 0) {
-    fprintf(stderr, "%d error(s) generated.\n", num_error);
+  if (numErrors > 0) {
+    fprintf(stderr, "%d error(s) generated.\n", numErrors);
     fclose(fp);
     deleteProgram(program);
     return NULL;
