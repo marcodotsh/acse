@@ -849,6 +849,7 @@ t_object *parseObject(t_lexer *lex)
   deleteLocalLabelList(state.forwardLabels);
 
   if (state.numErrors > 0) {
+    fprintf(stderr, "%d error(s) generated.\n", state.numErrors);
     deleteObject(state.object);
     return NULL;
   }

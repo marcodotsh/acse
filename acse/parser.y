@@ -453,21 +453,28 @@ var_id
 
 %%
 
-int parseProgram(t_program *_program, char *fn)
+t_program *parseProgram(char *fn)
 {
   FILE *fp = fopen(fn, "r");
   if (!fp) {
-    emitError(curFileLoc, "could not open the input file");
-    return 1;
+    emitError(nullFileLocation, "could not open input file");
+    return NULL;
   }
 
+  program = newProgram();
   curFileLoc.file = fn;
   curFileLoc.row = 0;
   num_error = 0;
-  program = _program;
   yyin = fp;
   yyparse();
 
+  if (num_error > 0) {
+    fprintf(stderr, "%d error(s) generated.\n", num_error);
+    fclose(fp);
+    deleteProgram(program);
+    return NULL;
+  }
+
   fclose(fp);
-  return num_error;
+  return program;
 }

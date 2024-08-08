@@ -23,7 +23,7 @@ int printInstruction(t_instruction *inst, FILE *fp, bool machineRegIDs);
  */
 
 /** write the assembly for the given program */
-void writeAssembly(t_program *program, FILE *fp);
+bool writeAssembly(t_program *program, const char *fn);
 
 /**
  * @}

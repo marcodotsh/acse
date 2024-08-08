@@ -408,7 +408,7 @@ int instructionToString(
 }
 
 
-int translateForwardDeclarations(t_program *program, FILE *fp)
+bool translateForwardDeclarations(t_program *program, FILE *fp)
 {
   /* print declarations for all global labels */
   for (t_listNode *li = program->labels; li != NULL; li = li->next) {
@@ -426,11 +426,11 @@ int translateForwardDeclarations(t_program *program, FILE *fp)
       free(labelName);
 
       if (res < 0)
-        return -1;
+        return false;
     }
   }
 
-  return 0;
+  return true;
 }
 
 
@@ -460,15 +460,15 @@ int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
 }
 
 
-int translateCodeSegment(t_program *program, FILE *fp)
+bool translateCodeSegment(t_program *program, FILE *fp)
 {
   /* if the instruction list is empty, there is nothing to print, exit */
   if (!program->instructions)
-    return 0;
+    return true;
 
   /* write the .text directive */
   if (fprintf(fp, "%-8s.text\n", "") < 0)
-    return -1;
+    return false;
 
   /* iterate through the instruction list */
   t_listNode *current_element = program->instructions;
@@ -480,15 +480,15 @@ int translateCodeSegment(t_program *program, FILE *fp)
 
     /* print label, instruction and comment */
     if (printInstruction(current_instr, fp, true) < 0)
-      return -1;
+      return false;
     if (fprintf(fp, "\n") < 0)
-      return -1;
+      return false;
 
     /* advance to the next instruction */
     current_element = current_element->next;
   }
 
-  return 0;
+  return true;
 }
 
 
@@ -524,15 +524,15 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
 }
 
 
-int translateDataSegment(t_program *program, FILE *fp)
+bool translateDataSegment(t_program *program, FILE *fp)
 {
   // If the symbol table is empty, nothing to do
   if (program->symbols == NULL)
-    return 0;
+    return true;
 
   // write the .data directive to switch to the data segment
   if (fprintf(fp, "%-8s.data\n", "") < 0)
-    return -1;
+    return false;
 
   // Print a static declaration for each symbol
   t_listNode *li = program->symbols;
@@ -540,31 +540,34 @@ int translateDataSegment(t_program *program, FILE *fp)
     t_symbol *symbol = (t_symbol *)li->data;
 
     if (printGlobalDeclaration(symbol, fp) < 0)
-      return -1;
+      return false;
     if (fprintf(fp, "\n") < 0)
-      return -1;
+      return false;
 
     li = li->next;
   }
 
-  return 0;
+  return true;
 }
 
 
-void writeAssembly(t_program *program, FILE *fp)
+bool writeAssembly(t_program *program, const char *fn)
 {
-  if (translateForwardDeclarations(program, fp) < 0)
-    fatalError("error writing to the assembly output file");
+  bool res = false;
+  FILE *fp = fopen(fn, "w");
+  if (fp == NULL)
+    return res;
 
-  /* print the data segment */
-  if (translateDataSegment(program, fp) < 0)
-    fatalError("error writing to the assembly output file");
+  if (!translateForwardDeclarations(program, fp))
+    goto fail;
+  if (!translateDataSegment(program, fp))
+    goto fail;
+  if (!translateCodeSegment(program, fp))
+    goto fail;
 
-  /* print the code segment */
-  if (translateCodeSegment(program, fp) < 0)
-    fatalError("error writing to the assembly output file");
-
-  /* close the file and return */
+  res = true;
+fail:
   if (fclose(fp) == EOF)
-    fatalError("error writing to the assembly output file");
+    res = false;
+  return res;
 }

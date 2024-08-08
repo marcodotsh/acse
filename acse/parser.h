@@ -35,11 +35,10 @@ typedef struct {
  * @{
  */
 
-/** Performs the initial syntactic-driven translation of the source code. The
- * generated code is put into the global `program' data structure.
+/** Performs the initial syntactic-driven translation of the source code.
  * @param fp The source code file being compiled
- * @returns The number of syntax errors encountered. */
-int parseProgram(t_program *program, char *fn);
+ * @returns The program object produced */
+t_program *parseProgram(char *fn);
 
 /**
  * @}

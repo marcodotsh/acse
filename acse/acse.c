@@ -52,13 +52,13 @@
 extern const char *axe_version;
 
 
-char *getLogFileName(const char *logType, const char *outputFn)
+char *getLogFileName(const char *logType, const char *fn)
 {
   char *outfn, *basename;
   size_t nameLen;
   int lastDot, i;
 
-  basename = strdup(outputFn);
+  basename = strdup(fn);
   if (!basename)
     fatalError("out of memory");
 
@@ -99,6 +99,9 @@ int main(int argc, char *argv[])
 {
   char *name = argv[0];
   int ch, res = 0;
+#ifndef NDEBUG
+  FILE *logFile;
+#endif
   static const struct option options[] = {
       {"help", no_argument, NULL, 'h'},
   };
@@ -135,24 +138,22 @@ int main(int argc, char *argv[])
 #endif
 
   res = 1;
-  t_program *program = newProgram();
 
 #ifndef NDEBUG
   fprintf(stderr, "Parsing the input program\n");
   fprintf(stderr, " -> Reading input from \"%s\"\n", argv[0]);
 #endif
-  int num_errors = parseProgram(program, argv[0]);
-  if (num_errors > 0) {
-    fprintf(stderr, "Input contains errors, no assembly file written.\n");
-    fprintf(stderr, "%d error(s) found.\n", num_errors);
+  t_program *program = parseProgram(argv[0]);
+  if (!program) 
     goto fail;
-  }
 #ifndef NDEBUG
   char *logFileName = getLogFileName("frontend", outputFn);
-  fprintf(stderr, " -> Writing the output of parsing to \"%s\"\n", logFileName);
-  FILE *logFile = fopen(logFileName, "w");
-  dumpProgram(program, logFile);
-  fclose(logFile);
+  logFile = fopen(logFileName, "w");
+  if (logFile) {
+    fprintf(stderr, " -> Writing the output of parsing to \"%s\"\n", logFileName);
+    dumpProgram(program, logFile);
+    fclose(logFile);
+  }
   free(logFileName);
 #endif
 
@@ -164,23 +165,27 @@ int main(int argc, char *argv[])
 #ifndef NDEBUG
   fprintf(stderr, "Performing register allocation.\n");
   logFileName = getLogFileName("controlFlow", outputFn);
-  fprintf(stderr, " -> Writing the control flow graph to \"%s\"\n", logFileName);
   logFile = fopen(logFileName, "w");
-  t_cfg *cfg = programToCFG(program);
-  cfgComputeLiveness(cfg);
-  cfgDump(cfg, logFile, true);
-  deleteCFG(cfg);
-  fclose(logFile);
+  if (logFile) {
+    fprintf(stderr, " -> Writing the control flow graph to \"%s\"\n", logFileName);
+    t_cfg *cfg = programToCFG(program);
+    cfgComputeLiveness(cfg);
+    cfgDump(cfg, logFile, true);
+    deleteCFG(cfg);
+    fclose(logFile);
+  }
   free(logFileName);
 #endif
   t_regAllocator *regAlloc = newRegAllocator(program);
   doRegisterAllocation(regAlloc);
 #ifndef NDEBUG
   logFileName = getLogFileName("regAlloc", outputFn);
-  fprintf(stderr, " -> Writing the register bindings to \"%s\"\n", logFileName);
   logFile = fopen(logFileName, "w");
-  dumpRegAllocation(regAlloc, logFile);
-  fclose(logFile);
+  if (logFile) {
+    fprintf(stderr, " -> Writing the register bindings to \"%s\"\n", logFileName);
+    dumpRegAllocation(regAlloc, logFile);
+    fclose(logFile);
+  }
   free(logFileName);
 #endif
   deleteRegAllocator(regAlloc);
@@ -193,13 +198,12 @@ int main(int argc, char *argv[])
   fprintf(stderr, " -> Data segment size: %d elements\n", listLength(program->symbols));
   fprintf(stderr, " -> Number of labels: %d\n", listLength(program->labels));
 #endif
-  FILE *fp = fopen(outputFn, "w");
-  if (fp == NULL) {
-    emitError(nullFileLocation, "could not open the output file");
+  bool ok = writeAssembly(program, outputFn);
+  if (!ok) {
+    emitError(nullFileLocation, "could not write output file");
     goto fail;
   }
-  writeAssembly(program, fp);
-  
+
   res = 0;
 fail:
   deleteProgram(program);
