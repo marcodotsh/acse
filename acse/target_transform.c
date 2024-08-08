@@ -43,8 +43,7 @@ void setMCRegisterWhitelist(t_instrArg *regObj, ...)
   }
   va_end(args);
 
-  if (regObj->mcRegWhitelist)
-    deleteList(regObj->mcRegWhitelist);
+  deleteList(regObj->mcRegWhitelist);
   regObj->mcRegWhitelist = res;
 }
 

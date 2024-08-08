@@ -348,7 +348,6 @@ static t_spillLocation *newSpillLocation(t_label *label, t_regID tempRegID)
   t_spillLocation *result = malloc(sizeof(t_spillLocation));
   if (result == NULL)
     fatalError("out of memory");
-
   result->label = label;
   result->tempRegID = tempRegID;
   return result;

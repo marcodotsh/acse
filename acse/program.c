@@ -26,8 +26,7 @@ static t_label *newLabel(unsigned int value)
 
 void deleteLabel(t_label *lab)
 {
-  if (lab->name)
-    free(lab->name);
+  free(lab->name);
   free(lab);
 }
 
@@ -75,7 +74,6 @@ void deleteInstruction(t_instruction *inst)
 {
   if (inst == NULL)
     return;
-
   if (inst->rDest != NULL) {
     deleteList(inst->rDest->mcRegWhitelist);
     free(inst->rDest);
@@ -88,10 +86,7 @@ void deleteInstruction(t_instruction *inst)
     deleteList(inst->rSrc2->mcRegWhitelist);
     free(inst->rSrc2);
   }
-  if (inst->comment != NULL) {
-    free(inst->comment);
-  }
-
+  free(inst->comment);
   free(inst);
 }
 

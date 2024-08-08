@@ -131,11 +131,8 @@ void deleteCFGNode(t_cfgNode *node)
 {
   if (node == NULL)
     return;
-
-  if (node->in != NULL)
-    deleteList(node->in);
-  if (node->out != NULL)
-    deleteList(node->out);
+  deleteList(node->in);
+  deleteList(node->out);
   free(node);
 }
 
@@ -155,11 +152,9 @@ void deleteBasicBlock(t_basicBlock *block)
 {
   if (block == NULL)
     return;
-
-  if (block->pred != NULL)
-    deleteList(block->pred);
-  if (block->succ != NULL)
-    deleteList(block->succ);
+  
+  deleteList(block->pred);
+  deleteList(block->succ);
 
   t_listNode *curNode = block->nodes;
   while (curNode != NULL) {
@@ -242,32 +237,27 @@ static t_cfg *newCFG(void)
 
 void deleteCFG(t_cfg *graph)
 {
+  t_listNode *curNode;
   if (graph == NULL)
     return;
 
-  t_listNode *curNode = graph->blocks;
-  while (curNode != NULL) {
+  curNode = graph->blocks;
+  while (curNode) {
     t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
     deleteBasicBlock(curBlock);
     curNode = curNode->next;
   }
+  deleteList(graph->blocks);
+  deleteBasicBlock(graph->endingBlock);
 
-  if (graph->blocks != NULL)
-    deleteList(graph->blocks);
-  if (graph->endingBlock != NULL)
-    deleteBasicBlock(graph->endingBlock);
-  if (graph->registers != NULL) {
-    t_listNode *curNode = graph->registers;
-    while (curNode != NULL) {
-      t_cfgReg *curReg = (t_cfgReg *)curNode->data;
-      if (curReg != NULL) {
-        deleteList(curReg->mcRegWhitelist);
-        free(curReg);
-      }
-      curNode = curNode->next;
-    }
-    deleteList(graph->registers);
+  curNode = graph->registers;
+  while (curNode) {
+    t_cfgReg *curReg = (t_cfgReg *)curNode->data;
+    deleteList(curReg->mcRegWhitelist);
+    free(curReg);
+    curNode = curNode->next;
   }
+  deleteList(graph->registers);
 
   free(graph);
 }
