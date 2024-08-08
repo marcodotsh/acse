@@ -1,7 +1,7 @@
-/// @file gencode.c
+/// @file codegen.c
 
 #include <assert.h>
-#include "gencode.h"
+#include "codegen.h"
 #include "scanner.h"
 #include "target_info.h"
 

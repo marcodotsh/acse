@@ -168,7 +168,7 @@ t_regID getNewRegister(t_program *program);
  *          code, and performs no parameter checking. As a result using this
  *          function directly may result in the generation of invalid
  *          instructions.
- *          Use the helper functions in gencode.h instead for generating
+ *          Use the helper functions in codegen.h instead for generating
  *          instructions. */
 t_instruction *genInstruction(t_program *program, int opcode, t_regID r_dest,
     t_regID r_src1, t_regID r_src2, t_label *label, int immediate);

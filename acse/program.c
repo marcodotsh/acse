@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "program.h"
 #include "scanner.h"
-#include "gencode.h"
+#include "codegen.h"
 #include "target_info.h"
 #include "target_asm_print.h"
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "list.h"
-#include "gencode.h"
+#include "codegen.h"
 #include "scanner.h"
 #include "parser.h"
 

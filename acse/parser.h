@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include "program.h"
-#include "gencode.h"
+#include "codegen.h"
 
 /**
  * @defgroup semdef Semantic Definitions

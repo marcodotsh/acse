@@ -1,8 +1,8 @@
-/// @file gencode.h
+/// @file codegen.h
 /// @brief Code generation functions.
 
-#ifndef GENCODE_H
-#define GENCODE_H
+#ifndef CODEGEN_H
+#define CODEGEN_H
 
 #include "program.h"
 

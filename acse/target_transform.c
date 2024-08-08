@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include "target_transform.h"
-#include "gencode.h"
+#include "codegen.h"
 #include "list.h"
 #include "target_info.h"
 #include "target_asm_print.h"

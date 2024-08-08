@@ -6,7 +6,7 @@
 #include "reg_alloc.h"
 #include "target_info.h"
 #include "errors.h"
-#include "gencode.h"
+#include "codegen.h"
 #include "program.h"
 #include "list.h"
 #include "cfg.h"
