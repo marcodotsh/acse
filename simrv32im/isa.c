@@ -63,21 +63,23 @@ int isaDisassembleOP(uint32_t instr, char *out, size_t bufsz)
   t_cpuRegID rd = ISA_INST_RD(instr);
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   t_cpuRegID rs2 = ISA_INST_RS2(instr);
-  const char *mnems00[] = {
+  static const char *mnems00[] = {
       "ADD", "SLL", "SLT", "SLTU", "XOR", "SRL", "OR", "AND"};
-  const char *mnems20[] = {"SUB", NULL, NULL, NULL, NULL, "SRA", NULL, NULL};
-  const char *mnems01[] = {
+  static const char *mnems20[] = {
+      "SUB", NULL, NULL, NULL, NULL, "SRA", NULL, NULL};
+  static const char *mnems01[] = {
       "MUL", "MULH", "MULHSU", "MULHU", "DIV", "DIVU", "REM", "REMU"};
-  const char *mnem;
 
+  static const char *mnem;
   if (ISA_INST_FUNCT7(instr) == 0x00) {
     mnem = mnems00[ISA_INST_FUNCT3(instr)];
   } else if (ISA_INST_FUNCT7(instr) == 0x20) {
     mnem = mnems20[ISA_INST_FUNCT3(instr)];
   } else if (ISA_INST_FUNCT7(instr) == 0x01) {
     mnem = mnems01[ISA_INST_FUNCT3(instr)];
-  } else
+  } else {
     return isaDisassembleIllegal(instr, out, bufsz);
+  }
 
   if (mnem != NULL)
     return snprintf(out, bufsz, "%s x%d, x%d, x%d", mnem, rd, rs1, rs2);
@@ -89,11 +91,10 @@ int isaDisassembleOPIMM(uint32_t instr, char *out, size_t bufsz)
   t_cpuRegID rd = ISA_INST_RD(instr);
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   int32_t imm = (int32_t)ISA_INST_I_IMM12_SEXT(instr);
-  const char *mnems[] = {
+  static const char *mnems[] = {
       "ADDI", "SLLI", "SLTI", "SLTIU", "XORI", "SRLI", "ORI", "ANDI"};
-  const char *mnem;
 
-  mnem = mnems[ISA_INST_FUNCT3(instr)];
+  const char *mnem = mnems[ISA_INST_FUNCT3(instr)];
 
   if (ISA_INST_FUNCT3(instr) == 3) {
     imm &= 0x7FF;
@@ -116,10 +117,10 @@ int isaDisassembleLOAD(uint32_t instr, char *out, size_t bufsz)
   t_cpuRegID rd = ISA_INST_RD(instr);
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   int32_t imm = (int32_t)ISA_INST_I_IMM12_SEXT(instr);
-  const char *mnems[] = {"LB", "LH", "LW", NULL, "LBU", "LHU", NULL, NULL};
-  const char *mnem;
+  static const char *mnems[] = {
+      "LB", "LH", "LW", NULL, "LBU", "LHU", NULL, NULL};
 
-  mnem = mnems[ISA_INST_FUNCT3(instr)];
+  const char *mnem = mnems[ISA_INST_FUNCT3(instr)];
   if (mnem == NULL)
     return isaDisassembleIllegal(instr, out, bufsz);
 
@@ -131,10 +132,10 @@ int isaDisassembleSTORE(uint32_t instr, char *out, size_t bufsz)
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   t_cpuRegID rs2 = ISA_INST_RS2(instr);
   int32_t imm = (int32_t)ISA_INST_S_IMM12_SEXT(instr);
-  const char *mnems[] = {"SB", "SH", "SW", NULL, NULL, NULL, NULL, NULL};
-  const char *mnem;
+  static const char *mnems[] = {
+      "SB", "SH", "SW", NULL, NULL, NULL, NULL, NULL};
 
-  mnem = mnems[ISA_INST_FUNCT3(instr)];
+  const char *mnem = mnems[ISA_INST_FUNCT3(instr)];
   if (mnem == NULL)
     return isaDisassembleIllegal(instr, out, bufsz);
 
@@ -146,11 +147,10 @@ int isaDisassembleBRANCH(uint32_t instr, char *out, size_t bufsz)
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   t_cpuRegID rs2 = ISA_INST_RS2(instr);
   int32_t imm = (int32_t)ISA_INST_B_IMM13_SEXT(instr);
-  const char *mnems[] = {
+  static const char *mnems[] = {
       "BEQ", "BNE", NULL, NULL, "BLT", "BGE", "BLTU", "BGEU"};
-  const char *mnem;
 
-  mnem = mnems[ISA_INST_FUNCT3(instr)];
+  const char *mnem = mnems[ISA_INST_FUNCT3(instr)];
   if (mnem == NULL)
     return isaDisassembleIllegal(instr, out, bufsz);
 

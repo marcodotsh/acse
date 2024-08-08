@@ -12,10 +12,8 @@ t_isaInt svExitCode;
 
 t_svError svInit(void)
 {
-  t_memError merr;
-
   svStackBottom = svStackTop - SV_STACK_PAGE_SIZE;
-  merr = memMapArea(svStackBottom, SV_STACK_PAGE_SIZE, NULL);
+  t_memError merr = memMapArea(svStackBottom, SV_STACK_PAGE_SIZE, NULL);
   if (merr != MEM_NO_ERROR)
     return SV_MEMORY_ERROR;
   cpuSetRegister(CPU_REG_SP, svStackTop - 4);
@@ -86,15 +84,13 @@ t_isaInt svGetExitCode(void)
 
 t_svStatus svVMTick(void)
 {
-  t_cpuStatus cpuStatus;
-  t_dbgResult dbgRes;
   t_svStatus status = SV_STATUS_RUNNING;
 
-  dbgRes = dbgTick();
+  t_dbgResult dbgRes = dbgTick();
   if (dbgRes == DBG_RESULT_EXIT) {
     status = SV_STATUS_KILLED;
   } else {
-    cpuStatus = cpuTick();
+    t_cpuStatus cpuStatus = cpuTick();
     if (cpuStatus == CPU_STATUS_MEMORY_FAULT) {
       svExpandStack();
       cpuClearLastFault();

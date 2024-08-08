@@ -52,13 +52,8 @@ int exitCode(t_exitCode code, bool toPosix)
 
 int main(int argc, char *argv[])
 {
-  t_svStatus status;
   int ch;
-  bool debug, entryIsSet, prgExitCode;
-  char *tmpStr, *name;
-  t_memAddress entry, load;
-  t_ldrFileType excType;
-  t_ldrError ldrErr;
+  char *tmpStr;
   static const struct option options[] = {
       {        "debug",       no_argument, NULL, 'd'},
       {        "entry", required_argument, NULL, 'e'},
@@ -67,12 +62,12 @@ int main(int argc, char *argv[])
       {"prg-exit-code",       no_argument, NULL, 'x'},
   };
 
-  name = argv[0];
-  debug = false;
-  entry = 0;
-  entryIsSet = false;
-  load = 0;
-  prgExitCode = false;
+  char *name = argv[0];
+  bool debug = false;
+  t_memAddress entry = 0;
+  bool entryIsSet = false;
+  t_memAddress load = 0;
+  bool prgExitCode = false;
 
   while ((ch = getopt_long(argc, argv, "de:hl:x", options, NULL)) != -1) {
     switch (ch) {
@@ -119,7 +114,8 @@ int main(int argc, char *argv[])
   if (debug)
     dbgEnable();
 
-  excType = ldrDetectExecType(argv[0]);
+  t_ldrError ldrErr;
+  t_ldrFileType excType = ldrDetectExecType(argv[0]);
   if (excType == LDR_FORMAT_BINARY) {
     if (!entryIsSet)
       entry = load;
@@ -144,7 +140,7 @@ int main(int argc, char *argv[])
     return exitCode(SIM_EXIT_INVALID_FILE, prgExitCode);
   }
 
-  status = svInit();
+  t_svStatus status = svInit();
 
   if (debug)
     dbgRequestEnter();

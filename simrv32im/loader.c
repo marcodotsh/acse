@@ -7,13 +7,9 @@
 t_ldrError ldrLoadBinary(
     const char *path, t_memAddress baseAddr, t_memAddress entry)
 {
-  t_memSize size;
-  uint8_t *buf;
-  FILE *fp;
-
   dbgPrintf("Loading raw binary file \"%s\" at address %" PRIu32 "\n", path);
 
-  fp = fopen(path, "rb");
+  FILE *fp = fopen(path, "rb");
   if (fp == NULL)
     return LDR_FILE_ERROR;
 
@@ -24,12 +20,13 @@ t_ldrError ldrLoadBinary(
     fclose(fp);
     return LDR_FILE_ERROR;
   }
-  size = (t_memSize)fpos;
+  t_memSize size = (t_memSize)fpos;
   if (fseek(fp, 0, SEEK_SET) < 0) {
     fclose(fp);
     return LDR_FILE_ERROR;
   }
 
+  uint8_t *buf;
   if (memMapArea(baseAddr, size, &buf) != MEM_NO_ERROR) {
     fclose(fp);
     return LDR_MEMORY_ERROR;
@@ -112,17 +109,14 @@ typedef struct __attribute__((packed)) Elf32_Phdr {
 t_ldrError ldrLoadELF(const char *path)
 {
   t_ldrError res = LDR_NO_ERROR;
-  FILE *fp = NULL;
-  Elf32_Ehdr header;
-  Elf32_Phdr segment;
-  uint8_t *buf;
 
   dbgPrintf("Loading ELF file \"%s\"\n", path);
 
-  fp = fopen(path, "rb");
+  FILE *fp = fopen(path, "rb");
   if (fp == NULL)
     return LDR_FILE_ERROR;
 
+  Elf32_Ehdr header;
   if (fread(&header, sizeof(Elf32_Ehdr), 1, fp) < 1)
     goto read_error;
   if (header.e_ident[EI_MAG0] != 0x7f || header.e_ident[EI_MAG1] != 'E' ||
@@ -139,6 +133,7 @@ t_ldrError ldrLoadELF(const char *path)
   off_t phoff = header.e_phoff;
   off_t phentsize = header.e_phentsize;
   for (off_t phi = 0; phi < phnum; phi++) {
+    Elf32_Phdr segment;
     fseeko(fp, phoff + phi * phentsize, SEEK_SET);
     if (fread(&segment, sizeof(Elf32_Phdr), 1, fp) < 1)
       goto read_error;
@@ -152,6 +147,7 @@ t_ldrError ldrLoadELF(const char *path)
               ") to 0x%08" PRIx32 " (size=0x%08" PRIx32 ")\n",
         segment.p_offset, segment.p_filesz, segment.p_vaddr, segment.p_memsz);
     if (segment.p_memsz > 0) {
+      uint8_t *buf;
       if (memMapArea(segment.p_vaddr, segment.p_memsz, &buf) != MEM_NO_ERROR)
         goto mem_error;
       if (segment.p_filesz > 0) {
@@ -186,17 +182,15 @@ cleanup:
 
 t_ldrFileType ldrDetectExecType(const char *path)
 {
-  t_ldrFileType res;
-  FILE *fp = NULL;
-  char buf[4];
-
-  fp = fopen(path, "rb");
+  FILE *fp = fopen(path, "rb");
   if (fp == NULL)
     return LDR_FORMAT_DETECT_ERROR;
 
+  char buf[4];
   if (fread(buf, 4, 1, fp) < 1)
     goto file_error;
 
+  t_ldrFileType res;
   if (buf[EI_MAG0] == 0x7f && buf[EI_MAG1] == 'E' && buf[EI_MAG2] == 'L' &&
       buf[EI_MAG3] == 'F')
     res = LDR_FORMAT_ELF;

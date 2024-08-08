@@ -54,14 +54,12 @@ void dbgRequestEnter(void)
 
 int dbgPrintf(const char *format, ...)
 {
-  va_list args;
-  int res;
-
   if (!dbgEnabled)
     return 0;
 
+  va_list args;
   va_start(args, format);
-  res = vfprintf(stderr, format, args);
+  int res = vfprintf(stderr, format, args);
   va_end(args);
   return res;
 }
@@ -143,10 +141,6 @@ enum {
 
 t_dbgTrigType dbgCheckTrigger(t_dbgBreakpointId *outId)
 {
-  t_memAddress curPc;
-  t_memAddress bpAddr;
-  t_dbgEnumBreakpointState state;
-
   if (!dbgEnabled)
     return DBG_TRIG_NONE;
 
@@ -156,11 +150,13 @@ t_dbgTrigType dbgCheckTrigger(t_dbgBreakpointId *outId)
   if (dbgStepInEnabled)
     return DBG_TRIG_TYPE_STEPIN;
 
-  curPc = cpuGetRegister(CPU_REG_PC);
+  t_memAddress curPc = cpuGetRegister(CPU_REG_PC);
   if (dbgStepOverEnabled && dbgStepOverAddr == curPc)
     return DBG_TRIG_TYPE_STEPOVER;
 
-  state = dbgEnumerateBreakpoints(DBG_ENUM_BREAKPOINT_START, outId, &bpAddr);
+  t_memAddress bpAddr;
+  t_dbgEnumBreakpointState state =
+      dbgEnumerateBreakpoints(DBG_ENUM_BREAKPOINT_START, outId, &bpAddr);
   while (state != DBG_ENUM_BREAKPOINT_STOP) {
     if (bpAddr == curPc)
       break;
@@ -181,10 +177,9 @@ void dbgParserSkipWhitespace(char **in)
 
 bool dbgParserAcceptKeyword(const char *word, char **in)
 {
-  char *p;
   dbgParserSkipWhitespace(in);
 
-  p = *in;
+  char *p = *in;
   while (*word != '\0' && *word == *p) {
     word++;
     p++;
@@ -214,14 +209,13 @@ void dbgCmdMemDump(char *args);
 t_dbgResult dbgInterface(void)
 {
   char input[80];
-  char *nextTok;
 
   fprintf(stderr, "debug> ");
   fflush(stderr);
   if (fgets(input, 80, stdin) == NULL)
     return DBG_IF_EXIT;
 
-  nextTok = input;
+  char *nextTok = input;
   if (dbgParserAcceptKeyword("q", &nextTok)) {
     return DBG_IF_EXIT;
   } else if (dbgParserAcceptKeyword("c", &nextTok)) {
@@ -269,11 +263,8 @@ void dbgCmdHelp(void)
 
 void dbgCmdStepOver(void)
 {
-  t_cpuURegValue pc;
-  uint32_t inst;
-
-  pc = cpuGetRegister(CPU_REG_PC);
-  inst = memDebugRead32(pc, NULL);
+  t_cpuURegValue pc = cpuGetRegister(CPU_REG_PC);
+  uint32_t inst = memDebugRead32(pc, NULL);
   if ((ISA_INST_OPCODE(inst) == ISA_INST_OPCODE_JAL ||
           (ISA_INST_OPCODE(inst) == ISA_INST_OPCODE_JALR &&
               ISA_INST_FUNCT3(inst) == 0)) &&
@@ -288,26 +279,21 @@ void dbgCmdStepOver(void)
 
 void dbgCmdAddBreakpoint(char *args)
 {
-  unsigned long addr;
   char *arg2;
-  t_dbgBreakpointId id;
-
-  addr = strtoul(args, &arg2, 0);
+  unsigned long addr = strtoul(args, &arg2, 0);
   if (args == arg2) {
     fprintf(stderr, "First argument is not a valid number\n");
     return;
   }
 
-  id = dbgAddBreakpoint((t_memAddress)addr);
+  t_dbgBreakpointId id = dbgAddBreakpoint((t_memAddress)addr);
   fprintf(stderr, "Added breakpoint %d at address 0x%08lx\n", id, addr);
 }
 
 void dbgCmdRemoveBreakpoint(char *args)
 {
-  unsigned long bpid;
   char *arg2;
-
-  bpid = strtoul(args, &arg2, 0);
+  unsigned long bpid = strtoul(args, &arg2, 0);
   if (args == arg2) {
     fprintf(stderr, "First argument is not a valid number\n");
     return;
@@ -321,11 +307,11 @@ void dbgCmdRemoveBreakpoint(char *args)
 
 void dbgCmdPrintBreakpoints(void)
 {
-  t_dbgEnumBreakpointState enumState;
   t_dbgBreakpointId id;
   t_memAddress addr;
 
-  enumState = dbgEnumerateBreakpoints(DBG_ENUM_BREAKPOINT_START, &id, &addr);
+  t_dbgEnumBreakpointState enumState =
+      dbgEnumerateBreakpoints(DBG_ENUM_BREAKPOINT_START, &id, &addr);
   if (enumState == DBG_ENUM_BREAKPOINT_STOP) {
     fprintf(stderr, "No breakpoints defined\n");
   } else {
@@ -338,17 +324,14 @@ void dbgCmdPrintBreakpoints(void)
 
 void dbgCmdPrintCpuStatus(void)
 {
-  t_cpuRegID r;
-  t_cpuURegValue pc;
-  uint32_t inst;
   char buffer[80];
 
-  pc = cpuGetRegister(CPU_REG_PC);
-  inst = memDebugRead32(pc, NULL);
+  t_cpuURegValue pc = cpuGetRegister(CPU_REG_PC);
+  uint32_t inst = memDebugRead32(pc, NULL);
   isaDisassemble(inst, buffer, 80);
   fprintf(stderr, "PC : %08x: %08x %s\n", pc, inst, buffer);
 
-  for (r = CPU_REG_X0; r <= CPU_REG_X31; r++) {
+  for (t_cpuRegID r = CPU_REG_X0; r <= CPU_REG_X31; r++) {
     fprintf(stderr, "X%-2d: %08x", r, cpuGetRegister(r));
     if ((r + 1) % 4 == 0)
       fputc('\n', stderr);
@@ -359,16 +342,16 @@ void dbgCmdPrintCpuStatus(void)
 
 void dbgCmdDisassemble(char *args)
 {
-  unsigned long addr, len;
   char buffer[80];
-  char *arg2, *arg3;
 
-  addr = strtoul(args, &arg2, 0);
+  char *arg2;
+  unsigned long addr = strtoul(args, &arg2, 0);
   if (args == arg2) {
     fprintf(stderr, "First argument is not a valid number\n");
     return;
   }
-  len = strtoul(arg2, &arg3, 0);
+  char *arg3;
+  unsigned long len = strtoul(arg2, &arg3, 0);
   if (arg2 == arg3) {
     fprintf(stderr, "Second argument is not a valid number\n");
     return;
@@ -387,15 +370,14 @@ void dbgCmdDisassemble(char *args)
 
 void dbgCmdMemDump(char *args)
 {
-  unsigned long addr, len;
-  char *arg2, *arg3;
-
-  addr = strtoul(args, &arg2, 0);
+  char *arg2;
+  unsigned long addr = strtoul(args, &arg2, 0);
   if (args == arg2) {
     fprintf(stderr, "First argument is not a valid number\n");
     return;
   }
-  len = strtoul(arg2, &arg3, 0);
+  char *arg3;
+  unsigned long len = strtoul(arg2, &arg3, 0);
   if (arg2 == arg3) {
     fprintf(stderr, "Second argument is not a valid number\n");
     return;
@@ -424,10 +406,7 @@ void dbgCmdMemDump(char *args)
 t_dbgResult dbgTick(void)
 {
   t_dbgBreakpointId bpId;
-  t_dbgTrigType bpTrig;
-  t_dbgResult dbgRes;
-
-  bpTrig = dbgCheckTrigger(&bpId);
+  t_dbgTrigType bpTrig = dbgCheckTrigger(&bpId);
   if (bpTrig == DBG_TRIG_NONE)
     return DBG_RESULT_CONTINUE;
 
@@ -442,6 +421,7 @@ t_dbgResult dbgTick(void)
 
   dbgCmdPrintCpuStatus();
 
+  t_dbgResult dbgRes;
   do {
     dbgRes = dbgInterface();
   } while (dbgRes == DBG_IF_CONT_DEBUG);

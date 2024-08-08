@@ -64,13 +64,11 @@ t_cpuStatus cpuExecuteSYSTEM(uint32_t instr);
 
 t_cpuStatus cpuTick(void)
 {
-  uint32_t nextInst;
-  t_memError fetchErr;
-
   if (lastStatus != CPU_STATUS_OK)
     return lastStatus;
 
-  fetchErr = memRead32(cpuPC, &nextInst);
+  uint32_t nextInst;
+  t_memError fetchErr = memRead32(cpuPC, &nextInst);
   if (fetchErr != MEM_NO_ERROR) {
     lastStatus = CPU_STATUS_MEMORY_FAULT;
     return lastStatus;
@@ -116,15 +114,14 @@ t_cpuStatus cpuTick(void)
 
 t_cpuStatus cpuExecuteLOAD(uint32_t instr)
 {
-  t_memAddress addr;
+  t_cpuRegID rd = ISA_INST_RD(instr);
+  t_cpuRegID rs1 = ISA_INST_RS1(instr);
+  t_memAddress addr = cpuRegs[rs1] + ISA_INST_I_IMM12_SEXT(instr);
+
   uint8_t tmp8;
   uint16_t tmp16;
   uint32_t tmp32;
   t_memError memStatus;
-  t_cpuRegID rd = ISA_INST_RD(instr);
-  t_cpuRegID rs1 = ISA_INST_RS1(instr);
-  addr = cpuRegs[rs1] + ISA_INST_I_IMM12_SEXT(instr);
-
   switch (ISA_INST_FUNCT3(instr)) {
     case 0: /* LB */
       memStatus = memRead8(addr, &tmp8);
@@ -219,12 +216,11 @@ t_cpuStatus cpuExecuteAUIPC(uint32_t instr)
 
 t_cpuStatus cpuExecuteSTORE(uint32_t instr)
 {
-  t_memAddress addr;
-  t_memError memStatus;
   t_cpuRegID rs1 = ISA_INST_RS1(instr);
   t_cpuRegID rs2 = ISA_INST_RS2(instr);
-  addr = cpuRegs[rs1] + ISA_INST_S_IMM12_SEXT(instr);
+  t_memAddress addr = cpuRegs[rs1] + ISA_INST_S_IMM12_SEXT(instr);
 
+  t_memError memStatus;
   switch (ISA_INST_FUNCT3(instr)) {
     case 0: /* SB */
       memStatus = memWrite8(addr, cpuRegs[rs2] & 0xFF);
