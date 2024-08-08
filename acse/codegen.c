@@ -1,6 +1,7 @@
 /// @file codegen.c
 
-#include <assert.h>
+#include <stddef.h>
+#include "errors.h"
 #include "codegen.h"
 #include "scanner.h"
 #include "target_info.h"

@@ -1,10 +1,12 @@
 /// @file target_asm_print.c
 
 #include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include "list.h"
 #include "errors.h"
 #include "target_asm_print.h"
 #include "target_info.h"
-#include "target_transform.h"
 
 #define BUF_LENGTH 256
 

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <stdbool.h>
+#include "isa.h"
 #include "cpu.h"
 #include "memory.h"
 #include "loader.h"

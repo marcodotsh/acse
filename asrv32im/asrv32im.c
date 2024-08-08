@@ -1,9 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <getopt.h>
 #include "lexer.h"
 #include "parser.h"
 #include "output.h"
+#include "errors.h"
+#include "object.h"
 
 
 void usage(const char *name)

@@ -1,10 +1,8 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "cpu.h"
-#include <stdlib.h>
 #include <stdint.h>
-
+#include "isa.h"
 
 typedef t_isaUXSize t_memAddress;
 typedef t_memAddress t_memSize;

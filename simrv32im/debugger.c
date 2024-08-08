@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include "isa.h"
 #include "cpu.h"
 #include "debugger.h"
 

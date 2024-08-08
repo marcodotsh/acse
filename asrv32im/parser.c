@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <ctype.h>
 #include "parser.h"
 #include "errors.h"
 

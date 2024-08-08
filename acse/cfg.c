@@ -1,6 +1,7 @@
 /// @file cfg.c
 
 #include <assert.h>
+#include <stdlib.h>
 #include "cfg.h"
 #include "target_info.h"
 #include "target_asm_print.h"

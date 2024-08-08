@@ -6,6 +6,7 @@
 #include <stdio.h>     
 #include <stdlib.h>
 #include <limits.h>
+#include "errors.h"
 #include "list.h"
 #include "codegen.h"
 #include "scanner.h"

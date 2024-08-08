@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include "cpu.h"
 #include "loader.h"
 #include "debugger.h"
 

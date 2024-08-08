@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #define ISA_XSIZE (32)
 typedef int32_t t_isaSXSize;

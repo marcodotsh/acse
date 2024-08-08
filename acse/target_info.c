@@ -2,6 +2,7 @@
 /// @brief Properties of the target machine
 
 #include <assert.h>
+#include <stddef.h>
 #include "target_info.h"
 
 

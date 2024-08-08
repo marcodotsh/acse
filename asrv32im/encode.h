@@ -1,6 +1,9 @@
 #ifndef ENCODE_H
 #define ENCODE_H
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "object.h"
 
 #define MAX_EXP_FACTOR 2

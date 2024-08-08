@@ -2,9 +2,8 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <ctype.h>
-#include "parser.h"
+#include "errors.h"
 #include "program.h"
 #include "scanner.h"
 #include "codegen.h"

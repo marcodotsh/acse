@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "list.h"
 #include "program.h"
 
 /// Signed data type with the same size of a target register

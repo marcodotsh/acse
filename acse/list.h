@@ -5,8 +5,6 @@
 #define LIST_H
 
 #include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 /**
  * @defgroup list Double-Linked List

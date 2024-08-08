@@ -5,6 +5,7 @@
 #define TARGET_ASM_PRINT_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include "program.h"
 
 /** Convert a register to a string. The result string is dynamically allocated

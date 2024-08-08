@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
-#include <errno.h>
+#include <stdio.h>
 #include "lexer.h"
 #include "errors.h"
 

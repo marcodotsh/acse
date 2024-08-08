@@ -36,12 +36,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
-#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include "list.h"
 #include "target_info.h"
 #include "program.h"
 #include "target_asm_print.h"
 #include "target_transform.h"
-#include "target_info.h"
 #include "cfg.h"
 #include "reg_alloc.h"
 #include "parser.h"

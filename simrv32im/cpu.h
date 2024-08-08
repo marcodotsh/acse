@@ -1,7 +1,6 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include <stdint.h>
 #include "isa.h"
 
 typedef int t_cpuStatus;

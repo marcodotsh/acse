@@ -5,7 +5,6 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "list.h"

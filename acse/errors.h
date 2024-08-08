@@ -4,6 +4,8 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
+#include <stddef.h>
+
 /// Structure that represents a location in a file.
 typedef struct {
   char *file; ///< The name of the file

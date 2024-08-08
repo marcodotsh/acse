@@ -4,6 +4,7 @@
 #ifndef REG_ALLOC_H
 #define REG_ALLOC_H
 
+#include <stdio.h>
 #include "program.h"
 
 /**

@@ -2,11 +2,12 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "target_transform.h"
 #include "codegen.h"
 #include "list.h"
 #include "target_info.h"
-#include "target_asm_print.h"
 
 #define RD(i)  (i->rDest->ID)
 #define RS1(i) (i->rSrc1->ID)
