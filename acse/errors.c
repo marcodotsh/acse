@@ -5,21 +5,6 @@
 
 int num_error;
 
-int debugPrintf(const char *fmt, ...)
-{
-#ifndef NDEBUG
-  int res;
-  va_list args;
-
-  va_start(args, fmt);
-  res = vprintf(fmt, args);
-  va_end(args);
-  return res;
-#else
-  return 0;
-#endif
-}
-
 static void printMessage(
     t_fileLocation loc, const char *category, const char *fmt, va_list arg)
 {

@@ -460,7 +460,6 @@ int parseProgram(t_program *_program, char *fn)
     emitError(curFileLoc, "could not open the input file");
     return 1;
   }
-  debugPrintf(" -> Reading input from \"%s\"\n", fn);
 
   curFileLoc.file = fn;
   curFileLoc.row = 0;
