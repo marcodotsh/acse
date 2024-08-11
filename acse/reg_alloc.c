@@ -864,6 +864,10 @@ void dumpVariableBindings(t_regAllocator *RA, FILE *fout)
   for (t_regID tempReg = 0; tempReg < RA->tempRegNum; tempReg++) {
     t_regID physReg = RA->bindings[tempReg];
 
+    char *regStr = registerIDToString(tempReg, false);
+    fprintf(fout, "%s: ", regStr);
+    free(regStr);
+
     if (physReg == RA_SPILL_REQUIRED) {
       t_listNode *spillLi = RA->spills;
       t_spillLocation *loc;
@@ -875,23 +879,16 @@ void dumpVariableBindings(t_regAllocator *RA, FILE *fout)
       }
       if (spillLi) {
         char *labelName = getLabelName(loc->label);
-        fprintf(fout, "Variable T%-3d will be spilled to label %s\n", tempReg,
-            labelName);
+        fprintf(fout, "spilled to label %s\n", labelName);
         free(labelName);
       } else {
-        fprintf(fout,
-            "Variable T%-3d will be spilled to an undefined location\n",
-            tempReg);
+        fprintf(fout, "spilled to an undefined location\n");
       }
-
     } else if (physReg == RA_REGISTER_INVALID) {
-      fprintf(fout, "Variable T%-3d has not been assigned to any register\n",
-          tempReg);
-
+      fprintf(fout, "unassigned\n");
     } else {
       char *reg = registerIDToString(physReg, true);
-      fprintf(
-          fout, "Variable T%-3d is assigned to register %s\n", tempReg, reg);
+      fprintf(fout, "assigned to %s\n", reg);
       free(reg);
     }
   }
@@ -908,10 +905,13 @@ void dumpLiveIntervals(t_listNode *intervals, FILE *fout)
   while (curNode != NULL) {
     t_liveInterval *interval = (t_liveInterval *)curNode->data;
 
-    fprintf(fout, "[T%-3d] Live interval: [%3d, %3d]\n", interval->tempRegID,
-        interval->startPoint, interval->endPoint);
-    fprintf(fout, "       Constraint set: {");
+    char *regStr = registerIDToString(interval->tempRegID, false);
+    fprintf(fout, "%s:\n", regStr);
+    free(regStr);
 
+    fprintf(fout, "  live interval = [%3d, %3d]\n",
+        interval->startPoint, interval->endPoint);
+    fprintf(fout, "  constraints = {");
     t_listNode *i = interval->mcRegConstraints;
     while (i) {
       char *reg;
@@ -938,25 +938,17 @@ void dumpRegAllocation(t_regAllocator *RA, FILE *fout)
   if (fout == NULL)
     return;
 
-  fprintf(fout, "*************************\n");
-  fprintf(fout, "   REGISTER ALLOCATION   \n");
-  fprintf(fout, "*************************\n\n");
+  fprintf(fout, "# Register Allocation dump\n\n");
 
-  fprintf(fout, "------------\n");
-  fprintf(fout, " STATISTICS \n");
-  fprintf(fout, "------------\n");
-  fprintf(fout, "Number of available registers: %d\n", NUM_GP_REGS);
-  fprintf(fout, "Number of used variables: %d\n\n", RA->tempRegNum);
+  fprintf(fout, "## Statistics\n\n");
+  fprintf(fout, "Number of available physical registers: %d\n", NUM_GP_REGS);
+  fprintf(fout, "Number of virtual registers used: %d\n\n", RA->tempRegNum);
 
-  fprintf(fout, "----------------\n");
-  fprintf(fout, " LIVE INTERVALS \n");
-  fprintf(fout, "----------------\n");
+  fprintf(fout, "## Live intervals and constraints\n\n");
   dumpLiveIntervals(RA->liveIntervals, fout);
   fprintf(fout, "\n");
 
-  fprintf(fout, "----------------------------\n");
-  fprintf(fout, " VARIABLE/REGISTER BINDINGS \n");
-  fprintf(fout, "----------------------------\n");
+  fprintf(fout, "## Register assignment\n\n");
   dumpVariableBindings(RA, fout);
 
   fflush(fout);

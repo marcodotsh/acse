@@ -491,35 +491,29 @@ void genProgramEpilog(t_program *program)
 
 void dumpProgram(t_program *program, FILE *fout)
 {
-  fprintf(fout, "**************************\n");
-  fprintf(fout, "          PROGRAM         \n");
-  fprintf(fout, "**************************\n\n");
+  fprintf(fout, "# Program dump\n\n");
 
-  fprintf(fout, "-----------\n");
-  fprintf(fout, " VARIABLES\n");
-  fprintf(fout, "-----------\n");
+  fprintf(fout, "## Variables\n\n");
   t_listNode *curVarNode = program->symbols;
   while (curVarNode) {
     t_symbol *var = curVarNode->data;
-    fprintf(fout, "[%s]\n", var->ID);
+    fprintf(fout, "\"%s\":\n", var->ID);
 
     if (var->type == TYPE_INT) {
-      fprintf(fout, "   type = int\n");
+      fprintf(fout, "  type = int\n");
     } else if (var->type == TYPE_INT_ARRAY) {
-      fprintf(fout, "   type = int[%d]\n", var->arraySize);
+      fprintf(fout, "  type = int[%d]\n", var->arraySize);
     } else {
-      fprintf(fout, "   type = invalid\n");
+      fprintf(fout, "  type = invalid\n");
     }
     char *labelName = getLabelName(var->label);
-    fprintf(fout, "   label = %s (ID=%d)\n", labelName, var->label->labelID);
+    fprintf(fout, "  label = %s (ID=%d)\n", labelName, var->label->labelID);
     free(labelName);
 
     curVarNode = curVarNode->next;
   }
 
-  fprintf(fout, "\n--------------\n");
-  fprintf(fout, " INSTRUCTIONS\n");
-  fprintf(fout, "--------------\n");
+  fprintf(fout, "\n## Instructions\n\n");
   t_listNode *curInstNode = program->instructions;
   while (curInstNode) {
     t_instruction *instr = curInstNode->data;
