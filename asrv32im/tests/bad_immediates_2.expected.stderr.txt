@@ -8,3 +8,4 @@ bad_immediates_2.s:7:16: error: expected a label identifier
 bad_immediates_2.s:8:16: error: expected a label identifier
 bad_immediates_2.s:9:19: error: expected right parenthesis
 bad_immediates_2.s:11:12: error: immediate too large
+10 error(s) generated.

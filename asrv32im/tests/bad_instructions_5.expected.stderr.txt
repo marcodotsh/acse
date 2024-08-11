@@ -3,3 +3,4 @@ bad_instructions_5.s:2:8: error: expected a register
 bad_instructions_5.s:3:11: error: expected a label identifier
 bad_instructions_5.s:4:6: error: expected a register
 bad_instructions_5.s:5:9: error: expected a label identifier
+5 error(s) generated.

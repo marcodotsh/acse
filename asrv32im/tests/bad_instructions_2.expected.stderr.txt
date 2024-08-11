@@ -10,3 +10,4 @@ bad_instructions_2.s:9:12: error: expected comma
 bad_instructions_2.s:10:15: error: expected end of the line
 bad_instructions_2.s:11:10: error: expected parenthesis
 too many errors, aborting...
+11 error(s) generated.

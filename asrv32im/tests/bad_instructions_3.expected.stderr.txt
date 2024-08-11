@@ -8,3 +8,4 @@ bad_instructions_3.s:7:5: error: expected a label identifier
 bad_instructions_3.s:8:6: error: register name must be followed by a comma
 bad_instructions_3.s:9:7: error: expected a label identifier
 bad_instructions_3.s:10:3: error: expected a label identifier
+10 error(s) generated.

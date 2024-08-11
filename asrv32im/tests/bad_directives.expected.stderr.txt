@@ -10,3 +10,4 @@ bad_directives.s:9:19: error: label declaration without trailing comma
 bad_directives.s:10:1: error: expected a data directive or an instruction
 bad_directives.s:11:1: error: expected a data directive or an instruction
 too many errors, aborting...
+11 error(s) generated.

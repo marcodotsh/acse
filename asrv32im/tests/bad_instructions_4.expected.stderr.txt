@@ -10,3 +10,4 @@ bad_instructions_4.s:9:5: error: expected end of the line
 bad_instructions_4.s:10:7: error: expected end of the line
 bad_instructions_4.s:11:8: error: expected end of the line
 too many errors, aborting...
+11 error(s) generated.

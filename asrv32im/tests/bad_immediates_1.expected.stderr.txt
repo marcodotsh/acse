@@ -4,3 +4,4 @@ bad_immediates_1.s:9:12: error: numeric constant out of bounds
 bad_immediates_1.s:11:12: error: numeric constant out of bounds
 bad_immediates_1.s:14:8: error: numeric constant out of bounds
 bad_immediates_1.s:16:8: error: numeric constant out of bounds
+6 error(s) generated.

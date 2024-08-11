@@ -8,3 +8,4 @@ bad_instructions_1.s:7:6: error: expected a register
 bad_instructions_1.s:8:9: error: expected a register
 bad_instructions_1.s:9:12: error: expected valid immediate
 bad_instructions_1.s:10:12: error: expected valid immediate
+10 error(s) generated.

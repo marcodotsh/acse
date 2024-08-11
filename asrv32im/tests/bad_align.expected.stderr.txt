@@ -4,3 +4,4 @@ bad_align.s:4:8: error: alignment amount too large
 bad_align.s:5:9: warning: alignment in .text with an amount which is not a multiple of 4
 bad_align.s:6:11: error: numeric constant out of bounds
 bad_align.s:7:12: error: numeric constant out of bounds
+5 error(s) generated.

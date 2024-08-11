@@ -8,3 +8,4 @@ bad_data.s:8:7: error: character arguments to ".byte" must be representable in a
 bad_data.s:9:7: error: character arguments to ".byte" must be representable in a single byte
 bad_data.s:10:7: error: arguments to ".byte" must be number or character literals
 bad_data.s:11:8: error: arguments to ".ascii" must be strings
+10 error(s) generated.
