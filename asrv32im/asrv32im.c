@@ -9,7 +9,7 @@
 
 void usage(const char *name)
 {
-  puts("ACSE RISC-V RV32IM assembler, (c) 2022 Politecnico di Milano");
+  puts("ACSE RISC-V RV32IM assembler, (c) 2022-24 Politecnico di Milano");
   printf("usage: %s [options] input\n\n", name);
   puts("Options:");
   puts("  -o OBJFILE    Name the output OBJFILE (default output.o)");

@@ -80,7 +80,13 @@ char *getLogFileName(const char *logType, const char *fn)
 
 void banner(void)
 {
-  printf("ACSE %s compiler, version %s\n", TARGET_NAME, acseVersion);
+  printf("ACSE %s compiler, (c) 2008-24 Politecnico di Milano\n", TARGET_NAME);
+}
+
+void version(void)
+{
+  printf("ACSE toolchain version %s\n", acseVersion);
+  printf("Target: %s\n", TARGET_NAME);
 }
 
 void usage(const char *name)
@@ -89,6 +95,7 @@ void usage(const char *name)
   printf("usage: %s [options] input\n\n", name);
   puts("Options:");
   puts("  -o ASMFILE    Name the output ASMFILE (default output.asm)");
+  puts("  -v, --version Display version number");
   puts("  -h, --help    Displays available options");
 }
 
@@ -100,18 +107,22 @@ int main(int argc, char *argv[])
   FILE *logFile;
 #endif
   static const struct option options[] = {
-      {"help", no_argument, NULL, 'h'},
+      {"help",    no_argument, NULL, 'h'},
+      {"version", no_argument, NULL, 'v'},
   };
 
   char *outputFn = "output.asm";
 
-  while ((ch = getopt_long(argc, argv, "ho:", options, NULL)) != -1) {
+  while ((ch = getopt_long(argc, argv, "ho:v", options, NULL)) != -1) {
     switch (ch) {
       case 'o':
         outputFn = optarg;
         break;
       case 'h':
         usage(name);
+        return 1;
+      case 'v':
+        version();
         return 1;
       default:
         usage(name);

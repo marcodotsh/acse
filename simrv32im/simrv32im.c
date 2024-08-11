@@ -13,7 +13,7 @@
 
 void usage(const char *name)
 {
-  puts("ACSE RISC-V RV32IM simulator, (c) 2022 Politecnico di Milano");
+  puts("ACSE RISC-V RV32IM simulator, (c) 2022-24 Politecnico di Milano");
   printf("usage: %s [options] executable\n\n", name);
   puts("Options:");
   puts("  -d, --debug           Enters debug mode before starting execution");
