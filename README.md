@@ -77,17 +77,18 @@ GNU GPL version 3. It has been developed by the following contributors:
 - Niccolò Izzo (maintainer 2015-2020)
 - Daniele Cattaneo (maintainer from 2019, main author of the RISC-V version)
 
-Additional input has been provided over the years by:
+Additional help and input has been provided by:
 
 - Alessandro Barenghi
 - Luca Breveglieri
+- Stefano Cherubin
+- Massimo Fioravanti
+- Gabriele Magnani
+- Angelo Morzenti
 - Michele Scandale
+- Michele Scuttari
 - Ettore Speziale
 - Michele Tartara
-- Angelo Morzenti
-- Gabriele Magnani 
-- Michele Scuttari
-- Massimo Fioravanti
 
 Please report any suspected bugs or defects to
 `daniele.cattaneo <at> polimi.it`.
