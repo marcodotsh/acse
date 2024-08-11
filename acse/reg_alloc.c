@@ -184,7 +184,7 @@ static t_listNode *updateIntervalsWithLiveVarAtLocation(
 /* Add/augment the live interval list with the variables live at a given
  * instruction location in the program */
 static t_listNode *updateIntervalsWithInstrAtLocation(
-    t_listNode *result, t_cfgNode *node, int counter)
+    t_listNode *result, t_bbNode *node, int counter)
 {
   t_listNode *elem;
 
@@ -212,7 +212,7 @@ static t_listNode *updateIntervalsWithInstrAtLocation(
 }
 
 static int getLiveIntervalsNodeCallback(
-    t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context)
+    t_bbNode *node, int nodeIndex, void *context)
 {
   t_listNode **list = (t_listNode **)context;
   *list = updateIntervalsWithInstrAtLocation(*list, node, nodeIndex);
@@ -302,7 +302,7 @@ static void initializeRegisterConstraints(t_regAllocator *ra)
 }
 
 static int handleCallerSaveRegistersNodeCallback(
-    t_basicBlock *block, t_cfgNode *node, int nodeIndex, void *context)
+    t_bbNode *node, int nodeIndex, void *context)
 {
   t_regAllocator *ra = (t_regAllocator *)context;
 
@@ -622,45 +622,38 @@ static void materializeSpillMemory(t_regAllocator *RA)
 }
 
 static void genStoreSpillVariable(t_regAllocator *RA, t_regID rSpilled,
-    t_regID rSrc, t_basicBlock *curBlock, t_cfgNode *curCFGNode, bool before)
+    t_regID rSrc, t_basicBlock *block, t_bbNode *curCFGNode, bool before)
 {
+  // Find the spill location
   t_listNode *elementFound =
       listFindWithCallback(RA->spills, &rSpilled, compareSpillLocWithRegId);
   if (elementFound == NULL)
     fatalError("bug: t%d missing from the spill label list", rSpilled);
+  t_spillLocation *loc = (t_spillLocation *)elementFound->data;
 
-  t_spillLocation *tlabel = (t_spillLocation *)elementFound->data;
-
-  // create a store instruction
-  t_instruction *storeInstr = genSWGlobal(NULL, rSrc, tlabel->label, REG_T6);
-  t_cfgNode *storeNode = createCFGNode(RA->graph, storeInstr);
-
-  // test if we have to insert the node `storeNode' before `curCFGNode'
-  // inside the basic block
+  // Insert a store instruction in the required position
+  t_instruction *storeInstr = genSWGlobal(NULL, rSrc, loc->label, REG_T6);
   if (before) {
-    bbInsertNodeBefore(curBlock, curCFGNode, storeNode);
+    bbInsertInstructionBefore(block, storeInstr, curCFGNode);
   } else {
-    bbInsertNodeAfter(curBlock, curCFGNode, storeNode);
+    bbInsertInstructionAfter(block, storeInstr, curCFGNode);
   }
 }
 
 static void genLoadSpillVariable(t_regAllocator *RA, t_regID rSpilled,
-    t_regID rDest, t_basicBlock *block, t_cfgNode *curCFGNode, bool before)
+    t_regID rDest, t_basicBlock *block, t_bbNode *curCFGNode, bool before)
 {
+  // Find the spill location
   t_listNode *elementFound =
       listFindWithCallback(RA->spills, &rSpilled, compareSpillLocWithRegId);
   if (elementFound == NULL)
     fatalError("bug: t%d missing from the spill label list", rSpilled);
+  t_spillLocation *loc = (t_spillLocation *)elementFound->data;
 
-  t_spillLocation *tlabel = (t_spillLocation *)elementFound->data;
-
-  // create a load instruction
-  t_instruction *loadInstr = genLWGlobal(NULL, rDest, tlabel->label);
-  t_cfgNode *loadNode = createCFGNode(RA->graph, loadInstr);
-
+  // Insert a load instruction in the required position
+  t_instruction *loadInstr = genLWGlobal(NULL, rDest, loc->label);
   if (before) {
-    // insert the node `loadNode' before `curCFGNode'
-    bbInsertNodeBefore(block, curCFGNode, loadNode);
+    bbInsertInstructionBefore(block, loadInstr, curCFGNode);
     // if the `curCFGNode' instruction has a label, move it to the new
     // load instruction
     if ((curCFGNode->instr)->label != NULL) {
@@ -668,12 +661,12 @@ static void genLoadSpillVariable(t_regAllocator *RA, t_regID rSpilled,
       (curCFGNode->instr)->label = NULL;
     }
   } else {
-    bbInsertNodeAfter(block, curCFGNode, loadNode);
+    bbInsertInstructionAfter(block, loadInstr, curCFGNode);
   }
 }
 
 static void materializeRegAllocInBBForInstructionNode(t_regAllocator *RA,
-    t_spillState *state, t_basicBlock *curBlock, t_cfgNode *curCFGNode)
+    t_spillState *state, t_basicBlock *curBlock, t_bbNode *curCFGNode)
 {
   // The elements in this array indicate whether the corresponding spill
   // register will be used or not by this instruction
@@ -808,10 +801,10 @@ static void materializeRegAllocInBB(t_regAllocator *RA, t_basicBlock *curBlock)
     state.regs[counter].needsWB = false;
   }
 
-  t_cfgNode *curCFGNode = NULL;
+  t_bbNode *curCFGNode = NULL;
   t_listNode *curInnerNode = curBlock->nodes;
   while (curInnerNode != NULL) {
-    curCFGNode = (t_cfgNode *)curInnerNode->data;
+    curCFGNode = (t_bbNode *)curInnerNode->data;
     // Change the register IDs of the argument of the instruction according
     // to the given register allocation. Generate load and stores for spilled
     // registers
