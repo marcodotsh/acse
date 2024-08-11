@@ -5,6 +5,7 @@
 
 int numErrors;
 
+
 static void printMessage(
     t_fileLocation loc, const char *category, const char *fmt, va_list arg)
 {

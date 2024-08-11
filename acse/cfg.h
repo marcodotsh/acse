@@ -177,7 +177,6 @@ void cfgDump(t_cfg *graph, FILE *fout, bool verbose);
 
 /// @}
 
-
 /**
  * @}
  */

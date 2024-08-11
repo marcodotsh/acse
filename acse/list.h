@@ -164,7 +164,6 @@ t_listNode *listClone(t_listNode *list);
  * @returns NULL. */
 t_listNode *deleteList(t_listNode *list);
 
-
 /**
  * @}
  */
