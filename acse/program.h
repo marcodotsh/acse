@@ -1,5 +1,5 @@
 /// @file program.h
-/// @brief Program object definition and management. 
+/// @brief Program object definition and management.
 
 #ifndef PROGRAM_H
 #define PROGRAM_H
@@ -11,12 +11,12 @@
 /**
  * @defgroup program Program Intermediate Representation
  * @brief Definitions and functions for handling the compiler IR.
- * 
+ *
  * During the compilation process, the program is built instruction by
  * instruction by the code in the syntactic-directed translator in parser.y.
  * The contents of the program are stored in an intermediate data structure of
  * type t_program.
- * 
+ *
  * In successive compilation steps, the instructions and data declarations
  * in the program intermediate representation are modified to make them conform
  * to the requirements of the target machine, and at the end they are
@@ -31,7 +31,7 @@ typedef int t_regID;
 /// Constant used for invalid register identifiers.
 #define REG_INVALID ((t_regID)(-1))
 /// Constant identifying a register whose value is always zero.
-#define REG_0       ((t_regID)(0))
+#define REG_0 ((t_regID)(0))
 
 
 /** Supported data types. */
@@ -47,24 +47,24 @@ typedef enum {
  * physical label if more than one label is assigned to an instruction. */
 typedef struct {
   /// Unique numeric identifier for the label.
-  unsigned int labelID; 
+  unsigned int labelID;
   /// Name of the label. If NULL, the name will be automatically generated in
   /// the form L<ID>.
-  char *name;       
-  /// True if the label will be defined as 'global'.    
+  char *name;
+  /// True if the label will be defined as 'global'.
   bool global;
   /// True if this label object is an alias to another one with the same
   /// labelID.
-  bool isAlias;         
+  bool isAlias;
 } t_label;
 
 /** Object representing a register argument to an instruction. */
 typedef struct {
   /// The register identifier.
-  t_regID ID;                 
+  t_regID ID;
   /// The list of machine registers where this argument may be allocated.
   /// NULL if any machine register is allowed.
-  t_listNode *mcRegWhitelist; 
+  t_listNode *mcRegWhitelist;
 } t_instrArg;
 
 /** Object representing a symbolic assembly instruction. */
@@ -77,19 +77,19 @@ typedef struct {
   int immediate;         ///< Immediate argument.
   t_label *addressParam; ///< Address argument.
   /// A comment string associated with the instruction, or NULL if none.
-  char *comment;         
+  char *comment;
 } t_instruction;
 
 /** A structure that represents the properties of a given symbol in the source
  * code. */
 typedef struct t_symbol {
   /// A valid data type.
-  t_symbolType type;  
+  t_symbolType type;
   /// Symbol name (should never be a NULL pointer or an empty string "").
-  char *ID;           
+  char *ID;
   /// A label that refers to the location of the variable inside the data
   /// segment.
-  t_label *label;     
+  t_label *label;
   /// For arrays only, the size of the array.
   int arraySize;
 } t_symbol;
@@ -112,7 +112,7 @@ typedef struct {
 /** Create a new empty program object. */
 t_program *newProgram(void);
 
-/** Delete a program object. 
+/** Delete a program object.
  * @param program The program object to delete. */
 void deleteProgram(t_program *program);
 

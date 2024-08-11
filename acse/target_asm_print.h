@@ -9,9 +9,9 @@
 #include "program.h"
 
 /**
- * @defgroup asm_print Assembly code output 
+ * @defgroup asm_print Assembly code output
  * @brief Functions to print the assembly code of the compiled program
- * 
+ *
  * At the end of compilation, the assembly code needs to be printed to a file
  * to be later processed by the assembler. These functions are used to perform
  * this task and related assembly printing operations when necessary for

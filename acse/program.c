@@ -324,8 +324,8 @@ void addInstruction(t_program *program, t_instruction *instr)
     size_t strBufSz = fileNameLen + 10 + 1;
     instr->comment = calloc(strBufSz, sizeof(char));
     if (instr->comment) {
-      snprintf(
-          instr->comment, strBufSz, "%s:%d", curFileLoc.file, curFileLoc.row+1);
+      snprintf(instr->comment, strBufSz, "%s:%d", curFileLoc.file,
+          curFileLoc.row + 1);
     }
   }
   lastFileLoc = curFileLoc;
@@ -460,8 +460,8 @@ static bool compareVariableWithIDString(void *a, void *b)
 t_symbol *getSymbol(t_program *program, char *ID)
 {
   // Search inside the list of variables.
-  t_listNode *elementFound = listFindWithCallback(
-      program->symbols, ID, compareVariableWithIDString);
+  t_listNode *elementFound =
+      listFindWithCallback(program->symbols, ID, compareVariableWithIDString);
 
   // If the element is found return it to the caller. Otherwise return NULL.
   if (elementFound != NULL)

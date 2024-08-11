@@ -909,8 +909,8 @@ void dumpLiveIntervals(t_listNode *intervals, FILE *fout)
     fprintf(fout, "%s:\n", regStr);
     free(regStr);
 
-    fprintf(fout, "  live interval = [%3d, %3d]\n",
-        interval->startPoint, interval->endPoint);
+    fprintf(fout, "  live interval = [%3d, %3d]\n", interval->startPoint,
+        interval->endPoint);
     fprintf(fout, "  constraints = {");
     t_listNode *i = interval->mcRegConstraints;
     while (i) {

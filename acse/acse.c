@@ -2,20 +2,20 @@
 
 /**
  * \mainpage ACSE: Advanced Compiler System for Education
- * 
+ *
  * ACSE (Advanced Compiler System for Education) is a simple compiler
  * developed for educational purposes for the course "Formal Languages and
  * Compilers". ACSE, together with its supporting tools, aims to be a
  * representative example of a complete computing system – albeit simplified –
  * in order to illustrate what happens behind the scenes when a program is
  * compiled and then executed.
- * 
+ *
  * This compiler which accepts a program in a simplified C-like language called
  * LANCE (Language for Compiler Education), and produces a compiled program in
  * standard RISC-V RV32IM assembly language.
- * 
+ *
  * ## Naming conventions and code style
- * 
+ *
  * All symbols are in lower camel case. Additionally, ACSE employs a consistent
  * naming convention for all functions, in order to introduce a simple form of
  * namespacing which groups together each function based on their role.
@@ -104,10 +104,11 @@ int main(int argc, char *argv[])
   char *name = argv[0];
   int ch, res = 0;
 #ifndef NDEBUG
-  FILE *logFile;
+  char *logFn;
+  FILE *logFp;
 #endif
   static const struct option options[] = {
-      {"help",    no_argument, NULL, 'h'},
+      {   "help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
   };
 
@@ -152,17 +153,17 @@ int main(int argc, char *argv[])
   fprintf(stderr, " -> Reading input from \"%s\"\n", argv[0]);
 #endif
   t_program *program = parseProgram(argv[0]);
-  if (!program) 
+  if (!program)
     goto fail;
 #ifndef NDEBUG
-  char *logFileName = getLogFileName("frontend", outputFn);
-  logFile = fopen(logFileName, "w");
-  if (logFile) {
-    fprintf(stderr, " -> Writing the output of parsing to \"%s\"\n", logFileName);
-    dumpProgram(program, logFile);
-    fclose(logFile);
+  logFn = getLogFileName("frontend", outputFn);
+  logFp = fopen(logFn, "w");
+  if (logFp) {
+    fprintf(stderr, " -> Writing the output of parsing to \"%s\"\n", logFn);
+    dumpProgram(program, logFp);
+    fclose(logFp);
   }
-  free(logFileName);
+  free(logFn);
 #endif
 
 #ifndef NDEBUG
@@ -172,29 +173,29 @@ int main(int argc, char *argv[])
 
 #ifndef NDEBUG
   fprintf(stderr, "Performing register allocation.\n");
-  logFileName = getLogFileName("controlFlow", outputFn);
-  logFile = fopen(logFileName, "w");
-  if (logFile) {
-    fprintf(stderr, " -> Writing the control flow graph to \"%s\"\n", logFileName);
+  logFn = getLogFileName("controlFlow", outputFn);
+  logFp = fopen(logFn, "w");
+  if (logFp) {
+    fprintf(stderr, " -> Writing the control flow graph to \"%s\"\n", logFn);
     t_cfg *cfg = programToCFG(program);
     cfgComputeLiveness(cfg);
-    cfgDump(cfg, logFile, true);
+    cfgDump(cfg, logFp, true);
     deleteCFG(cfg);
-    fclose(logFile);
+    fclose(logFp);
   }
-  free(logFileName);
+  free(logFn);
 #endif
   t_regAllocator *regAlloc = newRegAllocator(program);
   doRegisterAllocation(regAlloc);
 #ifndef NDEBUG
-  logFileName = getLogFileName("regAlloc", outputFn);
-  logFile = fopen(logFileName, "w");
-  if (logFile) {
-    fprintf(stderr, " -> Writing the register bindings to \"%s\"\n", logFileName);
-    dumpRegAllocation(regAlloc, logFile);
-    fclose(logFile);
+  logFn = getLogFileName("regAlloc", outputFn);
+  logFp = fopen(logFn, "w");
+  if (logFp) {
+    fprintf(stderr, " -> Writing the register bindings to \"%s\"\n", logFn);
+    dumpRegAllocation(regAlloc, logFp);
+    fclose(logFp);
   }
-  free(logFileName);
+  free(logFn);
 #endif
   deleteRegAllocator(regAlloc);
 
@@ -203,7 +204,8 @@ int main(int argc, char *argv[])
   fprintf(stderr, " -> Output file name: \"%s\"\n", outputFn);
   fprintf(stderr, " -> Code segment size: %d instructions\n",
       listLength(program->instructions));
-  fprintf(stderr, " -> Data segment size: %d elements\n", listLength(program->symbols));
+  fprintf(stderr, " -> Data segment size: %d elements\n",
+      listLength(program->symbols));
   fprintf(stderr, " -> Number of labels: %d\n", listLength(program->labels));
 #endif
   bool ok = writeAssembly(program, outputFn);

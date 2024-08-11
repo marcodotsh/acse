@@ -3,7 +3,7 @@
 ///        the semantic actions used to translate it to assembly code.
 
 %{
-#include <stdio.h>     
+#include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include "errors.h"
@@ -13,7 +13,7 @@
 #include "parser.h"
 
 /*
- * Global variables 
+ * Global variables
  */
 
 // The program currently being compiled.
@@ -26,7 +26,7 @@ void yyerror(const char *msg)
 
 %}
 
-/* 
+/*
  * Axiom declaration
  *
  * The starting non-terminal of the grammar will be `program'.
@@ -116,7 +116,7 @@ void yyerror(const char *msg)
  * parsed and recognized up to the point where the semantic action appears.
  */
 
-%% 
+%%
 
 /* `program' is the starting non-terminal of the grammar.
  * A program is composed by:
@@ -284,7 +284,7 @@ return_statement
 /* A read statement translates to a ReadInt syscall. The value it returns is
  * then stored in the appropriate variable. */
 read_statement
-  : READ LPAR var_id RPAR 
+  : READ LPAR var_id RPAR
   {
     t_regID rTmp = getNewRegister(program);
     genReadIntSyscall(program, rTmp);
@@ -293,9 +293,9 @@ read_statement
 ;
 
 /* A read statement translates to a PrintInt syscall, followed by a PrintChar
- * syscall which prints a newline. */  
-write_statement 
-  : WRITE LPAR exp RPAR 
+ * syscall which prints a newline. */
+write_statement
+  : WRITE LPAR exp RPAR
   {
     // Generate a call to the PrintInt syscall.
     genPrintIntSyscall(program, $3);
@@ -318,7 +318,7 @@ exp
     $$ = getNewRegister(program);
     genLI(program, $$, $1);
   }
-  | var_id 
+  | var_id
   {
     $$ = genLoadVariable(program, $1);
   }
@@ -360,12 +360,12 @@ exp
     $$ = getNewRegister(program);
     genREM(program, $$, $1, $3);
   }
-  | exp AND_OP exp 
+  | exp AND_OP exp
   {
     $$ = getNewRegister(program);
     genAND(program, $$, $1, $3);
   }
-  | exp XOR_OP exp 
+  | exp XOR_OP exp
   {
     $$ = getNewRegister(program);
     genXOR(program, $$, $1, $3);

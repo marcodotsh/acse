@@ -40,7 +40,7 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 
 <comment>[^*\n]*
 <comment>[^*\n]*\n        { curFileLoc.row++; }
-<comment>"*"+[^*/\n]*     
+<comment>"*"+[^*/\n]*
 <comment>"*"+[^*/\n]*\n   { curFileLoc.row++; }
 <comment>"*"+"/"          BEGIN(INITIAL);
 

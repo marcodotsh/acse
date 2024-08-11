@@ -9,11 +9,11 @@
 /**
  * @defgroup list Double-Linked List
  * @brief Library for dynamically allocated linked lists.
- * 
+ *
  * In the implementation of ACSE there is often the need to use dynamically
  * growing data lists. These functions provide common shared code for handling
  * this data structure.
- * 
+ *
  * A double-linked list is composed of nodes or elements, which are linked
  * through their 'next' and 'prev' pointers. The data represented by each node
  * is pointed to by a untyped pointer in the node called 'data'. The 'data'
@@ -21,7 +21,7 @@
  * responsible for freeing any related dynamic allocation.
  * Two utility macros are made available to allow storing pointer-sized
  * integers in the 'data' element without additional dynamic allocations.
- * 
+ *
  * A linked list is represented by a pointer to its first node. An empty list
  * has no nodes, therefore it is represented by a pointer to NULL. All functions
  * that add/remove nodes from the list return a new head for the list, which
@@ -37,11 +37,11 @@
 
 /// A node belonging a list.
 typedef struct t_listNode {
-  struct t_listNode *next;  ///< The next element in the chain, if it exists,
-                            ///  or NULL instead.
-  struct t_listNode *prev;  ///< The previous element in the chain, if it 
-                            ///  exists, or NULL instead.
-  void *data;               ///< Pointer to the data associated to this node.
+  struct t_listNode *next; ///< The next element in the chain, if it exists,
+                           ///  or NULL instead.
+  struct t_listNode *prev; ///< The previous element in the chain, if it
+                           ///  exists, or NULL instead.
+  void *data;              ///< Pointer to the data associated to this node.
 } t_listNode;
 
 

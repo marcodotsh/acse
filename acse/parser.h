@@ -16,14 +16,14 @@
 
 /** Utility structure used to store information about an if statement. */
 typedef struct {
-  t_label *lElse;  ///< Label to the else part.
-  t_label *lExit;  ///< Label to the first instruction after the statement.
+  t_label *lElse; ///< Label to the else part.
+  t_label *lExit; ///< Label to the first instruction after the statement.
 } t_ifStmt;
 
 /** Utility structure used to store information about a while statement. */
 typedef struct {
-  t_label *lLoop;  ///< Label to the beginning of the loop.
-  t_label *lExit;  ///< Label to the first instruction after the loop.
+  t_label *lLoop; ///< Label to the beginning of the loop.
+  t_label *lExit; ///< Label to the first instruction after the loop.
 } t_whileStmt;
 
 /**

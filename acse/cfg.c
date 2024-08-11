@@ -24,8 +24,8 @@ static bool compareCFGRegAndRegID(void *a, void *b)
 static t_cfgReg *createCFGRegister(t_cfg *graph, t_instrArg *arg)
 {
   // Test if a register with the same identifier is already present.
-  t_listNode *elementFound = listFindWithCallback(
-      graph->registers, &arg->ID, compareCFGRegAndRegID);
+  t_listNode *elementFound =
+      listFindWithCallback(graph->registers, &arg->ID, compareCFGRegAndRegID);
 
   t_cfgReg *result;
   if (elementFound) {
@@ -141,7 +141,7 @@ void deleteBasicBlock(t_basicBlock *block)
 {
   if (block == NULL)
     return;
-  
+
   deleteList(block->pred);
   deleteList(block->succ);
 
@@ -195,7 +195,7 @@ t_bbNode *bbInsertInstructionBefore(
   t_listNode *listIP = listFind(block->nodes, ip);
   if (listIP == NULL)
     fatalError("bug: invalid basic block node; corrupt CFG?");
-  
+
   t_bbNode *newNode = newBBNode(instr);
   block->nodes = listInsertBefore(block->nodes, listIP, newNode);
   newNode->parent = block;
@@ -209,7 +209,7 @@ t_bbNode *bbInsertInstructionAfter(
   t_listNode *listIP = listFind(block->nodes, ip);
   if (listIP == NULL)
     fatalError("bug: invalid basic block node; corrupt CFG?");
-  
+
   t_bbNode *newNode = newBBNode(instr);
   block->nodes = listInsertAfter(block->nodes, listIP, newNode);
   newNode->parent = block;
@@ -335,8 +335,7 @@ static void cfgComputeTransitions(t_cfg *graph)
     if (isJumpInstruction(lastInstr)) {
       if (lastInstr->addressParam == NULL)
         fatalError("bug: malformed jump instruction with no label in CFG");
-      t_basicBlock *jumpBlock =
-          cfgSearchLabel(graph, lastInstr->addressParam);
+      t_basicBlock *jumpBlock = cfgSearchLabel(graph, lastInstr->addressParam);
       if (jumpBlock == NULL)
         fatalError("bug: malformed jump instruction with invalid label in CFG");
       bbAddPred(jumpBlock, curBlock);

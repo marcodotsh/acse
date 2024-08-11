@@ -23,7 +23,8 @@
 t_listNode *addInstrAfter(
     t_program *program, t_listNode *prev, t_instruction *instr)
 {
-  program->instructions = listInsertAfter(program->instructions, prev, (void *)instr);
+  program->instructions =
+      listInsertAfter(program->instructions, prev, (void *)instr);
   if (prev == NULL)
     return program->instructions;
   return prev->next;
@@ -150,8 +151,7 @@ void fixUnsupportedImmediates(t_program *program)
 
     if (instr->opcode == OPC_ADDI && instr->rSrc1->ID == REG_0) {
       if (!isInt12(instr->immediate)) {
-        curi = addInstrAfter(
-            program, curi, genLI(NULL, RD(instr), IMM(instr)));
+        curi = addInstrAfter(program, curi, genLI(NULL, RD(instr), IMM(instr)));
         removeInstructionAt(program, transformedInstrLnk);
       }
 
@@ -159,8 +159,7 @@ void fixUnsupportedImmediates(t_program *program)
         instr->opcode == OPC_REMI || !isInt12(instr->immediate)) {
       t_regID reg = getNewRegister(program);
       int newOpc = getMatchingNonImmediateOpcode(instr->opcode);
-      curi =
-          addInstrAfter(program, curi, genLI(NULL, reg, IMM(instr)));
+      curi = addInstrAfter(program, curi, genLI(NULL, reg, IMM(instr)));
       curi = addInstrAfter(program, curi,
           genInstruction(NULL, newOpc, RD(instr), RS1(instr), reg, NULL, 0));
       removeInstructionAt(program, transformedInstrLnk);
@@ -190,17 +189,17 @@ void fixPseudoInstructions(t_program *program)
     } else if (instr->opcode == OPC_SEQ || instr->opcode == OPC_SNE ||
         instr->opcode == OPC_SEQI || instr->opcode == OPC_SNEI) {
       if (instr->opcode == OPC_SEQ || instr->opcode == OPC_SNE)
-        curi = addInstrAfter(program, curi,
-            genSUB(NULL, RD(instr), RS1(instr), RS2(instr)));
+        curi = addInstrAfter(
+            program, curi, genSUB(NULL, RD(instr), RS1(instr), RS2(instr)));
       else
-        curi = addInstrAfter(program, curi,
-            genADDI(NULL, RD(instr), RS1(instr), -IMM(instr)));
+        curi = addInstrAfter(
+            program, curi, genADDI(NULL, RD(instr), RS1(instr), -IMM(instr)));
       if (instr->opcode == OPC_SEQ || instr->opcode == OPC_SEQI)
         curi = addInstrAfter(
             program, curi, genSLTIU(NULL, RD(instr), RD(instr), 1));
       else
-        curi = addInstrAfter(program, curi,
-            genSLTU(NULL, RD(instr), REG_0, RD(instr)));
+        curi = addInstrAfter(
+            program, curi, genSLTU(NULL, RD(instr), REG_0, RD(instr)));
       removeInstructionAt(program, transformedInstrLnk);
 
     } else if ((instr->opcode == OPC_SGTI && IMM(instr) == INT32_MAX) ||
@@ -235,8 +234,8 @@ void fixPseudoInstructions(t_program *program)
         else if (instr->opcode == OPC_SLEU)
           instr->opcode = OPC_SLTU;
       }
-      curi = addInstrAfter(
-          program, curi, genXORI(NULL, RD(instr), RD(instr), 1));
+      curi =
+          addInstrAfter(program, curi, genXORI(NULL, RD(instr), RD(instr), 1));
 
     } else if ((instr->opcode == OPC_SLEI && IMM(instr) == INT32_MAX) ||
         (instr->opcode == OPC_SLEIU && (uint32_t)IMM(instr) == UINT32_MAX)) {
@@ -333,7 +332,8 @@ void fixSyscalls(t_program *program)
       rd = getNewRegister(program);
     else
       rd = REG_INVALID;
-    t_instruction *ecall = genInstruction(NULL, OPC_ECALL, rd, rFunc, rArg, NULL, 0);
+    t_instruction *ecall =
+        genInstruction(NULL, OPC_ECALL, rd, rFunc, rArg, NULL, 0);
     curi = addInstrAfter(program, curi, ecall);
     if (ecall->rDest)
       setMCRegisterWhitelist(ecall->rDest, REG_A0, -1);
@@ -344,8 +344,7 @@ void fixSyscalls(t_program *program)
 
     // Move a0 (result) to the destination register if needed.
     if (instr->rDest)
-      curi = addInstrAfter(
-          program, curi, genADDI(NULL, RD(instr), rd, 0));
+      curi = addInstrAfter(program, curi, genADDI(NULL, RD(instr), rd, 0));
 
     // Remove the old call instruction.
     removeInstructionAt(program, transformedInstrLnk);
