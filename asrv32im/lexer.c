@@ -20,7 +20,7 @@ struct t_lexer {
 static char *lexRangeToString(const char *begin, const char *end)
 {
   size_t len = (size_t)(end - begin);
-  char *res = malloc(len+1);
+  char *res = malloc(len + 1);
   if (!res)
     fatalError("out of memory");
   memcpy(res, begin, len);
@@ -51,7 +51,7 @@ t_lexer *newLexer(const char *fn)
   if (fileSize == 0) {
     lex->buf = strdup("");
   } else {
-    lex->buf = malloc(fileSize+1);
+    lex->buf = malloc(fileSize + 1);
     if (lex->buf) {
       size_t readSz = fread(lex->buf, 1, fileSize, fp);
       lex->buf[readSz] = '\0';
@@ -165,7 +165,7 @@ static t_token *lexNewToken(t_lexer *lex, t_tokenID id)
   t_token *tok = calloc(1, sizeof(t_token));
   if (!tok)
     fatalError("out of memory");
-  
+
   tok->location = lex->nextTokenLoc;
   tok->id = id;
   tok->begin = lex->nextTokenPtr;
@@ -268,7 +268,7 @@ static t_strToIntErr lexStringToU32(char **next, int base, uint32_t *res)
 {
   if (!lexIsDigit(**next, base))
     return STRTOI_NO_DIGITS;
-  
+
   uint32_t maxNoOfl = UINT32_MAX / base;
   uint32_t lastDigitMax = UINT32_MAX % base;
   *res = 0;
@@ -285,7 +285,7 @@ static t_strToIntErr lexStringToU32(char **next, int base, uint32_t *res)
     if (!lexIsDigit(**next, base))
       break;
   }
-  
+
   if (lexIsDigit(**next, base))
     return STRTOI_OVERFLOW;
   return STRTOI_OK;
@@ -343,7 +343,8 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
   bool badTerm = false;
   while (!lexAcceptChar(lex, delimiter)) {
     lexAcceptChar(lex, '\\');
-    if (*lex->lookahead == '\n' || *lex->lookahead == '\r' || *lex->lookahead == '\0') {
+    if (*lex->lookahead == '\n' || *lex->lookahead == '\r' ||
+        *lex->lookahead == '\0') {
       badTerm = true;
       break;
     }
@@ -354,8 +355,9 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
     emitError(lex->nextTokenLoc, "string not properly terminated");
     return lexExpectUnrecognized(lex);
   }
-  t_token *res = lexNewToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
-  res->value.string = lexRangeToString(res->begin+1, res->end-1);
+  t_token *res =
+      lexNewToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
+  res->value.string = lexRangeToString(res->begin + 1, res->end - 1);
   return res;
 }
 
@@ -386,7 +388,7 @@ static t_token *lexExpectDirective(t_lexer *lex)
     return lexNewToken(lex, TOK_BALIGN);
   if (lexIdentEquals(lex, ".global"))
     return lexNewToken(lex, TOK_GLOBAL);
-  
+
   return lexExpectUnrecognized(lex);
 }
 
@@ -405,7 +407,7 @@ static t_token *lexExpectAddressing(t_lexer *lex)
     return lexNewToken(lex, TOK_PCREL_HI);
   if (lexIdentEquals(lex, "%pcrel_lo"))
     return lexNewToken(lex, TOK_PCREL_LO);
-  
+
   return lexExpectUnrecognized(lex);
 }
 
@@ -419,134 +421,134 @@ typedef struct t_keywordData {
 static t_token *lexExpectIdentifierOrKeyword(t_lexer *lex)
 {
   static const t_keywordData kwdata[] = {
-      {"x0",     TOK_REGISTER, 0},
-      {"x1",     TOK_REGISTER, 1},
-      {"x2",     TOK_REGISTER, 2},
-      {"x3",     TOK_REGISTER, 3},
-      {"x4",     TOK_REGISTER, 4},
-      {"x5",     TOK_REGISTER, 5},
-      {"x6",     TOK_REGISTER, 6},
-      {"x7",     TOK_REGISTER, 7},
-      {"x8",     TOK_REGISTER, 8},
-      {"x8",     TOK_REGISTER, 8},
-      {"x9",     TOK_REGISTER, 9},
-      {"x10",    TOK_REGISTER, 10},
-      {"x11",    TOK_REGISTER, 11},
-      {"x12",    TOK_REGISTER, 12},
-      {"x13",    TOK_REGISTER, 13},
-      {"x14",    TOK_REGISTER, 14},
-      {"x15",    TOK_REGISTER, 15},
-      {"x16",    TOK_REGISTER, 16},
-      {"x17",    TOK_REGISTER, 17},
-      {"x18",    TOK_REGISTER, 18},
-      {"x19",    TOK_REGISTER, 19},
-      {"x20",    TOK_REGISTER, 20},
-      {"x21",    TOK_REGISTER, 21},
-      {"x22",    TOK_REGISTER, 22},
-      {"x23",    TOK_REGISTER, 23},
-      {"x24",    TOK_REGISTER, 24},
-      {"x25",    TOK_REGISTER, 25},
-      {"x26",    TOK_REGISTER, 26},
-      {"x27",    TOK_REGISTER, 27},
-      {"x28",    TOK_REGISTER, 28},
-      {"x29",    TOK_REGISTER, 29},
-      {"x30",    TOK_REGISTER, 30},
-      {"x31",    TOK_REGISTER, 31},
-      {"zero",   TOK_REGISTER, 0},
-      {"ra",     TOK_REGISTER, 1},
-      {"sp",     TOK_REGISTER, 2},
-      {"gp",     TOK_REGISTER, 3},
-      {"tp",     TOK_REGISTER, 4},
-      {"t0",     TOK_REGISTER, 5},
-      {"t1",     TOK_REGISTER, 6},
-      {"t2",     TOK_REGISTER, 7},
-      {"s0",     TOK_REGISTER, 8},
-      {"fp",     TOK_REGISTER, 8},
-      {"s1",     TOK_REGISTER, 9},
-      {"a0",     TOK_REGISTER, 10},
-      {"a1",     TOK_REGISTER, 11},
-      {"a2",     TOK_REGISTER, 12},
-      {"a3",     TOK_REGISTER, 13},
-      {"a4",     TOK_REGISTER, 14},
-      {"a5",     TOK_REGISTER, 15},
-      {"a6",     TOK_REGISTER, 16},
-      {"a7",     TOK_REGISTER, 17},
-      {"s2",     TOK_REGISTER, 18},
-      {"s3",     TOK_REGISTER, 19},
-      {"s4",     TOK_REGISTER, 20},
-      {"s5",     TOK_REGISTER, 21},
-      {"s6",     TOK_REGISTER, 22},
-      {"s7",     TOK_REGISTER, 23},
-      {"s8",     TOK_REGISTER, 24},
-      {"s9",     TOK_REGISTER, 25},
-      {"s10",    TOK_REGISTER, 26},
-      {"s11",    TOK_REGISTER, 27},
-      {"t3",     TOK_REGISTER, 28},
-      {"t4",     TOK_REGISTER, 29},
-      {"t5",     TOK_REGISTER, 30},
-      {"t6",     TOK_REGISTER, 31},
-      {"add",    TOK_MNEMONIC, INSTR_OPC_ADD},
-      {"sub",    TOK_MNEMONIC, INSTR_OPC_SUB},
-      {"xor",    TOK_MNEMONIC, INSTR_OPC_XOR},
-      {"or",     TOK_MNEMONIC, INSTR_OPC_OR},
-      {"and",    TOK_MNEMONIC, INSTR_OPC_AND},
-      {"sll",    TOK_MNEMONIC, INSTR_OPC_SLL},
-      {"srl",    TOK_MNEMONIC, INSTR_OPC_SRL},
-      {"sra",    TOK_MNEMONIC, INSTR_OPC_SRA},
-      {"slt",    TOK_MNEMONIC, INSTR_OPC_SLT},
-      {"sltu",   TOK_MNEMONIC, INSTR_OPC_SLTU},
-      {"mul",    TOK_MNEMONIC, INSTR_OPC_MUL},
-      {"mulh",   TOK_MNEMONIC, INSTR_OPC_MULH},
-      {"mulhsu", TOK_MNEMONIC, INSTR_OPC_MULHSU},
-      {"mulhu",  TOK_MNEMONIC, INSTR_OPC_MULHU},
-      {"div",    TOK_MNEMONIC, INSTR_OPC_DIV},
-      {"divu",   TOK_MNEMONIC, INSTR_OPC_DIVU},
-      {"rem",    TOK_MNEMONIC, INSTR_OPC_REM},
-      {"remu",   TOK_MNEMONIC, INSTR_OPC_REMU},
-      {"addi",   TOK_MNEMONIC, INSTR_OPC_ADDI},
-      {"xori",   TOK_MNEMONIC, INSTR_OPC_XORI},
-      {"ori",    TOK_MNEMONIC, INSTR_OPC_ORI},
-      {"andi",   TOK_MNEMONIC, INSTR_OPC_ANDI},
-      {"slli",   TOK_MNEMONIC, INSTR_OPC_SLLI},
-      {"srli",   TOK_MNEMONIC, INSTR_OPC_SRLI},
-      {"srai",   TOK_MNEMONIC, INSTR_OPC_SRAI},
-      {"slti",   TOK_MNEMONIC, INSTR_OPC_SLTI},
-      {"sltiu",  TOK_MNEMONIC, INSTR_OPC_SLTIU},
-      {"lb",     TOK_MNEMONIC, INSTR_OPC_LB},
-      {"lh",     TOK_MNEMONIC, INSTR_OPC_LH},
-      {"lw",     TOK_MNEMONIC, INSTR_OPC_LW},
-      {"lbu",    TOK_MNEMONIC, INSTR_OPC_LBU},
-      {"lhu",    TOK_MNEMONIC, INSTR_OPC_LHU},
-      {"sb",     TOK_MNEMONIC, INSTR_OPC_SB},
-      {"sh",     TOK_MNEMONIC, INSTR_OPC_SH},
-      {"sw",     TOK_MNEMONIC, INSTR_OPC_SW},
-      {"nop",    TOK_MNEMONIC, INSTR_OPC_NOP},
-      {"ecall",  TOK_MNEMONIC, INSTR_OPC_ECALL},
-      {"ebreak", TOK_MNEMONIC, INSTR_OPC_EBREAK},
-      {"lui",    TOK_MNEMONIC, INSTR_OPC_LUI},
-      {"auipc",  TOK_MNEMONIC, INSTR_OPC_AUIPC},
-      {"jal",    TOK_MNEMONIC, INSTR_OPC_JAL},
-      {"jalr",   TOK_MNEMONIC, INSTR_OPC_JALR},
-      {"beq",    TOK_MNEMONIC, INSTR_OPC_BEQ},
-      {"bne",    TOK_MNEMONIC, INSTR_OPC_BNE},
-      {"blt",    TOK_MNEMONIC, INSTR_OPC_BLT},
-      {"bge",    TOK_MNEMONIC, INSTR_OPC_BGE},
-      {"bltu",   TOK_MNEMONIC, INSTR_OPC_BLTU},
-      {"bgeu",   TOK_MNEMONIC, INSTR_OPC_BGEU},
-      {"li",     TOK_MNEMONIC, INSTR_OPC_LI},
-      {"la",     TOK_MNEMONIC, INSTR_OPC_LA},
-      {"j",      TOK_MNEMONIC, INSTR_OPC_J},
-      {"bgt",    TOK_MNEMONIC, INSTR_OPC_BGT},
-      {"ble",    TOK_MNEMONIC, INSTR_OPC_BLE},
-      {"bgtu",   TOK_MNEMONIC, INSTR_OPC_BGTU},
-      {"bleu",   TOK_MNEMONIC, INSTR_OPC_BLEU},
-      {"beqz",   TOK_MNEMONIC, INSTR_OPC_BEQZ},
-      {"bnez",   TOK_MNEMONIC, INSTR_OPC_BNEZ},
-      {"blez",   TOK_MNEMONIC, INSTR_OPC_BLEZ},
-      {"bgez",   TOK_MNEMONIC, INSTR_OPC_BGEZ},
-      {"bltz",   TOK_MNEMONIC, INSTR_OPC_BLTZ},
-      {"bgtz",   TOK_MNEMONIC, INSTR_OPC_BGTZ},
-      {NULL,     TOK_UNRECOGNIZED, 0}
+      {    "x0",     TOK_REGISTER,                0},
+      {    "x1",     TOK_REGISTER,                1},
+      {    "x2",     TOK_REGISTER,                2},
+      {    "x3",     TOK_REGISTER,                3},
+      {    "x4",     TOK_REGISTER,                4},
+      {    "x5",     TOK_REGISTER,                5},
+      {    "x6",     TOK_REGISTER,                6},
+      {    "x7",     TOK_REGISTER,                7},
+      {    "x8",     TOK_REGISTER,                8},
+      {    "x8",     TOK_REGISTER,                8},
+      {    "x9",     TOK_REGISTER,                9},
+      {   "x10",     TOK_REGISTER,               10},
+      {   "x11",     TOK_REGISTER,               11},
+      {   "x12",     TOK_REGISTER,               12},
+      {   "x13",     TOK_REGISTER,               13},
+      {   "x14",     TOK_REGISTER,               14},
+      {   "x15",     TOK_REGISTER,               15},
+      {   "x16",     TOK_REGISTER,               16},
+      {   "x17",     TOK_REGISTER,               17},
+      {   "x18",     TOK_REGISTER,               18},
+      {   "x19",     TOK_REGISTER,               19},
+      {   "x20",     TOK_REGISTER,               20},
+      {   "x21",     TOK_REGISTER,               21},
+      {   "x22",     TOK_REGISTER,               22},
+      {   "x23",     TOK_REGISTER,               23},
+      {   "x24",     TOK_REGISTER,               24},
+      {   "x25",     TOK_REGISTER,               25},
+      {   "x26",     TOK_REGISTER,               26},
+      {   "x27",     TOK_REGISTER,               27},
+      {   "x28",     TOK_REGISTER,               28},
+      {   "x29",     TOK_REGISTER,               29},
+      {   "x30",     TOK_REGISTER,               30},
+      {   "x31",     TOK_REGISTER,               31},
+      {  "zero",     TOK_REGISTER,                0},
+      {    "ra",     TOK_REGISTER,                1},
+      {    "sp",     TOK_REGISTER,                2},
+      {    "gp",     TOK_REGISTER,                3},
+      {    "tp",     TOK_REGISTER,                4},
+      {    "t0",     TOK_REGISTER,                5},
+      {    "t1",     TOK_REGISTER,                6},
+      {    "t2",     TOK_REGISTER,                7},
+      {    "s0",     TOK_REGISTER,                8},
+      {    "fp",     TOK_REGISTER,                8},
+      {    "s1",     TOK_REGISTER,                9},
+      {    "a0",     TOK_REGISTER,               10},
+      {    "a1",     TOK_REGISTER,               11},
+      {    "a2",     TOK_REGISTER,               12},
+      {    "a3",     TOK_REGISTER,               13},
+      {    "a4",     TOK_REGISTER,               14},
+      {    "a5",     TOK_REGISTER,               15},
+      {    "a6",     TOK_REGISTER,               16},
+      {    "a7",     TOK_REGISTER,               17},
+      {    "s2",     TOK_REGISTER,               18},
+      {    "s3",     TOK_REGISTER,               19},
+      {    "s4",     TOK_REGISTER,               20},
+      {    "s5",     TOK_REGISTER,               21},
+      {    "s6",     TOK_REGISTER,               22},
+      {    "s7",     TOK_REGISTER,               23},
+      {    "s8",     TOK_REGISTER,               24},
+      {    "s9",     TOK_REGISTER,               25},
+      {   "s10",     TOK_REGISTER,               26},
+      {   "s11",     TOK_REGISTER,               27},
+      {    "t3",     TOK_REGISTER,               28},
+      {    "t4",     TOK_REGISTER,               29},
+      {    "t5",     TOK_REGISTER,               30},
+      {    "t6",     TOK_REGISTER,               31},
+      {   "add",     TOK_MNEMONIC,    INSTR_OPC_ADD},
+      {   "sub",     TOK_MNEMONIC,    INSTR_OPC_SUB},
+      {   "xor",     TOK_MNEMONIC,    INSTR_OPC_XOR},
+      {    "or",     TOK_MNEMONIC,     INSTR_OPC_OR},
+      {   "and",     TOK_MNEMONIC,    INSTR_OPC_AND},
+      {   "sll",     TOK_MNEMONIC,    INSTR_OPC_SLL},
+      {   "srl",     TOK_MNEMONIC,    INSTR_OPC_SRL},
+      {   "sra",     TOK_MNEMONIC,    INSTR_OPC_SRA},
+      {   "slt",     TOK_MNEMONIC,    INSTR_OPC_SLT},
+      {  "sltu",     TOK_MNEMONIC,   INSTR_OPC_SLTU},
+      {   "mul",     TOK_MNEMONIC,    INSTR_OPC_MUL},
+      {  "mulh",     TOK_MNEMONIC,   INSTR_OPC_MULH},
+      {"mulhsu",     TOK_MNEMONIC, INSTR_OPC_MULHSU},
+      { "mulhu",     TOK_MNEMONIC,  INSTR_OPC_MULHU},
+      {   "div",     TOK_MNEMONIC,    INSTR_OPC_DIV},
+      {  "divu",     TOK_MNEMONIC,   INSTR_OPC_DIVU},
+      {   "rem",     TOK_MNEMONIC,    INSTR_OPC_REM},
+      {  "remu",     TOK_MNEMONIC,   INSTR_OPC_REMU},
+      {  "addi",     TOK_MNEMONIC,   INSTR_OPC_ADDI},
+      {  "xori",     TOK_MNEMONIC,   INSTR_OPC_XORI},
+      {   "ori",     TOK_MNEMONIC,    INSTR_OPC_ORI},
+      {  "andi",     TOK_MNEMONIC,   INSTR_OPC_ANDI},
+      {  "slli",     TOK_MNEMONIC,   INSTR_OPC_SLLI},
+      {  "srli",     TOK_MNEMONIC,   INSTR_OPC_SRLI},
+      {  "srai",     TOK_MNEMONIC,   INSTR_OPC_SRAI},
+      {  "slti",     TOK_MNEMONIC,   INSTR_OPC_SLTI},
+      { "sltiu",     TOK_MNEMONIC,  INSTR_OPC_SLTIU},
+      {    "lb",     TOK_MNEMONIC,     INSTR_OPC_LB},
+      {    "lh",     TOK_MNEMONIC,     INSTR_OPC_LH},
+      {    "lw",     TOK_MNEMONIC,     INSTR_OPC_LW},
+      {   "lbu",     TOK_MNEMONIC,    INSTR_OPC_LBU},
+      {   "lhu",     TOK_MNEMONIC,    INSTR_OPC_LHU},
+      {    "sb",     TOK_MNEMONIC,     INSTR_OPC_SB},
+      {    "sh",     TOK_MNEMONIC,     INSTR_OPC_SH},
+      {    "sw",     TOK_MNEMONIC,     INSTR_OPC_SW},
+      {   "nop",     TOK_MNEMONIC,    INSTR_OPC_NOP},
+      { "ecall",     TOK_MNEMONIC,  INSTR_OPC_ECALL},
+      {"ebreak",     TOK_MNEMONIC, INSTR_OPC_EBREAK},
+      {   "lui",     TOK_MNEMONIC,    INSTR_OPC_LUI},
+      { "auipc",     TOK_MNEMONIC,  INSTR_OPC_AUIPC},
+      {   "jal",     TOK_MNEMONIC,    INSTR_OPC_JAL},
+      {  "jalr",     TOK_MNEMONIC,   INSTR_OPC_JALR},
+      {   "beq",     TOK_MNEMONIC,    INSTR_OPC_BEQ},
+      {   "bne",     TOK_MNEMONIC,    INSTR_OPC_BNE},
+      {   "blt",     TOK_MNEMONIC,    INSTR_OPC_BLT},
+      {   "bge",     TOK_MNEMONIC,    INSTR_OPC_BGE},
+      {  "bltu",     TOK_MNEMONIC,   INSTR_OPC_BLTU},
+      {  "bgeu",     TOK_MNEMONIC,   INSTR_OPC_BGEU},
+      {    "li",     TOK_MNEMONIC,     INSTR_OPC_LI},
+      {    "la",     TOK_MNEMONIC,     INSTR_OPC_LA},
+      {     "j",     TOK_MNEMONIC,      INSTR_OPC_J},
+      {   "bgt",     TOK_MNEMONIC,    INSTR_OPC_BGT},
+      {   "ble",     TOK_MNEMONIC,    INSTR_OPC_BLE},
+      {  "bgtu",     TOK_MNEMONIC,   INSTR_OPC_BGTU},
+      {  "bleu",     TOK_MNEMONIC,   INSTR_OPC_BLEU},
+      {  "beqz",     TOK_MNEMONIC,   INSTR_OPC_BEQZ},
+      {  "bnez",     TOK_MNEMONIC,   INSTR_OPC_BNEZ},
+      {  "blez",     TOK_MNEMONIC,   INSTR_OPC_BLEZ},
+      {  "bgez",     TOK_MNEMONIC,   INSTR_OPC_BGEZ},
+      {  "bltz",     TOK_MNEMONIC,   INSTR_OPC_BLTZ},
+      {  "bgtz",     TOK_MNEMONIC,   INSTR_OPC_BGTZ},
+      {    NULL, TOK_UNRECOGNIZED,                0}
   };
 
   lexAcceptIdentifier(lex);
@@ -595,7 +597,8 @@ t_token *lexNextToken(t_lexer *lex)
   if (lexAcceptChar(lex, ')'))
     return lexNewToken(lex, TOK_RPAR);
 
-  if (isdigit(*lex->lookahead) || *lex->lookahead == '-' || *lex->lookahead == '+')
+  if (isdigit(*lex->lookahead) || *lex->lookahead == '-' ||
+      *lex->lookahead == '+')
     return lexExpectNumberOrLocalRef(lex);
   if (*lex->lookahead == '"' || *lex->lookahead == '\'')
     return lexExpectCharacterOrString(lex);

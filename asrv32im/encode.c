@@ -3,20 +3,20 @@
 #include "encode.h"
 #include "errors.h"
 
-#define MASK(n) (((uint32_t)1 << (uint32_t)(n)) - (uint32_t)1)
+#define MASK(n)             (((uint32_t)1 << (uint32_t)(n)) - (uint32_t)1)
 #define SHIFT_MASK(x, a, b) (((uint32_t)(x) & MASK(b - a)) << a)
 
 #define ENC_OPCODE_CODE(x) (((x) << 2) | 3)
-#define ENC_OPCODE_LOAD ENC_OPCODE_CODE(0x00)
-#define ENC_OPCODE_OPIMM ENC_OPCODE_CODE(0x04)
-#define ENC_OPCODE_AUIPC ENC_OPCODE_CODE(0x05)
-#define ENC_OPCODE_STORE ENC_OPCODE_CODE(0x08)
-#define ENC_OPCODE_OP ENC_OPCODE_CODE(0x0C)
-#define ENC_OPCODE_LUI ENC_OPCODE_CODE(0x0D)
-#define ENC_OPCODE_BRANCH ENC_OPCODE_CODE(0x18)
-#define ENC_OPCODE_JALR ENC_OPCODE_CODE(0x19)
-#define ENC_OPCODE_JAL ENC_OPCODE_CODE(0x1B)
-#define ENC_OPCODE_SYSTEM ENC_OPCODE_CODE(0x1C)
+#define ENC_OPCODE_LOAD    ENC_OPCODE_CODE(0x00)
+#define ENC_OPCODE_OPIMM   ENC_OPCODE_CODE(0x04)
+#define ENC_OPCODE_AUIPC   ENC_OPCODE_CODE(0x05)
+#define ENC_OPCODE_STORE   ENC_OPCODE_CODE(0x08)
+#define ENC_OPCODE_OP      ENC_OPCODE_CODE(0x0C)
+#define ENC_OPCODE_LUI     ENC_OPCODE_CODE(0x0D)
+#define ENC_OPCODE_BRANCH  ENC_OPCODE_CODE(0x18)
+#define ENC_OPCODE_JALR    ENC_OPCODE_CODE(0x19)
+#define ENC_OPCODE_JAL     ENC_OPCODE_CODE(0x1B)
+#define ENC_OPCODE_SYSTEM  ENC_OPCODE_CODE(0x1C)
 
 #define HI_20(x) ((((x) >> 12) + ((x) & 0x800 ? 1 : 0)) & 0xFFFFF)
 #define LO_12(x) ((x) & 0xFFF)

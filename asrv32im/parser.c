@@ -735,8 +735,8 @@ static t_parserError expectAlign(t_parserState *state)
   } else {
     if (objSecGetID(state->curSection) == OBJ_SECTION_TEXT) {
       if ((align.alignModulo % 4) != 0)
-        emitWarning(state->curToken->location, "alignment in .text with an "
-            "amount which is not a multiple of 4");
+        emitWarning(state->curToken->location,
+            "alignment in .text with an amount which is not a multiple of 4");
       align.nopFill = true;
     } else {
       align.nopFill = false;
