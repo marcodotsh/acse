@@ -304,7 +304,7 @@ void fixSyscalls(t_program *program)
       continue;
     }
 
-    // load syscall ID in a7
+    // Load syscall ID in a7.
     int func;
     if (instr->opcode == OPC_CALL_EXIT_0)
       func = SYSCALL_ID_EXIT_0;
@@ -317,7 +317,7 @@ void fixSyscalls(t_program *program)
     t_regID rFunc = getNewRegister(program);
     curi = addInstrAfter(program, curi, genLI(NULL, rFunc, func));
 
-    // load argument in a0, if there is one
+    // Load argument in a0, if there is one.
     t_regID rArg;
     if (instr->rSrc1) {
       rArg = getNewRegister(program);
@@ -327,7 +327,7 @@ void fixSyscalls(t_program *program)
       rArg = REG_INVALID;
     }
 
-    // generate an ECALL
+    // Generate an ECALL.
     t_regID rd;
     if (instr->rDest)
       rd = getNewRegister(program);
@@ -342,12 +342,12 @@ void fixSyscalls(t_program *program)
     if (ecall->rSrc2)
       setMCRegisterWhitelist(ecall->rSrc2, REG_A0, -1);
 
-    // move a0 (result) to the destination reg. if needed
+    // Move a0 (result) to the destination register if needed.
     if (instr->rDest)
       curi = addInstrAfter(
           program, curi, genADDI(NULL, RD(instr), rd, 0));
 
-    // remove the old call instruction
+    // Remove the old call instruction.
     removeInstructionAt(program, transformedInstrLnk);
 
     curi = curi->next;

@@ -463,7 +463,7 @@ bool translateCodeSegment(t_program *program, FILE *fp)
   if (!program->instructions)
     return true;
 
-  // write the .text directive to switch to the text segment
+  // Write the .text directive to switch to the text segment.
   if (fprintf(fp, "%-8s.text\n", "") < 0)
     return false;
 
@@ -488,7 +488,7 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
 {
   char buf[BUF_LENGTH];
 
-  // print the label
+  // Print the label.
   if (data->label != NULL) {
     labelToString(buf, BUF_LENGTH, data->label, 1);
   } else {
@@ -497,7 +497,7 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
   if (fprintf(fp, "%-8s", buf) < 0)
     return -1;
 
-  // print the directive
+  // Print the directive.
   int size;
   switch (data->type) {
     case TYPE_INT:
@@ -517,15 +517,15 @@ int printGlobalDeclaration(t_symbol *data, FILE *fp)
 
 bool translateDataSegment(t_program *program, FILE *fp)
 {
-  // If the symbol table is empty, nothing to do
+  // If the symbol table is empty, nothing to do.
   if (program->symbols == NULL)
     return true;
 
-  // write the .data directive to switch to the data segment
+  // Write the .data directive to switch to the data segment.
   if (fprintf(fp, "%-8s.data\n", "") < 0)
     return false;
 
-  // Print a static declaration for each symbol
+  // Print a static declaration for each symbol.
   t_listNode *li = program->symbols;
   while (li != NULL) {
     t_symbol *symbol = (t_symbol *)li->data;

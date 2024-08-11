@@ -23,7 +23,7 @@ static t_listNode *listInsertNodeAfter(
     t_listNode *list, t_listNode *listPos, t_listNode *newElem)
 {
   if (listPos == NULL) {
-    // add at the beginning of the list
+    // Add at the beginning of the list.
     if (list != NULL) {
       list->prev = newElem;
       newElem->next = list;
@@ -61,7 +61,7 @@ t_listNode *listGetLastNode(t_listNode *list)
 t_listNode *listInsertBefore(t_listNode *list, t_listNode *listPos, void *data)
 {
   if (!listPos) {
-    // add at the end of the list
+    // Add at the end of the list.
     return listInsertAfter(list, listGetLastNode(list), data);
   }
   return listInsertAfter(list, listPos->prev, data);
@@ -88,7 +88,7 @@ t_listNode *listInsert(t_listNode *list, void *data, int pos)
   t_listNode *prev;
 
   if (pos < 0) {
-    // add last
+    // Add last.
     prev = NULL;
   } else {
     prev = listGetNodeAt(list, (unsigned int)pos);
@@ -154,25 +154,25 @@ t_listNode *listRemoveNode(t_listNode *list, t_listNode *element)
     return list;
 
   if (element->prev != NULL) {
-    // in the middle or at the end of the list
+    // In the middle or at the end of the list.
     element->prev->next = element->next;
     if (element->next != NULL)
       element->next->prev = element->prev;
   } else {
-    // head of the list
+    // Head of the list.
     assert(list == element && "element to remove not belonging to the list");
 
     if (element->next != NULL) {
       element->next->prev = NULL;
 
-      // update the new head of the list
+      // Update the new head of the list.
       list = element->next;
     } else
       list = NULL;
   }
 
   free(element);
-  // return the new head of the list
+  // Return the new head of the list.
   return list;
 }
 

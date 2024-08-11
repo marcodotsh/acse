@@ -20,13 +20,13 @@
  * @{
  */
 
-/// Signed data type with the same size of a target register
+/// Signed data type with the same size of a target register.
 typedef int32_t t_regInt;
 
-/// Name of the target architecture
+/// Name of the target architecture.
 #define TARGET_NAME "RISC-V_RV32IM"
 
-/// Number of bytes for each memory address
+/// Number of bytes for each memory address.
 #define TARGET_PTR_GRANULARITY 1
 
 /// Defined to 'true' if the target has a 'zero' register whose value is always
@@ -40,7 +40,7 @@ typedef int32_t t_regInt;
 /// the maximum number of unique register operands in a single instruction.
 #define NUM_SPILL_REGS 3
 
-/// Machine register names
+/// Machine register names.
 enum {
   REG_ZERO = 0,
   REG_RA,

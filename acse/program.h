@@ -34,10 +34,10 @@ typedef int t_regID;
 #define REG_0       ((t_regID)(0))
 
 
-/** Supported data types */
+/** Supported data types. */
 typedef enum {
-  TYPE_INT,      ///< `int' scalar type
-  TYPE_INT_ARRAY ///< `int' array type
+  TYPE_INT,      ///< `int' scalar type.
+  TYPE_INT_ARRAY ///< `int' array type.
 } t_symbolType;
 
 
@@ -60,7 +60,7 @@ typedef struct {
 
 /** Object representing a register argument to an instruction. */
 typedef struct {
-  /// The register identifier
+  /// The register identifier.
   t_regID ID;                 
   /// The list of machine registers where this argument may be allocated.
   /// NULL if any machine register is allowed.
@@ -69,26 +69,26 @@ typedef struct {
 
 /** Object representing a symbolic assembly instruction. */
 typedef struct {
-  t_label *label;        ///< Label associated with the instruction, or NULL
-  int opcode;            ///< Instruction opcode
-  t_instrArg *rDest;     ///< Destination argument (or NULL if none)
-  t_instrArg *rSrc1;     ///< First source argument (or NULL if none)
-  t_instrArg *rSrc2;     ///< Second source argument (or NULL if none)
-  int immediate;         ///< Immediate argument
-  t_label *addressParam; ///< Address argument
+  t_label *label;        ///< Label associated with the instruction, or NULL.
+  int opcode;            ///< Instruction opcode.
+  t_instrArg *rDest;     ///< Destination argument (or NULL if none).
+  t_instrArg *rSrc1;     ///< First source argument (or NULL if none).
+  t_instrArg *rSrc2;     ///< Second source argument (or NULL if none).
+  int immediate;         ///< Immediate argument.
+  t_label *addressParam; ///< Address argument.
   /// A comment string associated with the instruction, or NULL if none.
   char *comment;         
 } t_instruction;
 
 /** A structure that represents the properties of a given symbol in the source
- * code */
+ * code. */
 typedef struct t_symbol {
-  /// A valid data type
+  /// A valid data type.
   t_symbolType type;  
-  /// Symbol name (should never be a NULL pointer or an empty string "")
+  /// Symbol name (should never be a NULL pointer or an empty string "").
   char *ID;           
   /// A label that refers to the location of the variable inside the data
-  /// segment
+  /// segment.
   t_label *label;     
   /// For arrays only, the size of the array.
   int arraySize;
@@ -97,12 +97,12 @@ typedef struct t_symbol {
 /** Object containing the program's intermediate representation during the
  * compilation process. */
 typedef struct {
-  t_listNode *labels;            ///< List of all labels
-  t_listNode *instructions;      ///< List of instructions
-  t_listNode *symbols;           ///< Symbol table
-  t_regID firstUnusedReg;        ///< Next unused register ID
-  unsigned int firstUnusedLblID; ///< Next unused label ID
-  t_label *pendingLabel;         ///< Next pending label to assign
+  t_listNode *labels;            ///< List of all labels.
+  t_listNode *instructions;      ///< List of instructions.
+  t_listNode *symbols;           ///< Symbol table.
+  t_regID firstUnusedReg;        ///< Next unused register ID.
+  unsigned int firstUnusedLblID; ///< Next unused label ID.
+  t_label *pendingLabel;         ///< Next pending label to assign.
 } t_program;
 
 
@@ -123,25 +123,25 @@ void deleteProgram(t_program *program);
 /// @{
 
 /** Reserve a new label object, unassigned to any instruction.
- * @param program The program where the label belongs
+ * @param program The program where the label belongs.
  * @returns The new label object. */
 t_label *createLabel(t_program *program);
 
 /** Assign the given label object to the next instruction to be generated.
- * @param program The program where the label belongs
- * @param label   The label to be assigned */
+ * @param program The program where the label belongs.
+ * @param label   The label to be assigned. */
 void assignLabel(t_program *program, t_label *label);
 
 /** Sets the name of a label to the specified string.
- * @param program The program where the label belongs
- * @param label   The label whose name to set
- * @param name    The string which will be used as label name
+ * @param program The program where the label belongs.
+ * @param label   The label whose name to set.
+ * @param name    The string which will be used as label name.
  * @note If another label with the same name already exists, the name assigned
  * to this label will be modified to remove any ambiguity. */
 void setLabelName(t_program *program, t_label *label, const char *name);
 
-/** Obtain the name of a given label
- * @param label The label
+/** Obtain the name of a given label.
+ * @param label The label.
  * @returns A dynamically allocated string. The caller owns the string and is
  *          responsible for freeing it. */
 char *getLabelName(t_label *label);
@@ -158,17 +158,17 @@ char *getLabelName(t_label *label);
 t_regID getNewRegister(t_program *program);
 
 /** Add a new instruction at the end the current program's list of instructions.
- * @param program   The program where to add the instruction
- * @param opcode    Identifier for the operation performed by the instruction
+ * @param program   The program where to add the instruction.
+ * @param opcode    Identifier for the operation performed by the instruction.
  * @param rd        Identifier of the destination register argument,
- *                  or REG_INVALID if none
+ *                  or REG_INVALID if none.
  * @param rs1       Identifier of the first source register argument,
- *                  or REG_INVALID if none
+ *                  or REG_INVALID if none.
  * @param rs2       Identifier of the second source register argument,
- *                  or REG_INVALID if none
+ *                  or REG_INVALID if none.
  * @param label     Label object representing the label argument,
- *                  or NULL if none
- * @param immediate Immediate argument to the instruction, if needed
+ *                  or NULL if none.
+ * @param immediate Immediate argument to the instruction, if needed.
  * @warning This is a low-level primitive for generating instructions. This
  *          function is not aware of the semantic meaning of each operation
  *          code, and performs no parameter checking. As a result using this
@@ -181,8 +181,8 @@ t_instruction *genInstruction(t_program *program, int opcode, t_regID rd,
 
 /** Remove an instruction from the program, given its node in the instruction
  * list.
- * @param program The program where to remove the instruction
- * @param instrLi Node in the instruction list to remove */
+ * @param program The program where to remove the instruction.
+ * @param instrLi Node in the instruction list to remove. */
 void removeInstructionAt(t_program *program, t_listNode *instrLi);
 
 /// @}
@@ -224,8 +224,8 @@ bool isArray(t_symbol *symbol);
 void genProgramEpilog(t_program *program);
 
 /** Dumps the current state of a program object to the specified file.
- * @param program The program which will be dumped
- * @param fout    The file where to print the dump */
+ * @param program The program which will be dumped.
+ * @param fout    The file where to print the dump. */
 void dumpProgram(t_program *program, FILE *fout);
 
 /// @}

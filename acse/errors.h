@@ -17,11 +17,11 @@
 
 /// Structure that represents a location in a file.
 typedef struct {
-  char *file; ///< The name of the file
-  int row;    ///< The zero-based index of a line in the file
+  char *file; ///< The name of the file.
+  int row;    ///< The zero-based index of a line in the file.
 } t_fileLocation;
 
-/// A global constant that represents an unknown file location
+/// A global constant that represents an unknown file location.
 static const t_fileLocation nullFileLocation = {NULL, -1};
 
 /// The number of errors logged by emitError up to now.

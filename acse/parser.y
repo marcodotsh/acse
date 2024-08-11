@@ -16,7 +16,7 @@
  * Global variables 
  */
 
-// The program currently being compiled
+// The program currently being compiled.
 static t_program *program;
 
 void yyerror(const char *msg)
@@ -61,7 +61,7 @@ void yyerror(const char *msg)
  *   We also declare the type for the semantic values of some of these tokens.
  */
 
-%token EOF_TOK  // end of file
+%token EOF_TOK  // End of file.
 %token LPAR RPAR LSQUARE RSQUARE LBRACE RBRACE
 %token COMMA SEMI PLUS MINUS MUL_OP DIV_OP MOD_OP
 %token AND_OP XOR_OP OR_OP NOT_OP
@@ -128,7 +128,7 @@ program
     // Generate the epilog of the program, that is, a call to the
     // `exit' syscall.
     genProgramEpilog(program);
-    // Return from yyparse()
+    // Return from yyparse().
     YYACCEPT;
   }
 ;
@@ -164,7 +164,7 @@ declarator
   }
 ;
 
-/* A block of code is a list of statements enclosed between braces */
+/* A block of code is a list of statements enclosed between braces. */
 code_block
   : LBRACE statements RBRACE
 ;
@@ -210,15 +210,15 @@ if_statement
   }
   code_block
   {
-    // After the `then' part, generate a jump to the end of the statement
+    // After the `then' part, generate a jump to the end of the statement.
     $1.lExit = createLabel(program);
     genJ(program, $1.lExit);
-    // Assign the label which points to the first instruction of the else part
+    // Assign the label which points to the first instruction of the else part.
     assignLabel(program, $1.lElse);
   }
   else_part
   {
-    // Assign the label to the end of the statement
+    // Assign the label to the end of the statement.
     assignLabel(program, $1.lExit);
   }
 ;
@@ -235,21 +235,21 @@ else_part
 while_statement
   : WHILE
   {
-    // Assign a label at the beginning of the loop for the back-edge
+    // Assign a label at the beginning of the loop for the back-edge.
     $1.lLoop = createLabel(program);
     assignLabel(program, $1.lLoop);
   }
   LPAR exp RPAR
   {
-    // Generate a jump out of the loop if the condition is equal to zero
+    // Generate a jump out of the loop if the condition is equal to zero.
     $1.lExit = createLabel(program);
     genBEQ(program, $4, REG_0, $1.lExit);
   }
   code_block
   {
-    // Generate a jump back to the beginning of the loop after its body
+    // Generate a jump back to the beginning of the loop after its body.
     genJ(program, $1.lLoop);
-    // Assign the label to the end of the loop
+    // Assign the label to the end of the loop.
     assignLabel(program, $1.lExit);
   }
 ;
@@ -260,14 +260,14 @@ while_statement
 do_while_statement
   : DO
   {
-    // Assign a label at the beginning of the loop for the back-edge
+    // Assign a label at the beginning of the loop for the back-edge.
     $1 = createLabel(program);
     assignLabel(program, $1);
   }
   code_block WHILE LPAR exp RPAR
   {
     // Generate a jump to the beginning of the loop to repeat the code block
-    // if the condition is not equal to zero
+    // if the condition is not equal to zero.
     genBNE(program, $6, REG_0, $1);
   }
 ;
@@ -299,7 +299,7 @@ write_statement
   {
     // Generate a call to the PrintInt syscall.
     genPrintIntSyscall(program, $3);
-    // Also generate code to print a newline after the integer
+    // Also generate code to print a newline after the integer.
     t_regID rTmp = getNewRegister(program);
     genLI(program, rTmp, '\n');
     genPrintCharSyscall(program, rTmp);

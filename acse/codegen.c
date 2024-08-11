@@ -447,10 +447,10 @@ t_regID genLoadVariable(t_program *program, t_symbol *var)
     return REG_0;
   }
 
-  // Generate an LA instruction to load the label address into a register
+  // Generate an LA instruction to load the label address into a register.
   t_regID rAddr = getNewRegister(program);
   genLA(program, rAddr, var->label);
-  // Generate a LW from the address
+  // Generate a LW from the address.
   t_regID rRes = getNewRegister(program);
   genLW(program, rRes, 0, rAddr);
   return rRes;
@@ -461,25 +461,25 @@ void genStoreRegisterToVariable(t_program *program, t_symbol *var, t_regID reg)
 {
   // Check if the symbol is an array; in that case bail out without generating
   // any code (but emitting an error that will eventually stop further
-  // compilation)
+  // compilation).
   if (isArray(var)) {
     emitError(curFileLoc, "'%s' is an array", var->ID);
     return;
   }
 
-  // Generate an LA instruction to load the label address into a register
+  // Generate an LA instruction to load the label address into a register.
   t_regID rAddr = getNewRegister(program);
   genLA(program, rAddr, var->label);
-  // Generate a SW to the address specified by the label
+  // Generate a SW to the address specified by the label.
   genSW(program, reg, 0, rAddr);
 }
 
 void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
 {
-  // Generate a copy of the constant value into a register
+  // Generate a copy of the constant value into a register.
   t_regID rVal = getNewRegister(program);
   genLI(program, rVal, val);
-  // Copy the register value into the variable
+  // Copy the register value into the variable.
   genStoreRegisterToVariable(program, var, rVal);
 }
 
@@ -495,7 +495,7 @@ void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
 t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID rIdx)
 {
   if (!isArray(array)) {
-    // If the symbol is not an array, bail out returning a dummy register ID
+    // If the symbol is not an array, bail out returning a dummy register ID.
     emitError(curFileLoc, "'%s' is a scalar", array->ID);
     return REG_0;
   }
@@ -506,13 +506,13 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID rIdx)
   genLA(program, rAddr, label);
 
   // Generate the code to compute the offset of the element in the array in
-  // bytes. Assume the type is an integer (no other scalar types are supported)
+  // bytes. Assume the type is an integer (no other scalar types are supported).
   int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
   if (sizeofElem != 1)
     genMULI(program, rIdx, rIdx, sizeofElem);
 
   // Generate the code which computes the final address by summing the base
-  // address to the offset of the element
+  // address to the offset of the element.
   genADD(program, rAddr, rAddr, rIdx);
   return rAddr;
 }
@@ -521,7 +521,7 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID rIdx)
 t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID rIdx)
 {
   // Generate code that loads the address of the array element in a register
-  // and then loads the element itself from that memory address
+  // and then loads the element itself from that memory address.
   t_regID rAddr = genLoadArrayAddress(program, array, rIdx);
   t_regID rVal = getNewRegister(program);
   genLW(program, rVal, 0, rAddr);
@@ -533,7 +533,7 @@ void genStoreRegisterToArrayElement(
     t_program *program, t_symbol *array, t_regID rIdx, t_regID rVal)
 {
   // Generate code that loads the address of the array element in a register
-  // and then stores the new value in that address
+  // and then stores the new value in that address.
   t_regID rAddr = genLoadArrayAddress(program, array, rIdx);
   genSW(program, rVal, 0, rAddr);
 }
@@ -541,9 +541,9 @@ void genStoreRegisterToArrayElement(
 void genStoreConstantToArrayElement(
     t_program *program, t_symbol *array, t_regID rIdx, int val)
 {
-  // Generate code to move the constant value into a register
+  // Generate code to move the constant value into a register.
   t_regID rVal = getNewRegister(program);
   genLI(program, rVal, val);
-  // Generate the array access itself
+  // Generate the array access itself.
   genStoreRegisterToArrayElement(program, array, rIdx, rVal);
 }

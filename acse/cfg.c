@@ -29,10 +29,10 @@ static t_cfgReg *createCFGRegister(t_cfg *graph, t_instrArg *arg)
 
   t_cfgReg *result;
   if (elementFound) {
-    // It's there: just use it
+    // It's there: just use it.
     result = (t_cfgReg *)elementFound->data;
   } else {
-    // If it's not there it needs to be created
+    // If it's not there it needs to be created.
     result = malloc(sizeof(t_cfgReg));
     if (result == NULL)
       fatalError("out of memory");
@@ -43,7 +43,7 @@ static t_cfgReg *createCFGRegister(t_cfg *graph, t_instrArg *arg)
   }
 
   // Copy the machine register allocation constraint, or compute the
-  // intersection between the register allocation constraint sets
+  // intersection between the register allocation constraint sets.
   if (arg->mcRegWhitelist) {
     if (result->mcRegWhitelist == NULL) {
       result->mcRegWhitelist = listClone(arg->mcRegWhitelist);
@@ -98,7 +98,7 @@ static void bbNodeComputeDefUses(t_bbNode *node)
   t_cfg *graph = node->parent->parent;
   t_instruction *instr = node->instr;
 
-  // Create or lookup CFG register objects for all arguments
+  // Create or lookup CFG register objects for all arguments.
   t_cfgReg *regDest = NULL;
   t_cfgReg *regSource1 = NULL;
   t_cfgReg *regSource2 = NULL;
@@ -109,7 +109,7 @@ static void bbNodeComputeDefUses(t_bbNode *node)
   if (instr->rSrc2 != NULL)
     regSource2 = createCFGRegister(graph, instr->rSrc2);
 
-  // Fill the def/use sets for this node
+  // Fill the def/use sets for this node.
   int defIdx = 0;
   if (regDest)
     node->defs[defIdx++] = regDest;
@@ -121,7 +121,7 @@ static void bbNodeComputeDefUses(t_bbNode *node)
 }
 
 
-/** Allocate a new empty basic block
+/** Allocate a new empty basic block.
  *  @returns The new block. */
 t_basicBlock *newBasicBlock(void)
 {
@@ -135,7 +135,7 @@ t_basicBlock *newBasicBlock(void)
   return result;
 }
 
-/** Frees the memory associated with a given basic block
+/** Frees the memory associated with a given basic block.
  *  @param block The block to be freed. */
 void deleteBasicBlock(t_basicBlock *block)
 {
@@ -161,7 +161,7 @@ void deleteBasicBlock(t_basicBlock *block)
  *  @param pred  The predecessor block. */
 void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 {
-  // do not insert if the block is already inserted in the list of predecessors
+  // Do not insert if the block is already inserted in the list of predecessors.
   if (listFind(block->pred, pred) == NULL) {
     block->pred = listInsert(block->pred, pred, -1);
     pred->succ = listInsert(pred->succ, block, -1);
@@ -173,7 +173,7 @@ void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
  *  @param succ  The successor block. */
 void bbAddSucc(t_basicBlock *block, t_basicBlock *succ)
 {
-  // do not insert if the node is already inserted in the list of successors
+  // Do not insert if the node is already inserted in the list of successors.
   if (listFind(block->succ, succ) == NULL) {
     block->succ = listInsert(block->succ, succ, -1);
     succ->pred = listInsert(succ->pred, block, -1);
@@ -317,7 +317,7 @@ static void cfgComputeTransitions(t_cfg *graph)
   while (curNode != NULL) {
     t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
 
-    // Get the last instruction in the basic block
+    // Get the last instruction in the basic block.
     t_listNode *lastNode = listGetLastNode(curBlock->nodes);
     t_bbNode *lastCFGNode = (t_bbNode *)lastNode->data;
     t_instruction *lastInstr = lastCFGNode->instr;
@@ -357,7 +357,7 @@ static void cfgComputeTransitions(t_cfg *graph)
         bbAddPred(nextBlock, curBlock);
       } else {
         // If this is the last basic block in the list, the next block is
-        // the ending block (which exists outside the list)
+        // the ending block (which exists outside the list).
         bbAddSucc(curBlock, graph->endingBlock);
         bbAddPred(graph->endingBlock, curBlock);
       }
@@ -392,7 +392,7 @@ t_cfg *programToCFG(t_program *program)
     if (instrIsStartingNode(curInstr) || bblock == NULL)
       bblock = cfgCreateBlock(result);
 
-    // Add the instruction to the end of the current basic block
+    // Add the instruction to the end of the current basic block.
     t_bbNode *curCFGNode = bbInsertInstruction(bblock, curInstr);
 
     // If the instruction is a basic block terminator, set `bblock' to NULL
@@ -412,7 +412,7 @@ t_cfg *programToCFG(t_program *program)
 
 void cfgToProgram(t_program *program, t_cfg *graph)
 {
-  // Erase the old code segment
+  // Erase the old code segment.
   program->instructions = deleteList(program->instructions);
 
   // Iterate through all the instructions in all the basic blocks (in order)
@@ -504,7 +504,7 @@ static t_listNode *addElementToSet(t_listNode *set, void *element,
 static t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
     bool (*compareFunc)(void *a, void *b), bool *modified)
 {
-  // Add all the elements to the set one by one
+  // Add all the elements to the set one by one.
   t_listNode *curNode = elements;
   while (curNode != NULL) {
     void *curData = curNode->data;
@@ -512,17 +512,17 @@ static t_listNode *addElementsToSet(t_listNode *set, t_listNode *elements,
     curNode = curNode->next;
   }
 
-  // return the new list
+  // Return the new list.
   return set;
 }
 
 static t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
     t_cfgReg *uses[CFG_MAX_USES], t_listNode *liveOut)
 {
-  // Initialize live in set as equal to live out set
+  // Initialize live in set as equal to live out set.
   t_listNode *liveIn = listClone(liveOut);
 
-  // Add all items from set of uses
+  // Add all items from set of uses.
   for (int i = 0; i < CFG_MAX_USES; i++) {
     if (uses[i] == NULL)
       continue;
@@ -532,7 +532,7 @@ static t_listNode *computeLiveInSetEquation(t_cfgReg *defs[CFG_MAX_DEFS],
   }
 
   // Remove items from set of definitions as long as they are not present in
-  // the set of uses
+  // the set of uses.
   for (int defIdx = 0; defIdx < CFG_MAX_DEFS; defIdx++) {
     int found = 0;
 
@@ -566,7 +566,7 @@ static t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 
     if (curSuccessor != graph->endingBlock) {
       // Update our block's 'out' set by adding all registers 'in' to the
-      // current successor
+      // current successor.
       t_listNode *liveINRegs = bbGetLiveIn(curSuccessor);
       result = addElementsToSet(result, liveINRegs, NULL, NULL);
       deleteList(liveINRegs);
@@ -580,7 +580,7 @@ static t_listNode *cfgComputeLiveOutOfBlock(t_cfg *graph, t_basicBlock *block)
 
 static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
 {
-  // Keep track of whether we modified something or not
+  // Keep track of whether we modified something or not.
   bool modified = false;
 
   // Start with the last node in the basic block, we will proceed upwards
@@ -591,17 +591,17 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
   t_listNode *successorsLiveIn = cfgComputeLiveOutOfBlock(graph, bblock);
 
   while (curLI != NULL) {
-    // Get the current CFG node
+    // Get the current CFG node.
     t_bbNode *curNode = (t_bbNode *)curLI->data;
 
     // Live out of a block is equal to the union of the live in sets of the
-    // successors
+    // successors.
     curNode->out =
         addElementsToSet(curNode->out, successorsLiveIn, NULL, &modified);
     deleteList(successorsLiveIn);
 
     // Compute the live in set of the block using the set of definition,
-    // uses and live out registers of the block
+    // uses and live out registers of the block.
     t_listNode *liveIn =
         computeLiveInSetEquation(curNode->defs, curNode->uses, curNode->out);
     curNode->in = addElementsToSet(curNode->in, liveIn, NULL, &modified);
@@ -610,13 +610,13 @@ static bool cfgUpdateLivenessOfNodesInBlock(t_cfg *graph, t_basicBlock *bblock)
     // the predecessor is just the current block.
     successorsLiveIn = liveIn;
 
-    // Continue backwards to the previous node
+    // Continue backwards to the previous node.
     curLI = curLI->prev;
   }
 
   deleteList(successorsLiveIn);
 
-  // Return a non-zero value if anything was modified
+  // Return a non-zero value if anything was modified.
   return modified;
 }
 
@@ -627,7 +627,7 @@ static bool cfgPerformLivenessIteration(t_cfg *graph)
   while (curNode != NULL) {
     t_basicBlock *curBlock = (t_basicBlock *)curNode->data;
 
-    // update the liveness informations for the current bblock
+    // Update the liveness informations for the current basic block.
     if (cfgUpdateLivenessOfNodesInBlock(graph, curBlock))
       modified = true;
 

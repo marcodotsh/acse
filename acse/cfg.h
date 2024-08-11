@@ -21,16 +21,16 @@
  * @{
  */
 
-/// Maximum number of temporary register definitions for each node
+/// Maximum number of temporary register definitions for each node.
 #define CFG_MAX_DEFS 1
-/// Maximum number of temporary register uses for each node
+/// Maximum number of temporary register uses for each node.
 #define CFG_MAX_USES 2
 
 
 /** Data structure which uniquely identifies a register used or defined by a
- * node in a basic block */
+ * node in a basic block. */
 typedef struct {
-  /// Register identifier
+  /// Register identifier.
   t_regID tempRegID;
   /// Physical register whitelist. Used by the register allocator.
   t_listNode *mcRegWhitelist;
@@ -48,7 +48,7 @@ typedef struct {
   t_instruction *instr;
   /// Set of registers defined by this node ('def' set). NULL slots are ignored.
   t_cfgReg *defs[CFG_MAX_DEFS];
-  /// Set of registers used by this node ('use' set). NULL slots are ignored
+  /// Set of registers used by this node ('use' set). NULL slots are ignored.
   t_cfgReg *uses[CFG_MAX_USES];
   /// Set of registers live at the entry of the node ('in' set).
   t_listNode *in;
@@ -67,14 +67,14 @@ struct t_basicBlock {
   t_listNode *nodes; ///< List of instructions in the block.
 };
 
-/** Data structure describing a control flow graph */
+/** Data structure describing a control flow graph. */
 struct t_cfg {
   /// List of all the basic blocks, in program order.
   t_listNode *blocks;
   /// Unique final basic block. The control flow must eventually reach here.
   /// This block is always empty, and is not part of the 'blocks' list.
   t_basicBlock *endingBlock;
-  /// List of all temporary registers used in the program
+  /// List of all temporary registers used in the program.
   t_listNode *registers;
 };
 
@@ -84,12 +84,12 @@ struct t_cfg {
 
 /** Inserts a new instruction at the end of a block.
  *  @param block The block where to insert the instruction.
- *  @param instr The instruction to insert
+ *  @param instr The instruction to insert.
  *  @returns The newly created basic block node. */
 t_bbNode *bbInsertInstruction(t_basicBlock *block, t_instruction *instr);
 /** Inserts a new instruction before another inside a basic block.
  *  @param block The block where to insert the instruction.
- *  @param instr The instruction to insert
+ *  @param instr The instruction to insert.
  *  @param ip    The basic block node at the insertion point. Must not be NULL.
  *  @returns The newly created basic block node. */
 t_bbNode *bbInsertInstructionBefore(
@@ -130,9 +130,9 @@ int cfgIterateNodes(t_cfg *graph, void *context,
     int (*callback)(t_bbNode *node, int nodeIndex, void *context));
 
 /** Rebuilds a program from the given CFG.
- *  @param program The program to be modified
- *  @param graph The control flow graph to be linearized and transformed into a
- *         new program. */
+ *  @param program The program to be modified.
+ *  @param graph   The control flow graph to be linearized and transformed
+ *                 into a new program. */
 void cfgToProgram(t_program *program, t_cfg *graph);
 
 /** Frees a control flow graph.

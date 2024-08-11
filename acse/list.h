@@ -29,10 +29,10 @@
  * @{
  */
 
-/// Convert an integer from a list data pointer
+/// Convert an integer from a list data pointer.
 #define INT_TO_LIST_DATA(data) ((void *)((intptr_t)(data)))
 
-/// Convert a data item pointer created by INT_TO_LIST_DATA() to an integer
+/// Convert a data item pointer created by INT_TO_LIST_DATA() to an integer.
 #define LIST_DATA_TO_INT(data) ((int)((intptr_t)(data)))
 
 /// A node belonging a list.
@@ -41,7 +41,7 @@ typedef struct t_listNode {
                             ///  or NULL instead.
   struct t_listNode *prev;  ///< The previous element in the chain, if it 
                             ///  exists, or NULL instead.
-  void *data;               ///< Pointer to the data associated to this node
+  void *data;               ///< Pointer to the data associated to this node.
 } t_listNode;
 
 
@@ -73,11 +73,11 @@ t_listNode *listInsertAfter(t_listNode *list, t_listNode *listPos, void *data);
 t_listNode *listInsertBefore(t_listNode *list, t_listNode *listPos, void *data);
 
 /** Add a new element in a sorted list.
- * @param list          The list where to add the element.
- * @param data          The data pointer that will be associated to the new
- *                      element.
- * @param compareFunc   A function for comparing two data pointers. The function
- *                      shall return -1 if a < b, 0 if a == b, and 1 if a > b.
+ * @param list        The list where to add the element.
+ * @param data        The data pointer that will be associated to the new
+ *                    element.
+ * @param compareFunc A function for comparing two data pointers. The function
+ *                    shall return -1 if a < b, 0 if a == b, and 1 if a > b.
  * @returns A pointer to the new head of the list. */
 t_listNode *listInsertSorted(
     t_listNode *list, void *data, int (*compareFunc)(void *a, void *b));
