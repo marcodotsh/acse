@@ -24,7 +24,6 @@
  * @{
  */
 
-
 /// Type for register identifiers.
 typedef int t_regID;
 
