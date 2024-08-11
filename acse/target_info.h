@@ -9,6 +9,17 @@
 #include "list.h"
 #include "program.h"
 
+/**
+ * @defgroup target Target-specific Code
+ * @brief Definitions and functions to support the compilation target
+ * 
+ * These functions and definitions allow the compiler to appropriately handle
+ * the target-specific semantics of some special instructions, included the
+ * instructions that are available to the ACSE intermediate representation but
+ * are not part of the target assembly language itself.
+ * @{
+ */
+
 /// Signed data type with the same size of a target register
 typedef int32_t t_regInt;
 
@@ -66,8 +77,7 @@ enum {
   NUM_REGISTERS
 };
 
-/** @brief Opcode IDs used internally by ACSE to identify the various
- * instructions.
+/** Opcode IDs used internally by ACSE to identify the various instructions.
  * 
  * Some opcodes are labeled "pseudo" if they need to be transformed to a
  * sequence of other non-pseudo opcodes before emitting the output assembly
@@ -158,34 +168,51 @@ enum {
 };
 
 
-/** Returns true if `instr` is a jump (branch) instruction. */
+/** Tests for jump/branch instructions.
+ *  @param instr The instruction to be examined.
+ *  @returns true if the instruction is a jump/branch. */
 bool isJumpInstruction(t_instruction *instr);
 
-/** Returns true if `instr` is a unconditional jump instruction (BT, BF) */
+/** Tests for unconditional jump instructions.
+ *  @param instr The instruction to be examined.
+ *  @returns true if the instruction is an unconditional jump. */
 bool isUnconditionalJump(t_instruction *instr);
 
-/** Returns true if `instr` is either the HALT instruction or the RET
- * instruction. */
-bool isHaltOrRetInstruction(t_instruction *instr);
+/** Tests if the instruction causes the program to exit.
+ *  @param instr The instruction to be examined.
+ *  @returns true if the instruction exits the program. */
+bool isExitInstruction(t_instruction *instr);
 
-/** Returns true if `instr` is a function call instruction. */
+/** Tests if the instruction is used to perform a function or system call.
+ *  @param instr The instruction to be examined.
+ *  @returns true if the instruction is a call. */
 bool isCallInstruction(t_instruction *instr);
 
 
-/** Returns a register ID suitable for spill operations. The maximum index
- * is always bounded by NUM_SPILL_REGS. 
- * @param i The index of the spill register to return, between 0 and
- *          NUM_SPILL_REGS (excluded). */
+/** Retrieves a register ID suitable for spill operations. The maximum index
+ *  is always bounded by NUM_SPILL_REGS. 
+ *  @param i The index of the spill register to return, between 0 and
+ *           NUM_SPILL_REGS (excluded).
+ *  @returns The register ID of a machine register suitable for spilling. */
 t_regID getSpillMachineRegister(int i);
 
-/** Returns the list of register IDs available for the register allocator,
- * sorted in order of priority. */
+/** Retrieves the list of register IDs available for the register allocator,
+ *  sorted in order of priority.
+ *  @returns The list of register IDs stored inline as integers. */
 t_listNode *getListOfGenPurposeMachineRegisters(void);
 
+/** Retrieves the complete list of machine registers exception made for ones
+ *  with a fixed value.
+ *  @returns The list of register IDs stored inline as integers. */
 t_listNode *getListOfMachineRegisters(void);
 
-/** Returns the list of register IDs that can be modified by a given function
- * call instruction, except for input and output parameters. */
+/** Retrieves the list of register IDs that can be modified by a given function
+ *  call instruction, except for input and output parameters.
+ *  @returns The list of register IDs stored inline as integers. */
 t_listNode *getListOfCallerSaveMachineRegisters(void);
+
+/**
+ * @}
+ */
 
 #endif

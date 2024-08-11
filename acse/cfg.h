@@ -10,16 +10,14 @@
 #include "list.h"
 
 /**
- * @defgroup cflow_graph Control Flow Graph
+ * @defgroup cfg Control Flow Graph
  * @brief Control Flow Graph generation and related analyses
  *
- * Once the program has been translated to an initial assembly-like intermediate
- * language, the compiler needs to allocate each temporary register to a
- * physical register. However, the register allocation process requires
- * computing the liveness intervals of all temporary registers, which in
- * turn requires building the Control Flow Graph (CFG). These functions
- * and data structures are used to perform the construction of the graph and
- * the liveness analysis.
+ * These functions and data structures allow to build, inspect and partially
+ * modify a Control Flow Graph (CFG) representation of a program.
+ * A program can be converted to and from a CFG, and a CFG can be analyzed to
+ * compute the liveness of each register.
+ * These facilities are used by the register allocation process.
  * @{
  */
 
@@ -63,10 +61,10 @@ typedef struct {
  * -- without loss of generality -- to minimize the number of edges in the
  * Control Flow Graph, increasing the performance of code analysis. */
 struct t_basicBlock {
-  t_cfg *parent;     /// The containing basic block.
-  t_listNode *pred;  /// List of predecessors to this basic block.
-  t_listNode *succ;  /// List of successors to this basic block.
-  t_listNode *nodes; /// List of instructions in the block.
+  t_cfg *parent;     ///< The containing basic block.
+  t_listNode *pred;  ///< List of predecessors to this basic block.
+  t_listNode *succ;  ///< List of successors to this basic block.
+  t_listNode *nodes; ///< List of instructions in the block.
 };
 
 /** Data structure describing a control flow graph */
@@ -90,18 +88,16 @@ struct t_cfg {
  *  @returns The newly created basic block node. */
 t_bbNode *bbInsertInstruction(t_basicBlock *block, t_instruction *instr);
 /** Inserts a new instruction before another inside a basic block.
- *  @param block    The block where to insert the instruction.
- *  @param instr    The instruction to insert
- *  @param ip       The basic block node at the insertion point.
- *                  Must not be NULL.
+ *  @param block The block where to insert the instruction.
+ *  @param instr The instruction to insert
+ *  @param ip    The basic block node at the insertion point. Must not be NULL.
  *  @returns The newly created basic block node. */
 t_bbNode *bbInsertInstructionBefore(
     t_basicBlock *block, t_instruction *instr, t_bbNode *ip);
 /** Inserts a new instruction after another inside a basic block.
- *  @param block    The block where to insert the instruction.
- *  @param newNode  The instruction to insert.
- *  @param ip       The basic block node at the insertion point.
- *                  Must not be NULL.
+ *  @param block The block where to insert the instruction.
+ *  @param instr The instruction to insert.
+ *  @param ip    The basic block node at the insertion point. Must not be NULL.
  *  @returns The newly created basic block node. */
 t_bbNode *bbInsertInstructionAfter(
     t_basicBlock *block, t_instruction *instr, t_bbNode *ip);

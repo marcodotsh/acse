@@ -12,18 +12,22 @@ t_fileLocation curFileLoc = {NULL, -1};
 
 %}
 
+/* Disable multi-file support. */
 %option noyywrap
+/* Define a new comment state. */
 %x comment
 
-/******************************************************************************
- * DEFINITIONS
- ******************************************************************************/
+/*
+ * Name definitions
+ */
+
 DIGIT                     [0-9]
 ID                        [a-zA-Z_][a-zA-Z0-9_]*
 
-/******************************************************************************
- * RULES
- ******************************************************************************/
+/*
+ * Rules
+ */
+
 %%
 
 "\r\n"                    { curFileLoc.row++; }
@@ -89,7 +93,7 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 
 .                         {
                             yyerror("unexpected token");
-                            return -1; /* invalid token */
+                            return -1;
                           }
 <INITIAL><<EOF>>          {
                             curFileLoc.row = -1;

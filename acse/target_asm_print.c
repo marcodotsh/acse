@@ -433,10 +433,9 @@ bool translateForwardDeclarations(t_program *program, FILE *fp)
 }
 
 
-int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
+bool printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
 {
   char buf[BUF_LENGTH];
-  int res;
 
   if (instr->label != NULL) {
     labelToString(buf, BUF_LENGTH, instr->label, 1);
@@ -444,18 +443,19 @@ int printInstruction(t_instruction *instr, FILE *fp, bool machineRegIDs)
     buf[0] = '\0';
   }
   if (fprintf(fp, "%-8s", buf) < 0)
-    return -1;
+    return false;
 
   instructionToString(buf, BUF_LENGTH, instr, machineRegIDs);
+  int res;
   if (instr->comment) {
     res = fprintf(fp, "%-48s# %s", buf, instr->comment);
   } else {
     res = fprintf(fp, "%s", buf);
   }
   if (res < 0)
-    return -1;
+    return false;
 
-  return 0;
+  return true;
 }
 
 bool translateCodeSegment(t_program *program, FILE *fp)
@@ -473,7 +473,7 @@ bool translateCodeSegment(t_program *program, FILE *fp)
     if (curInstr == NULL)
       fatalError("bug: NULL instruction found in the program");
 
-    if (printInstruction(curInstr, fp, true) < 0)
+    if (!printInstruction(curInstr, fp, true))
       return false;
     if (fprintf(fp, "\n") < 0)
       return false;

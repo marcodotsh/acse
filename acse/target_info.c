@@ -6,7 +6,7 @@
 #include "target_info.h"
 
 
-bool isHaltOrRetInstruction(t_instruction *instr)
+bool isExitInstruction(t_instruction *instr)
 {
   return instr->opcode == OPC_CALL_EXIT_0;
 }

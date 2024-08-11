@@ -484,14 +484,14 @@ void genStoreConstantToVariable(t_program *program, t_symbol *var, int val)
 }
 
 
-/** Generate instructions that load the address of an element of an array in a
- * register.
- * @param program The program where the array belongs.
- * @param array   The symbol object that refers to an array.
- * @param index   An expression that refers to a specific element of the array.
- * @returns The identifier of the register that (at runtime) will contain the
- *          address of the array element at position `index'. If the symbol
- *          is not of the correct type, REG_0 is returned instead. */
+/** Generate instructions that load the address of an array element to a
+ *  register.
+ *  @param program The program where the array belongs.
+ *  @param array   The symbol object that refers to an array.
+ *  @param rIdx    Register that at runtime contains an index into the array.
+ *  @returns The identifier of the register that (at runtime) will contain the
+ *           address of the array element. If the symbol is not of the correct
+ *           type, REG_0 is returned instead. */
 t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID rIdx)
 {
   if (!isArray(array)) {

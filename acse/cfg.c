@@ -158,7 +158,7 @@ void deleteBasicBlock(t_basicBlock *block)
 
 /** Adds a predecessor to a basic block.
  *  @param block The successor block.
- *  @param pred The predecessor block. */
+ *  @param pred  The predecessor block. */
 void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 {
   // do not insert if the block is already inserted in the list of predecessors
@@ -170,7 +170,7 @@ void bbAddPred(t_basicBlock *block, t_basicBlock *pred)
 
 /** Adds a successor to a basic block.
  *  @param block The predecessor block.
- *  @param pred The successor block. */
+ *  @param succ  The successor block. */
 void bbAddSucc(t_basicBlock *block, t_basicBlock *succ)
 {
   // do not insert if the node is already inserted in the list of successors
@@ -302,7 +302,7 @@ static bool instrIsStartingNode(t_instruction *instr)
 
 static bool instrIsEndingNode(t_instruction *instr)
 {
-  return isHaltOrRetInstruction(instr) || isJumpInstruction(instr);
+  return isExitInstruction(instr) || isJumpInstruction(instr);
 }
 
 static void cfgComputeTransitions(t_cfg *graph)
@@ -324,7 +324,7 @@ static void cfgComputeTransitions(t_cfg *graph)
 
     // If the instruction is return-like or exit-like, by definition the next
     // block is the ending block because it stops the program/subroutine.
-    if (isHaltOrRetInstruction(lastInstr)) {
+    if (isExitInstruction(lastInstr)) {
       bbAddSucc(curBlock, graph->endingBlock);
       bbAddPred(graph->endingBlock, curBlock);
       continue;

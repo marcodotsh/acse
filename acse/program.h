@@ -1,6 +1,5 @@
 /// @file program.h
-/// @brief Contains t_program and some functions for label management
-///        (reserve, fix, assign)
+/// @brief Program object definition and management. 
 
 #ifndef PROGRAM_H
 #define PROGRAM_H
@@ -47,20 +46,25 @@ typedef enum {
  * does. This is used for aliasing multiple label objects to the same
  * physical label if more than one label is assigned to an instruction. */
 typedef struct {
-  unsigned int labelID; ///< Unique numeric identifier for the label.
-  char *name;           ///< Name of the label. If NULL, the name will be
-                        ///  automatically generated in the form L<ID>.
-  bool global;          ///< True if the label will be defined as 'global'.
-  bool isAlias;         ///< True if this label object is an alias to another
-                        ///  one with the same labelID.
+  /// Unique numeric identifier for the label.
+  unsigned int labelID; 
+  /// Name of the label. If NULL, the name will be automatically generated in
+  /// the form L<ID>.
+  char *name;       
+  /// True if the label will be defined as 'global'.    
+  bool global;
+  /// True if this label object is an alias to another one with the same
+  /// labelID.
+  bool isAlias;         
 } t_label;
 
 /** Object representing a register argument to an instruction. */
 typedef struct {
-  t_regID ID;                 ///< The register identifier
-  t_listNode *mcRegWhitelist; ///< the list of machine registers where this
-                              ///  argument may be allocated. NULL if any
-                              ///  machine register is allowed.
+  /// The register identifier
+  t_regID ID;                 
+  /// The list of machine registers where this argument may be allocated.
+  /// NULL if any machine register is allowed.
+  t_listNode *mcRegWhitelist; 
 } t_instrArg;
 
 /** Object representing a symbolic assembly instruction. */
@@ -72,19 +76,22 @@ typedef struct {
   t_instrArg *rSrc2;     ///< Second source argument (or NULL if none)
   int immediate;         ///< Immediate argument
   t_label *addressParam; ///< Address argument
-  char *comment;         ///< A comment string associated with the instruction,
-                         ///  or NULL if none.
+  /// A comment string associated with the instruction, or NULL if none.
+  char *comment;         
 } t_instruction;
 
 /** A structure that represents the properties of a given symbol in the source
  * code */
 typedef struct t_symbol {
-  t_symbolType type;  ///< A valid data type
-  char *ID;           ///< Symbol name (should never be a NULL pointer or an
-                      ///  empty string "")
-  t_label *label;     ///< A label that refers to the location of the variable
-                      ///  inside the data segment
-  int arraySize;      ///< For arrays only, the size of the array.
+  /// A valid data type
+  t_symbolType type;  
+  /// Symbol name (should never be a NULL pointer or an empty string "")
+  char *ID;           
+  /// A label that refers to the location of the variable inside the data
+  /// segment
+  t_label *label;     
+  /// For arrays only, the size of the array.
+  int arraySize;
 } t_symbol;
 
 /** Object containing the program's intermediate representation during the
@@ -106,7 +113,7 @@ typedef struct {
 t_program *newProgram(void);
 
 /** Delete a program object. 
- * @param The program object to delete. */
+ * @param program The program object to delete. */
 void deleteProgram(t_program *program);
 
 /// @}
@@ -153,11 +160,11 @@ t_regID getNewRegister(t_program *program);
 /** Add a new instruction at the end the current program's list of instructions.
  * @param program   The program where to add the instruction
  * @param opcode    Identifier for the operation performed by the instruction
- * @param rd    Identifier of the destination register argument,
+ * @param rd        Identifier of the destination register argument,
  *                  or REG_INVALID if none
- * @param rs1    Identifier of the first source register argument,
+ * @param rs1       Identifier of the first source register argument,
  *                  or REG_INVALID if none
- * @param rs2    Identifier of the second source register argument,
+ * @param rs2       Identifier of the second source register argument,
  *                  or REG_INVALID if none
  * @param label     Label object representing the label argument,
  *                  or NULL if none
@@ -216,7 +223,7 @@ bool isArray(t_symbol *symbol);
  * @param program The program to be modified. */
 void genProgramEpilog(t_program *program);
 
-/** Dumps the current state of a program object in the specified file.
+/** Dumps the current state of a program object to the specified file.
  * @param program The program which will be dumped
  * @param fout    The file where to print the dump */
 void dumpProgram(t_program *program, FILE *fout);

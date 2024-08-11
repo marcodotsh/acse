@@ -18,7 +18,6 @@
  * @{
  */
 
-
 /// @name Register-Register Arithmetic Instructions
 /// @{
 
@@ -841,7 +840,7 @@ t_regID genLoadArrayElement(t_program *program, t_symbol *array, t_regID rIdx);
  * @param array   The symbol object that refers to the array.
  * @param rIdx    The identifier of the register that will contain the index
  *                into the array.
- * @param rData   The identifier of the register that will contain the value
+ * @param rVal   The identifier of the register that will contain the value
  *                to be stored. */
 void genStoreRegisterToArrayElement(
     t_program *program, t_symbol *array, t_regID rIdx, t_regID rVal);

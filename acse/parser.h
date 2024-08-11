@@ -31,12 +31,13 @@ typedef struct {
  */
 
 /**
- * @addtogroup pipeline
+ * @defgroup parser Syntatic and Lexical Analysis
+ * @brief Functions used for syntactic and lexical analysis
  * @{
  */
 
 /** Performs the initial syntactic-driven translation of the source code.
- * @param fp The source code file being compiled
+ * @param fn The path to the source code file to be compiled
  * @returns The program object produced */
 t_program *parseProgram(char *fn);
 
@@ -44,8 +45,18 @@ t_program *parseProgram(char *fn);
  * @}
  */
 
-/* yyerror() is a function defined later in this file used by the bison-
- * generated parser to notify that a syntax error occurred. */
+/**
+ * @addtogroup errors
+ * @{
+ */
+
+/** Report a syntax error.
+ *  @note This function is also used by Bison-generated code.
+ *  @param msg The error message */
 void yyerror(const char *msg);
+
+/**
+ * @}
+ */
 
 #endif

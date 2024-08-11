@@ -1,4 +1,4 @@
-/// @file engine.c
+/// @file program.c
 
 #include <string.h>
 #include <stdlib.h>

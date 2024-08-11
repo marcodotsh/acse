@@ -6,6 +6,15 @@
 
 #include <stddef.h>
 
+/**
+ * @defgroup errors Error Management
+ * @brief Utilities for reporting compilation errors.
+ *
+ * These functions are used to report errors during compilation. In the parser
+ * it is also possible to use yyerror() for the same purpose.
+ * @{
+ */
+
 /// Structure that represents a location in a file.
 typedef struct {
   char *file; ///< The name of the file
@@ -20,13 +29,17 @@ extern int numErrors;
 
 /** Prints an error message depending on the given code.
  * Does not terminate the program.
- * @param loc       The file location where the error originated, or
- *                  `nullFileLocation' if not applicable
- * @param errorcode The error code. */
+ * @param loc The file location where the error originated, or
+ *            `nullFileLocation' if not applicable
+ * @param fmt A printf-like format string. */
 void emitError(t_fileLocation loc, const char *fmt, ...);
 
 /** Prints the specified error message and terminates the program.
- * @param errorcode The error code. */
-__attribute__((noreturn)) void fatalError(const char *format, ...);
+ * @param fmt A printf-like format string. */
+void fatalError(const char *fmt, ...) __attribute__((noreturn));
+
+/**
+ * @}
+ */
 
 #endif

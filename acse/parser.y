@@ -12,16 +12,11 @@
 #include "scanner.h"
 #include "parser.h"
 
-// Global Variables
-              
-/* The singleton instance of `program'.
- *   An instance of `t_program' holds in its internal structure all the
- * fundamental informations about the program being compiled:
- *   - the list of instructions
- *   - the list of data directives (static allocations)
- *   - the list of variables
- *   - the list of labels
- *   - ... */
+/*
+ * Global variables 
+ */
+
+// The program currently being compiled
 static t_program *program;
 
 void yyerror(const char *msg)
@@ -31,16 +26,21 @@ void yyerror(const char *msg)
 
 %}
 
-/* AXIOM DECLARATION. The starting non-terminal of the grammar will be
- * `program'. */
+/* 
+ * Axiom declaration
+ *
+ * The starting non-terminal of the grammar will be `program'.
+ */
+
 %start program
 
-/******************************************************************************
- * UNION DECLARATION
+/*
+ * Union declaration
  *
  * Specifies the set of types available for the semantic values of terminal
  * and non-terminal symbols.
- ******************************************************************************/
+ */
+
 %union {
   int integer;
   char *string;
@@ -52,16 +52,16 @@ void yyerror(const char *msg)
   t_whileStmt whileStmt;
 }
 
-/******************************************************************************
- * TOKEN SYMBOL DECLARATIONS
+/*
+ * Terminal symbol declaration
  *
  * Here we declare all the token symbols that can be produced by the scanner.
  * Bison will automatically produce a #define that assigns a number (or token
  * identifier) to each one of these tokens.
  *   We also declare the type for the semantic values of some of these tokens.
- ******************************************************************************/
+ */
 
-%token EOF_TOK /* end of file */
+%token EOF_TOK  // end of file
 %token LPAR RPAR LSQUARE RSQUARE LBRACE RBRACE
 %token COMMA SEMI PLUS MINUS MUL_OP DIV_OP MOD_OP
 %token AND_OP XOR_OP OR_OP NOT_OP
@@ -71,30 +71,30 @@ void yyerror(const char *msg)
 %token RETURN
 %token READ WRITE ELSE
 
-// These are the tokens with a semantic value of the given type.
+// These are the tokens with a semantic value.
 %token <ifStmt> IF
 %token <whileStmt> WHILE
 %token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
 
-/******************************************************************************
- * NON-TERMINAL SYMBOL SEMANTIC VALUE TYPE DECLARATIONS
+/*
+ * Non-terminal symbol semantic value type declarations
  *
  * Here we declare the type of the semantic values of non-terminal symbols.
  *   We only declare the type of non-terminal symbols of which we actually use
  * their semantic value.
- ******************************************************************************/
+ */
 
 %type <var> var_id
 %type <reg> exp
 
-/******************************************************************************
- * OPERATOR PRECEDENCE AND ASSOCIATIVITY
+/*
+ * Operator precedence and associativity
  *
  * Precedence is given by the declaration order. Associativity is given by the
  * specific keyword used (%left, %right).
- ******************************************************************************/
+ */
 
 %left OROR
 %left ANDAND
@@ -108,13 +108,14 @@ void yyerror(const char *msg)
 %left MUL_OP DIV_OP MOD_OP
 %right NOT_OP
 
-/******************************************************************************
- * GRAMMAR AND SEMANTIC ACTIONS
+/*
+ * Grammar and semantic actions
  *
  * The grammar of the language follows. The semantic actions are the pieces of
  * C code enclosed in {} brackets: they are executed when the rule has been
  * parsed and recognized up to the point where the semantic action appears.
- ******************************************************************************/
+ */
+
 %% 
 
 /* `program' is the starting non-terminal of the grammar.

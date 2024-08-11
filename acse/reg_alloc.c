@@ -816,7 +816,7 @@ static void materializeRegAllocInBB(t_regAllocator *RA, t_basicBlock *curBlock)
 
   bool bbHasTermInstr = curBlock->nodes &&
       (isJumpInstruction(curCFGNode->instr) ||
-          isHaltOrRetInstruction(curCFGNode->instr));
+          isExitInstruction(curCFGNode->instr));
 
   // writeback everything at the end of the basic block
   for (int counter = 0; counter < NUM_SPILL_REGS; counter++) {
