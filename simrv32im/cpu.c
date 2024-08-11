@@ -3,7 +3,6 @@
 #include "cpu.h"
 #include "memory.h"
 
-
 #define CPU_N_REGS 32
 
 t_cpuURegValue cpuRegs[CPU_N_REGS];
@@ -177,8 +176,8 @@ t_cpuStatus cpuExecuteOPIMM(uint32_t instr)
         return CPU_STATUS_ILL_INST_FAULT;
       break;
     case 2: /* SLTI */
-      cpuRegs[rd] =
-          ((t_cpuSRegValue)cpuRegs[rs1]) < ((t_cpuSRegValue)ISA_INST_I_IMM12_SEXT(instr));
+      cpuRegs[rd] = ((t_cpuSRegValue)cpuRegs[rs1]) <
+          ((t_cpuSRegValue)ISA_INST_I_IMM12_SEXT(instr));
       break;
     case 3: /* SLTIU */
       cpuRegs[rd] = cpuRegs[rs1] < ISA_INST_I_IMM12(instr);
@@ -260,7 +259,8 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
         cpuRegs[rd] = cpuRegs[rs1] << (cpuRegs[rs2] & 0x1F);
         break;
       case 2: /* SLT */
-        cpuRegs[rd] = ((t_cpuSRegValue)cpuRegs[rs1]) < ((t_cpuSRegValue)cpuRegs[rs2]);
+        cpuRegs[rd] =
+            ((t_cpuSRegValue)cpuRegs[rs1]) < ((t_cpuSRegValue)cpuRegs[rs2]);
         break;
       case 3: /* SLTU */
         cpuRegs[rd] = cpuRegs[rs1] < cpuRegs[rs2];
@@ -311,7 +311,9 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
             32);
         break;
       case 3: /* MULHU */
-        cpuRegs[rd] = (t_cpuURegValue)(((uint64_t)(cpuRegs[rs1]) * (uint64_t)(cpuRegs[rs2])) >> 32);
+        cpuRegs[rd] = (t_cpuURegValue)(((uint64_t)(cpuRegs[rs1]) *
+                                           (uint64_t)(cpuRegs[rs2])) >>
+            32);
         break;
       case 4: /* DIV */
         if (cpuRegs[rs2] == 0)
@@ -319,7 +321,7 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
         else if (cpuRegs[rs1] == 0x80000000 && cpuRegs[rs2] == 0xFFFFFFFF)
           cpuRegs[rd] = 0x80000000;
         else
-          cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)cpuRegs[rs1] / 
+          cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)cpuRegs[rs1] /
               (t_cpuSRegValue)cpuRegs[rs2]);
         break;
       case 5: /* DIVU */
@@ -334,7 +336,8 @@ t_cpuStatus cpuExecuteOP(uint32_t instr)
         else if (cpuRegs[rs1] == 0x80000000 && cpuRegs[rs2] == 0xFFFFFFFF)
           cpuRegs[rd] = 0;
         else
-          cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)cpuRegs[rs1] % (t_cpuSRegValue)cpuRegs[rs2]);
+          cpuRegs[rd] = (t_cpuURegValue)((t_cpuSRegValue)cpuRegs[rs1] %
+              (t_cpuSRegValue)cpuRegs[rs2]);
         break;
       case 7: /* REMU */
         if (cpuRegs[rs2] == 0)
@@ -401,7 +404,8 @@ t_cpuStatus cpuExecuteJALR(uint32_t instr)
   if (ISA_INST_FUNCT3(instr) != 0)
     return CPU_STATUS_ILL_INST_FAULT;
   cpuRegs[rd] = cpuPC + 4;
-  cpuPC = (cpuRegs[rs1] + (t_cpuURegValue)offs) & ~(t_cpuURegValue)1; // clear bit zero as suggested by the spec
+  // clear bit zero as suggested by the spec
+  cpuPC = (cpuRegs[rs1] + (t_cpuURegValue)offs) & ~(t_cpuURegValue)1;
   return CPU_STATUS_OK;
 }
 

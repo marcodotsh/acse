@@ -2,7 +2,6 @@
 #include <inttypes.h>
 #include "isa.h"
 
-
 int isaDisassembleIllegal(uint32_t instr, char *out, size_t bufsz);
 int isaDisassembleOP(uint32_t instr, char *out, size_t bufsz);
 int isaDisassembleOPIMM(uint32_t instr, char *out, size_t bufsz);
@@ -10,6 +9,7 @@ int isaDisassembleLOAD(uint32_t instr, char *out, size_t bufsz);
 int isaDisassembleSTORE(uint32_t instr, char *out, size_t bufsz);
 int isaDisassembleBRANCH(uint32_t instr, char *out, size_t bufsz);
 int isaDisassembleSYSTEM(uint32_t instr, char *out, size_t bufsz);
+
 
 int isaDisassemble(uint32_t instr, char *out, size_t bufsz)
 {

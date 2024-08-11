@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "memory.h"
 
-
 typedef struct memArea {
   struct memArea *next;
   t_memAddress baseAddress;
@@ -103,7 +102,8 @@ t_memError memRead32(t_memAddress addr, uint32_t *out)
   if (!area)
     return MEM_MAPPING_ERROR;
   uint8_t *bufBasePtr = area->buffer + (size_t)(addr - area->baseAddress);
-  *out = (uint32_t)bufBasePtr[0] + (uint32_t)((uint32_t)bufBasePtr[1] << 8) + (uint32_t)((uint32_t)bufBasePtr[2] << 16) +
+  *out = (uint32_t)bufBasePtr[0] + (uint32_t)((uint32_t)bufBasePtr[1] << 8) +
+      (uint32_t)((uint32_t)bufBasePtr[2] << 16) +
       (uint32_t)((uint32_t)bufBasePtr[3] << 24);
   return MEM_NO_ERROR;
 }
@@ -148,8 +148,8 @@ uint32_t memDebugRead32(t_memAddress addr, int *mapped)
   uint8_t *bufBasePtr = area->buffer + (size_t)(addr - area->baseAddress);
   if (mapped)
     *mapped = 1;
-  return (uint32_t)bufBasePtr[0] + ((uint32_t)bufBasePtr[1] << 8) + ((uint32_t)bufBasePtr[2] << 16) +
-      ((uint32_t)bufBasePtr[3] << 24);
+  return (uint32_t)bufBasePtr[0] + ((uint32_t)bufBasePtr[1] << 8) +
+      ((uint32_t)bufBasePtr[2] << 16) + ((uint32_t)bufBasePtr[3] << 24);
 }
 
 

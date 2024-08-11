@@ -3,7 +3,6 @@
 
 #include "memory.h"
 
-
 typedef int t_ldrError;
 enum {
   LDR_NO_ERROR = 0,
@@ -26,6 +25,5 @@ t_ldrError ldrLoadBinary(
 t_ldrError ldrLoadELF(const char *path);
 
 t_ldrFileType ldrDetectExecType(const char *path);
-
 
 #endif

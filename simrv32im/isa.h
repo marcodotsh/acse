@@ -150,5 +150,4 @@ static inline uint32_t bits32(uint32_t x, int a, int b)
 
 int isaDisassemble(uint32_t instr, char *out, size_t bufsz);
 
-
 #endif

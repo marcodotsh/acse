@@ -5,7 +5,6 @@
 #include <stddef.h>
 #include "memory.h"
 
-
 typedef int t_dbgResult;
 enum {
   DBG_RESULT_CONTINUE,
@@ -13,7 +12,7 @@ enum {
 };
 
 typedef int t_dbgBreakpointId;
-#define DBG_BREAKPOINT_INVALID ((t_dbgBreakpointId)-1)
+#define DBG_BREAKPOINT_INVALID ((t_dbgBreakpointId) - 1)
 
 typedef void *t_dbgEnumBreakpointState;
 #define DBG_ENUM_BREAKPOINT_START ((t_dbgEnumBreakpointState)NULL)
@@ -34,6 +33,5 @@ t_dbgEnumBreakpointState dbgEnumerateBreakpoints(t_dbgEnumBreakpointState state,
     t_dbgBreakpointId *outId, t_memAddress *outAddress);
 
 t_dbgResult dbgTick(void);
-
 
 #endif

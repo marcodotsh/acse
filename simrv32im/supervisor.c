@@ -4,7 +4,6 @@
 #include "memory.h"
 #include "debugger.h"
 
-
 const t_memAddress svStackTop = 0x80000000;
 t_memAddress svStackBottom;
 t_isaInt svExitCode;

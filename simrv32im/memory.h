@@ -31,5 +31,4 @@ t_memError memWrite32(t_memAddress addr, uint32_t in);
 
 t_memAddress memGetLastFaultAddress(void);
 
-
 #endif

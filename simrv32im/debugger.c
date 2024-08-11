@@ -7,7 +7,6 @@
 #include "cpu.h"
 #include "debugger.h"
 
-
 typedef struct dbgBreakpoint {
   struct dbgBreakpoint *next;
   t_dbgBreakpointId id;

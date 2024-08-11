@@ -4,7 +4,6 @@
 #include "isa.h"
 #include "cpu.h"
 
-
 #define SV_STACK_PAGE_SIZE 4096
 
 typedef int t_svError;
@@ -27,6 +26,5 @@ enum {
 t_svError svInit(void);
 t_svStatus svVMTick(void);
 t_isaInt svGetExitCode(void);
-
 
 #endif
