@@ -28,15 +28,6 @@
 /// Maximum number of temporary register uses for each node
 #define CFG_MAX_USES 2
 
-/// Type for error codes returned by the CFG construction subsystem
-typedef int t_cfgError;
-enum {
-  CFG_NO_ERROR = 0,
-  CFG_ERROR_INVALID_NODE = 1000,
-  CFG_ERROR_NODE_ALREADY_INSERTED,
-  CFG_ERROR_BBLOCK_ALREADY_INSERTED
-};
-
 
 /** Data structure which uniquely identifies a register used or defined by a
  * node in a basic block */
