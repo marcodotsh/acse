@@ -1,6 +1,4 @@
 # Docs & Comments
-- Finish headerdoc
-- Fix full stop at the end of sentences/capital letters at the beginning of sentences
 - License file (gpl-v3)
 
 # Code quality
