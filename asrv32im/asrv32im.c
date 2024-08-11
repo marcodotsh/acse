@@ -16,7 +16,6 @@ void usage(const char *name)
   puts("  -h, --help    Displays available options");
 }
 
-
 int main(int argc, char *argv[])
 {
   char *name = argv[0];

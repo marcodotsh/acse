@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "errors.h"
 
+
 static void printMessage(
     t_fileLocation loc, const char *category, const char *fmt, va_list arg)
 {

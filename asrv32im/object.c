@@ -5,7 +5,6 @@
 #include "object.h"
 #include "encode.h"
 
-
 struct t_objLabel {
   struct t_objLabel *next;
   char *name;

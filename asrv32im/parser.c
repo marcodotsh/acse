@@ -7,7 +7,6 @@
 #include "parser.h"
 #include "errors.h"
 
-
 typedef int t_parserError;
 enum {
   P_ACCEPT = 1,

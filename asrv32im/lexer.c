@@ -7,7 +7,6 @@
 #include "lexer.h"
 #include "errors.h"
 
-
 struct t_lexer {
   char *buf;
   size_t bufSize;
