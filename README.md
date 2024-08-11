@@ -1,8 +1,9 @@
 # ACSE (Advanced Compiler System for Education)
 
-ACSE is a complete toolchain consisting of a compiler (named ACSE), an
-assembler, and a simulator (named MACE). It provides a simple but reasonably
-accurate sandbox for learning how compilers work.
+ACSE is a complete toolchain consisting of a compiler (`acse`), an assembler
+(`asrv32im`), and a simulator (`simrv32im`).
+It provides a simple but reasonably accurate sandbox for learning how a
+compilation toolchain works.
 
 ## How to use ACSE
 
@@ -45,27 +46,12 @@ To compile some examples (located in the directory `tests`) type:
 
 ### Using ACSE
 
-In order to use the compiler/assembler/simulator, first you have
-to export the directory `./bin` in your current `PATH` as follows:
-
-      export PATH=`pwd`/bin:$PATH
-
 You can compile and run new Lance programs in this way (suppose you
 have saved a Lance program in `myprog.src`):
 
-      acse myprog.src myprog.asm
-      asm myprog.asm myprog.o
-      mace myprog.o
-
-You can invoke `acse`, `asm` and `mace` without setting `PATH` if you wish. In
-that case you'll need to specify the path to where they are located.
-
-For example, if the current directory is still the directory where you have
-invoked `make` to build ACSE, you'll use the following commands:
-
-      ./bin/acse myprog.src myprog.asm
-      ./bin/asm myprog.asm myprog.o
-      ./bin/mace myprog.o
+      ./bin/acse myprog.src -o myprog.asm
+      ./bin/asrv32im myprog.asm -o myprog.o
+      ./bin/simrv32im myprog.o
 
 Alternatively, you can add a test to the `tests` directory by following these
 steps:
@@ -78,4 +64,30 @@ steps:
    just added.
    
 The `make tests` command only runs the ACSE compiler and the assembler, you
-will have to invoke the MACE simulator manually.
+will have to invoke the simulator manually.
+
+### Authors
+
+ACSE is copyright (c) 2008-2024 Politecnico di Milano, and is licensed as
+GNU GPL version 3. It has been developed by the following contributors:
+
+- Andrea di Biagio (main author of the original non-RISC-V version)
+- Giovanni Agosta (wrote the simulator in the original non-RISC-V version,
+  advisor to the RISC-V version)
+- Niccolò Izzo (maintainer 2015-2020)
+- Daniele Cattaneo (maintainer from 2019, main author of the RISC-V version)
+
+Additional input has been provided over the years by:
+
+- Alessandro Barenghi
+- Luca Breveglieri
+- Michele Scandale
+- Ettore Speziale
+- Michele Tartara
+- Angelo Morzenti
+- Gabriele Magnani 
+- Michele Scuttari
+- Massimo Fioravanti
+
+Please report any suspected bugs or defects to
+`daniele.cattaneo <at> polimi.it`.
