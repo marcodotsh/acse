@@ -507,13 +507,18 @@ t_regID genLoadArrayAddress(t_program *program, t_symbol *array, t_regID rIdx)
 
   // Generate the code to compute the offset of the element in the array in
   // bytes. Assume the type is an integer (no other scalar types are supported).
+  t_regID rOffset;
   int sizeofElem = 4 / TARGET_PTR_GRANULARITY;
-  if (sizeofElem != 1)
-    genMULI(program, rIdx, rIdx, sizeofElem);
+  if (sizeofElem != 1) {
+    rOffset = getNewRegister(program);
+    genMULI(program, rOffset, rIdx, sizeofElem);
+  } else {
+    rOffset = rIdx;
+  }
 
   // Generate the code which computes the final address by summing the base
   // address to the offset of the element.
-  genADD(program, rAddr, rAddr, rIdx);
+  genADD(program, rAddr, rAddr, rOffset);
   return rAddr;
 }
 
