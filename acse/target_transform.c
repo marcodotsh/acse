@@ -250,22 +250,12 @@ void fixPseudoInstructions(t_program *program)
       instr->opcode = OPC_SLTIU;
       instr->immediate += 1;
 
-    } else if (instr->opcode == OPC_SGT || instr->opcode == OPC_SGTU ||
-        instr->opcode == OPC_BGT || instr->opcode == OPC_BGTU ||
-        instr->opcode == OPC_BLE || instr->opcode == OPC_BLEU) {
+    } else if (instr->opcode == OPC_SGT || instr->opcode == OPC_SGTU) {
       t_instrArg *tmp;
       if (instr->opcode == OPC_SGT)
         instr->opcode = OPC_SLT;
       else if (instr->opcode == OPC_SGTU)
         instr->opcode = OPC_SLTU;
-      else if (instr->opcode == OPC_BGT)
-        instr->opcode = OPC_BLT;
-      else if (instr->opcode == OPC_BGTU)
-        instr->opcode = OPC_BLTU;
-      else if (instr->opcode == OPC_BLE)
-        instr->opcode = OPC_BGE;
-      else if (instr->opcode == OPC_BLEU)
-        instr->opcode = OPC_BGEU;
       tmp = instr->rSrc1;
       instr->rSrc1 = instr->rSrc2;
       instr->rSrc2 = tmp;
