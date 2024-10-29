@@ -292,7 +292,7 @@ read_statement
   }
 ;
 
-/* A read statement translates to a PrintInt syscall, followed by a PrintChar
+/* A write statement translates to a PrintInt syscall, followed by a PrintChar
  * syscall which prints a newline. */
 write_statement
   : WRITE LPAR exp RPAR
