@@ -267,7 +267,7 @@ char *registerIDToString(t_regID regID, bool machineRegIDs)
       "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5",
       "t6"};
 
-  if (machineRegIDs) {
+  if (machineRegIDs || (TARGET_REG_ZERO_IS_CONST && regID == 0)) {
     if (regID < 0 || regID >= 32)
       return NULL;
     return strdup(mcRegIds[regID]);
