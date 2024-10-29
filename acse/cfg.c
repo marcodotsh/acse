@@ -782,9 +782,8 @@ void cfgDump(t_cfg *graph, FILE *fout, bool verbose)
 
   if (TARGET_REG_ZERO_IS_CONST) {
     fprintf(fout, "%s",
-        "Note: Temporary register \'temp0\' refers to the physical register "
-        "\'zero\', whose\nvalue is immutable. As a result, it does not appear "
-        "in the liveness sets.\n\n");
+        "Note: The value of register \'zero\' is immutable.\n"
+        "As a result, it does not appear in the liveness sets.\n\n");
   }
 
   fprintf(fout, "Number of basic blocks:   %d\n", listLength(graph->blocks));
