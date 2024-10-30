@@ -5,6 +5,9 @@ ACSE is a complete toolchain consisting of a compiler (`acse`), an assembler
 It provides a simple but reasonably accurate sandbox for learning how a
 compilation toolchain works.
 
+### [Downloads and quick reference](https://github.com/polimi-flc/acse/releases)
+### [Full documentation](https://polimi-flc.github.io/acse-docs/index.html)
+
 ## How to use ACSE
 
 ACSE was tested on the following operating systems:
