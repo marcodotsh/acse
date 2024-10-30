@@ -22,7 +22,7 @@ $(project): $(object) $(bindir)
 	$(CC) $(LDFLAGS) $(object) -o $@
 
 $(objdir)/%.o: %.c
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -c -o $@ $<
 
 $(object): | $(objdir)
 
