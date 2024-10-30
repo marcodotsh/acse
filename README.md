@@ -69,6 +69,10 @@ steps:
 The `make tests` command only runs the ACSE compiler and the assembler, you
 will have to invoke the simulator manually.
 
+All assembly files produced by ACSE are compatible with
+[RARS](https://github.com/TheThirdOne/rars) so you can also run any compiled
+program through it.
+
 ### Authors
 
 ACSE is copyright (c) 2008-2024 Politecnico di Milano, and is licensed as
