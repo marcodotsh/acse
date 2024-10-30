@@ -2,7 +2,7 @@
 
 ## ACSE 2.0.0
 
-Released on 2024-09-01
+Released on 2024-10-30
 
 First release based on RISC-V.
 
@@ -11,4 +11,3 @@ First release based on RISC-V.
 Released on 2008-01-07
 
 First public release.
-
