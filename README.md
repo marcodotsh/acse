@@ -1,16 +1,61 @@
-# ACSE (Advanced Compiler System for Education)
-
-ACSE is a complete toolchain consisting of a compiler (`acse`), an assembler
-(`asrv32im`), and a simulator (`simrv32im`).
-It provides a simple but reasonably accurate sandbox for learning how a
-compilation toolchain works.
+# ACSE: Advanced Compiler System for Education
 
 ### [Downloads and quick reference](https://github.com/polimi-flc/acse/releases)
 ### [Full documentation](https://polimi-flc.github.io/acse-docs/index.html)
 
+ACSE is a complete toolchain consisting of a compiler (`acse` itself), an
+assembler (`asrv32im`), and a simulator (`simrv32im`), developed for education
+on the topic of compilers in the "Formal Languages and Compilers" course at
+[Politecnico di Milano](https://www.polimi.it).
+
+ACSE, together with its supporting tools, aims to provide a simple but
+reasonably accurate sandbox for learning how a compilation toolchain works.
+It is based on the standard [RISC-V](https://riscv.org) specification:
+specifically, ACSE emits RV32IM assembly code files that are also compatible
+with the GNU toolchain and [RARS](https://github.com/TheThirdOne/rars).
+
+## The LANCE language
+
+The language accepted by ACSE is called LANCE (Language for Compiler Education),
+and is an extremely simplified subset of C. More in detail:
+
+- Variable declarations must be global
+- Variable initialization cannot be performed at declaration time.
+- No support for functions, code is allowed in global scope
+- Only two types are supported, `int` and `int[]` (fixed size array of `int`).
+- Compound operation/assignment operators are missing (`+=`, `++`, ...)
+- The assignment operator is not an expression operator (assignments are kinds
+  of statements)
+- Reduced set of control flow statements (`while`, `do-while`, `if`),
+  no `break` and `continue`.
+- In control statements, all code blocks must be enclosed in braces
+- Only two (builtin) I/O primitives: `read` and `write` which read and write
+  integers from standard input and output respectively.
+
+Here is an example LANCE program which computes the first 10 Fibonacci numbers
+by storing them in an array, and then prints them out:
+
+```
+int v[10], i;
+
+v[0] = 0;
+v[1] = 1;
+i = 2;
+while (i < 10) {
+  v[i] = v[i-1] + v[i-2];
+  i = i + 1;
+}
+
+i = 0;
+while (i < 10) {
+  write(v[i]);
+  i = i + 1;
+}
+```
+
 ## How to use ACSE
 
-ACSE was tested on the following operating systems:
+ACSE is written in C99 and is supported on the following operating systems:
 
 - **Linux** (any recent 32 bit or 64 bit distribution should work)
 - **macOS** (any recent version should work)
@@ -73,7 +118,60 @@ All assembly files produced by ACSE are compatible with
 [RARS](https://github.com/TheThirdOne/rars) so you can also run any compiled
 program through it.
 
-### Authors
+## Internals of ACSE
+
+### Naming conventions and code style
+
+All symbols are in lower camel case, and all functions that operate on a
+structure have a prefix that depends on the structure. Additional prefixes are
+used for special purposes:
+
+- Functions that allocate and initialize a structure are prefixed "new".
+- Functions that initialize a structure allocated externally are
+  prefixed "init".
+- Functions that allocate and initialize a structure, and then add it to
+  a parent object, are prefixed "create".
+- Functions that deinitialize and deallocate a structure are prefixed "delete".
+- Functions that deinitialize a structure without deallocating it are
+  prefixed "deinit".
+
+Additional rules are used for ACSE alone:
+
+- Functions that modify a t_program structure may have no specific prefix.
+- Functions that add instructions to a t_program are prefixed "gen".
+
+All source code files use 2 spaces for alignment and indentation.
+
+### The compilation process
+
+In ACSE, the lexer and parser defined in scanner.l and parser.y are generated
+by Flex and Bison respectively.
+The semantic actions in the parser also take care of initial code generation
+-- which makes ACSE a syntax-driven translator.
+
+The current state of the compilation process is stored in an object of type
+t_program. This object contains the current intermediate representation,
+consisting of the instruction list and the symbol table.
+The intermediate representation is manipulated by the semantic actions by
+using the functions defined in program.h and codegen.h, and is in a
+symbolic and simplified form of RISC-V assembly code.
+Specifically, the function prefixed with `gen` add new instructions at
+the end of the instruction list, and the functions createLabel() and
+assignLabel() allow for the creation and placement of labels.
+The ACSE IR provides infinite temporary registers, and new (unused) registers
+can be retrieved by calling getNewRegister().
+
+After the generation of the initial IR by the frontend, the IR is normalized
+by translating system function calls to lower level code, and other
+pseudo-instructions not defined by the RISC-V standard are translated to
+legal equivalent instruction sequences.
+Then, each temporary register is allocated to a physical machine register,
+spilling values to memory if the number of physical registers is not
+sufficient.
+Finally, the instructions of the program are written to the assembly-language
+output file specified by the command line arguments.
+
+## Authors
 
 ACSE is copyright (c) 2008-2024 Politecnico di Milano, and is licensed as
 GNU GPL version 3. It has been developed by the following contributors:
