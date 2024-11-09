@@ -1,7 +1,7 @@
 # ACSE: Advanced Compiler System for Education
 
 ### [Downloads and quick reference](https://github.com/polimi-flc/acse/releases)
-### [Full documentation](https://polimi-flc.github.io/acse-docs/index.html)
+### [Documentation](https://polimi-flc.github.io/acse-docs/index.html)
 
 ACSE is a complete toolchain consisting of a compiler (`acse` itself), an
 assembler (`asrv32im`), and a simulator (`simrv32im`), developed for education
