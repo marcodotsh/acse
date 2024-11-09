@@ -92,7 +92,7 @@ To compile some examples (located in the directory `tests`) type:
 
       make tests
 
-### Using ACSE
+### Running ACSE
 
 You can compile and run new Lance programs in this way (suppose you
 have saved a Lance program in `myprog.src`):
