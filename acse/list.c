@@ -1,5 +1,5 @@
 /// @file list.c
-/// @brief Implementation of a double-linked list.
+/// @brief A double-linked list implementation
 
 #include <stdlib.h>
 #include <assert.h>

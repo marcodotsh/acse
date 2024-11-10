@@ -1,4 +1,5 @@
 /// @file acse.c
+/// @brief Main file of the ACSE compiler
 
 #include <stdlib.h>
 #include <string.h>

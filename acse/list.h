@@ -1,5 +1,5 @@
 /// @file list.h
-/// @brief A double-linked list.
+/// @brief A double-linked list
 
 #ifndef LIST_H
 #define LIST_H

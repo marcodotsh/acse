@@ -1,5 +1,5 @@
-/// @file target_info.h
-/// @brief Properties of the target machine
+/// @file target_info.c
+/// @brief Properties of the target machine implementation
 
 #include <assert.h>
 #include <stddef.h>

@@ -1,4 +1,6 @@
 /// @file target_transform.c
+/// @brief Transformation pass for lowering target machine details
+///        implementation
 
 #include <stdarg.h>
 #include <stdbool.h>

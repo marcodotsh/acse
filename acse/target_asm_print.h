@@ -1,5 +1,5 @@
 /// @file target_asm_print.h
-/// @brief Generation of the output assembly program.
+/// @brief Generation of the output assembly program
 
 #ifndef TARGET_ASM_PRINT_H
 #define TARGET_ASM_PRINT_H

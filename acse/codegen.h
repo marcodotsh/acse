@@ -1,5 +1,5 @@
 /// @file codegen.h
-/// @brief Code generation functions.
+/// @brief Code generation functions
 
 #ifndef CODEGEN_H
 #define CODEGEN_H

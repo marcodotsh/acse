@@ -1,4 +1,5 @@
 /// @file target_asm_print.c
+/// @brief Generation of the output assembly program implementation
 
 #include <string.h>
 #include <stdint.h>

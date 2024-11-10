@@ -1,4 +1,5 @@
 /// @file cfg.c
+/// @brief Control Flow Graph generation and related analyses implementation
 
 #include <assert.h>
 #include <stdlib.h>

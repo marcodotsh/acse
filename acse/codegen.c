@@ -1,4 +1,5 @@
 /// @file codegen.c
+/// @brief Code generation functions implementation
 
 #include <stddef.h>
 #include "errors.h"

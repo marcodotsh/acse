@@ -1,5 +1,5 @@
 /// @file program.h
-/// @brief Program object definition and management.
+/// @brief Program object definition and management
 
 #ifndef PROGRAM_H
 #define PROGRAM_H
@@ -168,6 +168,7 @@ t_regID getNewRegister(t_program *program);
  * @param label     Label object representing the label argument,
  *                  or NULL if none.
  * @param immediate Immediate argument to the instruction, if needed.
+ * @returns the instruction object added to the instruction list.
  * @warning This is a low-level primitive for generating instructions. This
  *          function is not aware of the semantic meaning of each operation
  *          code, and performs no parameter checking. As a result using this

@@ -1,5 +1,5 @@
 /// @file errors.h
-/// @brief Error logging utilities.
+/// @brief Error logging utilities
 
 #ifndef ERRORS_H
 #define ERRORS_H

@@ -1,4 +1,5 @@
 /// @file program.c
+/// @brief Program object implementation
 
 #include <string.h>
 #include <stdlib.h>

@@ -37,8 +37,9 @@ typedef struct {
  */
 
 /** Performs the initial syntactic-driven translation of the source code.
- * @param fn The path to the source code file to be compiled.
- * @returns The program object produced. */
+ *  This function is mostly a wrapper around yyparse().
+ *  @param fn The path to the source code file to be compiled.
+ *  @returns The program object produced. */
 t_program *parseProgram(char *fn);
 
 /**

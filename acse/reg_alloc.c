@@ -1,4 +1,5 @@
 /// @file reg_alloc.c
+/// @brief Register allocation pass implementation
 
 #include <assert.h>
 #include <stdbool.h>
