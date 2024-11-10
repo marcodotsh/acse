@@ -33,12 +33,12 @@ void deleteRegAllocator(t_regAllocator *regAlloc);
 /** Convert temporary register identifiers to real register identifiers,
  *  analyzing the live interval of each temporary register.
  *  @param regAlloc The register allocator object. */
-void doRegisterAllocation(t_regAllocator *regAlloc);
+void regallocRun(t_regAllocator *regAlloc);
 
 /** Dump the results of register allocation to the specified file.
  *  @param regAlloc The register allocation object.
  *  @param fout     The file where to print the dump. */
-void dumpRegAllocation(t_regAllocator *regAlloc, FILE *fout);
+void regallocDump(t_regAllocator *regAlloc, FILE *fout);
 
 /**
  * @}

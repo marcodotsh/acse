@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     return exitCode(SIM_EXIT_INVALID_FILE, prgExitCode);
   }
 
-  t_svStatus status = svInit();
+  t_svStatus status = initSupervisor();
 
   if (debug)
     dbgRequestEnter();

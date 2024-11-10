@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
   logFp = fopen(logFn, "w");
   if (logFp) {
     fprintf(stderr, " -> Writing the output of parsing to \"%s\"\n", logFn);
-    dumpProgram(program, logFp);
+    programDump(program, logFp);
     fclose(logFp);
   }
   free(logFn);
@@ -154,13 +154,13 @@ int main(int argc, char *argv[])
   free(logFn);
 #endif
   t_regAllocator *regAlloc = newRegAllocator(program);
-  doRegisterAllocation(regAlloc);
+  regallocRun(regAlloc);
 #ifndef NDEBUG
   logFn = getLogFileName("regAlloc", outputFn);
   logFp = fopen(logFn, "w");
   if (logFp) {
     fprintf(stderr, " -> Writing the register bindings to \"%s\"\n", logFn);
-    dumpRegAllocation(regAlloc, logFp);
+    regallocDump(regAlloc, logFp);
     fclose(logFp);
   }
   free(logFn);

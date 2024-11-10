@@ -159,7 +159,7 @@ static void lexAdvance(t_lexer *lex)
   }
 }
 
-static t_token *lexNewToken(t_lexer *lex, t_tokenID id)
+static t_token *createToken(t_lexer *lex, t_tokenID id)
 {
   t_token *tok = calloc(1, sizeof(t_token));
   if (!tok)
@@ -239,7 +239,7 @@ static t_token *lexExpectUnrecognized(t_lexer *lex)
   // Accept at least one character otherwise the lexer gets stuck
   if (lex->lookahead == lex->nextTokenPtr)
     lex->lookahead++;
-  return lexNewToken(lex, TOK_UNRECOGNIZED);
+  return createToken(lex, TOK_UNRECOGNIZED);
 }
 
 
@@ -323,12 +323,12 @@ static t_token *lexExpectNumberOrLocalRef(t_lexer *lex)
       emitError(lex->nextTokenLoc, "local label ID too large");
       return lexExpectUnrecognized(lex);
     }
-    t_token *res = lexNewToken(lex, TOK_LOCAL_REF);
+    t_token *res = createToken(lex, TOK_LOCAL_REF);
     res->value.localRef = direction == 'b' ? -(int32_t)value : value;
     return res;
   }
 
-  t_token *res = lexNewToken(lex, TOK_NUMBER);
+  t_token *res = createToken(lex, TOK_NUMBER);
   res->value.number = negative ? -(int32_t)value : value;
   return res;
 }
@@ -355,7 +355,7 @@ static t_token *lexExpectCharacterOrString(t_lexer *lex)
     return lexExpectUnrecognized(lex);
   }
   t_token *res =
-      lexNewToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
+      createToken(lex, delimiter == '\'' ? TOK_CHARACTER : TOK_STRING);
   res->value.string = lexRangeToString(res->begin + 1, res->end - 1);
   return res;
 }
@@ -368,25 +368,25 @@ static t_token *lexExpectDirective(t_lexer *lex)
   lexAcceptIdentifier(lex);
 
   if (lexIdentEquals(lex, ".text"))
-    return lexNewToken(lex, TOK_TEXT);
+    return createToken(lex, TOK_TEXT);
   if (lexIdentEquals(lex, ".data"))
-    return lexNewToken(lex, TOK_DATA);
+    return createToken(lex, TOK_DATA);
   if (lexIdentEquals(lex, ".space"))
-    return lexNewToken(lex, TOK_SPACE);
+    return createToken(lex, TOK_SPACE);
   if (lexIdentEquals(lex, ".word"))
-    return lexNewToken(lex, TOK_WORD);
+    return createToken(lex, TOK_WORD);
   if (lexIdentEquals(lex, ".half"))
-    return lexNewToken(lex, TOK_HALF);
+    return createToken(lex, TOK_HALF);
   if (lexIdentEquals(lex, ".byte"))
-    return lexNewToken(lex, TOK_BYTE);
+    return createToken(lex, TOK_BYTE);
   if (lexIdentEquals(lex, ".ascii"))
-    return lexNewToken(lex, TOK_ASCII);
+    return createToken(lex, TOK_ASCII);
   if (lexIdentEquals(lex, ".align"))
-    return lexNewToken(lex, TOK_ALIGN);
+    return createToken(lex, TOK_ALIGN);
   if (lexIdentEquals(lex, ".balign"))
-    return lexNewToken(lex, TOK_BALIGN);
+    return createToken(lex, TOK_BALIGN);
   if (lexIdentEquals(lex, ".global"))
-    return lexNewToken(lex, TOK_GLOBAL);
+    return createToken(lex, TOK_GLOBAL);
 
   return lexExpectUnrecognized(lex);
 }
@@ -399,13 +399,13 @@ static t_token *lexExpectAddressing(t_lexer *lex)
   lexAcceptIdentifier(lex);
 
   if (lexIdentEquals(lex, "%hi"))
-    return lexNewToken(lex, TOK_HI);
+    return createToken(lex, TOK_HI);
   if (lexIdentEquals(lex, "%lo"))
-    return lexNewToken(lex, TOK_LO);
+    return createToken(lex, TOK_LO);
   if (lexIdentEquals(lex, "%pcrel_hi"))
-    return lexNewToken(lex, TOK_PCREL_HI);
+    return createToken(lex, TOK_PCREL_HI);
   if (lexIdentEquals(lex, "%pcrel_lo"))
-    return lexNewToken(lex, TOK_PCREL_LO);
+    return createToken(lex, TOK_PCREL_LO);
 
   return lexExpectUnrecognized(lex);
 }
@@ -553,7 +553,7 @@ static t_token *lexExpectIdentifierOrKeyword(t_lexer *lex)
   lexAcceptIdentifier(lex);
   for (int i = 0; kwdata[i].text != NULL; i++) {
     if (lexIdentEquals(lex, kwdata[i].text)) {
-      t_token *res = lexNewToken(lex, kwdata[i].id);
+      t_token *res = createToken(lex, kwdata[i].id);
       if (kwdata[i].id == TOK_REGISTER)
         res->value.reg = kwdata[i].info;
       else if (kwdata[i].id == TOK_MNEMONIC)
@@ -564,7 +564,7 @@ static t_token *lexExpectIdentifierOrKeyword(t_lexer *lex)
     }
   }
 
-  t_token *res = lexNewToken(lex, TOK_ID);
+  t_token *res = createToken(lex, TOK_ID);
   res->value.id = lexRangeToString(res->begin, res->end);
   return res;
 }
@@ -579,22 +579,22 @@ t_token *lexNextToken(t_lexer *lex)
       emitError(lex->nextTokenLoc, "null character in input");
       return lexExpectUnrecognized(lex);
     }
-    return lexNewToken(lex, TOK_EOF);
+    return createToken(lex, TOK_EOF);
   }
 
   if (lexAcceptNewline(lex))
-    return lexNewToken(lex, TOK_NEWLINE);
+    return createToken(lex, TOK_NEWLINE);
   if (lexAcceptChar(lex, ';'))
-    return lexNewToken(lex, TOK_NEWLINE);
+    return createToken(lex, TOK_NEWLINE);
 
   if (lexAcceptChar(lex, ','))
-    return lexNewToken(lex, TOK_COMMA);
+    return createToken(lex, TOK_COMMA);
   if (lexAcceptChar(lex, ':'))
-    return lexNewToken(lex, TOK_COLON);
+    return createToken(lex, TOK_COLON);
   if (lexAcceptChar(lex, '('))
-    return lexNewToken(lex, TOK_LPAR);
+    return createToken(lex, TOK_LPAR);
   if (lexAcceptChar(lex, ')'))
-    return lexNewToken(lex, TOK_RPAR);
+    return createToken(lex, TOK_RPAR);
 
   if (isdigit(*lex->lookahead) || *lex->lookahead == '-' ||
       *lex->lookahead == '+')

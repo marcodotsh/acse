@@ -221,12 +221,12 @@ bool isArray(t_symbol *symbol);
 
 /** Generates the final instruction sequence required at the end of a program.
  * @param program The program to be modified. */
-void genProgramEpilog(t_program *program);
+void genEpilog(t_program *program);
 
 /** Dumps the current state of a program object to the specified file.
  * @param program The program which will be dumped.
  * @param fout    The file where to print the dump. */
-void dumpProgram(t_program *program, FILE *fout);
+void programDump(t_program *program, FILE *fout);
 
 /// @}
 

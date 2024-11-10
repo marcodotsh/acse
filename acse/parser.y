@@ -127,7 +127,7 @@ program
   {
     // Generate the epilog of the program, that is, a call to the
     // `exit' syscall.
-    genProgramEpilog(program);
+    genEpilog(program);
     // Return from yyparse().
     YYACCEPT;
   }

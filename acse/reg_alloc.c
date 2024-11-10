@@ -836,7 +836,7 @@ static void materializeRegAllocInCFG(t_regAllocator *RA)
 }
 
 
-void doRegisterAllocation(t_regAllocator *regalloc)
+void regallocRun(t_regAllocator *regalloc)
 {
   // Bind each temporary register to a physical register using the linear scan
   // algorithm. Spilled registers are all tagged with the fictitious register
@@ -932,7 +932,7 @@ void dumpLiveIntervals(t_listNode *intervals, FILE *fout)
   fflush(fout);
 }
 
-void dumpRegAllocation(t_regAllocator *RA, FILE *fout)
+void regallocDump(t_regAllocator *RA, FILE *fout)
 {
   if (RA == NULL)
     return;

@@ -102,7 +102,7 @@ typedef struct t_outStrTbl {
   size_t tail;
 } t_outStrTbl;
 
-void outStrTblInit(t_outStrTbl *tbl)
+void initOutStrTbl(t_outStrTbl *tbl)
 {
   tbl->bufSz = 64;
   tbl->tail = 0;
@@ -112,7 +112,7 @@ void outStrTblInit(t_outStrTbl *tbl)
   tbl->buf[tbl->tail++] = '\0';
 }
 
-void outStrTblDeinit(t_outStrTbl *tbl)
+void deinitOutStrTbl(t_outStrTbl *tbl)
 {
   free(tbl->buf);
 }
@@ -301,7 +301,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
   Elf32_Addr strtabAddr = dataAddr + objSecGetSize(data);
 
   t_outStrTbl strTbl;
-  outStrTblInit(&strTbl);
+  initOutStrTbl(&strTbl);
   Elf32_Word textSecName, dataSecName, strtabSecName;
   outStrTblAddString(&strTbl, ".text", &textSecName);
   outStrTblAddString(&strTbl, ".data", &dataSecName);
@@ -337,7 +337,7 @@ t_outError outputToELF(t_object *obj, const char *fname)
     goto exit;
 
 exit:
-  outStrTblDeinit(&strTbl);
+  deinitOutStrTbl(&strTbl);
   if (fp)
     fclose(fp);
   return res;

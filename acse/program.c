@@ -472,7 +472,7 @@ t_symbol *getSymbol(t_program *program, char *ID)
 }
 
 
-void genProgramEpilog(t_program *program)
+void genEpilog(t_program *program)
 {
   if (program->pendingLabel != NULL) {
     genExit0Syscall(program);
@@ -490,7 +490,7 @@ void genProgramEpilog(t_program *program)
   return;
 }
 
-void dumpProgram(t_program *program, FILE *fout)
+void programDump(t_program *program, FILE *fout)
 {
   fprintf(fout, "# Program dump\n\n");
 

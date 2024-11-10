@@ -23,7 +23,7 @@ enum {
 };
 
 
-t_svError svInit(void);
+t_svError initSupervisor(void);
 t_svStatus svVMTick(void);
 t_isaInt svGetExitCode(void);
 

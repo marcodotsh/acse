@@ -9,7 +9,7 @@ t_memAddress svStackBottom;
 t_isaInt svExitCode;
 
 
-t_svError svInit(void)
+t_svError initSupervisor(void)
 {
   svStackBottom = svStackTop - SV_STACK_PAGE_SIZE;
   t_memError merr = memMapArea(svStackBottom, SV_STACK_PAGE_SIZE, NULL);
