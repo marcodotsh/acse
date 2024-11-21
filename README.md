@@ -185,6 +185,7 @@ GNU GPL version 3. It has been developed by the following contributors:
 Additional help and input has been provided by:
 
 - Alessandro Barenghi
+- Marcello Bersani
 - Luca Breveglieri
 - Stefano Cherubin
 - Massimo Fioravanti
