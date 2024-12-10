@@ -71,7 +71,7 @@ enum {
   INSTR_OPC_NOP,
   INSTR_OPC_LI,
   INSTR_OPC_LA,
-  INSTR_OPC_LB_G, /* keep Lx_G/Sx_G in the same order as Lx/Sx above! */
+  INSTR_OPC_LB_G, // keep Lx_G/Sx_G in the same order as Lx/Sx above!
   INSTR_OPC_LH_G,
   INSTR_OPC_LW_G,
   INSTR_OPC_LBU_G,

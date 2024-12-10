@@ -368,26 +368,26 @@ static bool objSecMaterializeInstructions(t_objSection *sec)
 
 bool objMaterialize(t_object *obj)
 {
-  /* transform pseudo-instructions to normal instructions */
+  // Transform pseudo-instructions to normal instructions
   if (!objSecExpandPseudoInstructions(obj->text))
     return false;
   if (!objSecExpandPseudoInstructions(obj->data))
     return false;
 
-  /* assign an address to every item in the object */
+  // Assign an address to every item in the object
   uint32_t curAddr = 0x1000;
   if (!objSecMaterializeAddresses(obj->text, &curAddr))
     return false;
   if (!objSecMaterializeAddresses(obj->data, &curAddr))
     return false;
 
-  /* transform label references into constants */
+  // Transform label references into constants
   if (!objSecResolveImmediates(obj->text))
     return false;
   if (!objSecResolveImmediates(obj->data))
     return false;
 
-  /* transform instructions into data */
+  // Transform instructions into data
   if (!objSecMaterializeInstructions(obj->text))
     return false;
   if (!objSecMaterializeInstructions(obj->data))
