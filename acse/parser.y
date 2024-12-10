@@ -223,7 +223,7 @@ if_statement
   }
 ;
 
-/* The `else' part may be missing, in that case no code is generated. */
+/* The `else' part may be missing. */
 else_part
   : ELSE code_block
   | /* empty */
@@ -308,10 +308,7 @@ write_statement
 
 /* The exp rule represents the syntax of expressions. The semantic value of
  * the rule is the register ID that will contain the value of the expression
- * at runtime.
- *   All semantic actions which implement expression operators must handle both
- * the case in which the operands are expression values representing constants
- * or register IDs. */
+ * at runtime. */
 exp
   : NUMBER
   {
