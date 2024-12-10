@@ -101,10 +101,9 @@ t_svStatus svVMTick(void)
       if (status == SV_STATUS_RUNNING)
         cpuClearLastFault();
     } else if (cpuStatus == CPU_STATUS_EBREAK_TRAP) {
-      if (dbgGetEnabled()) {
+      if (dbgGetEnabled())
         dbgRequestEnter();
-        cpuClearLastFault();
-      }
+      cpuClearLastFault();
     } else if (cpuStatus == CPU_STATUS_ILL_INST_FAULT)
       status = SV_STATUS_ILL_INST_FAULT;
     else if (cpuStatus == CPU_STATUS_MEMORY_FAULT)
