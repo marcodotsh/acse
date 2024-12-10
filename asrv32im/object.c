@@ -323,8 +323,8 @@ static bool objSecMaterializeAddresses(t_objSection *sec, uint32_t *curAddr)
         thisSize = encGetInstrLength(itm->body.instr);
         break;
     }
-    // TODO: This won't work in a 32 bit build!!
-    size_t sizeLeft = (size_t)0x100000000ULL - (size_t)(*curAddr);
+    // Same as 0x100000000 - *curAddr but safe for 32-bit-sized size_t
+    size_t sizeLeft = ((size_t)0xFFFFFFFF - (size_t)(*curAddr)) + (size_t)1;
     if (thisSize > sizeLeft) {
       emitError(loc, "section overflows addressing space");
       return false;
