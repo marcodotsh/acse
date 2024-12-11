@@ -1,5 +1,13 @@
 # Release Notes
 
+## ACSE 2.0.2
+
+Released on 2024-12-11
+
+- simrv32im: Fix support for ebreak instructions.
+- asrv32im: Fix error checking on some 32 bit platforms.
+- Minor fixes to the documentation.
+
 ## ACSE 2.0.1
 
 Released on 2024-11-10
