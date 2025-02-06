@@ -1,0 +1,13 @@
+int i,j;
+
+i=5;
+
+j=20;
+
+iif ( iif(write(777); i>3) {write(1);}; (j*5)>i) {
+
+j = i;
+
+}
+
+write(j);

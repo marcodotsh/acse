@@ -77,6 +77,7 @@ void yyerror(const char *msg)
 %token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
+%token <ifStmt> IIF
 
 /*
  * Non-terminal symbol semantic value type declarations
@@ -183,6 +184,7 @@ statement
   | read_statement SEMI
   | write_statement SEMI
   | SEMI
+  | iif_statement
 ;
 
 /* An assignment statement stores the value of an expression in the memory
@@ -221,6 +223,36 @@ if_statement
     // Assign the label to the end of the statement.
     assignLabel(program, $1.lExit);
   }
+;
+
+iif_statement
+  : IIF LPAR istatement exp RPAR
+  {
+    // jump to else if it is present
+    $1.lElse = createLabel(program);
+    genBEQ(program, $4, REG_0, $1.lElse);
+  }
+  code_block
+  {
+    $1.lExit = createLabel(program);
+    genJ(program, $1.lExit);
+    assignLabel(program,$1.lElse);
+  }
+  else_part
+  {
+    assignLabel(program,$1.lExit);
+  }
+
+istatement
+  : assign_statement SEMI
+  | if_statement SEMI
+  | while_statement SEMI
+  | do_while_statement SEMI
+  | return_statement SEMI
+  | read_statement SEMI
+  | write_statement SEMI
+  | SEMI
+  | iif_statement SEMI
 ;
 
 /* The `else' part may be missing. */
