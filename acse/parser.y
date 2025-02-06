@@ -435,6 +435,46 @@ exp
     $$ = getNewRegister(program);
     genOR(program, $$, rNormalizedOp1, rNormalizedOp2);
   }
+  | exp NOT_OP
+  {
+    // generate new register and load 1 into it
+    t_regID rFactorial = getNewRegister(program);
+    genLI(program, rFactorial, 1);
+    // use a temporary register to perform a cycle, initialized to expression value
+    t_regID rCounter = getNewRegister(program);
+    genADD(program, rCounter, $1, REG_0);
+
+    // generate instructions to perform cycle if the counter is > 0
+    // else skip and assign value to the expression
+    t_label *l_cycle = createLabel(program);
+    t_label *l_end = createLabel(program);
+    assignLabel(program, l_cycle);
+    genBLE(program,rCounter,REG_0,l_end);
+    // multiply current counter with partial factorial value
+    genMUL(program,rFactorial,rFactorial,rCounter);
+    // decrement the counter
+    genSUBI(program,rCounter,rCounter,1);
+    // jump back to the start of the cycle
+    genJ(program,l_cycle);
+    assignLabel(program, l_end);
+    $$ = rFactorial;
+  }
+  | OR_OP exp OR_OP %prec NOT_OP
+  {
+    // generate a register to hold final value
+    t_regID rAbsolute = getNewRegister(program);
+    // this is similar to an if else case, we need two labels (else and end)
+    t_label *l_else = createLabel(program);
+    t_label *l_end = createLabel(program);
+    // the number is negative, go to the else case
+    genBLT(program,$2,REG_0,l_else);
+    genADD(program,rAbsolute,$2,REG_0);
+    // add else label, alternative case and then add end label
+    assignLabel(program,l_else);
+    genSUB(program,rAbsolute,REG_0,$2);
+    assignLabel(program,l_end);
+    $$ = rAbsolute;
+  }
 ;
 
 var_id
