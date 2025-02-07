@@ -451,6 +451,19 @@ exp
     genADD(program,rEvaluation,$5,REG_0);
     assignLabel(program,lEnd);
   }
+  | exp TERNARY_OP COLON exp
+  {
+    t_regID rEvaluation = getNewRegister(program);
+    $$ = rEvaluation;
+    t_label *lAlternative = createLabel(program);
+    t_label *lEnd = createLabel(program);
+    genBEQ(program,$1,REG_0,lAlternative);
+    genADD(program,rEvaluation,$1,REG_0);
+    genJ(program,lEnd);
+    assignLabel(program,lAlternative);
+    genADD(program,rEvaluation,$4,REG_0);
+    assignLabel(program,lEnd);
+  }
 ;
 
 var_id

@@ -7,3 +7,5 @@ read(y);
 z = x > y ? 30 : 38;
 
 write(z);
+
+write(x+y ? : -1);
