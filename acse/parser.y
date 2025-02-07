@@ -24,6 +24,10 @@ void yyerror(const char *msg)
   emitError(curFileLoc, "%s", msg);
 }
 
+// stacks for handling currently being evaluated switches
+static t_listNode *switchStack;
+// should contain nodes of type t_switchStmt
+
 %}
 
 /*
@@ -70,6 +74,8 @@ void yyerror(const char *msg)
 %token TYPE
 %token RETURN
 %token READ WRITE ELSE
+%token COLON
+%token SWITCH BREAK DEFAULT
 
 // These are the tokens with a semantic value.
 %token <ifStmt> IF
@@ -77,6 +83,7 @@ void yyerror(const char *msg)
 %token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
+%token <label> CASE
 
 /*
  * Non-terminal symbol semantic value type declarations
@@ -182,6 +189,8 @@ statement
   | return_statement SEMI
   | read_statement SEMI
   | write_statement SEMI
+  | switch_statement
+  | break_statement SEMI
   | SEMI
 ;
 
@@ -227,6 +236,98 @@ if_statement
 else_part
   : ELSE code_block
   | /* empty */
+;
+
+switch_statement
+  : SWITCH LPAR var_id RPAR
+  {
+    // create switch end label and register of loaded variable
+    t_regID rSwitchValue = genLoadVariable(program,$3);
+    t_label *lSwitchEnd = createLabel(program);
+
+    t_switchStmt *data = malloc(sizeof(t_switchStmt));
+
+    data->rVar = rSwitchValue;
+    data->lEnd = lSwitchEnd;
+    data->nextCase = NULL;
+
+    switchStack = listInsert(switchStack, data, 0);    
+  }
+  LBRACE cases default_case RBRACE
+  {
+    t_switchStmt *curSwitch = ((t_switchStmt *)switchStack->data);
+    // assign last jump without break to the end of the switch statement, as the lEnd
+    t_label *nextCase = curSwitch->nextCase;
+    if(nextCase) {
+      assignLabel(program,nextCase);
+    }
+    //assign label to the end of the switch
+    assignLabel(program, curSwitch->lEnd);
+
+    free(curSwitch);
+    //pop item from the list
+    switchStack = listRemoveNode(switchStack,switchStack);
+  }
+;
+
+cases
+  : cases case
+  | case
+;
+
+case
+  : CASE NUMBER COLON
+  {
+    // label later used to go to next case statement condition
+    $1 = createLabel(program);
+    t_regID rCheck = getNewRegister(program);
+    genLI(program,rCheck,$2);
+    genBNE(program,((t_switchStmt *)switchStack->data)->rVar,rCheck,$1);
+    // if there is a case before, add a label to jump here
+    t_label *nextCase = ((t_switchStmt *)switchStack->data)->nextCase;
+    if(nextCase) {
+      assignLabel(program,nextCase);
+    }
+  }
+  statements
+  {
+    // generate the new label to jump to next case or default 
+    // if a break instuction has not appened in statements above
+    t_label *nextCase = createLabel(program);
+    ((t_switchStmt *)switchStack->data)->nextCase = nextCase;
+    genJ(program, nextCase);
+    // assign label reached when previous condition was false
+    assignLabel(program,$1);
+  }
+;
+
+default_case
+  : DEFAULT COLON 
+  {
+    // if there is a case before, add a label to jump here
+    t_label *nextCase = ((t_switchStmt *)switchStack->data)->nextCase;
+    if(nextCase) {
+      assignLabel(program,nextCase);
+    }
+    // no need to have nextCase available later for the default case
+    ((t_switchStmt *)switchStack->data)->nextCase = NULL;
+  }
+  statements
+  | /* empty */
+;
+
+break_statement
+  : BREAK
+  {
+    //if the stack of switches is empty, throw error
+    if(switchStack) {
+      t_label *lEnd = ((t_switchStmt *)switchStack->data)->lEnd;
+      genJ(program,lEnd);
+    }
+    else {
+      yyerror("Break called outside of switch statement");
+    }
+  }
 ;
 
 /* A while statement repeats the execution of its code block as long as the

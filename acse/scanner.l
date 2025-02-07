@@ -72,6 +72,7 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 "&&"                      { return ANDAND; }
 "||"                      { return OROR; }
 ","                       { return COMMA; }
+":"                       { return COLON; }
 
 "do"                      { return DO; }
 "else"                    { return ELSE; }
@@ -81,6 +82,10 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 "return"                  { return RETURN; }
 "read"                    { return READ; }
 "write"                   { return WRITE; }
+"switch"                  { return SWITCH; }
+"case"                    { return CASE; }
+"break"                   { return BREAK;}
+"default"                 { return DEFAULT; }
 
 {ID}                      {
                             yylval.string = strdup(yytext);

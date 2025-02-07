@@ -26,6 +26,12 @@ typedef struct {
   t_label *lExit; ///< Label to the first instruction after the loop.
 } t_whileStmt;
 
+typedef struct {
+  t_label *lEnd; // label to the end of swith
+  t_regID rVar;
+  t_label *nextCase; // label to jump avoiding next case evaluation and directly enter in the body
+} t_switchStmt;
+
 /**
  * @}
  */
