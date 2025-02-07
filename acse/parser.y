@@ -70,6 +70,8 @@ void yyerror(const char *msg)
 %token TYPE
 %token RETURN
 %token READ WRITE ELSE
+%token TERNARY_OP
+%token COLON
 
 // These are the tokens with a semantic value.
 %token <ifStmt> IF
@@ -96,6 +98,7 @@ void yyerror(const char *msg)
  * specific keyword used (%left, %right).
  */
 
+%left TERNARY_OP
 %left OROR
 %left ANDAND
 %left OR_OP
@@ -434,6 +437,19 @@ exp
     genSNE(program, rNormalizedOp2, $3, REG_0);
     $$ = getNewRegister(program);
     genOR(program, $$, rNormalizedOp1, rNormalizedOp2);
+  }
+  | exp TERNARY_OP exp COLON exp
+  {
+    t_regID rEvaluation = getNewRegister(program);
+    $$ = rEvaluation;
+    t_label *lAlternative = createLabel(program);
+    t_label *lEnd = createLabel(program);
+    genBEQ(program,$1,REG_0,lAlternative);
+    genADD(program,rEvaluation,$3,REG_0);
+    genJ(program,lEnd);
+    assignLabel(program,lAlternative);
+    genADD(program,rEvaluation,$5,REG_0);
+    assignLabel(program,lEnd);
   }
 ;
 

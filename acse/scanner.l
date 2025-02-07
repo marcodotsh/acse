@@ -72,6 +72,8 @@ ID                        [a-zA-Z_][a-zA-Z0-9_]*
 "&&"                      { return ANDAND; }
 "||"                      { return OROR; }
 ","                       { return COMMA; }
+"?"                       { return TERNARY_OP; }
+":"                       { return COLON; }
 
 "do"                      { return DO; }
 "else"                    { return ELSE; }

@@ -1,0 +1,9 @@
+int x, y, z;
+
+read(x);
+
+read(y);
+
+z = x > y ? 30 : 38;
+
+write(z);
