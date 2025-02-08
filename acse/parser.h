@@ -26,6 +26,16 @@ typedef struct {
   t_label *lExit; ///< Label to the first instruction after the loop.
 } t_whileStmt;
 
+typedef struct
+{
+  t_label *lStartLoop;
+  t_label *lCounterInit;
+  t_label *lEvaluation;
+  t_label *lEnd;
+  t_regID rTimes;
+} t_iterateStmt;
+
+
 /**
  * @}
  */

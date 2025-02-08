@@ -50,6 +50,7 @@ void yyerror(const char *msg)
   t_label *label;
   t_ifStmt ifStmt;
   t_whileStmt whileStmt;
+  t_iterateStmt iterateStmt;
 }
 
 /*
@@ -70,6 +71,7 @@ void yyerror(const char *msg)
 %token TYPE
 %token RETURN
 %token READ WRITE ELSE
+%token TIMES UNLESS
 
 // These are the tokens with a semantic value.
 %token <ifStmt> IF
@@ -77,6 +79,7 @@ void yyerror(const char *msg)
 %token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
+%token <iterateStmt> ITERATE
 
 /*
  * Non-terminal symbol semantic value type declarations
@@ -183,6 +186,40 @@ statement
   | read_statement SEMI
   | write_statement SEMI
   | SEMI
+  | iterate_statement SEMI
+;
+
+iterate_statement
+  : ITERATE
+  {
+    $1.lStartLoop = createLabel(program);
+    $1.lCounterInit = createLabel(program);
+    $1.lEvaluation = createLabel(program);
+    $1.lEnd = createLabel(program);
+    $1.rTimes = getNewRegister(program);
+    genJ(program,$1.lCounterInit);
+    assignLabel(program, $1.lStartLoop);
+  }
+  code_block
+  {
+    // decrease counter by one, then jump to evaluation of conditions
+    genSUBI(program,$1.rTimes,$1.rTimes,1);
+    genJ(program,$1.lEvaluation);
+    assignLabel(program,$1.lCounterInit);
+  }
+  TIMES LPAR exp RPAR
+  {
+    genADD(program,$1.rTimes,$7,REG_0);
+    assignLabel(program,$1.lEvaluation);
+  }
+  UNLESS LPAR exp RPAR
+  {
+    // check if counter is less than or equal to 0, in that case exit
+    genBLE(program,$1.rTimes,REG_0,$1.lEnd);
+    // check if unless condition is not satisfied and in that case go back to loop execution
+    genBEQ(program,$12,REG_0,$1.lStartLoop);
+    assignLabel(program,$1.lEnd);
+  }
 ;
 
 /* An assignment statement stores the value of an expression in the memory
