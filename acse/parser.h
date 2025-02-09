@@ -26,6 +26,11 @@ typedef struct {
   t_label *lExit; ///< Label to the first instruction after the loop.
 } t_whileStmt;
 
+typedef struct {
+  int start;
+  int end;
+} t_range;
+
 /**
  * @}
  */
@@ -35,6 +40,9 @@ typedef struct {
  * @brief Functions used for syntactic and lexical analysis
  * @{
  */
+
+/*custom defined function*/
+int computeMultibitwiseMask(t_listNode *range_list);
 
 /** Performs the initial syntactic-driven translation of the source code.
  *  This function is mostly a wrapper around yyparse().

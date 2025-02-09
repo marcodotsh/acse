@@ -50,6 +50,7 @@ void yyerror(const char *msg)
   t_label *label;
   t_ifStmt ifStmt;
   t_whileStmt whileStmt;
+  t_range *range;
 }
 
 /*
@@ -70,6 +71,8 @@ void yyerror(const char *msg)
 %token TYPE
 %token RETURN
 %token READ WRITE ELSE
+%token OPENMULTIWISE CLOSEMULTIWISE
+
 
 // These are the tokens with a semantic value.
 %token <ifStmt> IF
@@ -88,6 +91,8 @@ void yyerror(const char *msg)
 
 %type <var> var_id
 %type <reg> exp
+%type <list> range_list
+%type <range> range
 
 /*
  * Operator precedence and associativity
@@ -106,6 +111,7 @@ void yyerror(const char *msg)
 %left SHL_OP SHR_OP
 %left PLUS MINUS
 %left MUL_OP DIV_OP MOD_OP
+%left OPENMULTIWISE
 %right NOT_OP
 
 /*
@@ -435,7 +441,54 @@ exp
     $$ = getNewRegister(program);
     genOR(program, $$, rNormalizedOp1, rNormalizedOp2);
   }
+  | exp OPENMULTIWISE range_list CLOSEMULTIWISE
+  {
+    // compile time computation of immediate, as it is a constant
+    int bitmask = computeMultibitwiseMask($3);
+    $$ = getNewRegister(program);
+    genANDI(program, $$, $1, bitmask);
+
+    for(int i = 0; i<listLength($3); i++) {
+      t_range *data = ((t_range *)listGetNodeAt($3, i)->data);
+      free(data);
+    }
+    $3 = deleteList($3);
+  
+  }
 ;
+
+range_list
+  : range_list COMMA range
+  {
+    // check previous range and current range do not overlap, if they do throw error
+    int end_last = ((t_range *)listGetLastNode($1)->data)->end;
+    int start_new = $3->start;
+    if(end_last > start_new) {
+      yyerror("invalid range for multiwise operator");
+      YYERROR;
+    }
+    // insert element pointed from range to end of list pointed from range_list
+    $$ = listInsert($1, $3, -1);
+  }
+  | range
+  {
+    // insert element at the end of list
+    $$ = listInsert(NULL, $1, -1);
+  }
+;
+
+range
+  : NUMBER MINUS NUMBER
+  {
+    $$ = malloc(sizeof(t_range));
+    $$->start = $1;
+    $$->end = $3;
+
+    if($$->start > $$->end) {
+      yyerror("invalid range for multiwise operator");
+      YYERROR;
+    }
+  }
 
 var_id
   : IDENTIFIER
@@ -451,6 +504,29 @@ var_id
 ;
 
 %%
+
+int computeMultibitwiseMask(t_listNode *range_list) {
+  int len = listLength(range_list);
+
+  int bitmask = 0;
+
+  for(int i = 0; i<len; i++) {
+    t_range *data = ((t_range *)listGetNodeAt(range_list, i)->data);
+    int partial = 0;
+    // quantity to shift the one above to obtain a correct-length partial bitmask window
+    int range_length = data->end - data->start + 1;
+    for(int j = 0; j < range_length; j++) {
+      partial <<= 1;
+      partial += 1;
+    }
+    int offset_lenght = data->start;
+    partial <<= offset_lenght;
+    
+    bitmask |= partial;
+  }
+
+  return bitmask;
+}
 
 t_program *parseProgram(char *fn)
 {
