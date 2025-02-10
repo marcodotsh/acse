@@ -50,6 +50,7 @@ void yyerror(const char *msg)
   t_label *label;
   t_ifStmt ifStmt;
   t_whileStmt whileStmt;
+  t_convergeStmt convergeStmt;
 }
 
 /*
@@ -77,6 +78,7 @@ void yyerror(const char *msg)
 %token <label> DO
 %token <string> IDENTIFIER
 %token <integer> NUMBER
+%token <convergeStmt> CONVERGE
 
 /*
  * Non-terminal symbol semantic value type declarations
@@ -183,6 +185,7 @@ statement
   | read_statement SEMI
   | write_statement SEMI
   | SEMI
+  | converge_statement
 ;
 
 /* An assignment statement stores the value of an expression in the memory
@@ -271,6 +274,23 @@ do_while_statement
     genBNE(program, $6, REG_0, $1);
   }
 ;
+
+converge_statement
+  : CONVERGE var_id 
+  {
+    $1.lIteration = createLabel(program);
+    assignLabel(program,$1.lIteration);
+    // load value of variable in a register for evaluation after iteration
+    // genLoadVariable takes care of error in case var_id it is not a scalar int
+    $1.rLastValue = genLoadVariable(program, $2);
+  }
+  code_block
+  {
+    // load new updated value
+    t_regID rNewValue = genLoadVariable(program, $2);
+    // if the values are different, jump back to iteration
+    genBNE(program,rNewValue,$1.rLastValue,$1.lIteration);
+  }
 
 /* A return statement simply exits from the program, and hence translates to a
  * call to the `exit' syscall. */

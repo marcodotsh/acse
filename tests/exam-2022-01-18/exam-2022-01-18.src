@@ -1,0 +1,16 @@
+int a, b;
+a = 31;
+b=1;
+
+converge a {
+    a = a / 3;
+    write(a);
+}
+// Iterates 5 times, and writes:
+// 10, 3, 1, 0, 0
+
+converge b {
+    write(b);
+}
+// Iterates 1 time, and writes:
+// 1
