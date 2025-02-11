@@ -70,6 +70,7 @@ void yyerror(const char *msg)
 %token TYPE
 %token RETURN
 %token READ WRITE ELSE
+%token ZIP
 
 // These are the tokens with a semantic value.
 %token <ifStmt> IF
@@ -183,6 +184,66 @@ statement
   | read_statement SEMI
   | write_statement SEMI
   | SEMI
+  | zip_statement SEMI
+;
+
+zip_statement
+  : var_id ASSIGN ZIP LPAR var_id COMMA var_id RPAR
+  {
+    //check all var_id are referring to arrays of integers
+    if($1->type != TYPE_INT_ARRAY) {
+      yyerror("result of zip statement is not an array!");
+      YYERROR;
+    }
+    if($5->type != TYPE_INT_ARRAY) {
+      yyerror("first operand of zip statement is not an array!");
+      YYERROR;
+    }
+    if($7->type != TYPE_INT_ARRAY) {
+      yyerror("second operand of zip statement is not an array!");
+      YYERROR;
+    }
+    int minOperandSize = $5->arraySize < $7->arraySize ? $5->arraySize : $7->arraySize;
+    int resultSize = $1->arraySize;
+    // lenght of cycle to use is equal to minimum between minOperandSize or (resultSize + 1) / 2
+    int iterationTimes = minOperandSize < (resultSize + 1)/2 ? minOperandSize : (resultSize + 1)/2;
+    // store in a reg current position where to store in result array,
+    // will also be used to check in the middle of the cycle if we need to go to the end
+    t_label *lCycle = createLabel(program);
+    t_label *lEnd = createLabel(program);
+    // register where to keep index to store in result
+    t_regID rResultIndex = getNewRegister(program);
+    // register where to keep index to load from operands
+    t_regID rOperandIndex = getNewRegister(program);
+    // registers to use BGE as immediates are not directly supported
+    t_regID rIterationTimes = getNewRegister(program);
+    t_regID rResultSize = getNewRegister(program);
+    // initialize indexes to 0, load in registers immediates iterationTimes and resultSize
+    genADD(program, rResultIndex, REG_0, REG_0);
+    genADD(program, rOperandIndex, REG_0, REG_0);
+    genADDI(program, rIterationTimes, REG_0, iterationTimes);
+    genADDI(program, rResultSize, REG_0, resultSize);
+    // start iterating
+    assignLabel(program,lCycle);
+    // if the operand index (that increases by 1 at each iteration) is ge than iterationTimes,
+    // go to end of loop
+    genBGE(program,rOperandIndex,rIterationTimes,lEnd);
+    // load 1st operand array element and store in result array element
+    genStoreRegisterToArrayElement(program,$1,rResultIndex,
+    genLoadArrayElement(program,$5,rOperandIndex));
+    // increase result index by 1
+    genADDI(program,rResultIndex,rResultIndex,1);
+    // if result index is ge than resultSize, go to end of loop
+    genBGE(program,rResultIndex,rResultSize,lEnd);
+    // load 2nd operand array element and store in result array element
+    genStoreRegisterToArrayElement(program,$1,rResultIndex,
+    genLoadArrayElement(program,$7,rOperandIndex));
+    // increase indexes by 1
+    genADDI(program,rResultIndex,rResultIndex,1);
+    genADDI(program,rOperandIndex,rOperandIndex,1);
+    genJ(program,lCycle);
+    assignLabel(program,lEnd);
+  }
 ;
 
 /* An assignment statement stores the value of an expression in the memory
