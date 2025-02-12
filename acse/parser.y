@@ -19,6 +19,9 @@
 // The program currently being compiled.
 static t_program *program;
 
+// helper variable to use in forall_statement and childen cases
+static t_forallStmt *forallStmt;
+
 void yyerror(const char *msg)
 {
   emitError(curFileLoc, "%s", msg);
@@ -70,6 +73,7 @@ void yyerror(const char *msg)
 %token TYPE
 %token RETURN
 %token READ WRITE ELSE
+%token FORALL FROM TO WHEN
 
 // These are the tokens with a semantic value.
 %token <ifStmt> IF
@@ -183,6 +187,82 @@ statement
   | read_statement SEMI
   | write_statement SEMI
   | SEMI
+  | forall_statement
+;
+
+forall_statement
+  : FORALL var_id FROM exp
+    {
+      if($2->type != TYPE_INT) { yyerror("variable is not a scalar int"); YYERROR; }
+      if(forallStmt!=NULL) { yyerror("forall statement is not nestable"); YYERROR; }
+      
+      // initialize forallStmt srtuct
+      forallStmt = malloc(sizeof(t_forallStmt));
+      forallStmt->lStartLoop = createLabel(program);
+      forallStmt->lEndLoop = createLabel(program);
+      forallStmt->lEndCases = createLabel(program);
+      forallStmt->lNextCase = NULL;
+      forallStmt->sIterVar = $2;
+
+      // initialize variable (load, initialize, store)
+      t_regID rIterVar = genLoadVariable(program,forallStmt->sIterVar);
+      genADD(program,rIterVar,$4,REG_0);
+      genStoreRegisterToVariable(program,forallStmt->sIterVar,rIterVar);
+
+      assignLabel(program, forallStmt->lStartLoop);
+    }    
+    TO exp
+    {
+      // if the variable is ge than exp, go to the end
+      // load variable to register (load, store not necessary as it is not written here)
+      t_regID rIterVar = genLoadVariable(program,forallStmt->sIterVar);
+      genBGE(program,rIterVar,$7,forallStmt->lEndLoop);
+    }
+    cases
+    {
+      // this if is true only if some previous case has generated a label
+      if(forallStmt->lNextCase) { assignLabel(program, forallStmt->lNextCase); }
+    }
+    ELSE code_block
+    {
+      assignLabel(program,forallStmt->lEndCases);
+      // before jumping, an increase is performed on the iteration variable
+      t_regID rIterVar = genLoadVariable(program,forallStmt->sIterVar);
+      genADDI(program,rIterVar,rIterVar,1);
+      genStoreRegisterToVariable(program,forallStmt->sIterVar,rIterVar);
+      // jump to start of iteration
+      genJ(program,forallStmt->lStartLoop);
+      // here we arrive when we finish to iterate
+      assignLabel(program,forallStmt->lEndLoop);
+      free(forallStmt);
+      forallStmt = NULL;
+    }
+;
+
+cases
+  : cases case
+  | /* empty */
+;
+
+case
+  : WHEN
+    {
+      // this if is true only if some previous case has generated a label
+      if(forallStmt->lNextCase) { assignLabel(program, forallStmt->lNextCase); }
+    }
+    exp
+    {
+      forallStmt->lNextCase = createLabel(program);
+      // if the iterVar is not equal to exp, go to the next case
+      // load variable to register (load, store not necessary as it is not written here)
+      t_regID rIterVar = genLoadVariable(program,forallStmt->sIterVar);
+      genBNE(program,rIterVar,$3,forallStmt->lNextCase);
+    }
+    code_block
+    {
+      // if we reached this, we jump to the end of cases
+      genJ(program,forallStmt->lEndCases);
+    }
 ;
 
 /* An assignment statement stores the value of an expression in the memory

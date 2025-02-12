@@ -1,0 +1,31 @@
+int i, a;
+
+a = 10;
+
+forall i from 0+0 to 11-1
+    when 2+0 {
+        a = a - 1;
+        write(-1);
+    }
+    when 5+2 {
+        a = a - 3;
+        write(-3);
+    }
+    else {
+        write(a);
+    }
+
+a = 10;
+
+forall i from 0+0 to a
+    when 2+0 {
+        a = a - 1;
+        write(-1);
+    }
+    when 5+2 {
+        a = a - 3;
+        write(-3);
+    }
+    else {
+        write(a);
+    }
